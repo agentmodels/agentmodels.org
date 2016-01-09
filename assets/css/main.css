@@ -4,6 +4,7 @@ html {
 
 h1 {
     font-size: 160%;
+    color: #444;
 }
 
 .site-title {
@@ -11,6 +12,10 @@ h1 {
     font-size: 120%;
     color: #222;
     text-decoration: none;
+}
+
+a.site-title:hover {
+    text-decoration: underline
 }
 
 .page-content {
