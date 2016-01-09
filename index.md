@@ -8,7 +8,9 @@ layout: default
 
 {% for p in sorted_pages %}
     {% if p.layout == 'chapter' %}
-- [{{ p.title }}]({{ site.baseurl }}{{ p.url }})<br>
+        {% if p.status == 'stub' %}
+- **{{ p.title }}**<br>{% else %}
+- **[{{ p.title }}]({{ site.baseurl }}{{ p.url }})**<br>{% endif %}
     <em>{{ p.description }}</em>
     {% endif %}
 {% endfor %}
