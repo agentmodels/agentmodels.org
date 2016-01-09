@@ -18,6 +18,10 @@ a.site-title:hover {
     text-decoration: underline
 }
 
+a.chapter-link {
+    color: #095AD3;
+}
+
 .page-content {
     margin-top: 30px;
     margin-bottom: 30px;

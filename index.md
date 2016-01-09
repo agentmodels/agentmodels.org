@@ -10,7 +10,7 @@ layout: default
     {% if p.layout == 'chapter' %}
         {% if p.status == 'stub' %}
 - **{{ p.title }}**<br>{% else %}
-- **[{{ p.title }}]({{ site.baseurl }}{{ p.url }})**<br>{% endif %}
+- **<a class="chapter-link" href="{{ site.baseurl }}{{ p.url }}">{{ p.title }}</a>**<br>{% endif %}
     <em>{{ p.description }}</em>
     {% endif %}
 {% endfor %}
