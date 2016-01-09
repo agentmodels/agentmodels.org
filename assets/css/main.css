@@ -1,0 +1,27 @@
+html {
+    padding: 30px;
+}
+
+h1 {
+    font-size: 160%;
+}
+
+.site-title {
+    display: block;
+    font-size: 120%;
+    color: #222;
+    text-decoration: none;
+}
+
+.page-content {
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+
+footer {
+    font-size: 80%
+}
+
+footer a {
+    color: #bbb
+}

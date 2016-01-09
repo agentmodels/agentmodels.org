@@ -1,0 +1,7 @@
+# Site settings
+title: Modeling Agents with Probabilistic Programs
+baseurl: ""
+url: "http://agentmodels.org"
+
+# Build settings
+markdown: kramdown
