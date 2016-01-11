@@ -1,5 +1,7 @@
 html {
-    padding: 30px;
+    font-family: Merriweather, Georgia, 'Times New Roman', serif;
+    color: #fff;
+    background-color: #333333;    
 }
 
 h1 {
@@ -10,7 +12,7 @@ h1 {
 .site-title {
     display: block;
     font-size: 120%;
-    color: #222;
+    color: #eee;
     text-decoration: none;
 }
 
@@ -23,8 +25,15 @@ a.chapter-link {
 }
 
 .page-content {
-    margin-top: 30px;
-    margin-bottom: 30px;
+    line-height: 23px;
+    padding: 40px;
+    background-color: #fff;
+    color: #000;
+    min-height: 500px;
+}
+
+header, footer {
+    padding: 30px;
 }
 
 footer {
