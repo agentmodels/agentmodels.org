@@ -5,3 +5,5 @@ description: Discuss soft-max noise, limited memory, heuristics/biases, motivati
 status: stub
 is_section: true
 ---
+
+- hawthorne paper
