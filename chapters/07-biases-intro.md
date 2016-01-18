@@ -7,3 +7,5 @@ is_section: true
 ---
 
 - hawthorne paper
+
+- discuss which biases show up for single decisions already, and which require multiple sequential decisions?
