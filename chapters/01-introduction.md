@@ -1,6 +1,6 @@
 ---
 layout: chapter
-title: 1. Introduction
+title: Introduction
 description: "Motivating example of inferring preferences from observed choices. Introduce utility-based, decision-theoretic agents implementing as programs. Introduce inference of preferences by inverting the agent models. Taster of a Webppl agent model"
 is_section: true
 ---
