@@ -8,13 +8,13 @@ layout: default
     {% if p.layout == 'chapter' %}
         {% if p.is_section %}
             {% if p.status == 'stub' %}
-- **{{ p.title }}**<br>{% else %}
-- **<a class="chapter-link" href="{{ site.baseurl }}{{ p.url }}">{{ p.title }}</a>**<br>{% endif %}
+1. **{{ p.title }}**<br>{% else %}
+1. **<a class="chapter-link" href="{{ site.baseurl }}{{ p.url }}">{{ p.title }}</a>**<br>{% endif %}
     <em>{{ p.description }}</em>
         {% else %}
             {% if p.status == 'stub' %}
-    - **{{ p.title }}**<br>{% else %}
-    - **<a class="chapter-link" href="{{ site.baseurl }}{{ p.url }}">{{ p.title }}</a>**<br>{% endif %}
+    1. **{{ p.title }}**<br>{% else %}
+    1. **<a class="chapter-link" href="{{ site.baseurl }}{{ p.url }}">{{ p.title }}</a>**<br>{% endif %}
         <em>{{ p.description }}</em>        
         {% endif %} <!-- p.is_section -->
     {% endif %} <!-- p.layout == 'chapter' -->
