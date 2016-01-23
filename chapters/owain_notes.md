@@ -33,3 +33,53 @@ This tutorial is about turning mathematical models of rational agents and turnin
 The box below is a taster of what you'll learn on the tutorial. This is an agent that solves the sequential planning problem in Example 1, preferring Store 2 to Store 1. The code runs live in the browser (with the encoding of the environment ommitted here -- we show later how to encode the environment). The math that the program implements is shown above.
 
 
+# Chapter 2: Probabilistic programming in Webppl
+
+## Introduction
+This chapter introduces the probabilistic programming language Webppl (pronounced "web people") that we use to model agents throughout this tutorial. We give a brief overview of the features that are essential to this tutorial. If you have never encountered probabilistic programming before, you might benefit from reading some introductory material. There short articles [here](plenthusiast) and [here](mohammed) that provide a general overview. There is an interactive tutorial covering probabilistic programming and Bayesian inference at [probmods](https://probmods.org), which uses a language very similar to Webppl. If you have some background in programming languages, there is a [tutorial](https://dippl.org) on how to implement Webppl (which will also give a sense of how the language works).
+
+Most of the code examples we provide will run in your browser (ideally Chrome/Safari). Webppl can also be installed locally and run from the command line --- see [here](https://webppl.org).
+
+
+## Webppl: a functionally pure subset of Javascript
+Webppl includes a subset of Javascript, and follows the syntax of Javascript for this subset. (Since we only use a limited subset of Javascript, you will only need a basic knowledge of Javascript to use Webppl). 
+
+This program uses most of the available JS syntax:
+
+~~~~
+// Warn user when input to natural log function not positive
+var verboseLog = function(x) {
+    var warning = "Warning: input to log was not a positive number"
+    var testCondition = (typeof(x) != 'number') || x <= 0
+    if (testCondition){
+        console.log(warning)}
+    return Math.log(x)
+}
+
+[verboseLog(1), verboseLog(-1), verboseLog({}), verboseLog(true)] 
+
+~~~~
+
+Essential features:
+Language is subset of JS. (Since we only use small subset, you'll be fine if you only know very basics of JS). 
+
+Only functional things, or library calls to non-functional (provided they don't take webppl functions or violate referential opacity) JS.
+
+examples:
+can't use assignment. can't use for loop. use copying and map.
+
+libraries: we will use math library and webppl builtins. 
+
+
+
+webppl primitives
+erps. bernoulliERP (flip). uniformDraw. normal.
+
+attributes of erps.
+
+definition of geometric, use recurison. then show properties of ERP.
+
+inference:
+enumerate, condition, factor. rejection / particle filter. 
+
+
