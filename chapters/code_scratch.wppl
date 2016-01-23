@@ -1,0 +1,21 @@
+// code for chapt 3
+
+var consequence = function(action){
+  var table = { italian: 9, french:6 }
+  return table[action]
+}
+
+// maxing agent
+var agent = function(){
+  return consequence('italian') > consequence('french') ? 'italian' : 'french'
+}
+
+
+// planning as inference agent
+
+var agent = function(){
+  var action = uniformDraw(['french', 'italian'])
+  
+console.log('ag', agent())
+                                                
+  
