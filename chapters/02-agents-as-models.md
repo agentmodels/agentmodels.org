@@ -56,12 +56,14 @@ map( function(i){console.log('array element:')}, ar);
 Webppl has an array of built-in functions for sampling random variables (i.e. generating random numbers from a particular probability distribution). These will be familiar from other scientific/numeric computing libraries.
 
 ~~~~
-var fairCoinflip = flip(0.5)
-var biasedCoinflip = flip(0.6)
+var fairCoinFlip = flip(0.5)
+var biasedCoinFlip = flip(0.6)
 var integerLess6 = uniformDraw([1,2,3,4,5])
 var coinWithSide = categorical( [.49, .49, .02], ['heads', 'tails', 'side'])
 
 var gaussianDraw = gaussian(0,1)
+
+[fairCoinFlip, biasedCoinFlip, integerLess6, coinWithSide, gaussianDraw]
 ~~~~
 
 Additional functions for sampling random variables can be defined. This example uses recursion to define a sampler for the Geometric distription with parameter `p`: 
