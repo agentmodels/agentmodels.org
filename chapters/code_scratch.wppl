@@ -1,21 +1,76 @@
 // code for chapt 3
 
-var consequence = function(action){
-  var table = { italian: 9, french:6 }
-  return table[action]
-}
 
-// maxing agent
-var agent = function(){
-  return consequence('italian') > consequence('french') ? 'italian' : 'french'
-}
+var firstExample = function(){
 
-
-// planning as inference agent
-
-var agent = function(){
-  var action = uniformDraw(['french', 'italian'])
+  var consequence = function(action){
+    var table = { italian:'pizza', french:'no pizza' }
+    return table[action]
+  }
   
-console.log('ag', agent())
+  var utility = function(consequence){
+    return consequence == 'pizza' ? 1 : 0
+  }
+  
+  // maxing agent
+  var maxAgent = function(){
+    return utility(consequence('italian')) > utility(consequence('french')) ? 'italian' : 'french'
+  }
+  
+
+  // planning as inference agent
+  
+  var agent = function(){
+    return Enumerate(function(){
+      var action = uniformDraw(['french', 'italian'])
+      condition( consequence(action) == 'pizza' )
+    return action
+    })
+  }
+  
+  return {maxAgent: maxAgent(), agent: sample(agent())}
+}
+
+
+var secondExample = function(){
+  // multi-attribute: find best restaurant, given features
+  
+  var consequence = function(action){
+    var restaurantToVector = { 1: [2, 9, 9], // [price, food, location]
+                               2: [4, 6, 7],
+                               3: [9, 4, 7] }
+    return restaurantToVector[action]
+  }
+  
+
+  var utility = function(vector){
+    return vector[0]*0.8 + vector[1]*0.9 + vector[2]*0.5
+  }
+  
+  var argMax = function(f,ar){return maxWith(f,ar)[0]}
+  
+  
+  var maxAgent = function(){
+    return argMax( function(action){return utility(consequence(action))}, [1,2,3])
+  }
+
+  var agent = function(){
+    return Enumerate(function(){
+      var action = uniformDraw([1,2,3])
+      condition( utility(consequence(action)) > 13 )
+    return action
+    })
+  }
+
+  return {maxAgent: maxAgent(), agent: [sample(agent()), sample(agent()), sample(agent()), sample(agent())]}
+}
+
+
+
+
+
+console.log('ag', firstExample(), secondExample())
                                                 
   
+
+

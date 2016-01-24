@@ -105,7 +105,7 @@ sample(firstCoin) // samples of value of first coin, conditioned on total being 
 var moreThanTwoHeads = function(){
   var a = flip(0.5)
   var b = flip(0.5)
-  var c = flip(0.5)
+  var c = flip(0.5)t
   condition( a + b + c >= 2 )
   return a}
 
@@ -121,5 +121,18 @@ Next chapter: [Modeling simple decision problems](/chapters/03-decisions.html)
 
 1. take option with maxU consequences (deterministic). planning as inference formalism. 
 2. take option with max exptU consequences. need expectation. 
+
+PLAN:
+
+Go through details of getting code working. 
+Some plans for Tuesday: need some concrete tasks. 
+
+Continuing on with MDP and POMDP agents. That's where we need Gridworld. So one thing for Tuesday could be writing spec for Gridworld, including looking at standard examples. With spec for Gridworld, we can also look at concrete instances of the complexity question. 
+
+MDP agent: simplify by removing simulate/expU distinction. (MDP can be made simpler but will have less continuity with biases version). 
+
+POMDP agent: investigate caching issue. Look at complexity for multi-arm bandits. A task is to implement stochastic bandits in the same framework.
+
+We'd like to do the restaurant example in a Gridworld (many movements ruled out) and with 
 
 
