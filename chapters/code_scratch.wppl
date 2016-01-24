@@ -65,7 +65,9 @@ var secondExample = function(){
   return {maxAgent: maxAgent(), agent: [sample(agent()), sample(agent()), sample(agent()), sample(agent())]}
 }
 
-
+// example with two actions. agent calls function 'agent at next timestep'. agent at timestep1 is agent's model of itself.
+// maybe its wrong. well see both cases later. could illustrate failure of this explicitly in biases section by
+// showing the two different models. 
 
 
 

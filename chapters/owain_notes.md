@@ -124,6 +124,14 @@ Next chapter: [Modeling simple decision problems](/chapters/03-decisions.html)
 
 PLAN:
 
+//MDP and POMDP models
+
+// stuff written
+
+// 
+
+// plans for this week
+
 Go through details of getting code working. 
 Some plans for Tuesday: need some concrete tasks. 
 
@@ -136,3 +144,20 @@ POMDP agent: investigate caching issue. Look at complexity for multi-arm bandits
 We'd like to do the restaurant example in a Gridworld (many movements ruled out) and with 
 
 
+## naming:     state={ observedState:'A', latentState:{B:1, A:1, etc.} }
+## don't call the agent's beliefState a state. call it posterior on latent states
+
+
+
+
+## discuss VOI somewhere in POMDP section
+
+
+## MDP and POMDP: implement Andreas vocab change ASAP
+
+## MDP and POMDP: if rewards are stochastic, natural to record how well the agent actually did (fix bandit case). 
+
+
+## Speculative tasks
+- Max ent IRL
+- Implement Q-learning in webppl. To what degree can it be done in a similar style to current MDP agent?
