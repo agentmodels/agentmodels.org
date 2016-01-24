@@ -51,6 +51,13 @@ a.chapter-link {
     margin-left: auto;
 }
 
+ol li {
+    list-style-type: upper-roman
+}
+ol li ol li {
+    list-style-type: decimal;
+}
+
 header, footer {
     padding: 30px;
 }
