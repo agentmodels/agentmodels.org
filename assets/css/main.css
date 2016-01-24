@@ -7,6 +7,17 @@ html {
 h1 {
     font-size: 160%;
     color: #444;
+    margin: 1em 0 1.5em 0;
+}
+
+h2 {
+    font-size: 140%;
+    margin: 1.5em 0 1em 0;
+}
+
+h3 {
+    font-size: 120%;
+    margin: 1.5em 0 1em 0;
 }
 
 .site-title {
@@ -38,6 +49,13 @@ a.chapter-link {
     max-width: 600px;
     margin-right: auto;
     margin-left: auto;
+}
+
+ol li {
+    list-style-type: upper-roman
+}
+ol li ol li {
+    list-style-type: decimal;
 }
 
 header, footer {
