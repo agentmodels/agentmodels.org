@@ -112,7 +112,7 @@ sample(firstCoin) // samples of value of first coin, conditioned on total being 
 var moreThanTwoHeads = function(){
   var a = flip(0.5)
   var b = flip(0.5)
-  var c = flip(0.5)t
+  var c = flip(0.5)
   condition( a + b + c >= 2 )
   return a}
 
