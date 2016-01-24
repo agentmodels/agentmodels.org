@@ -7,7 +7,7 @@ is_section: true
 
 
 ## Introduction
-This chapter introduces the probabilistic programming language Webppl (pronounced "web people") that we use to model agents throughout this tutorial. We give a brief overview of the features that are essential to this tutorial. If you have never encountered probabilistic programming before, you might benefit from reading some introductory material. There short articles [here](plenthusiast) and [here](mohammed) that provide a general overview. There is an interactive tutorial covering probabilistic programming and Bayesian inference at [probmods](https://probmods.org), which uses a language very similar to Webppl. If you have some background in programming languages, there is a [tutorial](https://dippl.org) on how to implement Webppl (which will also give a sense of how the language works).
+This chapter introduces the probabilistic programming language Webppl (pronounced "web people") that we use to model agents throughout this tutorial. We give a brief overview of the features that are essential to this tutorial. If you have never encountered probabilistic programming before, you might benefit from reading some introductory material. There are short articles [here](http://plenthusiast) and [here](http://mohammed) that provide a general overview. There is an interactive tutorial covering probabilistic programming and Bayesian inference at [probmods](https://probmods.org), which uses a language very similar to Webppl. If you have some background in programming languages, there is a [tutorial](https://dippl.org) on how to implement Webppl (which will also give a sense of how the language works).
 
 Most of the code examples we provide will run in your browser. Webppl can also be installed locally and run from the command line --- see [here](https://webppl.org).
 
@@ -67,13 +67,13 @@ var gaussianDraw = gaussian(0,1)
 ~~~~
 
 Additional functions for sampling random variables can be defined. This example uses recursion to define a sampler for the Geometric distription with parameter `p`: 
-~~~
+~~~~
 var geometric = function(p) {
   return flip(p)?1+geometric(p):1
 }
 
 geometric(0.5)
-~~~
+~~~~
 
 What makes Webppl different from conventional programming languages is its ability to represent and manipulate *probability distributions*. Elementary Random Primitives (ERPs) are the basic object type that represents distributions. ERPs allow you to sample values from a distribution. But they also allow you to compute the log-probability of a possible sampled value.
 
@@ -81,7 +81,7 @@ The functions above that generate random samples are defined in the Webppl libra
 
 To create a new ERP, we pass a *thunk* (a function with no arguments) which has a random output, to a *marginalization* or *inference* function. For example, we can use `bernoulliERP` to construct a Binomial distribution:
 
-~~~
+~~~~
 var binomial = function(){
   var a = flip(0.5)
   var b = flip(0.5)
@@ -92,12 +92,12 @@ var binomialERP = Enumerate(binomial)
 
 print(binomialERP)
 [sample(binomialERP), sample(binomialERP), sample(binomialERP)]
-~~~
+~~~~
 
 The function `Enumerate` is an *inference function* that computes the marginal probability of each possible output of the function `binomial` by enumerating (using a standard search algorithm) each possible value of the random variables (`a`, `b` and `c`) in the function body. Using `sample` we generate random binomial samples.
 
 ### Bayesian inference by conditioning
-The most important use of inference functions like `Enumerate` is for *inference*. Suppose a function produces random outputs. If there are some random variables in the body of the function, we can ask: what is the likely value of the random variables given the observed output of the function? For example, if three fair coins produce exactly two Heads, what is the probability that the first coin landed Heads? [Maybe use an example that isn't so intractable]. 
+The most important use of inference functions like `Enumerate` is for inference. Suppose a function produces random outputs. If there are some random variables in the body of the function, we can ask: what is the likely value of the random variables given the observed output of the function? For example, if three fair coins produce exactly two Heads, what is the probability that the first coin landed Heads? [Maybe use an example that isn't so intractable]. 
 
 ~~~~
 var twoHeads = function(){
