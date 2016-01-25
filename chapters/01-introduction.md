@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: Introduction
-description: "Motivating example of inferring preferences from observed choices. Introduce utility-based, decision-theoretic agents implementing as programs. Introduce inference of preferences by inverting the agent models. Taster of a Webppl agent model"
+description: "Motivating example of inferring preferences from observed choices. Introduce utility-based, decision-theoretic agents implementing as programs. Introduce inference of preferences by inverting the agent models. Taster of a WebPPL agent model"
 is_section: true
 ---
 
@@ -32,7 +32,7 @@ Chapter X shows how to infer the preferences and beliefs of the agents we modele
 
 
 ## Taster
-This tutorial is about turning mathematical models of rational agents and turning them to programs for simulating plans and for learning preferences from observation. All the programs described run in your browser, along with rich visualizations of agent's taking actions and with graphs for displaying quantative features of our models and inferences. The language we used is Webppl, a probabilistic programming language embedded in Javascript. The next chapter will provide a quick introduction to Webppl before diving in to modeling agents.
+This tutorial is about turning mathematical models of rational agents into programs for simulating plans and for learning preferences from observation. The programs all run in the browser, accompanied by visuals showing the agent's actions. The language of the tutorial is WebPPL, a probabilistic programming language based on Javascript. The next chapter provides an introduction to WebPPL
 
 <!-- simple example of code box that's easy to read for everyone -->
 <!-- WebPPL, ADD PICTURE OF BOB'S PATH -->
