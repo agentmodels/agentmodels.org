@@ -158,6 +158,25 @@ We'd like to do the restaurant example in a Gridworld (many movements ruled out)
 ## MDP and POMDP: if rewards are stochastic, natural to record how well the agent actually did (fix bandit case). 
 
 
+
+
 ## Speculative tasks
+- Do abbeel and ng algorithms for app learning in webppl/JS
 - Max ent IRL
 - Implement Q-learning in webppl. To what degree can it be done in a similar style to current MDP agent?
+
+
+## Gridworld notes
+
+some datastructure that is too be displayed. includes U, blocked, terminal, whether agent present. for videos we'll have sequence of agent positions and add them to this. to draw trajectory, you want to draw a trail through the grid. so you draw lines joining centers of squares in a sequence. then there's showing a policy and q values
+
+so basic info:
+{u:5, blocked:false, terminal:true}
+
+for policy and Q values:
+{policy:'r', V:4.5, Q:{u:4.6, d:2.2, l:4, r:1} }
+
+to draw paths, you need the whole sequence. you can then annotate cells with lines. 
+
+TODO:
+- add terminals to MDP model
