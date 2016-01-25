@@ -6,9 +6,7 @@ is_section: true
 ---
 
 ## Motivating example
-![picture](http://web.mit.edu/owain/www/owain_head.jpg)
-<!--https://github.com/agentmodels/agentmodels.org/blob/gh-pages/assets/img/ch1_donut_tempt_small.png)-->
-
+![picture](https://github.com/agentmodels/agentmodels.org/blob/gh-pages/assets/img/ch1_donut_tempt_small.png)
 
 [Eventually: Animation of "donut temptation" case, maybe showing multiple agents (not just Bob).]
 
