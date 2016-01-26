@@ -1,8 +1,8 @@
 ---
 layout: chapter
-title: Probabilistic programming in Webppl
-description: "Webppl: a functional subset of Javascript, with primitives for sampling from random variables and for Bayesian inference "
-is_section: false
+title: Building agent models in WebPPL
+description: "Introduction to WebPPL: a functional subset of Javascript, with primitives for sampling from random variables and for Bayesian inference "
+is_section: true
 ---
 
 
