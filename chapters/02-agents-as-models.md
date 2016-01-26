@@ -2,7 +2,7 @@
 layout: chapter
 title: Probabilistic programming in Webppl
 description: "Webppl: a functional subset of Javascript, with primitives for sampling from random variables and for Bayesian inference "
-is_section: true
+is_section: false
 ---
 
 
