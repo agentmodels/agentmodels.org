@@ -51,6 +51,12 @@ a.chapter-link {
     margin-left: auto;
 }
 
+.page-content > p > img {
+    display: block;
+    margin: auto;
+    padding: 20px;
+}
+
 ol li {
     list-style-type: upper-roman
 }
