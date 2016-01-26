@@ -112,3 +112,23 @@ $.get("/bibliography.bib", function (bibtext) {
         );
     });
 });
+
+
+// LaTeX math
+// based on https://github.com/cben/sandbox/blob/gh-pages/_layouts/katex.html
+
+$(function(){
+  var scripts = document.getElementsByTagName("script");
+  for (var i = 0; i < scripts.length; i++) {
+    /* TODO: keep going after an individual parse error. */
+    var script = scripts[i];
+    if (script.type.match(/^math\/tex/)) {
+      var text = script.text === "" ? script.innerHTML : script.text;
+      var options = script.type.match(/mode\s*=\s*display/) ?
+          {displayMode: true} : {};
+      script.insertAdjacentHTML("beforebegin",
+                                katex.renderToString(text, options));
+    }
+  }
+  document.body.className += " math_finished";
+});

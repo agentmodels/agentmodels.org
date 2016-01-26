@@ -57,6 +57,14 @@ a.chapter-link {
     padding: 20px;
 }
 
+.MathJax_Preview {
+    color: #888
+}
+
+.math_finished .MathJax_Preview {
+    display: none
+}
+
 ol li {
     list-style-type: upper-roman
 }

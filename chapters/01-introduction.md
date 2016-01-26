@@ -39,7 +39,13 @@ This tutorial is about turning mathematical models of rational agents into progr
 
 The box below is a taster of what you'll learn on the tutorial. This is an agent that solves the sequential planning problem in Example 1, preferring Store 2 to Store 1. The code runs live in the browser (with the encoding of the environment ommitted here -- we show later how to encode the environment). The math that the program implements is shown above.
 
-[add math]
+This is a test -- $$y = \sum_{x=1}^n x^2$$ -- of inline math.
+
+This is a test of block math:
+
+$$
+y = \sum_{x=1}^n x^2
+$$
 
 
 ~~~~
