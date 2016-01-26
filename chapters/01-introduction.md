@@ -10,7 +10,7 @@ is_section: true
 
 [Eventually: Animation of "donut temptation" case, maybe showing multiple agents (not just Bob).]
 
-Text: You have a dataset showing people's movements through a city. A single trajectory from this set is shown on a simplified map. Call the agent Bob. Given this trajectory, what can be infer about Bob's preferences and beliefs? First, we know Bob spent a long time at the Donut Store. So we infer he bought some food or drink there. But why did Bob not stop at the closer store to his starting point? He might just not know about Store 1. Maybe it just opened. Or he might know about it but prefer Store 2. Another possibility is that he intended to go the healthier "Salad box" above but ended up being tempted by the smell of Donuts.
+You have a dataset showing people's movements through a city. A single trajectory from this set is shown on a simplified map. Call the agent Bob. Given this trajectory, what can be infer about Bob's preferences and beliefs? First, we know Bob spent a long time at the Donut Store. So we infer he bought some food or drink there. But why did Bob not stop at the closer store to his starting point? He might just not know about Store 1. Maybe it just opened. Or he might know about it but prefer Store 2. Another possibility is that he intended to go the healthier "Salad box" above but ended up being tempted by the smell of Donuts.
 
 In this tutorial, we'll build models of inference about the behavior of agents that can posit all these different explanations. These models can also simulate the behavior of different agents, allowing us to make predictions about what Bob would do if he was in a different part of town.
 
