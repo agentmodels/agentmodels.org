@@ -1,5 +1,8 @@
 "use strict";
 
+
+// Github links
+
 var github_repository = "https://github.com/agentmodels/agentmodels.org/";
 
 function markdown_url(page_url) {
@@ -17,3 +20,95 @@ function github_page_url(page_url) {
         return github_repository + "blob/gh-pages" + markdown_url(page_url);
     };
 }
+
+
+// References and bibliography
+
+var textohtml_map = {
+  "\\\"u": "&uuml;",
+  "\\\"a": "&auml;",
+  "\\\"o": "&ouml;",
+  "\\'e": "&eacute;",
+  "\\\"U": "&Uuml;",
+  "\\\"A": "&Auml;",
+  "\\\"O": "&Ouml;",
+  "\\'E": "&Eacute;",
+  "\\\"{u}": "&uuml;",
+  "\\\"{a}": "&auml;",
+  "\\\"{o}": "&ouml;",
+  "\\'{e}": "&eacute;",
+  "\\\"{U}": "&Uuml;",
+  "\\\"{A}": "&Auml;",
+  "\\\"{O}": "&Ouml;",
+  "\\'{E}": "&Eacute;"  
+};
+
+function textohtml(tex) {
+    for (var key in textohtml_map) {
+        if (textohtml_map.hasOwnProperty(key)) {
+            tex = tex.replace("{" + key + "}", textohtml_map[key]);
+            tex = tex.replace(key, textohtml_map[key]);
+        };
+    };
+    return tex;
+}
+
+function replace_html(source, target) {
+    $('p, li').each(function () {
+        var html = $(this).html();
+        $(this).html(html.replace(new RegExp(source, "ig"), target));
+    });
+}
+
+function format_citation(citation) {
+    var s = "";
+    if (citation["URL"]) {
+        s += "<a href='" + citation["URL"] + "'>" + citation["TITLE"] + "</a>. ";
+    } else {
+        s += citation["TITLE"] + ". ";
+    };
+    s += citation["AUTHOR"] + " (" + citation["YEAR"] + ").";
+    if (citation["JOURNAL"]) {
+        s += " <em>" + citation["JOURNAL"] + "</em>.";
+    }
+    return textohtml(s);
+}
+
+function format_reft(citation) {
+  var s = "";
+  if (citation["URL"]) {
+    s += "<a href='" + citation["URL"] + "'>";
+  }
+  s += "<em>" + citation["AUTHOR"] + " (" + citation["YEAR"] + ")</em>";
+  if (citation["URL"]) {
+    s += "</a>";
+  }  
+  return textohtml(s);
+}
+
+function format_refp(citation) {
+  var s = "(";
+  if (citation["URL"]) {
+    s += "<a href='" + citation["URL"] + "'>";
+  }  
+  s += "<em>" + citation["AUTHOR"] + "; " + citation["YEAR"] + "</em>";
+  if (citation["URL"]) {
+    s += "</a>";
+  }
+  s += ")";
+  return textohtml(s);
+}
+
+$.get("/bibliography.bib", function (bibtext) {
+    $(function () {
+        var bibs = doParse(bibtext);
+        $.each(
+            bibs,
+            function (citation_id, citation) {
+              replace_html("cite:" + citation_id, format_citation(citation));
+              replace_html("reft:" + citation_id, format_reft(citation));
+              replace_html("refp:" + citation_id, format_refp(citation));
+            }
+        );
+    });
+});

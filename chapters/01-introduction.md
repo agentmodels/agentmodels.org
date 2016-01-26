@@ -32,7 +32,7 @@ Chapter X shows how to infer the preferences and beliefs of the agents we modele
 
 
 ## Taster
-This tutorial is about turning mathematical models of rational agents into programs for simulating plans and for learning preferences from observation. The programs all run in the browser, accompanied by visuals showing the agent's actions. The language of the tutorial is WebPPL, a probabilistic programming language based on Javascript. The next chapter provides an introduction to WebPPL
+This tutorial is about turning mathematical models of rational agents into programs for simulating plans and for learning preferences from observation. The programs all run in the browser, accompanied by visuals showing the agent's actions. The language of the tutorial is WebPPL, a probabilistic programming language based on Javascript refp:dippl. The next chapter provides an introduction to WebPPL
 
 <!-- simple example of code box that's easy to read for everyone -->
 <!-- WebPPL, ADD PICTURE OF BOB'S PATH -->
@@ -94,3 +94,7 @@ var simulate = function(startState, actualTotalTime, perceivedTotalTime, params,
   };
   
 ~~~~
+
+## References
+
+- cite:dippl
