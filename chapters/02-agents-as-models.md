@@ -66,7 +66,8 @@ var gaussianDraw = gaussian(0,1)
 [fairCoinFlip, biasedCoinFlip, integerLess6, coinWithSide, gaussianDraw]
 ~~~~
 
-Additional functions for sampling random variables can be defined. This example uses recursion to define a sampler for the Geometric distription with parameter `p`: 
+Additional functions for sampling random variables can be defined. This example uses recursion to define a sampler for the Geometric distription with parameter `p`:
+
 ~~~~
 var geometric = function(p) {
   return flip(p)?1+geometric(p):1
