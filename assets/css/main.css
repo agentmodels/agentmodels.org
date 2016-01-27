@@ -38,6 +38,7 @@ a.chapter-link {
 
 .page-content-wrapper {
     background-color: #fff;
+    overflow: visible;
 }
 
 .page-content {
@@ -49,6 +50,7 @@ a.chapter-link {
     max-width: 600px;
     margin-right: auto;
     margin-left: auto;
+    overflow: visible;
 }
 
 .page-content > p > img {
@@ -83,4 +85,13 @@ footer {
 
 footer a {
     color: #bbb
+}
+
+
+/* Editor */
+
+.page-content .CodeMirror-scroll {
+    overflow: visible !important;
+    margin-bottom: 0;
+    padding-bottom: 0;
 }

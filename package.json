@@ -1,0 +1,27 @@
+{
+  "name": "agentmodels.org",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/agentmodels/agentmodels.org.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/agentmodels/agentmodels.org/issues"
+  },
+  "homepage": "https://github.com/agentmodels/agentmodels.org#readme",
+  "dependencies": {
+    "webppl": "^0.5.1",
+    "webppl-dp": "^0.1.1",
+    "webppl-timeit": "^0.3.0",
+    "webppl-viz": "github:erindb/webppl-viz",
+    "wp-editor": "github:probmods/webppl-editor"
+  }
+}
