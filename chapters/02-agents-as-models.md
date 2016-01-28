@@ -32,26 +32,32 @@ var inputs = [1, 2, -1, {key:1}, true];
 map(verboseLog, inputs);
 ~~~~
 
-Language features with side effects are not allowed in Webppl. The following examples show to achieve the same behavior in Webppl:
+Language features with side effects are not allowed in Webppl. For example, to update a table, don't use assignment (see commented out code):
 
 ~~~~
-// assignment to a variable or attribute is not allowed:
+// This will fail:
+
 // var table = {}
 // table.key = 1
 // table.key += 1
 
-// Instead:
+// Instead do this:
+
 var table = {key: 1};
 var updatedTable = {key: table.key + 1};
+~~~~
 
-// *for* and *while* loops are not allowed
+In place of `for` and `while` loops, use higher-order functions like `map`:
+
+~~~~
 var ar = [1,2,3];
 // for (var i = 0; i < ar.length; i++){
-//   console.log('array element:', ar[i])}
+//   print('array element:' + ar[i])}
 
-// Instead, use a function in standard Webppl library "map"
+// Instead of for-loop, use *map* (built-in for WebPPL)
 map(function(i){print('array element: ' + i)}, ar);
 ~~~~
+
 
 ## Webppl stochastic primitives
 
