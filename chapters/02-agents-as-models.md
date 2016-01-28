@@ -32,22 +32,18 @@ var inputs = [1, 2, -1, {key:1}, true];
 map(verboseLog, inputs);
 ~~~~
 
-Language features with side effects are not allowed in Webppl. For example, to update a table, don't use assignment (see commented out code):
-
+Language features with side effects are not allowed in Webppl. The commented-out code uses assignment to update a table and produces an error. 
 ~~~~
-// This will fail:
-
 // var table = {}
 // table.key = 1
 // table.key += 1
 
 // Instead do this:
-
 var table = {key: 1};
 var updatedTable = {key: table.key + 1};
 ~~~~
 
-In place of `for` and `while` loops, use higher-order functions like `map`:
+There are no `for` and `while` loops. Instead use higher-order functions like `map`:
 
 ~~~~
 var ar = [1,2,3];
@@ -58,8 +54,10 @@ var ar = [1,2,3];
 map(function(i){print('array element: ' + i)}, ar);
 ~~~~
 
+Normal Javascript functions can be called from WebPPL (with some restrictions). See here [Dippl chapter 1] for details. 
 
-## Webppl stochastic primitives
+
+## WebPPL stochastic primitives
 
 ### Sampling from random variables
 Webppl has an array of built-in functions for sampling random variables (i.e. generating random numbers from a particular probability distribution). These will be familiar from other scientific/numeric computing libraries.
@@ -82,7 +80,7 @@ var geometric = function(p) {
   return flip(p) ? 1 + geometric(p) : 1
 };
 
-geometric(0.5);
+geometric(0.1);
 ~~~~
 
 What makes Webppl different from conventional programming languages is its ability to represent and manipulate *probability distributions*. Elementary Random Primitives (ERPs) are the basic object type that represents distributions. ERPs allow you to sample values from a distribution. But they also allow you to compute the log-probability of a possible sampled value.
@@ -135,4 +133,4 @@ viz.print(moreThanTwoHeads);
 
 In the next chapter, we use inference functions to implementing rational decision making.
 
-Next chapter: [Modeling simple decision problems](/chapters/03-decisions.html)
+Next chapter: [Modeling simple decision problems](/chapters/03-one-shot-planning.html)
