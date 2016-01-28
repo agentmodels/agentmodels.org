@@ -10,7 +10,7 @@ is_section: true
 
 [Eventually: Animation of "donut temptation" case, maybe showing multiple agents (not just Bob).]
 
-You have a dataset showing people's movements through a city. A single trajectory from this set is shown on a simplified map. Call the agent Bob. Given this trajectory, what can be infer about Bob's preferences and beliefs? First, we know Bob spent a long time at the Donut Store. So we infer he bought some food or drink there. But why did Bob not stop at the closer store to his starting point? He might just not know about Store 1. Maybe it just opened. Or he might know about it but prefer Store 2. Another possibility is that he intended to go the healthier "Salad box" above but ended up being tempted by the smell of Donuts.
+Imagine you have a dataset showing people's movements through a city. A single trajectory from this set is shown on a simplified map. Call the agent Bob. Given this trajectory, what can be infer about Bob's preferences and beliefs? First, we know Bob spent a long time at the Donut Store. So we infer he bought some food or drink there. But why did Bob not stop at the closer store to his starting point? He might just not know about Store 1. Maybe it just opened. Or he might know about it but prefer Store 2. Another possibility is that he intended to go the healthier "Salad box" above but ended up being tempted by the smell of Donuts.
 
 In this tutorial, we'll build models of inference about the behavior of agents that can posit all these different explanations. These models can also simulate the behavior of different agents, allowing us to make predictions about what Bob would do if he was in a different part of town.
 
@@ -32,72 +32,17 @@ Chapter X shows how to infer the preferences and beliefs of the agents we modele
 
 
 ## Taster
-This tutorial is about turning mathematical models of rational agents into programs for simulating plans and for learning preferences from observation. The programs all run in the browser, accompanied by visuals showing the agent's actions. The language of the tutorial is WebPPL, a probabilistic programming language based on Javascript refp:dippl. The next chapter provides an introduction to WebPPL
-
-<!-- simple example of code box that's easy to read for everyone -->
-<!-- WebPPL, ADD PICTURE OF BOB'S PATH -->
-
-The box below is a taster of what you'll learn on the tutorial. This is an agent that solves the sequential planning problem in Example 1, preferring Store 2 to Store 1. The code runs live in the browser (with the encoding of the environment ommitted here -- we show later how to encode the environment). The math that the program implements is shown above.
-
-This is a test -- $$y = \sum_{x=1}^n x^2$$ -- of inline math.
-
-This is a test of block math:
-
-$$
-y = \sum_{x=1}^n x^2
-$$
-
+This tutorial is about turning mathematical models of rational agents into programs for simulating plans and for learning preferences from observation. The programs all run in the browser, accompanied by visuals showing the agent's actions. The language of the tutorial is WebPPL, a probabilistic programming language based on Javascript refp:dippl. The next chapter provides an introduction to WebPPL. As a taster, here is a simple code snippet in WebPPL, using the interactive code boxes that we'll use throughtout. 
 
 ~~~~
-var agent = cache(
-  function(_agent, _expUtility, state, timeLeft, params){
-    return Enumerate(function(){
-      var action = uniformDraw(params.actions);
-      var eu = _expUtility(_agent, _expUtility, state, action, timeLeft, params);    
-        factor(params.alpha * eu);
-        return action;
-      });
-    }
-  );
-  
-  var expUtility = cache(
-    function(_agent, _expUtility, state, action, timeLeft, params){
-      var utility = params.utility;
-      var u = utility(state,action);
-      
-      if (timeLeft - 1 == 0){
-        return u;
-      } else {                     
-        return u + expectation( Enumerate(function(){
-          var transition = params.transition;
-          var nextState = transition(state, action); 
-          var nextAction = sample(_agent(_agent, _expUtility, nextState, timeLeft-1, params));
-          return _expUtility(_agent, _expUtility, nextState, nextAction, timeLeft-1, params);  
-        }));
-      }                      
-    });
+var geometric = function(p) {
+  return flip(p) ? 1 + geometric(p) : 1
+};
 
-var simulate = function(startState, actualTotalTime, perceivedTotalTime, params, output){
+geometric(0.5);
+~~~~
 
-    var sampleSequence = function(state, actualTimeLeft, perceivedTimeLeft){
-      if (actualTimeLeft==0){
-        return [];
-      } else {
-        var action = sample(agent(agent, expUtility, state, perceivedTimeLeft, params));
-        var transition = params.transition;
-        var nextState = transition(state,action);
-        var outputItem = output == 'actions' ? action : state;
-        return [ outputItem ].concat( sampleSequence(nextState,actualTimeLeft-1, perceivedTimeLeft-1));
-      }
-    };
-    // could sample sequence without enumerating by returning *sampleSequence(args)*
-    return numberRejectionSamples==0 ? Enumerate(function(){
-      return sampleSequence(startState, actualTotalTime, perceivedTotalTime); 
-    }) : 
-    Rejection(function(){
-      return sampleSequence(startState, actualTotalTime, perceivedTotalTime); 
-    }, numberRejectionSamples, undefined, true);
-  };
+
   
 ~~~~
 
