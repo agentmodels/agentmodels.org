@@ -1,6 +1,7 @@
 .wpedit .CodeMirror-lines {
     border: 1px solid black;
     border-radius: 2px;
+    padding: 5px;
 }
 
 .wpedit button.run {

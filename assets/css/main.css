@@ -53,6 +53,25 @@ a.chapter-link {
     overflow: visible;
 }
 
+.page-content .CodeMirror-lines, .page-content .wpedit .result {
+    padding: 5px;
+    line-height: 18px;
+}
+
+.page-content .wpedit button.run {
+    font-size: 12px;
+}
+
+.page-content .wpedit .result pre {
+    font-size: 12px;
+    margin: 5px;
+}
+
+.page-content .wpedit .result pre.error {
+    color: red;
+    background-color: #fff;
+}
+
 .page-content > p > img {
     display: block;
     margin: auto;
