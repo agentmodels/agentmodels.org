@@ -10102,8 +10102,8 @@ CodeMirror.defineMIME("application/typescript", { name: "javascript", typescript
 },{"../../lib/codemirror":6}],8:[function(require,module,exports){
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define('d3-dsv', ['exports'], factory) :
-  factory((global.d3_dsv = {}));
+  typeof define === 'function' && define.amd ? define(['exports'], factory) :
+  (factory((global.d3_dsv = {})));
 }(this, function (exports) { 'use strict';
 
   function dsv(delimiter) {
@@ -10167,7 +10167,7 @@ CodeMirror.defineMIME("application/typescript", { name: "javascript", typescript
         if (eol) return eol = false, EOL; // special case: end of line
 
         // special case: quotes
-        var j = I;
+        var j = I, c;
         if (text.charCodeAt(j) === 34) {
           var i = j;
           while (i++ < N) {
@@ -10177,7 +10177,7 @@ CodeMirror.defineMIME("application/typescript", { name: "javascript", typescript
             }
           }
           I = i + 2;
-          var c = text.charCodeAt(i + 1);
+          c = text.charCodeAt(i + 1);
           if (c === 13) {
             eol = true;
             if (text.charCodeAt(i + 2) === 10) ++I;
@@ -10189,7 +10189,8 @@ CodeMirror.defineMIME("application/typescript", { name: "javascript", typescript
 
         // common case: find next delimiter or newline
         while (I < N) {
-          var c = text.charCodeAt(I++), k = 1;
+          var k = 1;
+          c = text.charCodeAt(I++);
           if (c === 10) eol = true; // \n
           else if (c === 13) { eol = true; if (text.charCodeAt(I) === 10) ++I, ++k; } // \r|\r\n
           else if (c !== delimiterCode) continue;
@@ -10214,7 +10215,7 @@ CodeMirror.defineMIME("application/typescript", { name: "javascript", typescript
     }
 
     this.format = function(rows, columns) {
-      if (arguments.length < 2) columns = inferColumns(rows);
+      if (columns == null) columns = inferColumns(rows);
       return [columns.map(formatValue).join(delimiter)].concat(rows.map(function(row) {
         return columns.map(function(column) {
           return formatValue(row[column]);
@@ -10233,14 +10234,14 @@ CodeMirror.defineMIME("application/typescript", { name: "javascript", typescript
     function formatValue(text) {
       return reFormat.test(text) ? "\"" + text.replace(/\"/g, "\"\"") + "\"" : text;
     }
-  };
+  }
 
   dsv.prototype = Dsv.prototype;
 
   var csv = dsv(",");
   var tsv = dsv("\t");
 
-  var version = "0.1.13";
+  var version = "0.1.14";
 
   exports.version = version;
   exports.dsv = dsv;
@@ -43674,7 +43675,10 @@ var ReactDOMOption = {
       }
     });
 
-    nativeProps.children = content;
+    if (content) {
+      nativeProps.children = content;
+    }
+
     return nativeProps;
   }
 
@@ -49843,7 +49847,7 @@ module.exports = ReactUpdates;
 
 'use strict';
 
-module.exports = '0.14.6';
+module.exports = '0.14.7';
 },{}],151:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -50938,6 +50942,7 @@ var warning = require('fbjs/lib/warning');
  */
 var EventInterface = {
   type: null,
+  target: null,
   // currentTarget is set when dispatching; no use in copying it here
   currentTarget: emptyFunction.thatReturnsNull,
   eventPhase: null,
@@ -50971,8 +50976,6 @@ function SyntheticEvent(dispatchConfig, dispatchMarker, nativeEvent, nativeEvent
   this.dispatchConfig = dispatchConfig;
   this.dispatchMarker = dispatchMarker;
   this.nativeEvent = nativeEvent;
-  this.target = nativeEventTarget;
-  this.currentTarget = nativeEventTarget;
 
   var Interface = this.constructor.Interface;
   for (var propName in Interface) {
@@ -50983,7 +50986,11 @@ function SyntheticEvent(dispatchConfig, dispatchMarker, nativeEvent, nativeEvent
     if (normalize) {
       this[propName] = normalize(nativeEvent);
     } else {
-      this[propName] = nativeEvent[propName];
+      if (propName === 'target') {
+        this.target = nativeEventTarget;
+      } else {
+        this[propName] = nativeEvent[propName];
+      }
     }
   }
 
@@ -53582,7 +53589,7 @@ module.exports = require('./lib/React');
 },{"./lib/React":90}],196:[function(require,module,exports){
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define('topojson', ['exports'], factory) :
+  typeof define === 'function' && define.amd ? define(['exports'], factory) :
   (factory((global.topojson = {})));
 }(this, function (exports) { 'use strict';
 
@@ -54116,7 +54123,7 @@ module.exports = require('./lib/React');
     return topology;
   }
 
-  var version = "1.6.21";
+  var version = "1.6.22";
 
   exports.version = version;
   exports.mesh = mesh;
@@ -71878,6 +71885,12 @@ var CodeEditor = React.createClass({
     };
 
     var job = function () {
+
+      // if webppl hasn't loaded yet, wait 250ms before trying again
+      if (typeof webppl == 'undefined') {
+        comp.setState({ execution: 'loading webppl' });
+        return wait(250, job);
+      }
 
       // inject this component's side effect methods into global
       var sideEffectMethods = ["print", "hist", "barChart", "makeResultContainer"];
