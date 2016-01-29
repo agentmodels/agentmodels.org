@@ -21,7 +21,7 @@
     "webppl": "^0.5.1",
     "webppl-dp": "^0.1.1",
     "webppl-timeit": "^0.3.0",
-    "webppl-viz": "github:erindb/webppl-viz",
+    "webppl-viz": "github:probmods/webppl-viz",
     "wp-editor": "github:probmods/webppl-editor"
   }
 }
