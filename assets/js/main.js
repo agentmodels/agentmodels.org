@@ -23,16 +23,10 @@ function github_page_url(page_url) {
 
 
 // WebPPL editor
-function loadWebPPL() {
-  $.getScript("/assets/js/webppl.min.js")
-    .done(function(){
-      $.getScript("/assets/js/webppl-editor.js")
-        .done(function(){
-          var preEls = Array.prototype.slice.call(document.querySelectorAll("pre"));
-          preEls.map(function(el) { wpCodeEditor(el, {language: 'webppl'}); });          
-        });
-    });
-}
+$(function(){
+  var preEls = Array.prototype.slice.call(document.querySelectorAll("pre"));
+  preEls.map(function(el) { wpCodeEditor(el, {language: 'webppl'}); });          
+});
 
 
 // References and bibliography
