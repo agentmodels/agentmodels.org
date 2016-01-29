@@ -1,6 +1,8 @@
 // code for chapt 3
 
 
+var argMax = function(f,ar){return maxWith(f,ar)[0]}
+
 var firstExample = function(){
 
   var consequence = function(action){
@@ -27,6 +29,51 @@ var firstExample = function(){
     return action
     })
   }
+
+
+  // dynamic Q values
+  // make webppl package. need npm and package.JSON. stuff. these will be compiled and so go into agent models entire JSON. 
+  // webppl-editor has lowlevel fucntion for talking to rest of page
+  // make repo under agentModels group  webppl-gridworld
+  
+  
+  // probabilistic outcomes
+  var consequence = function(action){
+    var table = { italian: [0.2, 0.6, 0.2], french: [0.05, 0.9, .05] }
+    return categorical( table[action], ['bad', 'good', 'spectacular'] )
+  };
+
+  var utility = function(consequence){
+    var table = {bad: -10, good: 6, spectacular:8};
+    return table[consequence];
+  };
+
+  var maxEUAgent = function(){
+    var EU = function(action){
+      return expectation( Enumerate( function(){
+        return utility(consequence(action));
+      }));
+    };
+    return argMax( EU, ['italian', 'french'] );
+  };
+    
+ 
+  var agent = function(){
+    return Enumerate(function(){
+      var action = uniformDraw(['french', 'italian'])
+      var EU = function(action){
+        return expectation( Enumerate( function(){
+          return utility(consequence(action));
+        }));
+      };
+      condition( EU(action) > 5 )
+      return action;
+    })
+  };
+  
+  
+
+
   
   return {maxAgent: maxAgent(), agent: sample(agent())}
 }
