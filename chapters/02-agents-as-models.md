@@ -32,7 +32,8 @@ var inputs = [1, 2, -1, {key:1}, true];
 map(verboseLog, inputs);
 ~~~~
 
-Language features with side effects are not allowed in WebPPL. The commented-out code uses assignment to update a table and produces an error. 
+Language features with side effects are not allowed in WebPPL. The commented-out code uses assignment to update a table and produces an error.
+
 ~~~~
 // var table = {}
 // table.key = 1
