@@ -8,13 +8,13 @@ is_section: true
 
 ## Introduction
 
-This chapter introduces the probabilistic programming language Webppl (pronounced "web people") that we use to model agents throughout this tutorial. We give a brief overview of the features that are essential to this tutorial. If you have never encountered probabilistic programming before, you might benefit from reading some introductory material. There are short articles [here](http://plenthusiast) and [here](http://mohammed) that provide a general overview. There is an interactive tutorial covering probabilistic programming and Bayesian inference at [probmods](https://probmods.org), which uses a language very similar to Webppl. If you have some background in programming languages, there is a [tutorial](https://dippl.org) on how to implement Webppl (which will also give a sense of how the language works).
+This chapter introduces the probabilistic programming language WebPPL (pronounced "web people") that we use to model agents throughout this tutorial. We give a brief overview of the features that are essential to this tutorial. If you have never encountered probabilistic programming before, you might benefit from reading some introductory material. There are short articles [here](http://plenthusiast) and [here](http://mohammed) that provide a general overview. There is an interactive tutorial covering probabilistic programming and Bayesian inference at [probmods](https://probmods.org), which uses a language very similar to WebPPL. If you have some background in programming languages, there is a [tutorial](https://dippl.org) on how to implement WebPPL (which will also give a sense of how the language works).
 
-Most of the code examples we provide will run in your browser. Webppl can also be installed locally and run from the command line --- see [here](https://webppl.org).
+Most of the code examples we provide will run in your browser. WebPPL can also be installed locally and run from the command line --- see [here](https://webppl.org).
 
-## Webppl: a functionally pure subset of Javascript
+## WebPPL: a functionally pure subset of Javascript
 
-Webppl includes a subset of Javascript, and follows the syntax of Javascript for this subset. (Since we only use a limited subset of Javascript, you will only need a basic knowledge of Javascript to use Webppl). 
+WebPPL includes a subset of Javascript, and follows the syntax of Javascript for this subset. (Since we only use a limited subset of Javascript, you will only need a basic knowledge of Javascript to use WebPPL). 
 
 This program uses most of the available JS syntax:
 
@@ -32,7 +32,7 @@ var inputs = [1, 2, -1, {key:1}, true];
 map(verboseLog, inputs);
 ~~~~
 
-Language features with side effects are not allowed in Webppl. The commented-out code uses assignment to update a table and produces an error. 
+Language features with side effects are not allowed in WebPPL. The commented-out code uses assignment to update a table and produces an error. 
 ~~~~
 // var table = {}
 // table.key = 1
@@ -60,7 +60,7 @@ Normal Javascript functions can be called from WebPPL (with some restrictions). 
 ## WebPPL stochastic primitives
 
 ### Sampling from random variables
-Webppl has an array of built-in functions for sampling random variables (i.e. generating random numbers from a particular probability distribution). These will be familiar from other scientific/numeric computing libraries.
+WebPPL has an array of built-in functions for sampling random variables (i.e. generating random numbers from a particular probability distribution). These will be familiar from other scientific/numeric computing libraries.
 
 ~~~~
 var fairCoinFlip = flip(0.5);
@@ -83,9 +83,9 @@ var geometric = function(p) {
 geometric(0.1);
 ~~~~
 
-What makes Webppl different from conventional programming languages is its ability to represent and manipulate *probability distributions*. Elementary Random Primitives (ERPs) are the basic object type that represents distributions. ERPs allow you to sample values from a distribution. But they also allow you to compute the log-probability of a possible sampled value.
+What makes WebPPL different from conventional programming languages is its ability to represent and manipulate *probability distributions*. Elementary Random Primitives (ERPs) are the basic object type that represents distributions. ERPs allow you to sample values from a distribution. But they also allow you to compute the log-probability of a possible sampled value.
 
-The functions above that generate random samples are defined in the Webppl library in terms of built-in ERPs (e.g. `bernoulliERP` for `flip` and `gaussianERP` for `gaussian`) and the built-in function `sample`.
+The functions above that generate random samples are defined in the WebPPL library in terms of built-in ERPs (e.g. `bernoulliERP` for `flip` and `gaussianERP` for `gaussian`) and the built-in function `sample`.
 
 To create a new ERP, we pass a *thunk* (a function with no arguments) which has a random output, to a *marginalization* or *inference* function. For example, we can use `bernoulliERP` to construct a Binomial distribution:
 
