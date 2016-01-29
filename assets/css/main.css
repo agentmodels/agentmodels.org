@@ -47,7 +47,7 @@ a.chapter-link {
     background-color: #fff;
     color: #000;
     min-height: 500px;
-    max-width: 600px;
+    max-width: 650px;
     margin-right: auto;
     margin-left: auto;
     overflow: visible;
@@ -85,13 +85,4 @@ footer {
 
 footer a {
     color: #bbb
-}
-
-
-/* Editor */
-
-.page-content .CodeMirror-scroll {
-    overflow: visible !important;
-    margin-bottom: 0;
-    padding-bottom: 0;
 }
