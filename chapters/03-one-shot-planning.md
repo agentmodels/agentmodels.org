@@ -19,12 +19,14 @@ In a decision problem, an agent must choose between a set of actions. The agent 
 
 For example, suppose Tom is choosing between restaurants and he cares only about getting pizza. There's an Italian restaurant and a French restaurant. So John will choose the Italian restaurant because it leads to the state where gets pizza.
 
-Formally, Tom selects an action $$a$$ from the set of actions $$A$$, which includes the two restaurants. The consequences of an action are represented by a transition function $$T:(S,A) \to S$$ from state-action pairs to states. In our example, the relevant states are whether or not Tom gets pizza. Tom's preferences are represented by a utility function $$U:(S) \to \mathbb{R}$$, which indicates the relative goodness of each state. 
+Formally, Tom selects an action $$a$$ from the set of actions $$A$$, which includes the two restaurants. The consequences of an action are represented by a transition function $$T:(S,A) \to S$$ from state-action pairs to states. In our example, the relevant states are whether or not Tom gets pizza. Tom's preferences are represented by a utility function $$U:(S) \to R$$, which indicates the relative goodness of each state. 
 
 Tom's decision rule is to take action $$a$$ such that:
+
 $$
 [\max_{a \in A} U(T(s,a))]
 $$
+
 
 
 
