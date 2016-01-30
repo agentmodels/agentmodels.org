@@ -27,9 +27,10 @@ $$
 \max_{a \in A} U(T(s,a))
 $$
 
-We model Tom's decision in WebPPL as follows:
+An *agent* function takes a state $$s \in S$$ as input and returns an action. For this problem, we suppose Tom starts of in the state `"default"`. The first agent we consider explicitly computes the maximum utility action:
 
 ~~~~
+
 var actions = ['italian', 'french'];
   
 var transition = function(state, action){
@@ -39,11 +40,7 @@ var transition = function(state, action){
 var utility = function(state){
     return state == 'pizza' ? 1 : 0;
 };
-~~~~
 
-An *agent* function takes a state $$s \in S$$ as input and returns an action. For this problem, we suppose Tom starts of in the state `"default"`. The first agent we consider explicitly computes the maximum utility action:
-
-~~~~
 var maxAgent = function(state){
     return argMax( function(action){return utility(transition(state, action));},
                    actions);
