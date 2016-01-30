@@ -30,6 +30,7 @@ $$
 An *agent* function takes a state $$s \in S$$ as input and returns an action. For this problem, we suppose Tom starts of in the state `"default"`. The first agent we consider explicitly computes the maximum utility action:
 
 ~~~~
+var argMax = function(f,ar){return maxWith(f,ar)[0]};
 
 var actions = ['italian', 'french'];
   
@@ -50,5 +51,42 @@ maxAgent("default");
 
 ~~~~
 
+There is an alternative way to compute the optimal action for this problem. The idea is to treat planning and decision making as an inference problem. The previous chapter showed how we can infer the probability that a coin landed Heads, given the observation that two of three coins were Heads. 
 
+~~~~
+var twoHeads = Enumerate(function(){
+  var a = flip(0.5);
+  var b = flip(0.5);
+  var c = flip(0.5);
+  condition( a + b + c == 2 );
+  return a;
+});
+twoHeads;  
+~~~~
 
+We now use the same inference machinery to compute the optimal action in Tom's decision problem:
+
+~~~~
+var argMax = function(f,ar){return maxWith(f,ar)[0]};
+
+var actions = ['italian', 'french'];
+  
+var transition = function(state, action){
+    return action=='italian' ? 'pizza' : 'no pizza';
+};
+  
+var utility = function(state){
+    return state == 'pizza' ? 1 : 0;
+};
+
+var inferAgent = function(state){
+    return Enumerate(function(){
+        var action = uniformDraw(['french', 'italian']);
+        condition( transition(action) == 'pizza' );
+        return action;
+    });
+};
+
+inferAgent("default");
+
+~~~~

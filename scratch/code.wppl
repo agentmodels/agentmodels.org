@@ -15,7 +15,7 @@ var printERP = function(x) {
     erpValues);
 };
 
-var argMax = function(f,ar){return maxWith(f,ar)[0]}
+var argMax = function(f,ar){return maxWith(f,ar)[0]};
 
                      
 var firstExample = function(){
@@ -34,9 +34,6 @@ var firstExample = function(){
                    actions);
   };
   
-  var maxAgent = function(){
-    return utility(transition('italian')) > utility(transition('french')) ? 'italian' : 'french'
-  }
   
 
   // planning as inference agent
