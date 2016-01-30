@@ -61,7 +61,7 @@ var twoHeads = Enumerate(function(){
   condition( a + b + c == 2 );
   return a;
 });
-twoHeads;  
+print(twoHeads);  
 ~~~~
 
 We now use the same inference machinery to compute the optimal action in Tom's decision problem:
