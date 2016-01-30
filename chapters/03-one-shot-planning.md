@@ -75,14 +75,10 @@ var transition = function(state, action){
     return action=='italian' ? 'pizza' : 'no pizza';
 };
   
-var utility = function(state){
-    return state == 'pizza' ? 1 : 0;
-};
-
 var inferAgent = function(state){
     return Enumerate(function(){
-        var action = uniformDraw(['french', 'italian']);
-        condition( transition(action) == 'pizza' );
+        var action = uniformDraw(actions);
+        condition( transition(action) === 'pizza' );
         return action;
     });
 };
