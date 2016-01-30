@@ -19,13 +19,19 @@ var argMax = function(f,ar){return maxWith(f,ar)[0]}
 
                      
 var firstExample = function(){
-
+  var actions = ['italian', 'french'];
+  
   var transition = function(state, action){
-    return action=='italian' : 'pizza' : 'no pizza';
+    return action=='italian' ? 'pizza' : 'no pizza';
   };
   
   var utility = function(state){
     return state == 'pizza' ? 1 : 0;
+  };
+
+  var maxAgent = function(state){
+    return argMax( function(action){return utility(transition(state, action));},
+                   actions);
   };
   
   var maxAgent = function(){
