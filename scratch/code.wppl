@@ -1,22 +1,35 @@
 // code for chapt 3
 
+var ash = function(){assert.ok(false, 'assert halt');};
+
+
+var printERP = function(x) {
+  var erpValues = sort(x.support(), undefined, function(v){return -x.score([], v);});
+  map(
+    function(v){
+      var prob = Math.exp(x.score([], v));
+      if (prob > 0.0){
+        console.log(JSON.stringify(v) + ': ' + prob.toFixed(5));
+      }
+    },
+    erpValues);
+};
 
 var argMax = function(f,ar){return maxWith(f,ar)[0]}
 
+                     
 var firstExample = function(){
 
-  var consequence = function(action){
-    var table = { italian:'pizza', french:'no pizza' }
-    return table[action]
-  }
+  var transition = function(state, action){
+    return action=='italian' : 'pizza' : 'no pizza';
+  };
   
-  var utility = function(consequence){
-    return consequence == 'pizza' ? 1 : 0
-  }
+  var utility = function(state){
+    return state == 'pizza' ? 1 : 0;
+  };
   
-  // maxing agent
   var maxAgent = function(){
-    return utility(consequence('italian')) > utility(consequence('french')) ? 'italian' : 'french'
+    return utility(transition('italian')) > utility(transition('french')) ? 'italian' : 'french'
   }
   
 
@@ -25,55 +38,78 @@ var firstExample = function(){
   var agent = function(){
     return Enumerate(function(){
       var action = uniformDraw(['french', 'italian'])
-      condition( consequence(action) == 'pizza' )
+      condition( transition(action) == 'pizza' )
     return action
     })
-  }
-
-
-  // dynamic Q values
-  // make webppl package. need npm and package.JSON. stuff. these will be compiled and so go into agent models entire JSON. 
-  // webppl-editor has lowlevel fucntion for talking to rest of page
-  // make repo under agentModels group  webppl-gridworld
+  };
   
   
   // probabilistic outcomes
-  var consequence = function(action){
-    var table = { italian: [0.2, 0.6, 0.2], french: [0.05, 0.9, .05] }
-    return categorical( table[action], ['bad', 'good', 'spectacular'] )
+  var transition = function(state, action){
+    var nextStates = ['bad', 'good', 'spectacular'];
+    if (action=='italian'){ 
+      return categorical( [0.2, 0.6, 0.2], nextStates );
+    } else {
+      return categorical( [0.05, 0.9, 0.05], nextStates );
   };
 
-  var utility = function(consequence){
+  var utility = function(transition){
     var table = {bad: -10, good: 6, spectacular:8};
-    return table[consequence];
+    return table[transition];
   };
 
   var maxEUAgent = function(){
     var EU = function(action){
       return expectation( Enumerate( function(){
-        return utility(consequence(action));
+        return utility(transition(action));
       }));
     };
     return argMax( EU, ['italian', 'french'] );
   };
     
  
-  var agent = function(){
+  var conditionAgent = function(){
     return Enumerate(function(){
+      
       var action = uniformDraw(['french', 'italian'])
+
       var EU = function(action){
         return expectation( Enumerate( function(){
-          return utility(consequence(action));
+          return utility(transition(action));
         }));
       };
-      condition( EU(action) > 5 )
+      condition( EU(action) > 4 );
       return action;
     })
   };
-  
-  
+
+  var alpha = 1;
+
+  var softMaxAgent = function(){
+    return Enumerate(function(){
+      
+      var action = uniformDraw(['french', 'italian']);
+      
+      var EU = function(action){
+        return expectation( Enumerate( function(){
+          return utility(transition(action));
+        }));
+      };
+      factor( alpha*EU(action) )
+      
+      return action;
+    })
+  };
+
+  console.log('maxEU', maxEUAgent() );
+  printERP(conditionAgent()); //
+  printERP(softMaxAgent()); //
+
+  console.log('cond', conditionAgent(), softMaxAgent());
+  ash();
 
 
+  
   
   return {maxAgent: maxAgent(), agent: sample(agent())}
 }
