@@ -20,6 +20,7 @@
   "dependencies": {
     "webppl": "^0.6.0",
     "webppl-dp": "^0.1.1",
+    "webppl-gridworld": "github:agentmodels/webppl-gridworld",
     "webppl-timeit": "^0.3.0",
     "webppl-viz": "github:probmods/webppl-viz",
     "wp-editor": "github:probmods/webppl-editor"
