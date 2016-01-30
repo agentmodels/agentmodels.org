@@ -67,8 +67,6 @@ viz.print(twoHeads);
 We now use the same inference machinery to compute the optimal action in Tom's decision problem:
 
 ~~~~
-var argMax = function(f,ar){return maxWith(f,ar)[0]};
-
 var actions = ['italian', 'french'];
   
 var transition = function(state, action){
@@ -78,7 +76,7 @@ var transition = function(state, action){
 var inferAgent = function(state){
     return Enumerate(function(){
         var action = uniformDraw(actions);
-        condition( transition(action) === 'pizza' );
+        condition( transition(state, action) === 'pizza' );
         return action;
     });
 };
