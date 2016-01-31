@@ -15,48 +15,61 @@ var printERP = function(x) {
     erpValues);
 };
 
-var argMax = function(f,ar){return maxWith(f,ar)[0]};
+var outer = function(y){
+  var inner = cache( function(x){return 1;} );
+  inner(y);
+  inner(y);
+  inner(2);
+  console.log(inner.cache);
+};
+outer(1);
+outer(2);
+ash();
 
                      
-var firstExample = function(){
-  var actions = ['italian', 'french'];
-  
-  var transition = function(state, action){
-    return action=='italian' ? 'pizza' : 'no pizza';
-  };
-  
-  var utility = function(state){
-    return state == 'pizza' ? 1 : 0;
-  };
 
-  var maxAgent = function(state){
-    return argMax( function(action){return utility(transition(state, action));},
-                   actions);
-  };
+
+var argMax = function(f,ar){return maxWith(f,ar)[0]};
   
+var actions = ['italian', 'french'];
+
+var transition = function(state, action){
+  return action=='italian' ? 'pizza' : 'no pizza';
+};
+
+var utility = function(state){
+  return state == 'pizza' ? 1 : 0;
+};
+
+var maxAgent = function(state){
+  return argMax( function(action){return utility(transition(state, action));},
+                 actions);
+};
+
   
 
-  // planning as inference agent
+// planning as inference agent
   
-  var agent = function(){
-    return Enumerate(function(){
-      var action = uniformDraw(['french', 'italian'])
-      condition( transition(action) == 'pizza' )
-    return action
-    })
-  };
+var inferAgent = function(state){
+  return Enumerate(function(){
+      var action = uniformDraw(['french', 'italian']);
+      condition( transition(action) == 'pizza' );
+    return action;
+  })
+};
   
   
-  // probabilistic outcomes
-  var transition = function(state, action){
-    var nextStates = ['bad', 'good', 'spectacular'];
-    if (action=='italian'){ 
-      return categorical( [0.2, 0.6, 0.2], nextStates );
+// probabilistic outcomes
+var transition = function(state, action){
+  var nextStates = ['bad', 'good', 'spectacular'];
+  if (action=='italian'){ 
+    return categorical( [0.2, 0.6, 0.2], nextStates );
     } else {
       return categorical( [0.05, 0.9, 0.05], nextStates );
-  };
-
-  var utility = function(transition){
+    };
+};
+  
+  var utility = function(state){
     var table = {bad: -10, good: 6, spectacular:8};
     return table[transition];
   };
@@ -114,50 +127,49 @@ var firstExample = function(){
 
   
   
-  return {maxAgent: maxAgent(), agent: sample(agent())}
-}
+    console.log( {maxAgent: maxAgent(), agent: sample(agent())}
 
 
-var secondExample = function(){
-  // multi-attribute: find best restaurant, given features
+// var secondExample = function(){
+//   // multi-attribute: find best restaurant, given features
   
-  var consequence = function(action){
-    var restaurantToVector = { 1: [2, 9, 9], // [price, food, location]
-                               2: [4, 6, 7],
-                               3: [9, 4, 7] }
-    return restaurantToVector[action]
-  }
+//   var consequence = function(action){
+//     var restaurantToVector = { 1: [2, 9, 9], // [price, food, location]
+//                                2: [4, 6, 7],
+//                                3: [9, 4, 7] }
+//     return restaurantToVector[action]
+//   }
   
 
-  var utility = function(vector){
-    return vector[0]*0.8 + vector[1]*0.9 + vector[2]*0.5
-  }
+//   var utility = function(vector){
+//     return vector[0]*0.8 + vector[1]*0.9 + vector[2]*0.5
+//   }
   
-  var argMax = function(f,ar){return maxWith(f,ar)[0]}
+//   var argMax = function(f,ar){return maxWith(f,ar)[0]}
   
   
-  var maxAgent = function(){
-    return argMax( function(action){return utility(consequence(action))}, [1,2,3])
-  }
+//   var maxAgent = function(){
+//     return argMax( function(action){return utility(consequence(action))}, [1,2,3])
+//   }
 
-  var agent = function(){
-    return Enumerate(function(){
-      var action = uniformDraw([1,2,3])
-      condition( utility(consequence(action)) > 13 )
-    return action
-    })
-  }
+//   var agent = function(){
+//     return Enumerate(function(){
+//       var action = uniformDraw([1,2,3])
+//       condition( utility(consequence(action)) > 13 )
+//     return action
+//     })
+//   }
 
-  return {maxAgent: maxAgent(), agent: [sample(agent()), sample(agent()), sample(agent()), sample(agent())]}
-}
+//   return {maxAgent: maxAgent(), agent: [sample(agent()), sample(agent()), sample(agent()), sample(agent())]}
+// }
 
-// example with two actions. agent calls function 'agent at next timestep'. agent at timestep1 is agent's model of itself.
-// maybe its wrong. well see both cases later. could illustrate failure of this explicitly in biases section by
-// showing the two different models. 
+// // example with two actions. agent calls function 'agent at next timestep'. agent at timestep1 is agent's model of itself.
+// // maybe its wrong. well see both cases later. could illustrate failure of this explicitly in biases section by
+// // showing the two different models. 
 
 
 
-console.log('ag', firstExample(), secondExample())
+// console.log('ag', firstExample(), secondExample())
                                                 
   
 
