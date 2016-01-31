@@ -4,11 +4,6 @@ title: One-shot planning
 description: Various agent models for solving one-shot decision problems. 
 ---
 
-Start with one-shot planning. Choices have some consequence. We take action that has best consequences. Implement two ways.
-
-Outcomes probabilistic: lotteries, games of chance. Take action that is best in expectation. Write down equation.
-
-Planning as inference for softmax. Write down softmax. Not obvious why it's a normative model. But clear that it could be good model of humans or other agents. x
 
 ## Agents for simple decision problems
 
