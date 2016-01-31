@@ -2,7 +2,6 @@
 
 var ash = function(){assert.ok(false, 'assert halt');};
 
-
 var printERP = function(x) {
   var erpValues = sort(x.support(), undefined, function(v){return -x.score([], v);});
   map(
@@ -14,6 +13,27 @@ var printERP = function(x) {
     },
     erpValues);
 };
+
+var twoHeads = Enumerate(function(){
+  var a = flip(0.5);
+  var b = flip(0.5);
+//  var c = flip(0.5);
+  factor( a + b );
+  console.log('a,b,exp', a, b, Math.exp(a+b) );
+  return a&b;
+});
+
+var Z = 1 + (2*2.718) + 7.389;
+var score = 7.389 / Z;
+console.log('score', score);
+
+
+printERP(twoHeads);
+ash();
+
+
+
+
 
 var outer = function(y){
   var inner = cache( function(x){return 1;} );
@@ -74,14 +94,14 @@ var transition = function(state, action){
     return table[transition];
   };
 
-  var maxEUAgent = function(){
-    var EU = function(action){
-      return expectation( Enumerate( function(){
-        return utility(transition(action));
-      }));
-    };
-    return argMax( EU, ['italian', 'french'] );
+var maxEUAgent = function(){
+  var EU = function(action){
+    return expectation( Enumerate( function(){
+      return utility(transition(action));
+    }));
   };
+  return argMax( EU, ['italian', 'french'] );
+};
     
  
   var conditionAgent = function(){
@@ -121,13 +141,13 @@ var transition = function(state, action){
   printERP(conditionAgent()); //
   printERP(softMaxAgent()); //
 
-  console.log('cond', conditionAgent(), softMaxAgent());
-  ash();
+console.log('cond', conditionAgent(), softMaxAgent());
+ash();
 
 
   
   
-    console.log( {maxAgent: maxAgent(), agent: sample(agent())}
+console.log( {maxAgent: maxAgent(), agent: sample(agent())} );
 
 
 // var secondExample = function(){

@@ -87,7 +87,7 @@ viz.print(inferAgent("default"));
 
 
 
-## One-shot decisions: stochastic (random) world
+## One-shot decisions: stochastic (random) world and random actions
 In the previous example, the transition function from state-action pairs to states was deterministic. So the world or *environment* was deterministic. Moreover, the agent's actions were deterministic; Tom always chose the best action ("Italian"). In contrast, many examples in this tutorial will involve a stochastic world and a "soft-max" agent. 
 
 Imagine Tom is choosing between restaurants again. This time, Tom's preferences are about the overall quality of the meal. The meal can be "bad", "good" or "spectacular". Restaurants vary in the probability of each outcome. The formal setup is mostly the same as above. The transition function now has type signature $$ T\colon S \times A \to \Delta S $$, where $$\Delta S$$ represents a distribution over states. Tom's decision rule is now to take the action $$a \in A$$ that has the highest *average* or *expected* utility, with the expectation $$E$$ taken over the probability of different successor states $$s' \sim T(s,a)$$:
@@ -131,33 +131,63 @@ var maxEUAgent = function(state){
 maxEUAgent("default");
 ~~~~
 
-The `inferAgent`, which uses the "planning-as-inference" idiom, can also be extended using `expectation`. Previously, the action of the `inferAgent` was conditioned on its leading to the best outcome ("pizza"). This time, Tom is not aiming to choose the action most likely to have the best outcome. Instead, he wants the action with better outcomes in average. This can be represented in `inferAgent` by switching from a `condition` statement to a `factor` statement. The `condition` statement expresses a "hard" constraint on actions: actions that fail the condition are completely ruled out. The `factor` statement expresses a "soft" condition: the input to `factor` for an action is added to the actions log-score. 
+The `inferAgent`, which uses the "planning-as-inference" idiom, can also be extended using `expectation`. Previously, the action of the `inferAgent` was conditioned on its leading to the best outcome ("pizza"). This time, Tom is not aiming to choose the action most likely to have the best outcome. Instead, he wants the action with better outcomes in average. This can be represented in `inferAgent` by switching from a `condition` statement to a `factor` statement. The `condition` statement expresses a "hard" constraint on actions: actions that fail the condition are completely ruled out. The `factor` statement expresses a "soft" condition: the input to `factor` for an action is added to the action's log-score. 
 
-Here are examples illustrating `condition` vs. `factor` in the normal inference setting:
+To illustrate `factor`, consider this variant of the `twoHeads` example above. Instead of placing a hard constraint on the total number of heads, we increase the log-score of each possible return value (`a & b` can be `true` or `false`) by adding the number of heads. This results in a probability for `a & b` of $$ \frac {e^{2}} { (e^{0} + 2e^{1}) + e^{2} } $$. 
 
 ~~~~
-var twoHeads = Enumerate(function(){
+var softHeads = Enumerate(function(){
   var a = flip(0.5);
   var b = flip(0.5);
-  var c = flip(0.5);
-  condition( a + b + c == 2 );
-  return a;
-});
-viz.print(twoHeads);
-~~~~
-~~~~
-var twoHeads = Enumerate(function(){
-  var a = flip(0.5);
-  var b = flip(0.5);
-  var c = flip(0.5);
-  factor( a + b + c );
-  return a;
+  factor( a + b );
+  return a & b;
 });
 viz.print(twoHeads);
 ~~~~
 
+Applying the same idea to the `inferAgent`, we obtain the `softmaxAgent`:
 
+~~~~
+var transition = function(state, action){
+  var nextStates = ['bad', 'good', 'spectacular'];
+  if (action=='italian'){ 
+    return categorical( [0.2, 0.6, 0.2], nextStates );
+  } else {
+    return categorical( [0.05, 0.9, 0.05], nextStates );
+  };
+};
+  
+var utility = function(state){
+  var table = {bad: -10, good: 6, spectacular:8};
+  return table[state];
+};
 
+var alpha = 1;
 
-So in `inferAgent`, instead of completely ruling out actions which don't have the best outcome, each action is 
+var softMaxAgent = function(state){
+  return Enumerate(function(){
+      
+    var action = uniformDraw(['french', 'italian']);
+      
+    var EU = function(action){
+      return expectation( Enumerate( function(){
+        return utility(transition(state,action));
+      }));
+    };
+    factor( alpha*EU(action) )  
+    return action;
+  })
+};
+~~~~
+
+The `softmaxAgent` differs in two ways from the `maxEUAgent` above. First, it uses the planning-as-inference idiom. Second, it does not deterministically choose the maximal expected utility action. Instead, it implements *soft* maximization, selecting actions with a probability depending on their expected utility. Formally, let the agent's probability of choosing action be $$C(a;s)$$ for $$a \in A$$ and in $$s \in S$$. Then the *softmax* decision rule is:
+
+$$
+C(a; s) \propto e^{\alpha E(U(T(s,a)))}}
+$$
+
+The noise parameter $$\alpha$$ modulates between random choice ($$\alpha=0$$) and the perfect maximization ($$\alpha = \infty$$) of the `maxEUAgent`.
+
+Since rational actions will *always* take the best action, why consider softmax agents who sometimes take suboptimal actions (e.g. when $$\alpha < \infty$$)? If the task is to provide advice on how to solve a one-shot decision problem, then there's no reason to consider softmax agents. One reason to consider softmax agents, which we won't pursue in this tutorial, is for *exploration* in the setting of reinforcement learning (link). In this tutorial, an important goal is to infer the preferences and beliefs of agents from their choices. In realistic settings, agents (whether human or artificial) sometimtes make suboptimal choices. The softmax agent provides a computationally simple, analytically tractable model of suboptimal choices. This model has been tested empirically on human action selection [cite saccades, luce choice]. Moreover, it has been used extensively in Inverse Reinforcement Learning as a model of human errors (cambridge turn taking dialogue, taxi cab paper). 
+
 
