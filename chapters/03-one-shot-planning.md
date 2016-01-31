@@ -133,7 +133,11 @@ maxEUAgent("default");
 
 The `inferAgent`, which uses the "planning-as-inference" idiom, can also be extended using `expectation`. Previously, the action of the `inferAgent` was conditioned on its leading to the best outcome ("pizza"). This time, Tom is not aiming to choose the action most likely to have the best outcome. Instead, he wants the action with better outcomes in average. This can be represented in `inferAgent` by switching from a `condition` statement to a `factor` statement. The `condition` statement expresses a "hard" constraint on actions: actions that fail the condition are completely ruled out. The `factor` statement expresses a "soft" condition: the input to `factor` for an action is added to the action's log-score. 
 
-To illustrate `factor`, consider this variant of the `twoHeads` example above. Instead of placing a hard constraint on the total number of heads, we increase the log-score of each possible return value (`a & b` can be `true` or `false`) by adding the number of heads. This results in a probability for `a & b` of $$ \frac {e^{2}} { (e^{0} + 2e^{1}) + e^{2} } $$. 
+To illustrate `factor`, consider this variant of the `twoHeads` example above. Instead of placing a hard constraint on the total number of heads, we increase the log-score of each possible return value (`a & b` can be `true` or `false`) by adding the number of heads. This results in a probability for `a & b` of
+
+$$
+\frac {e^{2}} { (e^{0} + 2e^{1}) + e^{2} }
+$$. 
 
 ~~~~
 var softHeads = Enumerate(function(){
