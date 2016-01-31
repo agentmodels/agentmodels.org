@@ -182,6 +182,8 @@ var softMaxAgent = function(state){
     return action;
   })
 };
+
+viz.print(softMaxAgent('default');
 ~~~~
 
 The `softmaxAgent` differs in two ways from the `maxEUAgent` above. First, it uses the planning-as-inference idiom. Second, it does not deterministically choose the maximal expected utility action. Instead, it implements *soft* maximization, selecting actions with a probability depending on their expected utility. Formally, let the agent's probability of choosing action be $$C(a;s)$$ for $$a \in A$$ and in $$s \in S$$. Then the *softmax* decision rule is:
@@ -192,6 +194,8 @@ $$
 
 The noise parameter $$\alpha$$ modulates between random choice $$(\alpha=0)$$ and the perfect maximization $$(\alpha = \infty)$$ of the `maxEUAgent`.
 
-Since rational actions will *always* take the best action, why consider softmax agents who sometimes take suboptimal actions? If the task is to provide normative advice on how to solve a one-shot decision problem, then there's no reason to consider softmax agents. One normative reason to consider softmax agents, which we won't pursue in this tutorial, is for *exploration* in the setting of reinforcement learning (link). An important goal for this tutorial is to infer the preferences and beliefs of agents from their choices. These agents might not always choose the normatively optimal actions. The softmax agent provides a computationally simple, analytically tractable model of suboptimal choices. This model has been tested empirically on human action selection [cite saccades, luce choice]. Moreover, it has been used extensively in Inverse Reinforcement Learning as a model of human errors (cambridge turn taking dialogue, taxi cab paper). 
+Since rational agents will *always* take the best action, why consider softmax agents? If the task is to provide normative advice on how to solve a one-shot decision problem, then "hard" maximization is the way to go. An important goal for this tutorial is to infer the preferences and beliefs of agents from their choices. These agents might not always choose the normatively optimal actions. The softmax agent provides a computationally simple, analytically tractable model of suboptimal choices. This model has been tested empirically on human action selection [cite saccades, luce choice]. Moreover, it has been used extensively in Inverse Reinforcement Learning as a model of human errors (cambridge turn taking dialogue, taxi cab paper). For for this reason, we employ the softmax model throughout this tutorial. When modeling an agent assumed to be optimal, the noise parameter $$\alpha$$ can be chosen to approximation hard maximization. 
+
+[footnote:  One normative reason to consider softmax agents, which we won't pursue in this tutorial, is for *exploration* in the setting of reinforcement learning (link).]
 
 
