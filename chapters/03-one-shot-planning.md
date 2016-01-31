@@ -90,13 +90,13 @@ viz.print(inferAgent("default"));
 ## One-shot decisions: stochastic (random) world
 In the previous example, the transition function from state-action pairs to states was deterministic. So the world or *environment* was deterministic. Moreover, the agent's actions were deterministic; Tom always chose the best action ("Italian"). In contrast, many examples in this tutorial will involve a stochastic world and a "soft-max" agent. 
 
-Imagine Tom is choosing between restaurants again. This time, Tom's preferences are about the overall quality of the meal. The meal can be "bad", "good" or "spectacular". Restaurants vary in the probability of each outcome. The formal setup is mostly the same as above. The transition function now has type signature $$ T\colon S \times A \to \Delta S $$, because $$T$$ is stochastic. Tom's decision rule is now to take the action $$a \in A$$ that has the highest *average* or *expected* utility, with the expectation taken over the probability of different successor states $$s' \sim T(s,a)$$:
+Imagine Tom is choosing between restaurants again. This time, Tom's preferences are about the overall quality of the meal. The meal can be "bad", "good" or "spectacular". Restaurants vary in the probability of each outcome. The formal setup is mostly the same as above. The transition function now has type signature $$ T\colon S \times A \to \Delta S $$, where $$\Delta S$$ represents a distribution over states. Tom's decision rule is now to take the action $$a \in A$$ that has the highest *average* or *expected* utility, with the expectation $$E$$ taken over the probability of different successor states $$s' \sim T(s,a)$$:
 
 $$
 \max_{a \in A} E( U(T(s,a)) )
 $$
 
-To represent this in WebPPL, we extend `maxAgent` (above) using the `expectation` function. This function takes an ERP with finite support as input and returns its expectation.
+To represent this in WebPPL we extend `maxAgent` using the `expectation` function, which maps an ERP with finite support to its (real-valued) expectation:
 
 ~~~~
 var argMax = function(f,ar){return maxWith(f,ar)[0]};
@@ -107,14 +107,14 @@ var transition = function(state, action){
   var nextStates = ['bad', 'good', 'spectacular'];
   if (action=='italian'){ 
     return categorical( [0.2, 0.6, 0.2], nextStates );
-    } else {
+  } else {
     return categorical( [0.05, 0.9, 0.05], nextStates );
-    };
+  };
 };
   
 var utility = function(state){
-    var table = {bad: -10, good: 6, spectacular:8};
-    return table[transition];
+  var table = {bad: -10, good: 6, spectacular:8};
+  return table[state];
 };
 
 
@@ -130,4 +130,34 @@ var maxEUAgent = function(state){
 
 maxEUAgent("default");
 ~~~~
+
+The `inferAgent`, which uses the "planning-as-inference" idiom, can also be extended using `expectation`. Previously, the action of the `inferAgent` was conditioned on its leading to the best outcome ("pizza"). This time, Tom is not aiming to choose the action most likely to have the best outcome. Instead, he wants the action with better outcomes in average. This can be represented in `inferAgent` by switching from a `condition` statement to a `factor` statement. The `condition` statement expresses a "hard" constraint on actions: actions that fail the condition are completely ruled out. The `factor` statement expresses a "soft" condition: the input to `factor` for an action is added to the actions log-score. 
+
+Here are examples illustrating `condition` vs. `factor` in the normal inference setting:
+
+~~~~
+var twoHeads = Enumerate(function(){
+  var a = flip(0.5);
+  var b = flip(0.5);
+  var c = flip(0.5);
+  condition( a + b + c == 2 );
+  return a;
+});
+viz.print(twoHeads);
+~~~~
+~~~~
+var twoHeads = Enumerate(function(){
+  var a = flip(0.5);
+  var b = flip(0.5);
+  var c = flip(0.5);
+  factor( a + b + c );
+  return a;
+});
+viz.print(twoHeads);
+~~~~
+
+
+
+
+So in `inferAgent`, instead of completely ruling out actions which don't have the best outcome, each action is 
 
