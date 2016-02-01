@@ -21,6 +21,14 @@ good to think about what's stochastic in restaurant street example. attending to
 also good to think about andreas example of infinite time horizon but with small probability of death at each age (similar to language models with prob of infinite lenght sentence). 
 
 
+## Sequential Decision Problems: Introduction
+The previous [chapter](/chapters/03-one-shot-planning) chapter introduced agent models for solving very simple decision problems. The rest of the tutorial looks at more complex and interesting problems. Later chapters will look at problems where the outcome depends on the decison of another rational agent (as in *game theory*). The next few chapters look at single-agent problems that are *sequential* rather than *one-shot*. In sequential decision problems, an agent's choice of action *now* depends on the action they'll choose in the future. (Agents must *co-ordinate* with their future selves).
+
+As a simple illustration of a sequential decision problem, suppose that an agent, Alice, is looking for somewhere to eat. Alice gets out of work in a particular location (labeled "start"). She knows the streets and the restaurants nearby. So the decision she faces is to choose a restaurant that (a) she likes, and (b) is not too long a walk.
+
+
+
+
 ~~~~
 var element = makeResultContainer();
 
