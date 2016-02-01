@@ -53,6 +53,50 @@ The intuition to keep in mind for MDPs is the that expected utility will propaga
 ## MDPs: implementation
 The recursive decision rule for MDP agents [reference?] can be directly translated into WebPPL. The resulting agent model is also a natural extension of the `softmaxAgent` from the previous [chapter](/chapters/03-one-shot-planning). The `agent` function takes the agent's state, evaluates the expectation of actions in the state, and returns a softmax distribution over actions. The expected utility of an action is computed by a separate function `expUtility`. Since an action's expected utility depends on the agent's future actions, `expUtility` calls `agent` in a mutual recursion, bottoming out when a terminal state is reached or when time runs out. 
 
+We illustrate this agent model solving a trivial MDP, where states are integers and actions are movements up or down the integers. 
+
+~~~~
+var transition = function(state, action){
+  return state + action;
+};
+  
+var utility = function(state){
+  return state==3 ? 1 : 0;
+};
+
+var agent = function(state, timeLeft){
+  return Enumerate(function(){
+    var action = uniformDraw([-1,1]);
+    var eu = expUtility(state, action, timeLeft);    
+    factor(100 * eu);
+    return action;
+  });      
+};
+
+var expUtility = function(state, action, timeLeft){
+  var u = utility(state,action);
+  var newTimeLeft = timeLeft - 1;
+  
+  if (newTimeLeft == 0){
+    return u; 
+  } else {                     
+    return u + expectation( Enumerate(function(){
+      var nextState = transition(state, action); 
+      var nextAction = sample(agent(nextState, newTimeLeft));
+      return expUtility(nextState, nextAction, newTimeLeft);  
+    }));
+  }                      
+};
+
+var startState = 0;
+var totalTime = 4;
+viz.print(agent(startState, totalTime));
+
+~~~~
+
+This code computes the agent's initial action, where the agent starts at `state=0` and assumes four actions will be taken total. To simulate the agent's entire trajectory, we add a third function `simulate`, which updates and stores the world state given the agent's action.
+
+
 ~~~~
 var transition = function(state, action){
   return state + action;
@@ -84,15 +128,32 @@ var expUtility = function(state, action, timeLeft){
       var nextAction = sample(agent(nextState, newTimeLeft));
       return expUtility(nextState, nextAction, newTimeLeft);  
     }));
-  }                      
+  }
+};
+
+var simulate = function(startState, totalTime){
+  
+  var sampleSequence = function(state, timeLeft){
+    if (timeLeft == 0){
+      return [];
+    } else {
+      var action = sample(agent(state, timeLeft));
+      var nextState = transition(state,action); 
+      return [nextState].concat( sampleSequence(nextState,timeLeft-1 ))
+    }
+  };
+  return sampleSequence(startState, totalTime).slice(0,totalTime-1);
 };
 
 var startState = 0;
 var totalTime = 4;
-viz.print(agent(startState, totalTime));
+print(simulate(startState, totalTime));
 
 ~~~~
 
+
+
+The code above simulates the agent taking a single action. This depends on the agent simulating `totalTime=4` timesteps into the future (when computing `expUtility` for each action). Yet we  
 
 
 

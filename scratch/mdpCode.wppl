@@ -1,7 +1,6 @@
 var ash = function(){assert.ok(0,'assert halt');};
 
 
-
 var transition = function(state, action){
   return state + action;
 };
@@ -9,7 +8,6 @@ var transition = function(state, action){
 var utility = function(state){
   return state==3 ? 1 : 0;
 };
-
 
 var agent = function(state, timeLeft){
   return Enumerate(function(){
@@ -41,25 +39,27 @@ var totalTime = 4;
 console.log('agentAction', 
             map(function(erp){return sample(erp);}, 
                 [agent(startState,totalTime), agent(startState,3), agent(startState,2)]));
+
+
+var simulate = function(startState, totalTime){
+  
+  var sampleSequence = function(state, timeLeft){
+    if (timeLeft == 0){
+      return [];
+    } else {
+      var action = sample(agent(state, timeLeft));
+      var nextState = transition(state,action); 
+      return [nextState].concat( sampleSequence(nextState,timeLeft-1 ))
+    }
+  };
+  return sampleSequence(startState, totalTime).slice(0,totalTime-1);
+};
+
+console.log('sim', simulate(startState,totalTime) );
 ash();
 
 
 
 
-
-var simulate = function(startState, actualTotalTime, perceivedTotalTime, params, output){
-  
-  var sampleSequence = function(state, actualTimeLeft, perceivedTimeLeft){
-    if (actualTimeLeft==0 | isTerminal(state)){
-      return [];
-    } else {
-      var action = sample(agent(agent, expUtility, state, perceivedTimeLeft, params));
-      var transition = params.transition;
-      var nextState = transition(state,action); 
-      var out = {states:[state,'X'], actions:['X',action], both: [state,action]}[output];
-      return [ out ].concat( sampleSequence(nextState,actualTimeLeft-1, perceivedTimeLeft-1));
-    }
-  };
-};
 
 1;
