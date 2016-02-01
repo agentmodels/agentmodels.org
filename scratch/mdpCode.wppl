@@ -55,8 +55,14 @@ var simulate = function(startState, totalTime){
   return sampleSequence(startState, totalTime).slice(0,totalTime-1);
 };
 
-console.log('sim', simulate(startState,totalTime) );
-ash();
+
+
+// console.log('sim', map( function(totalTime){
+//   return timeit( function(){return simulate(startState,totalTime);} ),
+  
+  
+//                         [
+// ash();
 
 
 

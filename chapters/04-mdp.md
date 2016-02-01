@@ -115,7 +115,6 @@ var agent = function(state, timeLeft){
   });
 };
 
-
 var expUtility = function(state, action, timeLeft){
   var u = utility(state,action);
   var newTimeLeft = timeLeft - 1;
@@ -151,17 +150,9 @@ print(simulate(startState, totalTime));
 
 ~~~~
 
+The `expUtility` and `simulate` functions are similar. The `expUtilty` function includes the agent's own (subjective) simulation of the future distribution on states. In the case of an MDP and an optimal agent, the agent's simulation is identical to the world simulator (up to irreducible random noise in the the transition and choice functions). In later chapters, the agent's subjective simulations will diverge from the world simulator and become inaccurate. 
 
-
-The code above simulates the agent taking a single action. This depends on the agent simulating `totalTime=4` timesteps into the future (when computing `expUtility` for each action). Yet we  
-
-
-
-
-
-
-
- 
+Could discuss exponential branching. Unnecessary since we visit states multiple times. (Example if you can stay put). Show exponential growing run time with timeit. Then show what caching can achieve? (Then discuss this later). Otherwise, use of cache won't be understandable. 
 
 
 
