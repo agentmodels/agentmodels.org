@@ -112,7 +112,7 @@ var agent = function(state, timeLeft){
     var eu = expUtility(state, action, timeLeft);    
     factor(100 * eu);
     return action;
-  });      
+  });
 };
 
 
