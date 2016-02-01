@@ -28,6 +28,8 @@ var score = 7.389 / Z;
 console.log('score', score);
 
 
+console.log(indexOf([1,2], [[1,2]]));
+
 printERP(twoHeads);
 ash();
 
