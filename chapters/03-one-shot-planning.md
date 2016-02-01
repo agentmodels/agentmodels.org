@@ -163,7 +163,7 @@ var utility = function(state){
 
 var alpha = 1;
 
-var softMaxAgent = function(state){
+var softmaxAgent = function(state){
   return Enumerate(function(){
       
     var action = uniformDraw(['french', 'italian']);
@@ -178,7 +178,7 @@ var softMaxAgent = function(state){
   })
 };
 
-viz.print(softMaxAgent('default');
+viz.print(softmaxAgent('default');
 ~~~~
 
 The `softmaxAgent` differs in two ways from the `maxEUAgent` above. First, it uses the planning-as-inference idiom. Second, it does not deterministically choose the maximal expected utility action. Instead, it implements *soft* maximization, selecting actions with a probability depending on their expected utility. Formally, let the agent's probability of choosing action be $$C(a;s)$$ for $$a \in A$$ and in $$s \in S$$. Then the *softmax* decision rule is:

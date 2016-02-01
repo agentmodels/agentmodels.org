@@ -22,13 +22,14 @@ also good to think about andreas example of infinite time horizon but with small
 
 
 ## Sequential Decision Problems: Introduction
-The previous [chapter](/chapters/03-one-shot-planning) chapter introduced agent models for solving very simple decision problems. The rest of the tutorial looks at more complex and interesting problems. Later chapters will look at problems where the outcome depends on the decison of another rational agent (as in *game theory*). The next few chapters look at single-agent problems that are *sequential* rather than *one-shot*. In sequential decision problems, an agent's choice of action *now* depends on the action they'll choose in the future. (Agents must *co-ordinate* with their future selves).
+The previous [chapter](/chapters/03-one-shot-planning) introduced agent models for solving very simple decision problems. The rest of the tutorial looks at more complex and interesting problems. Later chapters will look at problems where the outcome depends on the decison of another rational agent (as in *game theory*). The next few chapters look at single-agent problems that are *sequential* rather than *one-shot*. In sequential decision problems, an agent's choice of action *now* depends on the action they'll choose in the future. (Agents must *co-ordinate* with their future selves).
 
+## MDPs: definition and implementation
 As a simple illustration of a sequential decision problem, suppose that an agent, Alice, is looking for somewhere to eat. Alice gets out of work in a particular location (labeled "start"). She knows the streets and the restaurants nearby. Her decision problem is to take a sequence of actions such that (a) she eats at a restaurant she likes, (b) she does not spend too much time walking. Here is a visualization of the street layout, including Alice's starting location and the nearby restaurants.
 
 [gridworld image]
 
-We represent Alice's decision problem as a Markov Decision Process (MDP) and specifically as a discrete "Gridworld" environment. An MDP is characterized by a tuple $$(S,A(s),T(s,a),U(s,a)$$, including the *states*, the *actions* in each state, the *transition function*, and the *utility* or *reward* function. In our example, the states $$S$$ are Alice's locations on the grid. At each state, Alice selects an action $$a \in {up, down, left, right}$$, which move Alice around the grid (according to transition function $$T$$). We assume that Alice's actions, as well as the transitions and utilities of restaurants, are all deterministic. However, we will describe an agent model (and implementation in WebPPL) that solves the general case of an MDP with stochastic transitions, actions and rewards.
+We represent Alice's decision problem as a Markov Decision Process (MDP) and specifically as a discrete "Gridworld" environment. An MDP is characterized by a tuple $$(S,A(s),T(s,a),U(s,a))$$, including the *states*, the *actions* in each state, the *transition function*, and the *utility* or *reward* function. In our example, the states $$S$$ are Alice's locations on the grid. At each state, Alice selects an action $$a \in {up, down, left, right}$$, which move Alice around the grid (according to transition function $$T$$). We assume that Alice's actions, as well as the transitions and utilities of restaurants, are all deterministic. However, we will describe an agent model (and implementation in WebPPL) that solves the general case of an MDP with stochastic transitions, actions and rewards.
 
 [Footnote: The problem is called a "Markov Decision Process" because the environment it describes satisfies the *Markov assumption*. That is, the current state $$s \in S$$ fully characterizes the distribution on rewards and the conditional distribution on state transitions given actions.]
 
@@ -38,12 +39,26 @@ $$
 C(a; s) \propto e^{\alpha EU_{s}[a]}
 $$
 
-The expected utility depends (recursively) the current and the future utility: 
+The expected utility depends (recursively) on the current and the future utility: 
 
 $$
 EU_{s}[a] = U(s, a) + E_{s', a'}(EU_{s'}[a'])
 $$
-with the next state $s' \sim T(s, a)$ and $a' \sim C(s')$.
+
+with the next state $$s' \sim T(s,a)$$ and $$a' \sim C(s')$$. The decision problem ends either when a *terminal* state is reached or when the time-horizon (a fixed constant) is reached.
+
+The intuition to keep in mind for MDPs is the that expected utility will propagate backwards from possible future states to the current action. If a high utility state can be reached by a sequence of actions starting from action $$a$$, then that action will have high expected utility -- *provided* that the sequence of actions is taken with high probability and there are no low utility steps along the way.
+
+
+
+
+
+ 
+
+
+
+
+
 
 
 
