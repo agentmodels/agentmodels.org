@@ -24,7 +24,7 @@ also good to think about andreas example of infinite time horizon but with small
 ## Sequential Decision Problems: Introduction
 The previous [chapter](/chapters/03-one-shot-planning) introduced agent models for solving very simple decision problems. The rest of the tutorial looks at more complex and interesting problems. Later chapters will look at problems where the outcome depends on the decison of another rational agent (as in *game theory*). The next few chapters look at single-agent problems that are *sequential* rather than *one-shot*. In sequential decision problems, an agent's choice of action *now* depends on the action they'll choose in the future. (Agents must *co-ordinate* with their future selves).
 
-## MDPs: definition and implementation
+## MDPs: definition
 As a simple illustration of a sequential decision problem, suppose that an agent, Alice, is looking for somewhere to eat. Alice gets out of work in a particular location (labeled "start"). She knows the streets and the restaurants nearby. Her decision problem is to take a sequence of actions such that (a) she eats at a restaurant she likes, (b) she does not spend too much time walking. Here is a visualization of the street layout, including Alice's starting location and the nearby restaurants.
 
 [gridworld image]
@@ -45,9 +45,56 @@ $$
 EU_{s}[a] = U(s, a) + E_{s', a'}(EU_{s'}[a'])
 $$
 
-with the next state $$s' \sim T(s,a)$$ and $$a' \sim C(s')$$. The decision problem ends either when a *terminal* state is reached or when the time-horizon (a fixed constant) is reached.
+with the next state $$s' \sim T(s,a)$$ and $$a' \sim C(s')$$. The decision problem ends either when a *terminal* state is reached or when the time-horizon is reached. (In the next few chapters, the time-horizon will always be finite). 
 
 The intuition to keep in mind for MDPs is the that expected utility will propagate backwards from possible future states to the current action. If a high utility state can be reached by a sequence of actions starting from action $$a$$, then that action will have high expected utility -- *provided* that the sequence of actions is taken with high probability and there are no low utility steps along the way.
+
+
+## MDPs: implementation
+The recursive decision rule for MDP agents [reference?] can be directly translated into WebPPL. The resulting agent model is also a natural extension of the `softmaxAgent` from the previous [chapter](/chapters/03-one-shot-planning). The `agent` function takes the agent's state, evaluates the expectation of actions in the state, and returns a softmax distribution over actions. The expected utility of an action is computed by a separate function `expUtility`. Since an action's expected utility depends on the agent's future actions, `expUtility` calls `agent` in a mutual recursion, bottoming out when a terminal state is reached or when time runs out. 
+
+~~~~
+var transition = function(state, action){
+  return state + action;
+};
+  
+var utility = function(state){
+  return state==3 ? 1 : 0;
+};
+
+var agent = function(state, timeLeft){
+  return Enumerate(function(){
+    var action = uniformDraw([-1,1]);
+    var eu = expUtility(state, action, timeLeft);    
+    factor(100 * eu);
+    return action;
+  });      
+};
+
+
+var expUtility = function(state, action, timeLeft){
+  var u = utility(state,action);
+  var newTimeLeft = timeLeft - 1;
+  
+  if (newTimeLeft == 0){
+    return u; 
+  } else {                     
+    return u + expectation( Enumerate(function(){
+      var nextState = transition(state, action); 
+      var nextAction = sample(agent(nextState, newTimeLeft));
+      return expUtility(nextState, nextAction, newTimeLeft);  
+    }));
+  }                      
+};
+
+var startState = 0;
+var totalTime = 4;
+viz.print(agent(startState, totalTime));
+
+~~~~
+
+
+
 
 
 
