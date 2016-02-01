@@ -13,7 +13,8 @@ jekyll serve
 Once:
 
 ~~~~
-npm install -g browserify uglifyjs watchify
+npm install -g browserify uglifyjs watchify grunt-cli
+gem install jekyll
 ~~~~
 
 To update webppl and webppl packages (`./scripts/update-webppl`):

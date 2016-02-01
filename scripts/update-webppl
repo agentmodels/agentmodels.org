@@ -2,7 +2,7 @@
 set -e
 set -x
 
-npm install --save webppl@latest webppl-timeit@latest webppl-dp@latest probmods/webppl-viz agentmodels/webppl-gridworld
+npm install --save webppl@latest webppl-timeit@latest webppl-dp@latest probmods/webppl-viz agentmodels/webppl-gridworld vega vega-lite
 cd node_modules/vega
 npm install
 cd ../vega-lite
