@@ -31,6 +31,10 @@ grunt compile:../webppl-timeit:../webppl-dp:../webppl-viz:../webppl-gridworld
 cp compiled/webppl.min.js ../../assets/js/webppl.min.js
 cd ../..
 ~~~~
+If you get the error "cd: no such file or directory: vega" update npm.
+~~~~
+npm -g install npm
+~~~~
 
 To update the webppl editor (`./scripts/update-editor`):
 
