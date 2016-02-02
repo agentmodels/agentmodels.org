@@ -267,7 +267,10 @@ The function `displayGrid` visualizes a gridworld MDP.
 var noiseProb = 0;
 var alpha = 100;
 var params = makeDonut(noiseProb, alpha);
+var startState = [2,0];
+
 displayGrid(params);
+// TODO display this properly in gridworld (with no agent path -- just start state)
 ~~~~
 
 The function `displaySequence` displays the agent's trajectory. 
@@ -327,8 +330,14 @@ var simulate = function(startState, totalTime){
 var startState = [2,0];
 var totalTime = 7;
 var stateActionPairs = simulate(startState, totalTime);
+
 displaySequence( stateActionPairs, params);
-console.log(stateActionPairs);
+// TODO display this in gridworld
+
+print(map(function(stateAction){
+  return JSON.stringify(stateAction[0]) + stateAction[1];
+  }, stateActionPairs));
+  
 ~~~~
 
 
