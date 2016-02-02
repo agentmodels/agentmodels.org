@@ -35,12 +35,12 @@ var expUtility = dp.cache(function(state, action, timeLeft){
   }                      
 });
 
-var startState = 0;
+// var startState = 0;
 
-console.log('sim', map( function(totalTime){
-  return timeit( function(){return agent(startState,totalTime);} ).runtimeInMilliseconds;
-}, [10,11,12,14,15] ));
-ash();
+// console.log('sim', map( function(totalTime){
+//   return timeit( function(){return agent(startState,totalTime);} ).runtimeInMilliseconds;
+// }, [10,11,12,14,15] ));
+// ash();
 
 var simulate = function(startState, totalTime){
   
@@ -58,11 +58,88 @@ var simulate = function(startState, totalTime){
 
 
 
-console.log('sim', map( function(totalTime){
-  return timeit( function(){return simulate(startState,totalTime);} )
-}, [2,3,4,5,6, 7, 8] ));
+// console.log('sim', map( function(totalTime){
+//   return timeit( function(){return simulate(startState,totalTime);} )
+// }, [2,3,4,5,6, 7, 8] ));
   
-ash();
+// ash();
+
+
+
+
+
+
+
+//var ash = function(){assert.ok(0,'assert halt');};
+
+
+var runDonutExample = function(){
+  var noiseProb = 0;
+  var alpha = 30;
+  var actualTotalTime = 7;
+  
+  var params = makeDonut(noiseProb, alpha);
+  displayGrid(params);
+  var startState = [2,0];
+  var getExpUtilityValues = false;
+  var output = 'both';
+  var numberRejectionSamples = 1000;
+  var out = mdpSimulate(startState, actualTotalTime, actualTotalTime, params, numberRejectionSamples,
+                        getExpUtilityValues, output);
+  GridWorld.zipToDisplayGrid( out.erp.MAP().val, params.xLim, params.yLim, true )
+  return out.erp.MAP().val;
+};
+
+var alpha = 100;
+var params = makeDonut(0,100);
+var transition = params.transition;
+var utility = params.utility;
+var actions = params.actions;
+
+
+var agent = dp.cache(function(state, timeLeft){
+  return Enumerate(function(){
+    var action = uniformDraw(actions);
+    var eu = expUtility(state, action, timeLeft);    
+    factor( alpha * eu);
+    return action;
+  });      
+});
+
+
+var expUtility = dp.cache(function(state, action, timeLeft){
+  var u = utility(state,action);
+  var newTimeLeft = timeLeft - 1;
+  
+  if (newTimeLeft == 0 | isTerminal(state)){
+    return u; 
+  } else {                     
+    return u + expectation( Enumerate(function(){
+      var nextState = transition(state, action); 
+      var nextAction = sample(agent(nextState, newTimeLeft));
+      return expUtility(nextState, nextAction, newTimeLeft);  
+    }));
+  }                      
+});
+
+var simulate = function(startState, totalTime){
+  
+  var sampleSequence = function(state, timeLeft){
+    if (timeLeft == 0 | isTerminal(state)){
+      return [];
+    } else {
+      var action = sample(agent(state, timeLeft));
+      var nextState = transition(state,action); 
+      return [nextState].concat( sampleSequence(nextState,timeLeft-1 ))
+    }
+  };
+  return sampleSequence(startState, totalTime).slice(0,totalTime-1);
+};
+
+var out = simulate([2,0],7);
+GridWorld.zipToDisplayGrid( out.MAP().val, params.xLim, params.yLim, true )
+
+
 
 
 
