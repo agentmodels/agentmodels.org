@@ -191,15 +191,16 @@ var startState = 0;
 
 var getRuntime = function(totalTime){
     return timeit( function(){
-        return agent(startState,totalTime).runtimeInMilliseconds;
-    });
+        return agent(startState,totalTime);
+    }).runtimeInMilliseconds;
 };
 
-var totalTimes = [3, 4, 5, 6, 7, 8];
-print('Runtime in ms for total times:', totalTimes, '\n',
-    map(getRuntime, totalTimes) )
+var totalTimes = [3, 4, 5, 6, 7];
+print('Runtime in ms for total times: ' + totalTimes + '\n' +
+    map(getRuntime, totalTimes) );
 
 ~~~~
+
 
 Most of this computation is unnecessary. If the agent starts at `state=0`, there are three ways the agent could be at `state=0` again at `timeLeft=totalTime-2`: either the agent stays put twice or the agent away and then returns. The current code will compute `agent(0,totalTime-2)` three times, while it only needs to be computed once. This problem can be resolved by *memoization* (via the `dp.cache` function), which stores the results of a function call so they can be re-used if the function is called again on the same input. In general, memoization means the runtime is polynomial in the number of states and the total time. 
 
@@ -240,14 +241,13 @@ var startState = 0;
 
 var getRuntime = function(totalTime){
     return timeit( function(){
-        return agent(startState,totalTime).runtimeInMilliseconds;
-    });
+        return agent(startState,totalTime);
+    }).runtimeInMilliseconds;
 };
 
-var totalTimes = [3, 4, 5, 6, 7, 8];
-print('Runtime in ms for total times:', totalTimes, '\n',
-    map(getRuntime, totalTimes) )
-
+var totalTimes = [3, 4, 5, 6, 7];
+print('Runtime in ms for total times: ' + totalTimes + '\n' +
+    map(getRuntime, totalTimes) );
 ~~~~
 
 
