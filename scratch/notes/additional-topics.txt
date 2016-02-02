@@ -1,0 +1,10 @@
+- describe hyperbolic discounting derived from uncertain risks
+- add a chapter on metareasoning?
+- talk about higher-order preferences, multiple levels of preferences
+- rule vs act utilitarianism, willpower
+- talk about where utilities come from? how they are learned?
+  - http://www.dectech.co.uk/publications/LinksNick/ReasoningAndDecisionMaking/DbSCogPsychJournal.pdf
+- more structured utility function
+  - multi-attribute utility theory
+  - http://gershmanlab.webfactional.com/pubs/structured_utility.pdf
+- gym membership example ofmodeling future self as succumbing to sunk cost fallacy
