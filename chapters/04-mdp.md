@@ -108,7 +108,7 @@ var utility = function(state){
 
 var agent = function(state, timeLeft){
   return Enumerate(function(){
-    var action = uniformDraw([-1,1]);
+    var action = uniformDraw([-1,0,1]);
     var eu = expUtility(state, action, timeLeft);    
     factor(100 * eu);
     return action;
@@ -121,7 +121,7 @@ var expUtility = function(state, action, timeLeft){
   
   if (newTimeLeft == 0){
     return u; 
-  } else {                     
+  } else {
     return u + expectation( Enumerate(function(){
       var nextState = transition(state, action); 
       var nextAction = sample(agent(nextState, newTimeLeft));
@@ -150,10 +150,105 @@ print(simulate(startState, totalTime));
 
 ~~~~
 
-The `expUtility` and `simulate` functions are similar. The `expUtilty` function includes the agent's own (subjective) simulation of the future distribution on states. In the case of an MDP and an optimal agent, the agent's simulation is identical to the world simulator (up to irreducible random noise in the the transition and choice functions). In later chapters, the agent's subjective simulations will diverge from the world simulator and become inaccurate. 
+The `expUtility` and `simulate` functions are similar. The `expUtilty` function includes the agent's own (subjective) simulation of the future distribution on states. In the case of an MDP and an optimal agent, the agent's simulation is identical to the world simulator (up to irreducible random noise in the the transition and choice functions). In later chapters, the agent's subjective simulations will diverge from the world simulator and become inaccurate.
 
-Could discuss exponential branching. Unnecessary since we visit states multiple times. (Example if you can stay put). Show exponential growing run time with timeit. Then show what caching can achieve? (Then discuss this later). Otherwise, use of cache won't be understandable. 
+What does the mutual recursion between `agent` and `expUtility` look like if we unpack it? In this example, where the transition function is deterministic, there is a tree that expands up until `timeLeft` reaches zero. The root is the starting state and this branches into three successor states. This leads to an exponential blow-up in the runtime of a single action:
 
+~~~~
+var transition = function(state, action){
+  return state + action;
+};
+  
+var utility = function(state){
+  return state==3 ? 1 : 0;
+};
+
+var agent = function(state, timeLeft){
+  return Enumerate(function(){
+    var action = uniformDraw([-1,0,1]);
+    var eu = expUtility(state, action, timeLeft);    
+    factor(100 * eu);
+    return action;
+  });
+};
+
+var expUtility = function(state, action, timeLeft){
+  var u = utility(state,action);
+  var newTimeLeft = timeLeft - 1;
+  
+  if (newTimeLeft == 0){
+    return u; 
+  } else {                     
+    return u + expectation( Enumerate(function(){
+      var nextState = transition(state, action); 
+      var nextAction = sample(agent(nextState, newTimeLeft));
+      return expUtility(nextState, nextAction, newTimeLeft);
+    }));
+  }
+};
+
+var startState = 0;
+
+var getRuntime = function(totalTime){
+    return timeit( function(){
+        return agent(startState,totalTime).runtimeInMilliseconds;
+    });
+};
+
+var totalTimes = [3, 4, 5, 6, 7, 8];
+print('Runtime in ms for total times:', totalTimes, '\n',
+    map(getRuntime, totalTimes) )
+
+~~~~
+
+Most of this computation is unnecessary. If the agent starts at `state=0`, there are three ways the agent could be at `state=0` again at `timeLeft=totalTime-2`: either the agent stays put twice or the agent away and then returns. The current code will compute `agent(0,totalTime-2)` three times, while it only needs to be computed once. This problem can be resolved by *memoization* (via the `dp.cache` function), which stores the results of a function call so they can be re-used if the function is called again on the same input. In general, memoization means the runtime is polynomial in the number of states and the total time. 
+
+~~~~
+var transition = function(state, action){
+  return state + action;
+};
+  
+var utility = function(state){
+  return state==3 ? 1 : 0;
+};
+
+var agent = dp.cache(function(state, timeLeft){
+  return Enumerate(function(){
+    var action = uniformDraw([-1,0,1]);
+    var eu = expUtility(state, action, timeLeft);    
+    factor(100 * eu);
+    return action;
+  });
+});
+
+var expUtility = dp.cache(function(state, action, timeLeft){
+  var u = utility(state,action);
+  var newTimeLeft = timeLeft - 1;
+  
+  if (newTimeLeft == 0){
+    return u; 
+  } else {                     
+    return u + expectation( Enumerate(function(){
+      var nextState = transition(state, action); 
+      var nextAction = sample(agent(nextState, newTimeLeft));
+      return expUtility(nextState, nextAction, newTimeLeft);
+    }));
+  }
+});
+
+var startState = 0;
+
+var getRuntime = function(totalTime){
+    return timeit( function(){
+        return agent(startState,totalTime).runtimeInMilliseconds;
+    });
+};
+
+var totalTimes = [3, 4, 5, 6, 7, 8];
+print('Runtime in ms for total times:', totalTimes, '\n',
+    map(getRuntime, totalTimes) )
+
+~~~~
 
 
 

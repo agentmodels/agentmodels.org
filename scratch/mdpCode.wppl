@@ -1,6 +1,7 @@
 var ash = function(){assert.ok(0,'assert halt');};
 
 
+
 var transition = function(state, action){
   return state + action;
 };
@@ -9,17 +10,17 @@ var utility = function(state){
   return state==3 ? 1 : 0;
 };
 
-var agent = function(state, timeLeft){
+var agent = dp.cache(function(state, timeLeft){
   return Enumerate(function(){
-    var action = uniformDraw([-1,1]);
+    var action = uniformDraw([-1,0,1]);
     var eu = expUtility(state, action, timeLeft);    
     factor(100 * eu);
     return action;
   });      
-};
+});
 
 
-var expUtility = function(state, action, timeLeft){
+var expUtility = dp.cache(function(state, action, timeLeft){
   var u = utility(state,action);
   var newTimeLeft = timeLeft - 1;
   
@@ -32,14 +33,14 @@ var expUtility = function(state, action, timeLeft){
       return expUtility(nextState, nextAction, newTimeLeft);  
     }));
   }                      
-};
+});
 
 var startState = 0;
-var totalTime = 4;
-console.log('agentAction', 
-            map(function(erp){return sample(erp);}, 
-                [agent(startState,totalTime), agent(startState,3), agent(startState,2)]));
 
+console.log('sim', map( function(totalTime){
+  return timeit( function(){return agent(startState,totalTime);} ).runtimeInMilliseconds;
+}, [10,11,12,14,15] ));
+ash();
 
 var simulate = function(startState, totalTime){
   
@@ -57,12 +58,11 @@ var simulate = function(startState, totalTime){
 
 
 
-// console.log('sim', map( function(totalTime){
-//   return timeit( function(){return simulate(startState,totalTime);} ),
+console.log('sim', map( function(totalTime){
+  return timeit( function(){return simulate(startState,totalTime);} )
+}, [2,3,4,5,6, 7, 8] ));
   
-  
-//                         [
-// ash();
+ash();
 
 
 
