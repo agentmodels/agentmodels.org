@@ -198,8 +198,17 @@ var simulate = function(startState, totalTime){
 
 var totalTime = 12;
 var numRejectionSamples = 500;
-var erp = Rejection(function(){return simulate(start,totalTime).length;},
+var erp = Rejection(function(){return simulate(startState,totalTime).length;},
     numRejectionSamples);
-    viz.print(erp);
+viz.print(erp);
 
 ~~~~
+
+if we sample from the softmax agent, we can see that the agent doesn't fall down the hill, but mostly just goes into a wall or goes in the wrong direction. exercise: add enough noise that the agent often takes much longer trajectories.
+
+
+add noise. now big risk of falling off. so this changes the policy, even for non-noisy agent.
+
+decrease time: more time pressure moves you to shortcut. (as does increasing the action cost). decrease time enough and you just go to close hill (sample for increasing action cost). 
+
+
