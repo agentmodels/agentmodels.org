@@ -141,7 +141,7 @@ Sample some of this noisy agent's trajectories. Does it ever fall down the hill?
 
 When softmax noise is high, the agent will make many small "mistakes" (i.e. suboptimal actions) but few large mistakes. In contrast, sources of noise in the environment will change the agent's state transitions independent of the agent's preferences. In the hiking example, imagine that the weather is very wet and windy. As a result, Bill will sometimes intend to go one way but actually go another way (because he slips in the mud). In this case, the shorter route to the peaks might be too risky for Bill. We will use a simplified model of bad weather. We assume that at every state and time, there is a constant independent probability `noiseProb` of the agent not going in their chosen direction. The independence assumption is unrealistic (since if a location is slippery at one timestep it's more likely slippery the next) but is simple and conforms to the Markov assumption for MDPs. When the agent does not go in their intended direction, they randomly go in one of the two orthogonal directions.
 
-We set `noiseProb=0.1` and show that (a) the agent's first intended action is "up" not "right", and (b) that the agent's trajectory lengths vary due to stochastic transitions. 
+We set `noiseProb=0.1` and show that (a) the agent's first intended action is "up" not "right", and (b) that the agent's trajectory lengths vary due to stochastic transitions. *Exercise:* keeping `noiseProb=0.1`, find settings for the arguments to `makeHike` such that the agent goes "right" instead of up. <!-- put up action cost to -.5 or so --> 
 
 ~~~~
 // parameters for building Hiking MDP
@@ -184,14 +184,114 @@ displaySequence(out,params);
 print('stochastic transitions', out);
 ~~~~
 
+Extending this idea, we can output and visualize the expected values of actions the agent *could have* on a trajectory. For each state in a trajectory, we compute the expected value of each possible action (given the state and the time remaining). The resulting numbers are analogous to Q-values in infinite-horizon MDPs. 
+
+The expected values we seek to display are already being computed: we add a function addition to `mdpSimulate` in order to output them. 
+
+
+~~~~
+
+var mdpSimulate = function(startState, totalTime, params, numRejectionSamples){
+  var alpha = params.alpha;
+  var transition = params.transition;
+  var utility = params.utility;
+  var actions = params.actions;
+  var isTerminal = function(state){return state[0]=='dead';};
+
+    
+  var agent = dp.cache(function(state, timeLeft){
+    return Enumerate(function(){
+        var action = uniformDraw(actions);
+        var eu = expUtility(state, action, timeLeft);    
+        factor( alpha * eu);
+        return action;
+        });      
+    });
+  
+  
+  var expUtility = dp.cache(function(state, action, timeLeft){
+    var u = utility(state,action);
+    var newTimeLeft = timeLeft - 1;
+    
+    if (newTimeLeft == 0 | isTerminal(state)){
+      return u; 
+    } else {                     
+      return u + expectation( Enumerate(function(){
+        var nextState = transition(state, action); 
+        var nextAction = sample(agent(nextState, newTimeLeft));
+        return expUtility(nextState, nextAction, newTimeLeft);  
+      }));
+    }                      
+  });
+  
+  var simulate = function(startState, totalTime){
+  
+    var sampleSequence = function(state, timeLeft){
+      if (timeLeft == 0 | isTerminal(state)){
+        return [];
+      } else {
+      var action = sample(agent(state, timeLeft));
+        var nextState = transition(state,action); 
+        return [[state,action]].concat( sampleSequence(nextState,timeLeft-1 ))
+      }
+    };
+    return Rejection(function(){return sampleSequence(startState, totalTime);}, numRejectionSamples);
+  };
+
+ // Additions for outputting expected values
+  var unzip = function(ar,i){
+    return map(function(tuple){return tuple[i];}, ar);
+  };
+  
+  var downToOne = function(n){
+    return n==0 ? [] : [n].concat(downToOne(n-1));
+  };
+  
+  var getExpUtility = function(){
+    var erp = simulate(startState, totalTime);
+    var states = unzip(erp.MAP().val,0); // go from [[state,action]] to [state]
+    var timeStates = zip(downToOne(states.length), states); // [ [timeLeft, state] ] for states in trajectory
+
+    // compute expUtility for each pair of form [timeLeft,state]
+    return map( function(timeState){
+      var timeLeft = timeState[0];
+      var state = timeState[1];
+      return [JSON.stringify(state), map(function(action){
+        return expUtility(state, action, timeLeft);
+      }, params.actions)];
+    }, timeStates);
+  };
+  
+  
+  return {erp: simulate(startState, totalTime),
+          stateToExpUtilityLRUD:  getExpUtility()};
+
+};
+
+
+// modify the utilities to make West close to East
+var utilityWest = 7;
+var utilityEast = 10;
+var utilityHill = -10;
+var timeCost = -.2;
+
+var alpha = 100;
+var noiseProb = 0.05;
+var totalTime = 12;
+var numRejectionSamples = 1;
+var params = makeHike(noiseProb, alpha, utilityEast, 
+    utilityWest, utilityHill, timeCost);
+
+var out = mdpSimulate(startState, totalTime, params, numRejectionSamples);
+var trajectory = sample(out.erp);
+var expUtilityValues = out.stateToExpUtilityLRUD;
+// display both the trajectory and the expUtilityValues
+
+~~~~
 
 
 
 
-
-
-
-add noise. now big risk of falling off. so this changes the policy, even for non-noisy agent.
 
 decrease time: more time pressure moves you to shortcut. (as does increasing the action cost). decrease time enough and you just go to close hill (sample for increasing action cost). 
 
