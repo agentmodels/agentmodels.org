@@ -1,10 +1,26 @@
 - describe hyperbolic discounting derived from uncertain risks
+OE: closely related to modeling infinite horizon with uncertainty about when horizon might end.
+
 - add a chapter on metareasoning?
 - talk about higher-order preferences, multiple levels of preferences
+OE: good to think more about
+
+
 - rule vs act utilitarianism, willpower
+OE: i would like to explore: logic based planning and intentions and how they related to MDP planning and policies. an approximate policy (based on MC sampling) gives you reasonable actions in the most likely states. as you move to more unlikely states, you are more likely to need to recompute parts of the policy. if you have no extra time, you just "stick with the plan". (maybe logic-based planning can be an initial heuristic for planning in MDPs where some parts of causal structure of the world are nearly deterministic). 
+
+weakness of will as related to recomputing (when closer to tempting thing) a previously cached MDP policy. weakness of will is unpredictable because random events can influence whether or not you recompute (e.g. you are distracted by a loud car noise and while distracted you gaze at the donut shop). 
+
+related to rules/acts: in an MDP, to update your policy on new information you have to recompute the whole policy (and it could change arbitrarily from a small amount of information). if you don't have time to recompute the whole policy, you might be better off just sticking with the old policy. 
+
+
+
+
 - talk about where utilities come from? how they are learned?
   - http://www.dectech.co.uk/publications/LinksNick/ReasoningAndDecisionMaking/DbSCogPsychJournal.pdf
 - more structured utility functions
+
   - multi-attribute utility theory
   - http://gershmanlab.webfactional.com/pubs/structured_utility.pdf
+  [OE]: good for connecting this to work in econ and ML. we'd need to think about what our framework can add. one option is just to use something like a conv net training as a black-box for learning utility functions (so do a version of DQN but in the pomdp setting). another is to think about about more structured representations of utility functions. koller and friedman have some work on this. 
 - gym membership example of modeling future self as succumbing to sunk cost fallacy

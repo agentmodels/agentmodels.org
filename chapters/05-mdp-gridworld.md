@@ -158,7 +158,7 @@ var numRejectionSamples = 1;
 var params = makeHike(noiseProb, alpha, utilityEast, utilityWest, utilityHill, timeCost);
 var out = sample(mdpSimulateTemp(startState, totalTime, params, numRejectionSamples));
 displaySequence(out,params);
-print('stochastic transitions', out);
+print('stochastic transitions: ' + out);
 ~~~~
 
 In a world with stochastic transitions, the agent sometimes finds itself in a state it did not intend to reach. The functions `agent` and `expUtility` (inside `mdpSimulate`) implicitly compute the expected utility of actions for every possible future state -- including states that the agent will try to avoid. In the MDP literature, this function from state-time pairs to actions (or distributions on actions) is called a *policy*. [Sidenote: For infinite horizon MDPs, policies are functions from states to actions, which makes them somewhat simpler to think about.]. 
@@ -179,9 +179,10 @@ var numRejectionSamples = 1;
 
 var alpha = 100;
 var noiseProb = 0.1;
+var params = makeHike(noiseProb, alpha, utilityEast, utilityWest, utilityHill, timeCost);
 var out = sample(mdpSimulateTemp(startState, totalTime, params, numRejectionSamples));
 displaySequence(out,params);
-print('stochastic transitions', out);
+print('stochastic transitions: ' + out);
 ~~~~
 
 Extending this idea, we can output and visualize the expected values of actions the agent *could have* on a trajectory. For each state in a trajectory, we compute the expected value of each possible action (given the state and the time remaining). The resulting numbers are analogous to Q-values in infinite-horizon MDPs. 
