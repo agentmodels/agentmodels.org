@@ -26,6 +26,7 @@ We introduce a new sequential decision problem that can be represented by a "gri
 We represent Bill's hiking problem with a gridworld similar to Alice's restaurant choice example. The peaks are terminal states, providing differing utilities. The steep hill is also a terminal state, with negative utility. We assume a negative, constant time-cost -- so Bill prefers a shorter hike. 
 
 ~~~~
+// TODO remove this code --- to verbose
 var makeHike = function(noiseProb, alpha){
   var xLim = 5;
   var yLim = 5;
@@ -41,6 +42,9 @@ var makeHike = function(noiseProb, alpha){
   };
   return makeBlockedGridParams(xLim, yLim, blockedStates, terminals, u, noiseProb, alpha);
   };
+
+// add params here:
+// utilityEast, utilityWest, utilityFall, timeCost
 
 var noiseProb = 0;
 var alpha = 100;
@@ -127,6 +131,7 @@ print(out);
 
 ~~~~
 
+## Hiking under the influence 
 If we set the softmax noise parameter `alpha=0.5`, the agent will often take sub-optimal decisions. While not realistic in Bill's situation, this might better describe an intoxicated agent. Since the agent is noisy, we sample many trajectories in order to approximate the full distribution. To construct an ERP based on these samples, we use the built-in function `Rejection` which performs inference by rejection sampling. (Our goal here is not inference over trajectories and so the `Rejection` function does not need any `factor` statement in its body). In this case, when the agent takes a suboptimal action, it will take *longer* than five steps to reach the East summit. So we plot the distribution on the length of trajectories to summarize the agent's behavior. 
 
 
@@ -204,7 +209,18 @@ viz.print(erp);
 
 ~~~~
 
-if we sample from the softmax agent, we can see that the agent doesn't fall down the hill, but mostly just goes into a wall or goes in the wrong direction. exercise: add enough noise that the agent often takes much longer trajectories.
+### Exercise
+Sample some of this noisy agent's trajectories. Does it ever fall down the hill? Why not? By varying the noise and other parameters, find a setting where the agent's modal trajectory length is the same as the `totalTime`.
+<!-- let alpha=0.5 and action cost = -.01 --!>
+
+
+## Hiking with stochastic transitions
+
+When softmax noise is high, the agent will make many small "mistakes" (i.e. suboptimal actions) but few large mistakes. In contrast, sources of noise in the environment will change the agent's state transitions independent of the agent's preferences. In the hiking example, imagine that the weather is very wet and windy. As a result, Bill will sometimes intend to go one way but actually go another way (because he slips in the mud). In this case, the shorter route to the peaks might be too risky for Bill. We will use a simplified model of bad weather. We assume that at every state and time, there is a constant independent probability `noiseProb` of the agent not going in their chosen direction. The independence assumption is unrealistic (since if a location is slippery at one timestep it's more likely slippery the next) but is simple and conforms to the Markov assumption for MDPs. When the agent does not go in their intended direction, they randomly go in one of the two orthogonal directions. 
+
+
+
+
 
 
 add noise. now big risk of falling off. so this changes the policy, even for non-noisy agent.
