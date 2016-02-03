@@ -38,68 +38,78 @@ var startState = [0,1];
 displayGrid(params, startState);
 ~~~~
 
-We start with a *deterministic* transition function. This means that Bill's only risk of falling down the steep hill is due to softmax noise in his actions. With `alpha=100`, the chance of this is tiny, and so Bill will take the short route to the peaks.
+We start with a *deterministic* transition function. This means that Bill's only risk of falling down the steep hill is due to softmax noise in his actions. With `alpha=100`, the chance of this is tiny, and so Bill will take the short route to the peaks. The agent model is the same as the end of [Chapter 4]('/chapters/04-mdp.md'). The function `mdpSimulate` is also a library function and we will re-use throughout this chapter. 
 
 
 ~~~~
-var noiseProb = 0;
-var alpha = 100;
+var mdpSimulate = function(startState, totalTime, params, numRejectionSamples){
+  var alpha = params.alpha;
+  var transition = params.transition;
+  var utility = params.utility;
+  var actions = params.actions;
+  var isTerminal = function(state){return state[0]=='dead';};
+
+
+  var agent = dp.cache(function(state, timeLeft){
+    return Enumerate(function(){
+      var action = uniformDraw(actions);
+      var eu = expUtility(state, action, timeLeft);    
+      factor( alpha * eu);
+    return action;
+    });      
+  });
+  
+  
+  var expUtility = dp.cache(function(state, action, timeLeft){
+    var u = utility(state,action);
+    var newTimeLeft = timeLeft - 1;
+    
+    if (newTimeLeft == 0 | isTerminal(state)){
+      return u; 
+    } else {                     
+      return u + expectation( Enumerate(function(){
+        var nextState = transition(state, action); 
+        var nextAction = sample(agent(nextState, newTimeLeft));
+        return expUtility(nextState, nextAction, newTimeLeft);  
+      }));
+    }                      
+  });
+  
+  var simulate = function(startState, totalTime){
+  
+    var sampleSequence = function(state, timeLeft){
+      if (timeLeft == 0 | isTerminal(state)){
+        return [];
+      } else {
+      var action = sample(agent(state, timeLeft));
+        var nextState = transition(state,action); 
+        return [[state,action]].concat( sampleSequence(nextState,timeLeft-1 ))
+      }
+      };
+    // repeatedly sample trajectories for the agent and return ERP
+    return Rejection(function(){return sampleSequence(startState, totalTime);}, numRejectionSamples);
+  };
+
+  return simulate(startState, totalTime);
+};
+
+// parameters for building Hiking MDP
 var utilityEast = 10;
 var utilityWest = 1;
 var utilityHill = -10;
 var timeCost = -.1;
-
-var params = makeHike(noiseProb, alpha, utilityEast, utilityWest, utilityHill, timeCost);
 var startState = [0,1];
 
-var transition = params.transition;
-var utility = params.utility;
-var actions = params.actions;
-var isTerminal = function(state){return state[0]=='dead';};
-
-
-var agent = dp.cache(function(state, timeLeft){
-  return Enumerate(function(){
-    var action = uniformDraw(actions);
-    var eu = expUtility(state, action, timeLeft);    
-    factor( alpha * eu);
-    return action;
-  });      
-});
-
-var expUtility = dp.cache(function(state, action, timeLeft){
-  var u = utility(state,action);
-  var newTimeLeft = timeLeft - 1;
-  
-  if (newTimeLeft == 0 | isTerminal(state)){
-    return u; 
-  } else {                     
-    return u + expectation( Enumerate(function(){
-      var nextState = transition(state, action); 
-      var nextAction = sample(agent(nextState, newTimeLeft));
-      return expUtility(nextState, nextAction, newTimeLeft);  
-    }));
-  }                      
-});
-
-var simulate = function(startState, totalTime){
-  
-  var sampleSequence = function(state, timeLeft){
-    if (timeLeft == 0 | isTerminal(state)){
-      return [];
-    } else {
-      var action = sample(agent(state, timeLeft));
-      var nextState = transition(state,action); 
-      return [[state,action]].concat( sampleSequence(nextState,timeLeft-1 ))
-    }
-  };
-  return sampleSequence(startState, totalTime);
-};
+// parameters for noisy agent (but no transition noise)
+var alpha = 100;
+var noiseProb = 0;
+var params = makeHike(noiseProb, alpha, utilityEast, utilityWest, utilityHill, timeCost);
+displayGrid(params,startState);
 
 var totalTime = 12;
-var out = simulate(startState, totalTime);
-print(out);
-//displaySequence(out);
+var numRejectionSamples = 1;
+var out = sample( mdpSimulateTemp(startState, totalTime, params, numRejectionSamples) );
+displaySequence( out, params);
 
 ~~~~
 
@@ -108,65 +118,26 @@ If we set the softmax noise parameter `alpha=10`, the agent will often take sub-
 
 
 ~~~~
-var noiseProb = 0;
-var alpha = 10;
+// parameters for building Hiking MDP
 var utilityEast = 10;
 var utilityWest = 1;
 var utilityHill = -10;
 var timeCost = -.1;
-
-var params = makeHike(noiseProb, alpha, utilityEast, utilityWest, utilityHill, timeCost);
 var startState = [0,1];
 
-var transition = params.transition;
-var utility = params.utility;
-var actions = params.actions;
-var isTerminal = function(state){return state[0]=='dead';};
-
-
-var agent = dp.cache(function(state, timeLeft){
-  return Enumerate(function(){
-    var action = uniformDraw(actions);
-    var eu = expUtility(state, action, timeLeft);    
-    factor( alpha * eu);
-    return action;
-  });      
-});
-
-var expUtility = dp.cache(function(state, action, timeLeft){
-  var u = utility(state,action);
-  var newTimeLeft = timeLeft - 1;
-  
-  if (newTimeLeft == 0 | isTerminal(state)){
-    return u; 
-  } else {                     
-    return u + expectation( Enumerate(function(){
-      var nextState = transition(state, action); 
-      var nextAction = sample(agent(nextState, newTimeLeft));
-      return expUtility(nextState, nextAction, newTimeLeft);  
-    }));
-  }                      
-});
-
-var simulate = function(startState, totalTime){
-  
-  var sampleSequence = function(state, timeLeft){
-    if (timeLeft == 0 | isTerminal(state)){
-      return [];
-    } else {
-      var action = sample(agent(state, timeLeft));
-      var nextState = transition(state,action); 
-      return [[state,action]].concat( sampleSequence(nextState,timeLeft-1 ))
-    }
-  };
-  return sampleSequence(startState, totalTime);
-};
+var alpha = 10;
+var noiseProb = 0;
+var params = makeHike(noiseProb, alpha, utilityEast, utilityWest, utilityHill, timeCost);
 
 var totalTime = 12;
 var numRejectionSamples = 500;
-var erp = Rejection(function(){return simulate(startState,totalTime).length;},
-    numRejectionSamples);
+var erp = Enumerate( function(){
+  return sample( 
+    mdpSimulateTemp(startState, totalTime, params, numRejectionSamples)).length;
+});
+
 viz.print(erp);
+
 
 ~~~~
 
@@ -177,7 +148,52 @@ Sample some of this noisy agent's trajectories. Does it ever fall down the hill?
 
 ## Hiking with stochastic transitions
 
-When softmax noise is high, the agent will make many small "mistakes" (i.e. suboptimal actions) but few large mistakes. In contrast, sources of noise in the environment will change the agent's state transitions independent of the agent's preferences. In the hiking example, imagine that the weather is very wet and windy. As a result, Bill will sometimes intend to go one way but actually go another way (because he slips in the mud). In this case, the shorter route to the peaks might be too risky for Bill. We will use a simplified model of bad weather. We assume that at every state and time, there is a constant independent probability `noiseProb` of the agent not going in their chosen direction. The independence assumption is unrealistic (since if a location is slippery at one timestep it's more likely slippery the next) but is simple and conforms to the Markov assumption for MDPs. When the agent does not go in their intended direction, they randomly go in one of the two orthogonal directions. 
+When softmax noise is high, the agent will make many small "mistakes" (i.e. suboptimal actions) but few large mistakes. In contrast, sources of noise in the environment will change the agent's state transitions independent of the agent's preferences. In the hiking example, imagine that the weather is very wet and windy. As a result, Bill will sometimes intend to go one way but actually go another way (because he slips in the mud). In this case, the shorter route to the peaks might be too risky for Bill. We will use a simplified model of bad weather. We assume that at every state and time, there is a constant independent probability `noiseProb` of the agent not going in their chosen direction. The independence assumption is unrealistic (since if a location is slippery at one timestep it's more likely slippery the next) but is simple and conforms to the Markov assumption for MDPs. When the agent does not go in their intended direction, they randomly go in one of the two orthogonal directions.
+
+We set `noiseProb=0.1` and show that (a) the agent's first intended action is "up" not "right", and (b) that the agent's trajectory lengths vary due to stochastic transitions. 
+
+~~~~
+// parameters for building Hiking MDP
+var utilityEast = 10;
+var utilityWest = 1;
+var utilityHill = -10;
+var timeCost = -.1;
+var startState = [0,1];
+
+var alpha = 100;
+var noiseProb = 0.1;
+var totalTime = 12;
+var numRejectionSamples = 1;
+var params = makeHike(noiseProb, alpha, utilityEast, utilityWest, utilityHill, timeCost);
+var out = sample(mdpSimulateTemp(startState, totalTime, params, numRejectionSamples));
+displaySequence(out,params);
+print('stochastic transitions', out);
+~~~~
+
+In a world with stochastic transitions, the agent sometimes finds itself in a state it did not intend to reach. The functions `agent` and `expUtility` (inside `mdpSimulate`) implicitly compute the expected utility of actions for every possible future state -- including states that the agent will try to avoid. In the MDP literature, this function from state-time pairs to actions (or distributions on actions) is called a *policy*. [Sidenote: For infinite horizon MDPs, policies are functions from states to actions, which makes them somewhat simpler to think about.]. 
+
+The example above showed that the agent chooses the long route (avoiding the risky hill). At the same time, the agent computes what to do if it ends up moving right on the first action.
+
+~~~~
+// parameters for building Hiking MDP
+var utilityEast = 10;
+var utilityWest = 1;
+var utilityHill = -10;
+var timeCost = -.1;
+
+// Change start state from [1,0] to [1,1] and reduce time
+var startState = [1,1];
+var totalTime = 12 - 1;
+var numRejectionSamples = 1;
+
+var alpha = 100;
+var noiseProb = 0.1;
+var out = sample(mdpSimulateTemp(startState, totalTime, params, numRejectionSamples));
+displaySequence(out,params);
+print('stochastic transitions', out);
+~~~~
+
+
 
 
 
