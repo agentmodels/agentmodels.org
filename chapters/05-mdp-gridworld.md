@@ -262,14 +262,14 @@ var mdpSimulate = function(startState, totalTime, params, numRejectionSamples){
     }, timeStates);
   };
   
-  
+  // mdpSimulate now returns both an ERP over trajectories and
+  // the expUtility values for MAP trajectory
   return {erp: simulate(startState, totalTime),
           stateToExpUtilityLRUD:  getExpUtility()};
 
 };
 
-
-// modify the utilities to make West close to East
+// modify the utilities so that West is better than previously
 var utilityWest = 7;
 var utilityEast = 10;
 var utilityHill = -10;
