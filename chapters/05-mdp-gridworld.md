@@ -24,6 +24,8 @@ var timeCost = -.1;
 var params = makeHike(noiseProb, alpha, utilityEast, utilityWest, utilityHill, timeCost);
 var startState = [0,1];
 displayGrid(params, startState);
+// TODO add grid with singleton trajectory on startState. *makeHike* is in src/gridworld.wppl. would be good to have labels 'E' and 'W' for two peaks but not needed for now. 
+
 ~~~~
 
 We start with a *deterministic* transition function. This means that Bill's only risk of falling down the steep hill is due to softmax noise in his actions. With `alpha=100`, the chance of this is tiny, and so Bill will take the short route to the peaks. The agent model is the same as the end of [Chapter 4]('/chapters/04-mdp.md'). The function `mdpSimulate` is also a library function and we will re-use throughout this chapter. 
@@ -93,13 +95,13 @@ var alpha = 100;
 var noiseProb = 0;
 var params = makeHike(noiseProb, alpha, utilityEast, 
     utilityWest, utilityHill, timeCost);
-displayGrid(params,startState);
 
 var totalTime = 12;
 var numRejectionSamples = 1;
 var out = sample( mdpSimulateTemp(startState, totalTime, params, 
     numRejectionSamples) );
 displaySequence( out, params);
+// TODO show agent path on the grid    
 
 ~~~~
 
@@ -127,6 +129,7 @@ var erp = Enumerate( function(){
     mdpSimulateTemp(startState, totalTime, params, numRejectionSamples)).length;
 });
 
+// TODO show a random trajectory on grid as well as histogram
 viz.print(erp);
 
 
@@ -141,7 +144,7 @@ Sample some of this noisy agent's trajectories. Does it ever fall down the hill?
 
 When softmax noise is high, the agent will make many small "mistakes" (i.e. suboptimal actions) but few large mistakes. In contrast, sources of noise in the environment will change the agent's state transitions independent of the agent's preferences. In the hiking example, imagine that the weather is very wet and windy. As a result, Bill will sometimes intend to go one way but actually go another way (because he slips in the mud). In this case, the shorter route to the peaks might be too risky for Bill. We will use a simplified model of bad weather. We assume that at every state and time, there is a constant independent probability `noiseProb` of the agent not going in their chosen direction. The independence assumption is unrealistic (since if a location is slippery at one timestep it's more likely slippery the next) but is simple and conforms to the Markov assumption for MDPs. When the agent does not go in their intended direction, they randomly go in one of the two orthogonal directions.
 
-We set `noiseProb=0.1` and show that (a) the agent's first intended action is "up" not "right", and (b) that the agent's trajectory lengths vary due to stochastic transitions. *Exercise:* keeping `noiseProb=0.1`, find settings for the arguments to `makeHike` such that the agent goes "right" instead of up. <!-- put up action cost to -.5 or so --> 
+We set `noiseProb=0.1` and show that (a) the agent's first intended action is "up" not "right", and (b) that the agent's trajectory lengths vary due to stochastic transitions. **Exercise:** keeping `noiseProb=0.1`, find settings for the arguments to `makeHike` such that the agent goes "right" instead of up. <!-- put up action cost to -.5 or so --> 
 
 ~~~~
 // parameters for building Hiking MDP
@@ -158,6 +161,7 @@ var numRejectionSamples = 1;
 var params = makeHike(noiseProb, alpha, utilityEast, utilityWest, utilityHill, timeCost);
 var out = sample(mdpSimulateTemp(startState, totalTime, params, numRejectionSamples));
 displaySequence(out,params);
+// TODO show trajectry
 print('stochastic transitions: ' + out);
 ~~~~
 
@@ -182,6 +186,7 @@ var noiseProb = 0.1;
 var params = makeHike(noiseProb, alpha, utilityEast, utilityWest, utilityHill, timeCost);
 var out = sample(mdpSimulateTemp(startState, totalTime, params, numRejectionSamples));
 displaySequence(out,params);
+// TODO show trajectory
 print('stochastic transitions: ' + out);
 ~~~~
 
@@ -288,14 +293,12 @@ var out = mdpSimulate(startState, totalTime, params, numRejectionSamples);
 var trajectory = sample(out.erp);
 var expUtilityValues = out.stateToExpUtilityLRUD;
 print(expUtilityValues);
-// display both the trajectory and the expUtilityValues
+// TODO display both the trajectory and the expUtilityValues
 
 ~~~~
 
 
-
-
-
+NOTES:
 decrease time: more time pressure moves you to shortcut. (as does increasing the action cost). decrease time enough and you just go to close hill (sample for increasing action cost). 
 
 
