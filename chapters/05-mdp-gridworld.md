@@ -1,21 +1,9 @@
 ---
 layout: chapter
 title: "MDPs Part II: Gridworld"
-description: Mathematical framework, implementation in WebPPL with explicit recursion (could compare to value iteration), Gridworld examples.
+description: Hiking example, softmax agent, stochastic transitions, policies, expected values of possible actions, discounting
 
 ---
-
-
-PLAN
-
-Goal is to illustrate some of the key variables that we will later do inference on. These are discounting, softmax parameter, transition noise, and the preferences. 
-
-Discounting example. Two summits. Might be unknown which is more preferred (if you just have satellite image and movement data). Cliff is just a steep hill that would hurt if you fell down (and probably end the hike). Could think of graph more abstractly: cliff as states that you reach if you take a very fast route (or if there's a route with worse heights, you might get vertigo and have to stop). 
-
-good to think about what's stochastic in restaurant street example. attending to tempting thigns might be.
-
-also good to think about andreas example of infinite time horizon but with small probability of death at each age (similar to language models with prob of infinite lenght sentence). 
-
 
 ## MDP Example: Hiking
 
@@ -103,12 +91,14 @@ var startState = [0,1];
 // parameters for noisy agent (but no transition noise)
 var alpha = 100;
 var noiseProb = 0;
-var params = makeHike(noiseProb, alpha, utilityEast, utilityWest, utilityHill, timeCost);
+var params = makeHike(noiseProb, alpha, utilityEast, 
+    utilityWest, utilityHill, timeCost);
 displayGrid(params,startState);
 
 var totalTime = 12;
 var numRejectionSamples = 1;
-var out = sample( mdpSimulateTemp(startState, totalTime, params, numRejectionSamples) );
+var out = sample( mdpSimulateTemp(startState, totalTime, params, 
+    numRejectionSamples) );
 displaySequence( out, params);
 
 ~~~~
@@ -127,7 +117,8 @@ var startState = [0,1];
 
 var alpha = 10;
 var noiseProb = 0;
-var params = makeHike(noiseProb, alpha, utilityEast, utilityWest, utilityHill, timeCost);
+var params = makeHike(noiseProb, alpha, utilityEast,
+    utilityWest, utilityHill, timeCost);
 
 var totalTime = 12;
 var numRejectionSamples = 500;
@@ -143,7 +134,7 @@ viz.print(erp);
 
 ### Exercise
 Sample some of this noisy agent's trajectories. Does it ever fall down the hill? Why not? By varying the noise and other parameters, find a setting where the agent's modal trajectory length is the same as the `totalTime`.
-<!-- let alpha=0.5 and action cost = -.01 --!>
+<!-- let alpha=0.5 and action cost = -.01 -->
 
 
 ## Hiking with stochastic transitions
