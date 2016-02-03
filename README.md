@@ -1,5 +1,12 @@
 # Modeling Agents with Probabilistic Programs
 
+## Setup
+
+~~~~
+npm install -g browserify uglifyjs watchify grunt-cli
+gem install jekyll
+~~~~
+
 ## Development
 
 Running a local server:
@@ -9,13 +16,6 @@ jekyll serve
 ~~~~
 
 ## Updating dependencies
-
-Once:
-
-~~~~
-npm install -g browserify uglifyjs watchify grunt-cli
-gem install jekyll
-~~~~
 
 To update webppl and webppl packages (`./scripts/update-webppl`):
 
