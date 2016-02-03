@@ -275,6 +275,7 @@ var utilityWest = 7;
 var utilityEast = 10;
 var utilityHill = -10;
 var timeCost = -.2;
+var startState = [0,1];
 
 var alpha = 100;
 var noiseProb = 0.05;
@@ -286,6 +287,7 @@ var params = makeHike(noiseProb, alpha, utilityEast,
 var out = mdpSimulate(startState, totalTime, params, numRejectionSamples);
 var trajectory = sample(out.erp);
 var expUtilityValues = out.stateToExpUtilityLRUD;
+print(expUtilityValues);
 // display both the trajectory and the expUtilityValues
 
 ~~~~
