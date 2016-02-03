@@ -26,59 +26,31 @@ We introduce a new sequential decision problem that can be represented by a "gri
 We represent Bill's hiking problem with a gridworld similar to Alice's restaurant choice example. The peaks are terminal states, providing differing utilities. The steep hill is also a terminal state, with negative utility. We assume a negative, constant time-cost -- so Bill prefers a shorter hike. 
 
 ~~~~
-// TODO remove this code --- to verbose
-var makeHike = function(noiseProb, alpha){
-  var xLim = 5;
-  var yLim = 5;
-  var blockedStates = [ [1,2], [1,3], [3,2] ];
-  var terminals = [ [0,0], [1,0], [2,0], [3,0], [4,0], [2,2], [4,2] ]; 
-
-  var u = function(state,action){
-    if (gridEqual(state,[2,2])){return 1;}
-    if (gridEqual(state,[4,2])){return 10;}
-    if (isPostTerminal(state)){return 0;};
-    if (stateInArray(state,terminals)) {return -10;}
-    return -0.05;
-  };
-  return makeBlockedGridParams(xLim, yLim, blockedStates, terminals, u, noiseProb, alpha);
-  };
-
-// add params here:
-// utilityEast, utilityWest, utilityFall, timeCost
-
 var noiseProb = 0;
 var alpha = 100;
-var startState = [0,1];
-var params = makeHike(noiseProb, alpha);
+var utilityEast = 10;
+var utilityWest = 1;
+var utilityHill = -10;
+var timeCost = -.1;
 
-// TODO display
-displayGrid(params);
+var params = makeHike(noiseProb, alpha, utilityEast, utilityWest, utilityHill, timeCost);
+var startState = [0,1];
+displayGrid(params, startState);
 ~~~~
 
 We start with a *deterministic* transition function. This means that Bill's only risk of falling down the steep hill is due to softmax noise in his actions. With `alpha=100`, the chance of this is tiny, and so Bill will take the short route to the peaks.
 
 
 ~~~~
-var makeHike = function(noiseProb, alpha){
-  var xLim = 5;
-  var yLim = 5;
-  var blockedStates = [ [1,2], [1,3], [3,2] ];
-  var terminals = [ [0,0], [1,0], [2,0], [3,0], [4,0], [2,2], [4,2] ]; 
-
-  var u = function(state,action){
-    if (gridEqual(state,[2,2])){return 1;}
-    if (gridEqual(state,[4,2])){return 10;}
-    if (isPostTerminal(state)){return 0;};
-    if (stateInArray(state,terminals)) {return -10;}
-    return -0.05;
-  };
-  return makeBlockedGridParams(xLim, yLim, blockedStates, terminals, u, noiseProb, alpha);
-  };
-
 var noiseProb = 0;
 var alpha = 100;
+var utilityEast = 10;
+var utilityWest = 1;
+var utilityHill = -10;
+var timeCost = -.1;
+
+var params = makeHike(noiseProb, alpha, utilityEast, utilityWest, utilityHill, timeCost);
 var startState = [0,1];
-var params = makeHike(noiseProb, alpha);
 
 var transition = params.transition;
 var utility = params.utility;
@@ -132,30 +104,19 @@ print(out);
 ~~~~
 
 ## Hiking under the influence 
-If we set the softmax noise parameter `alpha=0.5`, the agent will often take sub-optimal decisions. While not realistic in Bill's situation, this might better describe an intoxicated agent. Since the agent is noisy, we sample many trajectories in order to approximate the full distribution. To construct an ERP based on these samples, we use the built-in function `Rejection` which performs inference by rejection sampling. (Our goal here is not inference over trajectories and so the `Rejection` function does not need any `factor` statement in its body). In this case, when the agent takes a suboptimal action, it will take *longer* than five steps to reach the East summit. So we plot the distribution on the length of trajectories to summarize the agent's behavior. 
+If we set the softmax noise parameter `alpha=10`, the agent will often take sub-optimal decisions. While not realistic in Bill's situation, this might better describe an intoxicated agent. Since the agent is noisy, we sample many trajectories in order to approximate the full distribution. To construct an ERP based on these samples, we use the built-in function `Rejection` which performs inference by rejection sampling. (Our goal here is not inference over trajectories and so the `Rejection` function does not need any `factor` statement in its body). In this case, when the agent takes a suboptimal action, it will take *longer* than five steps to reach the East summit. So we plot the distribution on the length of trajectories to summarize the agent's behavior. 
 
 
 ~~~~
-var makeHike = function(noiseProb, alpha){
-  var xLim = 5;
-  var yLim = 5;
-  var blockedStates = [ [1,2], [1,3], [3,2] ];
-  var terminals = [ [0,0], [1,0], [2,0], [3,0], [4,0], [2,2], [4,2] ]; 
-
-  var u = function(state,action){
-    if (gridEqual(state,[2,2])){return 1;}
-    if (gridEqual(state,[4,2])){return 10;}
-    if (isPostTerminal(state)){return 0;};
-    if (stateInArray(state,terminals)) {return -10;}
-    return -0.05;
-  };
-  return makeBlockedGridParams(xLim, yLim, blockedStates, terminals, u, noiseProb, alpha);
-  };
-
 var noiseProb = 0;
-var alpha = 100;
+var alpha = 10;
+var utilityEast = 10;
+var utilityWest = 1;
+var utilityHill = -10;
+var timeCost = -.1;
+
+var params = makeHike(noiseProb, alpha, utilityEast, utilityWest, utilityHill, timeCost);
 var startState = [0,1];
-var params = makeHike(noiseProb, alpha);
 
 var transition = params.transition;
 var utility = params.utility;
