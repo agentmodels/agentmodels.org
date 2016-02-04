@@ -14,6 +14,13 @@ The previous [chapter](/chapters/03-one-shot-planning) introduced agent models f
 ## Markov Decision Process (MDP): example
 As a simple illustration of a sequential decision problem, suppose that an agent, Alice, is looking for somewhere to eat. Alice gets out of work in a particular location (labeled "start"). She knows the streets and the restaurants nearby. Her decision problem is to take a sequence of actions such that (a) she eats at a restaurant she likes, (b) she does not spend too much time walking. Here is a visualization of the street layout, including Alice's starting location and the nearby restaurants.
 
+~~~~
+var params = makeDonut(0,100); // args: noiseProb, alpha
+var startState = [2,0];
+
+// TODO show grid with params and startState
+~~~~
+
 [ depiction of restaurant gridworld. for now, just use an illustration of "makeDonut" gridworld. later change to: Variant on the restaurant "donut" domain. (Because probably we don't want people distracted by those features). Could have a similar loop, but on left rather than right. Maybe make the two ways to Veg Cafe pretty close. 
 ]
 
@@ -80,6 +87,10 @@ var expUtility = function(state, action, timeLeft){
 var startState = 0;
 var totalTime = 4;
 viz.print(agent(startState, totalTime));
+
+// TODO: could try a gridworld here for line environment. could just make a gridworld
+// of form [.... -1,0,1,2,3,4 ...]. no terminal states and only state 3 has utility 1 (rest
+// zero). 
 
 ~~~~
 
@@ -256,7 +267,7 @@ var params = makeDonut(noiseProb, alpha);
 var startState = [2,0];
 
 displayGrid(params);
-// TODO display this properly in gridworld (with no agent path -- just start state)
+// TODO gridworld display
 ~~~~
 
 The function `displaySequence` displays the agent's trajectory. 
@@ -342,19 +353,3 @@ print(map(function(stateAction){
 
 
 
-
-
-~~~~
-var element = makeResultContainer();
-
-var world = {
-  width: 200,
-  height: 200,
-  fromX: 10,
-  fromY: 50,
-  incX: 100,
-  incY: 0
-};
-
-GridWorld.draw(element, world)
-~~~~

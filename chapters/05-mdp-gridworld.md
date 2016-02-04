@@ -21,6 +21,7 @@ var utilityWest = 1;
 var utilityHill = -10;
 var timeCost = -.1;
 
+// TODO add docs for functions like *makeHike* which explain the arguments
 var params = makeHike(noiseProb, alpha, utilityEast, utilityWest, utilityHill, timeCost);
 var startState = [0,1];
 displayGrid(params, startState);
@@ -128,15 +129,16 @@ var erp = Enumerate( function(){
   return sample( 
     mdpSimulateTemp(startState, totalTime, params, numRejectionSamples)).length;
 });
+var trajectory = sample(mdpSimulateTemp(startState, totalTime, params, numRejectionSamples);
 
-// TODO show a random trajectory on grid as well as histogram
 viz.print(erp);
 
+// GridWorld.draw( {trajectory: trajectory} );
 
 ~~~~
 
 ### Exercise
-Sample some of this noisy agent's trajectories. Does it ever fall down the hill? Why not? By varying the noise and other parameters, find a setting where the agent's modal trajectory length is the same as the `totalTime`.
+Sample some of this noisy agent's trajectories. Does it ever fall down the hill? Why not? By varying the softmax noise `alpha` and other parameters, find a setting where the agent's modal trajectory length is the same as the `totalTime`. (Don't modify the `noiseProb` parameter for this exercise). 
 <!-- let alpha=0.5 and action cost = -.01 -->
 
 
@@ -192,7 +194,7 @@ print('stochastic transitions: ' + out);
 
 Extending this idea, we can output and visualize the expected values of actions the agent *could have* on a trajectory. For each state in a trajectory, we compute the expected value of each possible action (given the state and the time remaining). The resulting numbers are analogous to Q-values in infinite-horizon MDPs. 
 
-The expected values we seek to display are already being computed: we add a function addition to `mdpSimulate` in order to output them. 
+The expected values we seek to display are already being computed: we add a function addition to `mdpSimulate` in order to output them. [TODO Make it clear that all expUtils are computed on first action, even though we show all actions.]
 
 
 ~~~~
