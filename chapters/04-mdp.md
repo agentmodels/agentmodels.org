@@ -26,13 +26,13 @@ var startState = [2,0];
 
 ~~~~
 var labels = [ 
-  { point : [0, 1], content : "Donut", fontSize : 4 },
-  { point : [1, 3], content : "Donut", fontSize : 4 },
-  { point : [3, 5], content : "Veg", fontSize : 4 },
-  { point : [5, 3], content : "Noodle", fontSize : 4 },
-  { point : [2, 0], content : "Start", fontSize : 4 }
+  { point : [0, 1], content : "Donut"},
+  { point : [1, 3], content : "Donut"},
+  { point : [3, 5], content : "Veg"},
+  { point : [5, 3], content : "Noodle"},
+  { point : [2, 0], content : "Start"}
   ];
-GridWorld.draw(makeDonut(.1,100), { labels : labels} );
+GridWorld.draw(makeDonut(0,100), { labels : labels} );
 ~~~~
 
 ## MDP: formal definition
