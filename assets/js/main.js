@@ -26,7 +26,7 @@ function github_page_url(page_url) {
 
 $(function(){
   var preEls = Array.prototype.slice.call(document.querySelectorAll("pre"));
-  preEls.map(function(el) { wpCodeEditor(el, {language: 'webppl'}); });          
+  preEls.map(function(el) { wpEditor.setup(el, {language: 'webppl'}); });          
 });
 
 

@@ -42,7 +42,7 @@ To update the webppl editor (`./scripts/update-editor`):
 npm install --save probmods/webppl-editor
 cd node_modules/wp-editor
 npm install
-make compiled/editor.js
+make all
 cp compiled/editor.js ../../assets/js/webppl-editor.js
 cp compiled/editor.css ../../assets/css/editor.css
 cd ../..
