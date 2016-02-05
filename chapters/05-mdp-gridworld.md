@@ -99,8 +99,6 @@ var totalTime = 12;
 var numRejectionSamples = 1;
 var out = sample( mdpSimulateTemp(startState, totalTime, params, 
     numRejectionSamples) );
-displaySequence( out, params);
-// TODO show agent path on the grid    
 GridWorld.draw(params, {trajectory : out});
 
 ~~~~
@@ -182,7 +180,6 @@ var alpha = 100;
 var noiseProb = 0.1;
 var params = makeHike(noiseProb, alpha, utilityEast, utilityWest, utilityHill, timeCost);
 var out = sample(mdpSimulateTemp(startState, totalTime, params, numRejectionSamples));
-displaySequence(out,params);
 GridWorld.draw(params, {trajectory : out});
 ~~~~
 

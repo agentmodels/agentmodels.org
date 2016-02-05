@@ -269,7 +269,7 @@ With this agent model including memoization, we can solve Alice's restaurant cho
 
 We extend the code above by adding checks for whether a state is terminal. If Alice reaches a restaurant, she receives the restaurant's utility score and the decision problem ends.
 
-The function `displayGrid` visualizes a gridworld MDP.
+The function `GridWorld.draw` visualizes a gridworld MDP.
 
 ~~~~
 var noiseProb = 0;
@@ -280,7 +280,7 @@ var startState = [2,0];
 GridWorld.draw(params);
 ~~~~
 
-The function `displaySequence` displays the agent's trajectory. 
+Adding the optional parameter `{trajectory : stateActionPairs}` displays the agent's trajectory. 
 
 
 ~~~~
@@ -291,10 +291,6 @@ var transition = params.transition;
 var utility = params.utility;
 var actions = params.actions;
 var isTerminal = function(state){return state[0]=='dead';};
-
-var displaySequence = function( stateActions, params ){
-  return GridWorld.zipToDisplayGrid( stateActions, params.xLim, params.yLim, true )
-};
 
 var agent = dp.cache(function(state, timeLeft){
   return Enumerate(function(){
