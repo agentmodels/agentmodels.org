@@ -24,7 +24,18 @@ var startState = [2,0];
 [ depiction of restaurant gridworld. for now, just use an illustration of "makeDonut" gridworld. later change to: Variant on the restaurant "donut" domain. (Because probably we don't want people distracted by those features). Could have a similar loop, but on left rather than right. Maybe make the two ways to Veg Cafe pretty close. 
 ]
 
-## MDP: formal defition
+~~~~
+var labels = [ 
+  { point : [0, 1], content : "Donut", fontSize : 4 },
+  { point : [1, 3], content : "Donut", fontSize : 4 },
+  { point : [3, 5], content : "Veg", fontSize : 4 },
+  { point : [5, 3], content : "Noodle", fontSize : 4 },
+  { point : [2, 0], content : "Start", fontSize : 4 }
+  ];
+GridWorld.draw(makeDonut(.1,100), { labels : labels} );
+~~~~
+
+## MDP: formal definition
 We represent Alice's decision problem as a Markov Decision Process (MDP) and specifically as a discrete "Gridworld" environment. An MDP is characterized by a tuple $$(S,A(s),T(s,a),U(s,a))$$, including the *states*, the *actions* in each state, the *transition function*, and the *utility* or *reward* function. In our example, the states $$S$$ are Alice's locations on the grid. At each state, Alice selects an action $$a \in {up, down, left, right}$$, which move Alice around the grid (according to transition function $$T$$). We assume that Alice's actions, as well as the transitions and utilities of restaurants, are all deterministic. However, we will describe an agent model (and implementation in WebPPL) that solves the general case of an MDP with stochastic transitions, actions and rewards.
 
 [Sidenote: The problem is called a "Markov Decision Process" because the environment it describes satisfies the *Markov assumption*. That is, the current state $$s \in S$$ fully characterizes the distribution on rewards and the conditional distribution on state transitions given actions.]
@@ -266,8 +277,7 @@ var alpha = 100;
 var params = makeDonut(noiseProb, alpha);
 var startState = [2,0];
 
-displayGrid(params);
-// TODO gridworld display
+GridWorld.draw(params);
 ~~~~
 
 The function `displaySequence` displays the agent's trajectory. 
@@ -328,28 +338,5 @@ var startState = [2,0];
 var totalTime = 7;
 var stateActionPairs = simulate(startState, totalTime);
 
-displaySequence( stateActionPairs, params);
-// TODO display this in gridworld
-
-print(map(function(stateAction){
-  return JSON.stringify(stateAction[0]) + stateAction[1];
-  }, stateActionPairs));
-  
+GridWorld.draw(params, {trajectory : stateActionPairs});
 ~~~~
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

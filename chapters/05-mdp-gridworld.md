@@ -23,10 +23,8 @@ var timeCost = -.1;
 
 // TODO add docs for functions like *makeHike* which explain the arguments
 var params = makeHike(noiseProb, alpha, utilityEast, utilityWest, utilityHill, timeCost);
-var startState = [0,1];
-displayGrid(params, startState);
-// TODO add grid with singleton trajectory on startState. *makeHike* is in src/gridworld.wppl. would be good to have labels 'E' and 'W' for two peaks but not needed for now. 
 
+GridWorld.draw(params, {trajectory : [[[0,1]]]});
 ~~~~
 
 We start with a *deterministic* transition function. This means that Bill's only risk of falling down the steep hill is due to softmax noise in his actions. With `alpha=100`, the chance of this is tiny, and so Bill will take the short route to the peaks. The agent model is the same as the end of [Chapter 4]('/chapters/04-mdp.md'). The function `mdpSimulate` is also a library function and we will re-use throughout this chapter. 
@@ -103,6 +101,7 @@ var out = sample( mdpSimulateTemp(startState, totalTime, params,
     numRejectionSamples) );
 displaySequence( out, params);
 // TODO show agent path on the grid    
+GridWorld.draw(params, {trajectory : out});
 
 ~~~~
 
@@ -129,12 +128,10 @@ var erp = Enumerate( function(){
   return sample( 
     mdpSimulateTemp(startState, totalTime, params, numRejectionSamples)).length;
 });
-var trajectory = sample(mdpSimulateTemp(startState, totalTime, params, numRejectionSamples);
-
+var trajectory = sample(mdpSimulateTemp(startState, totalTime, params, numRejectionSamples));
 viz.print(erp);
 
-// GridWorld.draw( {trajectory: trajectory} );
-
+GridWorld.draw(params, {trajectory : trajectory});
 ~~~~
 
 ### Exercise
@@ -162,9 +159,7 @@ var totalTime = 12;
 var numRejectionSamples = 1;
 var params = makeHike(noiseProb, alpha, utilityEast, utilityWest, utilityHill, timeCost);
 var out = sample(mdpSimulateTemp(startState, totalTime, params, numRejectionSamples));
-displaySequence(out,params);
-// TODO show trajectry
-print('stochastic transitions: ' + out);
+GridWorld.draw(params, {trajectory : out});
 ~~~~
 
 In a world with stochastic transitions, the agent sometimes finds itself in a state it did not intend to reach. The functions `agent` and `expUtility` (inside `mdpSimulate`) implicitly compute the expected utility of actions for every possible future state -- including states that the agent will try to avoid. In the MDP literature, this function from state-time pairs to actions (or distributions on actions) is called a *policy*. [Sidenote: For infinite horizon MDPs, policies are functions from states to actions, which makes them somewhat simpler to think about.]. 
@@ -188,8 +183,7 @@ var noiseProb = 0.1;
 var params = makeHike(noiseProb, alpha, utilityEast, utilityWest, utilityHill, timeCost);
 var out = sample(mdpSimulateTemp(startState, totalTime, params, numRejectionSamples));
 displaySequence(out,params);
-// TODO show trajectory
-print('stochastic transitions: ' + out);
+GridWorld.draw(params, {trajectory : out});
 ~~~~
 
 Extending this idea, we can output and visualize the expected values of actions the agent *could have* on a trajectory. For each state in a trajectory, we compute the expected value of each possible action (given the state and the time remaining). The resulting numbers are analogous to Q-values in infinite-horizon MDPs. 
@@ -264,7 +258,7 @@ var mdpSimulate = function(startState, totalTime, params, numRejectionSamples){
     return map( function(timeState){
       var timeLeft = timeState[0];
       var state = timeState[1];
-      return [JSON.stringify(state), map(function(action){
+      return [state, map(function(action){
         return expUtility(state, action, timeLeft);
       }, params.actions)];
     }, timeStates);
@@ -292,11 +286,9 @@ var params = makeHike(noiseProb, alpha, utilityEast,
     utilityWest, utilityHill, timeCost);
 
 var out = mdpSimulate(startState, totalTime, params, numRejectionSamples);
-var trajectory = sample(out.erp);
-var expUtilityValues = out.stateToExpUtilityLRUD;
-print(expUtilityValues);
-// TODO display both the trajectory and the expUtilityValues
+var trajectoryExpUtilities = out.stateToExpUtilityLRUD;
 
+GridWorld.draw(params, {trajectory : trajectoryExpUtilities, expUtilities : trajectoryExpUtilities});
 ~~~~
 
 
