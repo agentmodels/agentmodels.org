@@ -5,6 +5,17 @@ description: Overview of inverse planning / IRL. WebPPL examples of inferring ut
 is_section: true
 ---
 
+## TODOs:
+* what's up with the visualisation?
+* "xxx is not a function" errors
+* need to figure out how to make functions defined in codeboxes globally available
+* fill in words
+* keep code to 80 characters per line
+* align code nicely
+* visualisation of trajectories doesn't show final action: how to fix this?
+
+# this is the real bit
+
 Explain the idea of IRL.
 
 ## Conditioning on a single action
@@ -13,7 +24,7 @@ We're in donutWorld. This is what it looks like. There are stores.
 
 ~~~
 var params = makeDonutInfer(true, {'donutSouth': 1, 'donutNorth': 1, 'veg': 1, 'noodle': 1, 'timeCost': 1}, 100, 0);
-GridWorld.draw(params, {trajectory: noodleTraj});
+GridWorld.draw(params);
 ~~~
 
 This is how you infer based on a single action.
@@ -26,17 +37,17 @@ This is how you infer based on a single action.
 
 var inferSingleAction = function(startState, observedAction, perceivedTotalTime, utilityPrior) {
     return Enumerate(function(){
-	var newUtilityTable = utilityPrior();
-	var newParams = makeDonutInfer(true, newUtilityTable, 100, 0);
+	    var newUtilityTable = utilityPrior();
+		var newParams = makeDonutInfer(true, newUtilityTable, 100, 0);
 	
-	var mdpSimOptions = {trajectoryNumRejectionSamples: 0, erpOverStatesOrActions: 'actions', conditionOnStates: false};
-	var actionERP = mdpSimulate(startState, 1, perceivedTotalTime, newParams, mdpSimOptions).erp;
+	    var mdpSimOptions = {trajectoryNumRejectionSamples: 0, erpOverStatesOrActions: 'actions', conditionOnStates: false};
+		var actionERP = mdpSimulate(startState, 1, perceivedTotalTime, newParams, mdpSimOptions).erp;
 
-	factor(actionERP.score([], observedAction));
+	    factor(actionERP.score([], observedAction));
 
-	return {donutUtil: newUtilityTable['donutSouth'],
-		vegUtil: newUtilityTable['veg'],
-		noodleUtil: newUtilityTable['noodle']};
+	    return {donutUtil: newUtilityTable['donutSouth'],
+			vegUtil: newUtilityTable['veg'],
+			noodleUtil: newUtilityTable['noodle']};
     });
 };
 ~~~
@@ -95,21 +106,21 @@ Do it like this:
 
 var inferTrajUtil = function(trajectory, perceivedTotalTime, utilityPrior) {
     return Enumerate(function(){
-	var newUtilityTable = utilityPrior();
-	var newParams = makeDonutInfer(true, newUtilityTable, 100, 0);
+		var newUtilityTable = utilityPrior();
+		var newParams = makeDonutInfer(true, newUtilityTable, 100, 0);
 
-	var startState = trajectory[0][0];
+	    var startState = trajectory[0][0];
 
-	var outputParams = {trajectoryNumRejectionSamples: 0, erpOverStatesOrActions: 'both',
-		conditionOnStates: false};
-	var newTrajectoryERP = mdpSimulate(startState, trajectory.length, perceivedTotalTime,
-		newParams, outputParams).erp;
+	    var outputParams = {trajectoryNumRejectionSamples: 0, erpOverStatesOrActions: 'both',
+			conditionOnStates: false};
+		var newTrajectoryERP = mdpSimulate(startState, trajectory.length, perceivedTotalTime,
+			newParams, outputParams).erp;
 
-	factor(newTrajectoryERP.score([], trajectory));
+	    factor(newTrajectoryERP.score([], trajectory));
 
-	return {donutUtil: newUtilityTable['donutSouth'],
-		vegUtil: newUtilityTable['veg'],
-		noodleUtil: newUtilityTable['noodle']};
+	    return {donutUtil: newUtilityTable['donutSouth'],
+			vegUtil: newUtilityTable['veg'],
+			noodleUtil: newUtilityTable['noodle']};
     });
 };
 ~~~
@@ -125,7 +136,7 @@ GridWorld.draw(params, {trajectory: noodleTraj});
 now let's try inference
 
 ~~~
-viz.print(inferTrajsUtil(noodleTrajs, complexUtilPrior));
+viz.print(inferTrajUtil(noodleTraj, complexUtilPrior));
 ~~~
 
 ## inferring time cost from a trajectory
@@ -225,7 +236,8 @@ var maybeTipsyPrior = function() {
     return categorical([0.1, 0.9], [10, 100]);
 };
 
-viz.print(inferTrajsUtilAlpha(dnTrajs, complexUtilPrior, maybeTipsyPrior))
+// viz.print(inferTrajsUtilAlpha(dnTrajs, complexUtilPrior, maybeTipsyPrior))
+// viz.print(inferTrajsUtilAlpha(crazyTrajs, complexUtilPrior, maybeTipsyPrior))
 ~~~
 
 now you have learned.
