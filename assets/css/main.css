@@ -58,7 +58,7 @@ a.chapter-link {
     line-height: 18px;
 }
 
-.page-content .wpedit button.run {
+.page-content .wpedit button.run, .page-content .wpedit button.cancel {
     font-size: 12px;
 }
 
