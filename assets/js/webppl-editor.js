@@ -71827,6 +71827,7 @@ var CodeEditor = React.createClass({
   // side effects
   // these methods draw to the results div of a particular CodeEditor instance
   // the actively running codebox will inject them into global once it starts running
+  // TODO: remove hist and barChart once webppl-viz stabilizes
   // ------------------------------------------------------------
   print: function (s, k, a, x) {
     this.addResult({ type: 'text', message: x });
@@ -71855,6 +71856,11 @@ var CodeEditor = React.createClass({
     return element;
   },
   // ------------------------------------------------------------
+  cancelRun: function () {
+    util.trampolineRunners.web.__cancel__ = true;
+    this.addResult({ type: 'text', message: '[Execution canceled]' });
+    this.endJob();
+  },
   runCode: function () {
     global.localStorage.setItem('code', this.state.code);
     var $resultsDiv = $(ReactDOM.findDOMNode(this)).find(".result");
@@ -71869,6 +71875,8 @@ var CodeEditor = React.createClass({
       comp.addResult({ type: 'text', message: renderedReturnValue });
       cleanup();
     };
+
+    this.endJob = endJob;
 
     var cleanup = function () {
       window.onerror = null;
@@ -71929,7 +71937,8 @@ var CodeEditor = React.createClass({
           };
 
           try {
-            eval.call({}, compileCache[code])({}, endJob, '');
+            var _code = eval.call({}, compileCache[code])(util.trampolineRunners.web);
+            _code({}, endJob, '');
           } catch (e) {
             comp.addResult({ type: 'error', message: e.message, stack: e.stack });
             cleanup();
@@ -72006,6 +72015,11 @@ var CodeEditor = React.createClass({
       { ref: 'cont', className: 'wpedit' },
       React.createElement(CodeMirrorComponent, { ref: 'editor', value: this.state.code, onChange: this.updateCode, options: options, codeMirrorInstance: CodeMirror }),
       React.createElement(RunButton, { status: this.state.execution, clickHandler: this.runCode }),
+      React.createElement(
+        'button',
+        { className: _.contains(['running', 'queued'], this.state.execution) ? 'cancel' : 'cancel hide', onClick: this.cancelRun },
+        'cancel'
+      ),
       React.createElement(
         'div',
         { style: resultDivStyle, className: this.state.newborn ? "result hide" : "result" },

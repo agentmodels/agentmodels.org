@@ -12,7 +12,7 @@
     border-radius: 2px;
 }
 
-.wpedit button.run {
+.wpedit button {
     border: 1px solid gray;
     font-family: Menlo;
     background-color: #e0e0e0;
@@ -21,15 +21,19 @@
     min-width: 100px;
 }
 
-.wpedit button.run:hover {
+.wpedit .cancel {
+    margin-left: 5px;
+}
+
+.wpedit button:hover {
     cursor: pointer
 }
 
-.wpedit button.run:active {
+.wpedit button:active {
     background-color: #a0a0a0;
 }
 
-.wpedit button.run:disabled {
+.wpedit button:disabled {
     cursor: auto;
 }
 
