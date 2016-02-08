@@ -1,27 +1,35 @@
 ---
 layout: chapter
 title: Introduction
-description: "Motivating example of inferring preferences from observed choices. Introduce utility-based, decision-theoretic agents implementing as programs. Introduce inference of preferences by inverting the agent models. Taster of a WebPPL agent model"
+description: "Practical example of inferring human preferences from observed choices. Implementing agent model from decision theory as functional programs. Inferring preferences (IRL) by inverting agent models."
 is_section: true
 ---
 
-## Motivating example
+## Example: Learning preferences and beliefs from behavior
 
-![Donut temptation gridworld](/assets/img/ch1_donut_tempt_small.png)
+![Donut temptation gridworld](/assets/img/ch1_donut_new.png)
 
-{% comment %} 
-Eventually: Animation of "donut temptation" case, maybe showing multiple agents (not just Bob).
-{% endcomment %} 
 
-Imagine you have a dataset showing people's movements through a city. A single trajectory from this set is shown on a simplified map. Call the agent Bob. Given this trajectory, what can be infer about Bob's preferences and beliefs? First, we know Bob spent a long time at the Donut Store. So we infer he bought some food or drink there. But why did Bob not stop at the closer store to his starting point? He might just not know about Store 1. Maybe it just opened. Or he might know about it but prefer Store 2. Another possibility is that he intended to go the healthier "Salad box" above but ended up being tempted by the smell of Donuts.
+Suppose we have a dataset which records how individuals move through a city. The figure above shows what a datapoint from this set might look like. It depicts an individual, who we'll call Bob, moving along a street and then dwelling in the location of a restaurant. This restaurant is one of two nearby branches of a chain of Donut Stores. Two other nearby restaurants are also shown on the map.
 
-In this tutorial, we'll build models of inference about the behavior of agents that can posit all these different explanations. These models can also simulate the behavior of different agents, allowing us to make predictions about what Bob would do if he was in a different part of town.
+From the evidence of Bob's movements alone, what can we infer about Bob's preferences and beliefs? Since Bob spent a long time at the Donut Store, we infer he bought some food or drink there. Since Bob could easily have walked to the other nearby eateries, we infer that Bob has a preference for donuts over noodles or salad.
 
-Suppose after seeing Bob, we saw a few more distinct individuals take exactly the same trajectory. How would this change our conclusions about Bob? Well, either *everyone* prefers Store 2 (because it's much better) or Store 1 just opened and so few people know about it. So it's more likely Bob doesn't know about D1 and less likely that he was tempted by the smell of Donuts. This kind of reasoning, where we assume different individuals have similar preferences or beliefs, will be formalized and simulated in later chapters.
+Assuming Bob does like donuts, why did he not choose the store closer to his starting point ("Donut South")? The cause might be Bob's *beliefs* rather than his *preferences*. Maybe he does not know about "Donut South" because it just opened. Maybe Donut South has different hours than Donut North and Bob knows about this.
+
+A different explanation is that Bob *intended* to go the healthier "Vegetarian Salad Bar". However, the most efficient route to the Salad Bar took him right to Donut North and once standing right outside he suddenly found the donuts more tempting than salad.
+
+We've described a variety of inferences about Bob which would explain his behavior. This tutorial develops models for inference that can consider all of these different explanations and quantitatively compare their plausibility. These models can also simulate an agent's behavior in novel scenarios: we could predict Bob's behavior if he had started looking for food in a different part of the city. 
+
+After consider the data about Bob, suppose the dataset showed that a a significant number of different individuals took exactly the same path as he did. How would this change our conclusions about Bob? It could be that everyone is tempted away from healthy food in the way Bob was. But this seems unlikely. Instead, it's now more plausible that Donut South is closed or that it's a brand new branch that few people know about. 
+
+This kind of reasoning, where we make assumptions of the distributions of beliefs within populations, will be formalized and simulated in later chapters. We'll also consider multi-agent behavior where coordination or competition are important. 
+
 
 ## Agents as programs
 
 ### Making rational plans
+
+
 
 Models of rational agents based on expected utility theory and Bayesian inference play an important role in the social and pschological sciences (as a model of human behavior) and in operations research, computer science and artificial intelligence (where they are used to create programs that are able to learn and act in an effective way). (Could add some citations). 
 
