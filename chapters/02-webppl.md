@@ -11,9 +11,9 @@ is_section: false
 
 This chapter introduces the probabilistic programming language WebPPL (pronounced "web people"). The models for agents (and for learning about agents) in this tutorial are all implemented in WebPPL -- so it's an important building block for what follows.
 
-This will be a overview of WebPPL features that are essential to the rest of the tutorial. It will move quickly over the key ideas of probabilistic programming. If you are new to probabilistic programming, you might read a more general introduction (e.g. [here](http://www.pl-enthusiast.net/2014/09/08/probabilistic-programming/) or [here](https://moalquraishi.wordpress.com/2015/03/29/the-state-of-probabilistic-programming/). A detailed [tutorial](https://probmods.org) on Bayesian methods and probabilistic programming, using a language similar to WebPPL, is also good background.
+This will be a overview of WebPPL features that are essential to the rest of the tutorial. It will move quickly over the key ideas of probabilistic programming. If you are new to probabilistic programming, you might read a more general introduction (e.g. [here](http://www.pl-enthusiast.net/2014/09/08/probabilistic-programming/) or [here](https://moalquraishi.wordpress.com/2015/03/29/the-state-of-probabilistic-programming/)). A detailed [tutorial](https://probmods.org) on Bayesian methods and probabilistic programming, using a language similar to WebPPL, is also good background.
 
-The only requirement to run the code for this tutorial is to a browser (Chrome/Safari). However, to explore the models in more detail, you will want to run WebPPL from the command line. Installation is simple and is explained [here](http://webppl.org).
+The only requirement to run the code for this tutorial is a browser (Chrome/Safari). However, to explore the models in more detail, you will want to run WebPPL from the command line. Installation is simple and is explained [here](http://webppl.org).
 
 
 ## WebPPL: a functionally pure subset of Javascript
@@ -37,8 +37,8 @@ var verboseLog = function(x){
 // Array with numbers, object, Boolean types
 var inputs = [1, 1.5, -1, {key:1}, true];
 
-// WebPPL's *map*
-map(verboseLog, inputs);   
+print("Apply verboseLog to elements in array: "); 
+map(verboseLog, inputs);
 ~~~~
 
 Language features with side effects are not allowed in WebPPL. The commented-out code uses assignment to update a table and produces an error.
@@ -76,18 +76,20 @@ WebPPL has an array of built-in functions for sampling random variables (i.e. ge
 
 ~~~~
 
-print('Fair coins:', flip(0.5), flip(0.5));
-print('Biased coins:', flip(0.9), flip(0.9));
+print(['Fair coins:', flip(0.5), flip(0.5)]);
+print(['Biased coins:', flip(0.9), flip(0.9)]);
 
 var coinWithSide = function(){
     return categorical( [.49, .49, .02], ['heads', 'tails', 'side']);
 };
-print(repeat(5,coinWithSide)); // draw i.i.d samples
+print(repeat(5, coinWithSide)); // draw i.i.d samples
     
 
-print('Samples from standard Gaussian in 1D:', gaussian(0,1), gaussian(0,1));
+print(['Samples from standard Gaussian in 1D:', gaussian(0,1), gaussian(0,1)]);
 
-print('Samples from 2D Gaussian', multivariateGaussian([0,0],[1,10], multivariateGaussian([0,0],[1,10]));
+print(['Samples from 2D Gaussian', 
+    multivariateGaussian([0,0],[1,10]),
+    multivariateGaussian([0,0],[1,10])]);
 
 ~~~~
 
