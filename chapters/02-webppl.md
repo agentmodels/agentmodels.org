@@ -1,5 +1,12 @@
 ---
 layout: chapter
+title: Introduction2
+description: "Practical example of inferring human preferences from observed choices. Implementing agent models from decision theory as functional programs. Inferring preferences (IRL) by inverting agent models."
+is_section: true
+---
+
+---
+layout: chapter
 title: Overview of WebPPL: the language of this tutorial
 description: "WebPPL is a functional subset of Javascript with primitives for sampling from random variables and for Bayesian inference."
 is_section: false
