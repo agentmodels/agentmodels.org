@@ -8,7 +8,7 @@ is_section: true
 ## TODOs:
 * what's up with the visualisation?
 * "xxx is not a function" errors
-* need to figure out how to make functions defined in codeboxes globally available
+* need to figure out how to make functions defined in codeboxes globally available -- I can't, deal with it.
 * fill in words
 * keep code to 80 characters per line
 * align code nicely
@@ -23,51 +23,56 @@ Explain the idea of IRL.
 We're in donutWorld. This is what it looks like. There are stores.
 
 ~~~
-var params = makeDonutInfer(true, {'donutSouth': 1, 'donutNorth': 1, 'veg': 1, 'noodle': 1, 'timeCost': 1}, 100, 0);
+var params = makeDonutInfer(true, {'donutSouth': 1, 'donutNorth': 1, 'veg': 1,
+                                   'noodle': 1, 'timeCost': 1}, 100, 0);
 GridWorld.draw(params);
 ~~~
 
 This is how you infer based on a single action.
 
 ~~~
-// startState is the state where the agent makes its action, observedAction is the
-// action that we see, perceivedTotalTime is the lifetime that the agent thinks it has,
-// and utilityPrior is a thunk that stochastically returns a table of utilities of
-// terminal states and time cost. all the inference is done by enumeration.
+// startState is the state where the agent makes its action, observedAction is
+// the action that we see, perceivedTotalTime is the lifetime that the agent
+// thinks it has, and utilityPrior is a thunk that stochastically returns a
+// table of utilities of  terminal states and time cost. all the inference is
+// done by enumeration.
 
-var inferSingleAction = function(startState, observedAction, perceivedTotalTime, utilityPrior) {
+var inferSingleAction = function(startState, observedAction, perceivedTotalTime,
+                                 utilityPrior) {
     return Enumerate(function(){
 	    var newUtilityTable = utilityPrior();
 		var newParams = makeDonutInfer(true, newUtilityTable, 100, 0);
 	
-	    var mdpSimOptions = {trajectoryNumRejectionSamples: 0, erpOverStatesOrActions: 'actions', conditionOnStates: false};
-		var actionERP = mdpSimulate(startState, 1, perceivedTotalTime, newParams, mdpSimOptions).erp;
+	    var mdpSimOptions = {trajectoryNumRejectionSamples: 0,
+		                     erpOverStatesOrActions: 'actions',
+							 conditionOnStates: false};
+        var actionERP = mdpSimulate(startState, 1, perceivedTotalTime, newParams,
+							        mdpSimOptions).erp;
 
 	    factor(actionERP.score([], observedAction));
 
 	    return {donutUtil: newUtilityTable['donutSouth'],
-			vegUtil: newUtilityTable['veg'],
-			noodleUtil: newUtilityTable['noodle']};
+			    vegUtil: newUtilityTable['veg'],
+			    noodleUtil: newUtilityTable['noodle']};
     });
 };
-~~~
 
-Let's do it!
+// now, we write our prior over utilities, and feed it to our inference
+// function.
 
-~~~
 var simpleUtilPrior = function(){
     if (flip()) {
-	return {'donutSouth': 2,
-		'donutNorth': 2,
-		'veg': 1,
-		'noodle': 1,
-		'timeCost': -0.1};
+		return {'donutSouth': 2,
+		        'donutNorth': 2,
+				'veg': 1,
+				'noodle': 1,
+				'timeCost': -0.1};
     } else {
-	return {'donutSouth': 1,
-		'donutNorth': 1,
-		'veg': 2,
-		'noodle': 2,
-		'timeCost': -0.1};
+		return {'donutSouth': 1,
+		        'donutNorth': 1,
+				'veg': 2,
+				'noodle': 2,
+				'timeCost': -0.1};
     }
 };
 
@@ -78,15 +83,36 @@ viz.print(inferSingleAction([2,1], ["l"], 7, simpleUtilPrior))
 we figured out that donuts are better than veg/noodles. can we figure out whether veg is better than noodles?
 
 ~~~
+
+var inferSingleAction = function(startState, observedAction, perceivedTotalTime,
+                                 utilityPrior) {
+    return Enumerate(function(){
+	    var newUtilityTable = utilityPrior();
+		var newParams = makeDonutInfer(true, newUtilityTable, 100, 0);
+	
+	    var mdpSimOptions = {trajectoryNumRejectionSamples: 0,
+		                     erpOverStatesOrActions: 'actions',
+							 conditionOnStates: false};
+        var actionERP = mdpSimulate(startState, 1, perceivedTotalTime, newParams,
+							        mdpSimOptions).erp;
+
+	    factor(actionERP.score([], observedAction));
+
+	    return {donutUtil: newUtilityTable['donutSouth'],
+			    vegUtil: newUtilityTable['veg'],
+			    noodleUtil: newUtilityTable['noodle']};
+    });
+};
+	
 var complexUtilPrior = function(){
     var donutUtil = uniformDraw([1,2,3]);
     var vegUtil = uniformDraw([1,2,3]);
     var noodleUtil = uniformDraw([1,2,3]);
     return {'donutSouth': donutUtil,
-	    'donutNorth': donutUtil,
-	    'veg': vegUtil,
-	    'noodle': noodleUtil,
-	    'timeCost': -0.1};
+     	    'donutNorth': donutUtil,
+			'veg': vegUtil,
+			'noodle': noodleUtil,
+			'timeCost': -0.1};
 };
 
 viz.print(inferSingleAction([2,1], ["l"], 7, complexUtilPrior))
