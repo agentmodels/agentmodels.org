@@ -1,8 +1,7 @@
 ---
 layout: chapter
 title: Overview of WebPPL: the language of this tutorial
-description: WebPPL is a functional subset of Javascript with primitives for sampling from random variables and for Bayesian inference.
-
+description: "WebPPL is a functional subset of Javascript with primitives for sampling from random variables and for Bayesian inference."
 ---
 
 
