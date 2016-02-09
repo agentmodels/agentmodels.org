@@ -51,21 +51,21 @@ Our models of agents and of inference all run in "code boxes" in the browser, ac
 
 ~~~~
 // *flip* returns [true,false] with even probability
-var coinFlip = function(){return flip() ? 'H ' : 'T ';};
+var coinFlip = function(){return flip() ? ' H ' : ' T ';};
 print("Some coin flips:" + coinFlip() + coinFlip() + coinFlip());
+
 
 // use *flip* to define a sampler for the geometric distribution
 var geometric = function(p) {
   return flip(p) ? 1 + geometric(p) : 1
-};
-
-// produce a histogram from repeated sampling 
-viz.print( repeat(100, function(){return geometric(0.8);}) );
-
+  };
+  
+print('\nHistogram of (approximate) Geometric distribution');
+viz.print(Enumerate(function(){return geometric(0.8);}, 50));
 ~~~~
 
 The [next chapter](/chapters/02-webppl.html) provides an introduction to WebPPL.
 
 --------------
 
-[Table of Contents](index.md)
+[Table of Contents](https://agentmodels.org)
