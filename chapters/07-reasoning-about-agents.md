@@ -7,11 +7,7 @@ is_section: true
 
 ## TODOs:
 * what's up with the visualisation?
-* "xxx is not a function" errors
-* need to figure out how to make functions defined in codeboxes globally available -- I can't, deal with it.
 * fill in words
-* keep code to 80 characters per line
-* align code nicely
 * visualisation of trajectories doesn't show final action: how to fix this?
 
 # this is the real bit
@@ -123,7 +119,7 @@ nope. the actions don't tell us because the agent would do the same thing in eit
 
 ## Conditioning on a trajectory
 
-Do it like this:
+Do it like this. Am conditioning on actions rather than trajectories because that's what gives the relevant information, because Markov.
 
 ~~~
 // second inference function: inferring restaurant utilities from a
@@ -146,7 +142,7 @@ var inferTrajUtil = function(trajectory, perceivedTotalTime, utilityPrior) {
 												   // array of actions made
 
         var outputParams = {trajectoryNumRejectionSamples: 0,
-			                erpOverStatesOrActions: 'both',
+			                erpOverStatesOrActions: 'actions',
 			                conditionOnStates: stateArray};
 	    // this next function returns a list of ERPs over the next action
 		// in each state in trajectory.					
@@ -155,28 +151,22 @@ var inferTrajUtil = function(trajectory, perceivedTotalTime, utilityPrior) {
 								 	 outputParams).stateActionERPs;
         var erpActionPairs = zip(actionERPs, actionArray);
 
-	    map(function(pair){factor(pair[0].score([], pair[1]))});
+	    map(function(pair){factor(pair[0].score([], pair[1]))},
+			erpActionPairs);
 
 	    return {donutUtil: newUtilityTable['donutSouth'],
 			    vegUtil: newUtilityTable['veg'],
 			    noodleUtil: newUtilityTable['noodle']};
     });
 };
-~~~
 
-does it work? look at this world:
-
-~~~
 var params = makeDonutInfer(true, {'donutSouth': 1, 'donutNorth': 1, 'veg': 1, 'noodle': 1, 'timeCost': 1}, 100, 0);
 var noodleTraj = [[[2,1], 'u'], [[2,2], 'u'], [[2,3], 'r']];
 GridWorld.draw(params, {trajectory: noodleTraj});
+// viz.print(inferTrajUtil(noodleTraj, 7, complexUtilPrior));
 ~~~
 
-now let's try inference
-
-~~~
-viz.print(inferTrajUtil(noodleTraj, complexUtilPrior));
-~~~
+Note that utility functions where noodles have the same utility as veggies are equally likely as those where noodles have strictly higher utility. This is because if there were a tie, the agent would go to the closest shop to minimise the time cost, which is the noodle place.
 
 ## inferring time cost from a trajectory
 
@@ -185,44 +175,51 @@ this is how you do that
 ~~~
 var inferTrajUtilTimeCost = function(trajectory, perceivedTotalTime, utilityPrior) {
     return Enumerate(function(){
-	var newUtilityTable = utilityPrior();
-	var newParams = makeDonutInfer(true, newUtilityTable, 100, 0);
+		var newUtilityTable = utilityPrior();
+		var newParams = makeDonutInfer(true, newUtilityTable, 100, 0);
 
-	var startState = trajectory[0][0];
+	    var startState = trajectory[0][0];
+		var stateArray = map(first, trajectory);   // returns the first element
+			                                       // of everything in the
+												   // trajectory, which is just
+												   // the array of states visited.
+	    var actionArray = map(second, trajectory); // similarly, this gets the
+												   // array of actions made
 
-	var outputParams = {trajectoryNumRejectionSamples: 0, erpOverStatesOrActions: 'both',
-		conditionOnStates: false};
-	var newTrajectoryERP = mdpSimulate(startState, trajectory.length, perceivedTotalTime,
-		newParams, outputParams).erp;
+        var outputParams = {trajectoryNumRejectionSamples: 0,
+			                erpOverStatesOrActions: 'actions',
+			                conditionOnStates: stateArray};
 
-	factor(newTrajectoryERP.score([], trajectory));
+	    var actionERPs = mdpSimulate(startState, trajectory.length,
+		                             perceivedTotalTime, newParams,
+								 	 outputParams).stateActionERPs;
+        var erpActionPairs = zip(actionERPs, actionArray);
 
-	return {donutUtil: newUtilityTable['donutSouth'],
-		vegUtil: newUtilityTable['veg'],
-		noodleUtil: newUtilityTable['noodle']
-		timeCost: newUtilityTable['timeCost']};
+	    map(function(pair){factor(pair[0].score([], pair[1]))},
+			erpActionPairs);
+
+	    return {donutUtil: newUtilityTable['donutSouth'],
+		        vegUtil: newUtilityTable['veg'],
+				noodleUtil: newUtilityTable['noodle']
+				timeCost: newUtilityTable['timeCost']};
     });
 };
-~~~
 
-let's define our prior and world, look at that world, and do inference
-
-~~~
 var superComplexUtilPrior = function() {
     var donutUtil = uniformDraw([1,2,3]);
     var vegUtil = uniformDraw([1,2,3]);
     var noodleUtil = uniformDraw([1,2,3]);
     var timeCost = uniformDraw([-0.1, -1]);
     return {'donutSouth': donutUtil,
-	    'donutNorth': donutUtil,
-		'veg': vegUtil,
-	    'noodle': noodleUtil,
-	    'timeCost': timeCost};
+    	    'donutNorth': donutUtil,
+	    	'veg': vegUtil,
+	        'noodle': noodleUtil,
+    	    'timeCost': timeCost};
 };
 
 var dsTraj = [[[2,1], 'l'], [[1,1], 'l']];
 GridWorld.draw(params, {trajectory: dsTraj});
-viz.print(inferTrajsUtilTimeCost(dsTrajs, superComplexUtilPrior));
+// viz.print(inferTrajUtilTimeCost(dsTraj, 7, superComplexUtilPrior));
 ~~~
 
 ### inferring softmax noise from multiple trajectories
@@ -231,52 +228,53 @@ if you have different trajectories doing different things, your agent is probabl
 
 ~~~
 // add helpful comments maybe
-var inferTrajsUtilAlpha = function(trajectories, perceivedTotalTimes, utilityPrior, alphaPrior) {
+var inferTrajsUtilAlpha = function(trajectories, perceivedTotalTimes,
+                                   utilityPrior, alphaPrior) {
     return Enumerate(function(){
 		var newUtilityTable = utilityPrior();
 		var newAlpha = alphaPrior();
 		var newParams = makeDonutInfer(true, newUtilityTable, newAlpha, 0);
-		assert.ok(trajectories.length==perceivedTotalTimes.length, 'trajectories and perceived total times don't match up')
+
 		var zippedTrajTimes = zip(trajectories, perceivedTotalTimes);
 
 	    map(function(trajAndTime){
 			var startState = trajAndTime[0][0][0];
+			var stateArray = map(first, trajAndTime[0]);
+			var actionArray = map(second, trajAndTime[0]);
 			var perceivedTotalTime = trajAndTime[1];
 			var actualTotalTime = trajAndTime[0].length;
-			var outputParams = {trajectoryNumRejectionSamples: 0, erpOverStatesOrActions: 'both',
-				conditionOnStates: false};
-			var newTrajERP = mdpSimulate(startState, actualTotalTime, perceivedTotalTime,
-				newParams, outputParams).erp;
-			factor (newTrajERP.score([], trajAndTime[0]));
+
+	        var outputParams = {trajectoryNumRejectionSamples: 0,
+			                    erpOverStatesOrActions: 'both',
+								conditionOnStates: stateArray};
+	        var newTrajERP = mdpSimulate(startState, actualTotalTime,
+				                         perceivedTotalTime, newParams,
+										 outputParams).stateActionERPs;
+	        var erpActionPairs = zip(actionERPs, actionArray);
+
+	        map(function(pair){factor(pair[0].score([], pair[1]));},
+				erpActionPairs);
 			}
 		, zippedTrajTimes);
 
 	    return {donutUtil: newUtilityTable['donutSouth'],
-			vegUtil: newUtilityTable['veg'],
-			noodleUtil: newUtilityTable['noodle'],
-			alpha: newAlpha};
+    			vegUtil: newUtilityTable['veg'],
+				noodleUtil: newUtilityTable['noodle'],
+				alpha: newAlpha};
 	});
 };
-~~~
 
-example of a trajectory we're going to condition on:
-
-~~~
 var dnTraj = [[[2,1], 'u'], [[2,2], 'u'], [[2,3], 'u'], [[2,4], 'l']];
 GridWorld.draw(params, {trajectory: dnTraj})
-~~~
 
-now let's see some inference!
-
-~~~
 var crazyTrajs = [dsTraj, noodleTraj];
 
 var maybeTipsyPrior = function() {
     return categorical([0.1, 0.9], [10, 100]);
 };
 
-// viz.print(inferTrajsUtilAlpha(dnTrajs, complexUtilPrior, maybeTipsyPrior))
-// viz.print(inferTrajsUtilAlpha(crazyTrajs, complexUtilPrior, maybeTipsyPrior))
+// viz.print(inferTrajsUtilAlpha(dnTrajs, [7,7], complexUtilPrior, maybeTipsyPrior))
+// viz.print(inferTrajsUtilAlpha(crazyTrajs, [7,7], complexUtilPrior, maybeTipsyPrior))
 ~~~
 
 now you have learned.
