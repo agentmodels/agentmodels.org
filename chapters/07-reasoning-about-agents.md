@@ -128,7 +128,9 @@ Do it like this:
 ~~~
 // second inference function: inferring restaurant utilities from a
 // trajectory. a trajectory is an array of the form
-// [[state1, action1], [state2, action2], ...]. utilityPrior is the same as in inferSingleAction.
+// [[state1, action1], [state2, action2], ...]. utilityPrior is the same as in
+// inferSingleAction. we will simulate the agent in the new mdp in the same
+// states as were in the trajectory, and condition on the actions being the same.
 
 var inferTrajUtil = function(trajectory, perceivedTotalTime, utilityPrior) {
     return Enumerate(function(){
@@ -136,17 +138,28 @@ var inferTrajUtil = function(trajectory, perceivedTotalTime, utilityPrior) {
 		var newParams = makeDonutInfer(true, newUtilityTable, 100, 0);
 
 	    var startState = trajectory[0][0];
+		var stateArray = map(first, trajectory);   // returns the first element
+			                                       // of everything in the
+												   // trajectory, which is just
+												   // the array of states visited.
+	    var actionArray = map(second, trajectory); // similarly, this gets the
+												   // array of actions made
 
-	    var outputParams = {trajectoryNumRejectionSamples: 0, erpOverStatesOrActions: 'both',
-			conditionOnStates: false};
-		var newTrajectoryERP = mdpSimulate(startState, trajectory.length, perceivedTotalTime,
-			newParams, outputParams).erp;
+        var outputParams = {trajectoryNumRejectionSamples: 0,
+			                erpOverStatesOrActions: 'both',
+			                conditionOnStates: stateArray};
+	    // this next function returns a list of ERPs over the next action
+		// in each state in trajectory.					
+	    var actionERPs = mdpSimulate(startState, trajectory.length,
+		                             perceivedTotalTime, newParams,
+								 	 outputParams).stateActionERPs;
+        var erpActionPairs = zip(actionERPs, actionArray);
 
-	    factor(newTrajectoryERP.score([], trajectory));
+	    map(function(pair){factor(pair[0].score([], pair[1]))});
 
 	    return {donutUtil: newUtilityTable['donutSouth'],
-			vegUtil: newUtilityTable['veg'],
-			noodleUtil: newUtilityTable['noodle']};
+			    vegUtil: newUtilityTable['veg'],
+			    noodleUtil: newUtilityTable['noodle']};
     });
 };
 ~~~
