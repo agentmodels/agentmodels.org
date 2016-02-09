@@ -20,7 +20,7 @@ A different explanation is that Bob *intended* to go the healthier "Vegetarian S
 
 We've described a variety of inferences about Bob which would explain his behavior. This tutorial develops models for inference that can consider all of these different explanations and quantitatively compare their plausibility. These models can also simulate an agent's behavior in novel scenarios: we could predict Bob's behavior if he had started looking for food in a different part of the city. 
 
-After consider the data about Bob, suppose the dataset showed that a a significant number of different individuals took exactly the same path as he did. How would this change our conclusions about Bob? It could be that everyone is tempted away from healthy food in the way Bob was. But this seems unlikely. Instead, it's now more plausible that Donut South is closed or that it's a brand new branch that few people know about. 
+After considering the data about Bob, suppose the dataset showed that a a significant number of different individuals took exactly the same path as he did. How would this change our conclusions about Bob? It could be that everyone is tempted away from healthy food in the way Bob was. But this seems unlikely. Instead, it's now more plausible that Donut South is closed or that it's a brand new branch that few people know about. 
 
 This kind of reasoning, where we make assumptions of the distributions of beliefs within populations, will be formalized and simulated in later chapters. We'll also consider multi-agent behavior where coordination or competition are important. 
 
