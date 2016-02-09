@@ -21,7 +21,7 @@ We're in donutWorld. This is what it looks like. There are stores.
 ~~~
 var params = makeDonutInfer(true, {'donutSouth': 1, 'donutNorth': 1, 'veg': 1,
                                    'noodle': 1, 'timeCost': 1}, 100, 0);
-GridWorld.draw(params);
+GridWorld.draw(params, {labels: params.labels});
 ~~~
 
 This is how you infer based on a single action.
@@ -173,9 +173,9 @@ var complexUtilPrior = function(){
 
 var params = makeDonutInfer(true, {'donutSouth': 1, 'donutNorth': 1, 'veg': 1,
                                    'noodle': 1, 'timeCost': 1}, 100, 0);
-var noodleTraj = [[[2,1], 'u'], [[2,2], 'u'], [[2,3], 'r']];
-GridWorld.draw(params, {trajectory: noodleTraj});
-// viz.print(inferTrajUtil(noodleTraj, 7, complexUtilPrior));
+var noodleTrajectory = [[[2,1], 'u'], [[2,2], 'u'], [[2,3], 'r']];
+GridWorld.draw(params, {trajectory: noodleTrajectory, labels: params.labels});
+// viz.print(inferTrajUtil(noodleTrajectory, 7, complexUtilPrior));
 ~~~
 
 Note that utility functions where noodles have the same utility as veggies are equally likely as those where noodles have strictly higher utility. This is because if there were a tie, the agent would go to the closest shop to minimise the time cost, which is the noodle place.
@@ -232,9 +232,9 @@ var superComplexUtilPrior = function() {
 
 var params = makeDonutInfer(true, {'donutSouth': 1, 'donutNorth': 1, 'veg': 1,
                                    'noodle': 1, 'timeCost': 1}, 100, 0);
-var dsTraj = [[[2,1], 'l'], [[1,1], 'l']];
-GridWorld.draw(params, {trajectory: dsTraj});
-// viz.print(inferTrajUtilTimeCost(dsTraj, 7, superComplexUtilPrior));
+var dsTrajectory = [[[2,1], 'l'], [[1,1], 'l']];
+GridWorld.draw(params, {trajectory: dsTrajectory, labels: params.labels});
+// viz.print(inferTrajUtilTimeCost(dsTrajectory, 7, superComplexUtilPrior));
 ~~~
 
 ### inferring softmax noise from multiple trajectories
@@ -282,21 +282,21 @@ var inferTrajsUtilAlpha = function(trajectories, perceivedTotalTimes,
 var params = makeDonutInfer(true, {'donutSouth': 1, 'donutNorth': 1, 'veg': 1,
                                    'noodle': 1, 'timeCost': 1}, 100, 0);
 
-var dnTraj = [[[2,1], 'u'], [[2,2], 'u'], [[2,3], 'u'], [[2,4], 'l']];
-var dnTrajs = [dnTraj];
-GridWorld.draw(params, {trajectory: dnTraj})
+var dnTrajectory = [[[2,1], 'u'], [[2,2], 'u'], [[2,3], 'u'], [[2,4], 'l']];
+var dnTrajectorys = [dnTrajectory];
 
-var noodleTraj = [[[2,1], 'u'], [[2,2], 'u'], [[2,3], 'r']];
-var dsTraj = [[[2,1], 'l'], [[1,1], 'l']];
-var crazyTrajs = [dsTraj, noodleTraj];
+var noodleTrajectory = [[[2,1], 'u'], [[2,2], 'u'], [[2,3], 'r']];
+var dsTrajectory = [[[2,1], 'l'], [[1,1], 'l']];
+var crazyTrajectories = [dsTrajectory, noodleTrajectory];
 
 var maybeTipsyPrior = function() {
     return categorical([0.1, 0.9], [10, 100]);
 };
 
-// viz.print(inferTrajsUtilAlpha(dnTrajs, [7,7], complexUtilPrior,
+GridWorld.draw(params, {trajectory: dnTrajectory, labels: params.labels})
+// viz.print(inferTrajsUtilAlpha(dnTrajectories, [7,7], complexUtilPrior,
 //                               maybeTipsyPrior))
-// viz.print(inferTrajsUtilAlpha(crazyTrajs, [7,7], complexUtilPrior,
+// viz.print(inferTrajsUtilAlpha(crazyTrajectories, [7,7], complexUtilPrior,
 //                               maybeTipsyPrior))
 ~~~
 
