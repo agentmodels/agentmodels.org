@@ -160,7 +160,19 @@ var inferTrajUtil = function(trajectory, perceivedTotalTime, utilityPrior) {
     });
 };
 
-var params = makeDonutInfer(true, {'donutSouth': 1, 'donutNorth': 1, 'veg': 1, 'noodle': 1, 'timeCost': 1}, 100, 0);
+var complexUtilPrior = function(){
+    var donutUtil = uniformDraw([1,2,3]);
+    var vegUtil = uniformDraw([1,2,3]);
+    var noodleUtil = uniformDraw([1,2,3]);
+    return {'donutSouth': donutUtil,
+     	    'donutNorth': donutUtil,
+			'veg': vegUtil,
+			'noodle': noodleUtil,
+			'timeCost': -0.1};
+};
+
+var params = makeDonutInfer(true, {'donutSouth': 1, 'donutNorth': 1, 'veg': 1,
+                                   'noodle': 1, 'timeCost': 1}, 100, 0);
 var noodleTraj = [[[2,1], 'u'], [[2,2], 'u'], [[2,3], 'r']];
 GridWorld.draw(params, {trajectory: noodleTraj});
 // viz.print(inferTrajUtil(noodleTraj, 7, complexUtilPrior));
@@ -173,7 +185,8 @@ Note that utility functions where noodles have the same utility as veggies are e
 this is how you do that
 
 ~~~
-var inferTrajUtilTimeCost = function(trajectory, perceivedTotalTime, utilityPrior) {
+var inferTrajUtilTimeCost = function(trajectory, perceivedTotalTime,
+                                     utilityPrior) {
     return Enumerate(function(){
 		var newUtilityTable = utilityPrior();
 		var newParams = makeDonutInfer(true, newUtilityTable, 100, 0);
@@ -200,7 +213,7 @@ var inferTrajUtilTimeCost = function(trajectory, perceivedTotalTime, utilityPrio
 
 	    return {donutUtil: newUtilityTable['donutSouth'],
 		        vegUtil: newUtilityTable['veg'],
-				noodleUtil: newUtilityTable['noodle']
+				noodleUtil: newUtilityTable['noodle'],
 				timeCost: newUtilityTable['timeCost']};
     });
 };
@@ -217,6 +230,8 @@ var superComplexUtilPrior = function() {
     	    'timeCost': timeCost};
 };
 
+var params = makeDonutInfer(true, {'donutSouth': 1, 'donutNorth': 1, 'veg': 1,
+                                   'noodle': 1, 'timeCost': 1}, 100, 0);
 var dsTraj = [[[2,1], 'l'], [[1,1], 'l']];
 GridWorld.draw(params, {trajectory: dsTraj});
 // viz.print(inferTrajUtilTimeCost(dsTraj, 7, superComplexUtilPrior));
@@ -264,17 +279,25 @@ var inferTrajsUtilAlpha = function(trajectories, perceivedTotalTimes,
 	});
 };
 
+var params = makeDonutInfer(true, {'donutSouth': 1, 'donutNorth': 1, 'veg': 1,
+                                   'noodle': 1, 'timeCost': 1}, 100, 0);
+
 var dnTraj = [[[2,1], 'u'], [[2,2], 'u'], [[2,3], 'u'], [[2,4], 'l']];
+var dnTrajs = [dnTraj];
 GridWorld.draw(params, {trajectory: dnTraj})
 
+var noodleTraj = [[[2,1], 'u'], [[2,2], 'u'], [[2,3], 'r']];
+var dsTraj = [[[2,1], 'l'], [[1,1], 'l']];
 var crazyTrajs = [dsTraj, noodleTraj];
 
 var maybeTipsyPrior = function() {
     return categorical([0.1, 0.9], [10, 100]);
 };
 
-// viz.print(inferTrajsUtilAlpha(dnTrajs, [7,7], complexUtilPrior, maybeTipsyPrior))
-// viz.print(inferTrajsUtilAlpha(crazyTrajs, [7,7], complexUtilPrior, maybeTipsyPrior))
+// viz.print(inferTrajsUtilAlpha(dnTrajs, [7,7], complexUtilPrior,
+//                               maybeTipsyPrior))
+// viz.print(inferTrajsUtilAlpha(crazyTrajs, [7,7], complexUtilPrior,
+//                               maybeTipsyPrior))
 ~~~
 
 now you have learned.
