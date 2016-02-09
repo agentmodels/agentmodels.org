@@ -29,13 +29,12 @@ This kind of reasoning, where we make assumptions of the distributions of belief
 
 ### Making rational plans
 
+Formal models of rational agents play an important role in economics refp:rubinstein2012lecture and in the cognitive sciences refp:chater2003rational as models of human or animal behavior. Core components of such models are *expected-utility maximization*, *Bayesian inference*, and *game-theoretic equilibria*. These ideas are also applied in engineering and in artificial intelligence refp:russell1995modern in order to compute optimal solutions to problems or to construct artificial systems that learn and reason optimally. 
 
+This tutorial implements utility-maximizing Bayesian agents as functional, probabilistic programs. These programs provide a concise, intuitive translation of the mathematical specification of rational agents into code. The implemented agents explicitly simulate their own future choices via recursion. They update beliefs by exact or approximate Bayesian inference. They reason about other agents by simulating them (which includes simulating the simulations of others). 
 
-Models of rational agents based on expected utility theory and Bayesian inference play an important role in the social and pschological sciences (as a model of human behavior) and in operations research, computer science and artificial intelligence (where they are used to create programs that are able to learn and act in an effective way). (Could add some citations). 
+The first section of the tutorial implements agent models for sequential decision problems in stochastic environments. We introduce a program that solves finite-horizon and MDPs and show a simple extension to POMDPs. These agents behave *optimally*, making optimal plans given their knowledge of the world. Human behavior, by contrast, is often *sub-optimal*, whether due to irrational behavior or to constrained resources. The programs we use to implement optimal agents can, with slight modification, implement agents with biases (e.g. time inconsistency) and with resource bounds (e.g. bounded "look ahead" or Monte Carlo sampling).
 
-This tutorial implements utility-based (decision-theoretic) agents as [functional programs](wiki_FP_link). These programs provide a concise, intuitive translation of the mathematical specification of these agents into code. These agents simulate their own future plans via recursive calls. They update their beliefs by explicit Bayesian inference on their observations. 
-
-Early chapters introduce agent models for classic sequential planning problems: MDPS and POMDPs. Example environments include discrete graphs, Gridworld, and multi-arm bandit problems. (Maybe exhibit some classic RL problem also?). The agents introduced here behave optimally (having full knowledge or perfect capacity to make optimal plans given partial knowledge). This assumption of optimal behavior won't always apply to humans. Chapter X introduces biased or bounded agents. The programs introduced for optimal agents can be slightly tweaked to model biased agents, illustrating the flexibility/extendability of our basic approach.
 
 ### Learning preferences from choices
 
