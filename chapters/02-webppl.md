@@ -100,12 +100,12 @@ var geometric = function(p) {
   return flip(p) ? 1 + geometric(p) : 1
 };
 
-geometric(0.1);
+geometric(0.8);
 ~~~~
 
 What makes WebPPL different from conventional programming languages is its ability to represent and manipulate *probability distributions*. Elementary Random Primitives (ERPs) are the basic object type that represents distributions. ERP objects have two key features:
 
-1. You can draw *random i.i.d samples* from an ERP using the special function `sample`. That is, you sample $$x \sim P$$ where $$P(x)$$ is the distribution represented by the ERP. 
+1. You can draw *random i.i.d. samples* from an ERP using the special function `sample`. That is, you sample $$x \sim P$$ where $$P(x)$$ is the distribution represented by the ERP. 
 
 2. You can compute the probability (or density) the distribution assigns to a value. That is, to compute $$\log(P(x))$$, you use `erp.score([], x)`, where `erp` is the ERP in WebPPL. 
 
@@ -140,8 +140,8 @@ var twoHeads = Enumerate(function(){
   return a;
 });
 
-print('Distribution on first coin being Heads (given exactly two Heads) : ');
-printERP(twoHeads);
+print('Probability first coin being Heads (given exactly two Heads) : ');
+print(Math.exp(twoHeads.score([],true)));
 
 var moreThanTwoHeads = Enumerate(function(){
   var a = flip(0.5);
@@ -151,10 +151,39 @@ var moreThanTwoHeads = Enumerate(function(){
   return a;
 });
 
-print('\nDistribution on first coin being Heads (given at least two Heads): ');
-printERP(moreThanTwoHeads);
+print('\Probability on first coin being Heads (given at least two Heads): ');
+print(Math.exp(moreThanTwoHeads.score([],true)));
 ~~~~
 
-In the next chapter, we use inference functions to implementing rational decision making.
+### Codeboxes and Plotting
+You can use the code boxes to modify our examples or to write your own WebPPL code. Code is not shared between boxes. You can use the special function `viz.print` to plot ERPs:
 
-Next chapter: [Modeling simple decision problems](/chapters/03-one-shot-planning.html)
+~~~~
+var discrete_erp = Enumerate(function(){ 
+        return flip(0.9) ? "apple" : "orange";
+    });
+viz.print(discrete_erp);
+~~~~
+
+~~~~
+var discrete_erp_2d = Enumerate(function(){
+  return {
+    fruit: categorical([0.3, 0.3, 0.4], ["apple", "banana", "orange"]),
+    boolean: flip(0.7)
+  };
+  });
+viz.print(discrete_erp_2d);
+~~~~
+
+~~~~
+var continuous_erp_2d = ParticleFilter(function(){
+  return { X: gaussian(0, 1), Y: gaussian(0, 1)};
+  }, 1000);
+viz.print(continuous_erp_2d);
+~~~~
+
+### Next
+
+In the next [chapter](/chapters/03-one-shot-planning.html), we use inference functions to implementing rational decision making. 
+
+
