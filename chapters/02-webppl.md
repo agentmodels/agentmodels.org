@@ -13,17 +13,19 @@ This chapter introduces the probabilistic programming language WebPPL (pronounce
 
 This will be a overview of WebPPL features that are essential to the rest of the tutorial. It will move quickly over the key ideas of probabilistic programming. If you are new to probabilistic programming, you might read a more general introduction (e.g. [here](http://www.pl-enthusiast.net/2014/09/08/probabilistic-programming/) or [here](https://moalquraishi.wordpress.com/2015/03/29/the-state-of-probabilistic-programming/). A detailed [tutorial](https://probmods.org) on Bayesian methods and probabilistic programming, using a language similar to WebPPL, is also good background.
 
-The only requirement to run the code for this tutorial is to have modern browser (Chrome/Safari/Firefox). However, to explore the models in more detail, you will want to run WebPPL from the command line. Installation is simple and is explained [here](http://webppl.org).
+The only requirement to run the code for this tutorial is to a browser (Chrome/Safari). However, to explore the models in more detail, you will want to run WebPPL from the command line. Installation is simple and is explained [here](http://webppl.org).
 
 
 ## WebPPL: a functionally pure subset of Javascript
 
-WebPPL includes a subset of Javascript, and follows the syntax of Javascript for this subset. (Since we only use a limited subset of Javascript, you will only need a basic knowledge of Javascript to use WebPPL). 
+WebPPL includes a subset of Javascript, and follows the syntax of Javascript for this subset.
 
-This program uses most of the available JS syntax:
+This example program uses most of the Javascript syntax that is available in WebPPL:
 
 ~~~~
-var verboseLog = function(x) {
+// function definition using JS's Math library
+
+var verboseLog = function(x){
     if (x<=0 || window.isNaN(x)) {
       print("Input " + x + " was not a positive number");
       return null;
@@ -32,13 +34,17 @@ var verboseLog = function(x) {
     }
 };
 
-var inputs = [1, 2, -1, {key:1}, true];
-map(verboseLog, inputs);
+// Array with numbers, object, Boolean types
+var inputs = [1, 1.5, -1, {key:1}, true];
+
+// WebPPL's *map*
+map(verboseLog, inputs);   
 ~~~~
 
 Language features with side effects are not allowed in WebPPL. The commented-out code uses assignment to update a table and produces an error.
 
 ~~~~
+// Assignment produces an error
 // var table = {}
 // table.key = 1
 // table.key += 1
@@ -46,36 +52,43 @@ Language features with side effects are not allowed in WebPPL. The commented-out
 // Instead do this:
 var table = {key: 1};
 var updatedTable = {key: table.key + 1};
+updateTable;
 ~~~~
 
-There are no `for` and `while` loops. Instead use higher-order functions like `map`:
+There are no `for` or `while` loops. Instead use higher-order functions like WebPPL's builtin `map`, `filter` and `zip`:
 
 ~~~~
 var ar = [1,2,3];
 // for (var i = 0; i < ar.length; i++){
-//   print('array element:' + ar[i])}
+//   print(ar[i]); }
 
-// Instead of for-loop, use *map* (built-in for WebPPL)
-map(function(i){print('array element: ' + i)}, ar);
+// Instead of for-loop, use *map* 
+map(print,ar);
 ~~~~
 
-Normal Javascript functions can be called from WebPPL (with some restrictions). See here [Dippl chapter 1] for details. 
+It is possible to use normal Javascript functions (which make internal use of side effects) in WebPPL. See the [online book](http://dippl.org/chapters/02-webppl.html) on the implementation of WebPPL for details (section "Using Javascript Libraries"). 
 
 
 ## WebPPL stochastic primitives
 
 ### Sampling from random variables
-WebPPL has an array of built-in functions for sampling random variables (i.e. generating random numbers from a particular probability distribution). These will be familiar from other scientific/numeric computing libraries.
+WebPPL has an array of built-in functions for sampling random variables (i.e. generating random numbers from a particular probability distribution). These will be familiar from scientific computing and probability theory. A full list of functions is in the WebPPL library [source](https://github.com/probmods/webppl/blob/dev/src/header.wppl). 
 
 ~~~~
-var fairCoinFlip = flip(0.5);
-var biasedCoinFlip = flip(0.6);
-var integerLess6 = uniformDraw([1,2,3,4,5]);
-var coinWithSide = categorical( [.49, .49, .02], ['heads', 'tails', 'side']);
 
-var gaussianDraw = gaussian(0,1);
+print('Fair coins:', flip(0.5), flip(0.5));
+print('Biased coins:', flip(0.9), flip(0.9));
 
-[fairCoinFlip, biasedCoinFlip, integerLess6, coinWithSide, gaussianDraw];
+var coinWithSide = function(){
+    return categorical( [.49, .49, .02], ['heads', 'tails', 'side']);
+};
+print(repeat(5,coinWithSide)); // draw i.i.d samples
+    
+
+print('Samples from standard Gaussian in 1D:', gaussian(0,1), gaussian(0,1));
+
+print('Samples from 2D Gaussian', multivariateGaussian([0,0],[1,10], multivariateGaussian([0,0],[1,10]));
+
 ~~~~
 
 Additional functions for sampling random variables can be defined. This example uses recursion to define a sampler for the Geometric distription with parameter `p`:
