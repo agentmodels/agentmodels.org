@@ -1,16 +1,20 @@
 ---
 layout: chapter
-title: Building agent models in WebPPL
-description: "Introduction to WebPPL: a functional subset of Javascript, with primitives for sampling from random variables and for Bayesian inference "
-is_section: true
+title: Overview of WebPPL: the language of this tutorial
+description: "WebPPL is a functional subset of Javascript with primitives for sampling from random variables and for Bayesian inference."
+is_section: false
 ---
+
 
 
 ## Introduction
 
-This chapter introduces the probabilistic programming language WebPPL (pronounced "web people") that we use to model agents throughout this tutorial. We give a brief overview of the features that are essential to this tutorial. If you have never encountered probabilistic programming before, you might benefit from reading some introductory material. There are short articles [here](http://plenthusiast) and [here](http://mohammed) that provide a general overview. There is an interactive tutorial covering probabilistic programming and Bayesian inference at [probmods](https://probmods.org), which uses a language very similar to WebPPL. If you have some background in programming languages, there is a [tutorial](https://dippl.org) on how to implement WebPPL (which will also give a sense of how the language works).
+This chapter introduces the probabilistic programming language WebPPL (pronounced "web people"). The models for agents (and for learning about agents) in this tutorial are all implemented in WebPPL -- so it's an important building block for what follows.
 
-Most of the code examples we provide will run in your browser. WebPPL can also be installed locally and run from the command line --- see [here](https://webppl.org).
+This will be a overview of WebPPL features that are essential to the rest of the tutorial. It will move quickly over the key ideas of probabilistic programming. If you are new to probabilistic programming, you might read a more general introduction (e.g. [here](http://www.pl-enthusiast.net/2014/09/08/probabilistic-programming/) or [here](https://moalquraishi.wordpress.com/2015/03/29/the-state-of-probabilistic-programming/). A detailed [tutorial](https://probmods.org) on Bayesian methods and probabilistic programming, using a language similar to WebPPL, is also good background.
+
+The only requirement to run the code for this tutorial is to have modern browser (Chrome/Safari/Firefox). However, to explore the models in more detail, you will want to run WebPPL from the command line. Installation is simple and is explained [here](http://webppl.org).
+
 
 ## WebPPL: a functionally pure subset of Javascript
 
