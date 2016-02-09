@@ -1,7 +1,8 @@
 ---
 layout: chapter
-title: One-shot planning
-description: Various agent models for solving one-shot decision problems. 
+title: Building agent models in WebPPL
+description: Introduction to building agents: starting from simple but extendable agent programs. 
+section:true
 ---
 
 
