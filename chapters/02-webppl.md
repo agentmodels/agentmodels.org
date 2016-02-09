@@ -72,7 +72,7 @@ It is possible to use normal Javascript functions (which make internal use of si
 ## WebPPL stochastic primitives
 
 ### Sampling from random variables
-WebPPL has an array of built-in functions for sampling random variables (i.e. generating random numbers from a particular probability distribution). These will be familiar from scientific computing and probability theory. A full list of functions is in the WebPPL library [source](https://github.com/probmods/webppl/blob/dev/src/header.wppl). 
+WebPPL has an array of built-in functions for sampling random variables (i.e. generating random numbers from a particular probability distribution). These will be familiar from scientific computing and probability theory. A full list of functions is in the WebPPL library [source](https://github.com/probmods/webppl/blob/dev/src/header.wppl). Try clicking the "Run" button repeatedly to get different random samples. 
 
 ~~~~
 
@@ -87,13 +87,13 @@ print(repeat(5, coinWithSide)); // draw i.i.d samples
 
 print(['Samples from standard Gaussian in 1D:', gaussian(0,1), gaussian(0,1)]);
 
-print(['Samples from 2D Gaussian', 
-    multivariateGaussian([0,0],[1,10]),
-    multivariateGaussian([0,0],[1,10])]);
+print(['Sample from 2D Gaussian', 
+    multivariateGaussian([0,0],[[1,0],[0,10]])]);
+    
 
 ~~~~
 
-Additional functions for sampling random variables can be defined. This example uses recursion to define a sampler for the Geometric distription with parameter `p`:
+You can write your own functions for sampling random variables . This example uses recursion to define a sampler for the Geometric distription:
 
 ~~~~
 var geometric = function(p) {
@@ -103,11 +103,15 @@ var geometric = function(p) {
 geometric(0.1);
 ~~~~
 
-What makes WebPPL different from conventional programming languages is its ability to represent and manipulate *probability distributions*. Elementary Random Primitives (ERPs) are the basic object type that represents distributions. ERPs allow you to sample values from a distribution. But they also allow you to compute the log-probability of a possible sampled value.
+What makes WebPPL different from conventional programming languages is its ability to represent and manipulate *probability distributions*. Elementary Random Primitives (ERPs) are the basic object type that represents distributions. ERP objects have two key features:
+
+1. You can draw *random i.i.d samples* from an ERP using the special function `sample`. That is, you sample $$x \sim P$$ where $$P(x)$$ is the distribution represented by the ERP. 
+
+2. You can compute the probability (or density) the distribution assigns to a value. That is, to compute $$\log(P(x))$$, you use `erp.score([], x)`, where `erp` is the ERP in WebPPL. 
 
 The functions above that generate random samples are defined in the WebPPL library in terms of built-in ERPs (e.g. `bernoulliERP` for `flip` and `gaussianERP` for `gaussian`) and the built-in function `sample`.
 
-To create a new ERP, we pass a *thunk* (a function with no arguments) which has a random output, to a *marginalization* or *inference* function. For example, we can use `bernoulliERP` to construct a Binomial distribution:
+To create a new ERP, we pass a *thunk* (a function with no arguments) with a random output, to a function that performs *marginalization*. For example, we can use `bernoulliERP` as an ingredient to construct a Binomial distribution with the marginalization function `Enumerate`:
 
 ~~~~
 var binomial = function(){
@@ -115,19 +119,17 @@ var binomial = function(){
   var b = flip(0.5);
   var c = flip(0.5);
   return a + b + c;
-}
+};
 
 var binomialERP = Enumerate(binomial);
-
-viz.print(binomialERP);
 
 [sample(binomialERP), sample(binomialERP), sample(binomialERP)];
 ~~~~
 
-The function `Enumerate` is an *inference function* that computes the marginal probability of each possible output of the function `binomial` by enumerating (using a standard search algorithm) each possible value of the random variables (`a`, `b` and `c`) in the function body. Using `sample` we generate random binomial samples.
+The function `Enumerate` is an *inference function* that computes the marginal probability of each possible output of the function `binomial` by enumerating each possible value of the random variables (`a`, `b` and `c`) in the function body.
 
 ### Bayesian inference by conditioning
-The most important use of inference functions like `Enumerate` is for inference. Suppose a function produces random outputs. If there are some random variables in the body of the function, we can ask: what is the likely value of the random variables given the observed output of the function? For example, if three fair coins produce exactly two Heads, what is the probability that the first coin landed Heads? [Maybe use an example that isn't so intractable]. 
+The most important use of `Enumerate` is for Bayesian inference. Our task is to *infer* the value of some unknown parameter by observing data that depends on the parameter. For example, if flipping three separate coins produce exactly two Heads, what is the probability that the first coin landed Heads? To solve this in WebPPL, we use `Enumerate` to enumerate all values for the random variables `a`, `b` and `c`. We use `condition` to constrain the sum of the variables. The result is an ERP representing the posterior distribution on the first variable `a` having value `true` (i.e. "Heads").  
 
 ~~~~
 var twoHeads = Enumerate(function(){
@@ -138,7 +140,8 @@ var twoHeads = Enumerate(function(){
   return a;
 });
 
-viz.print(twoHeads);
+print('Distribution on first coin being Heads (given exactly two Heads) : ');
+printERP(twoHeads);
 
 var moreThanTwoHeads = Enumerate(function(){
   var a = flip(0.5);
@@ -148,7 +151,8 @@ var moreThanTwoHeads = Enumerate(function(){
   return a;
 });
 
-viz.print(moreThanTwoHeads);
+print('\nDistribution on first coin being Heads (given at least two Heads): ');
+printERP(moreThanTwoHeads);
 ~~~~
 
 In the next chapter, we use inference functions to implementing rational decision making.
