@@ -52,7 +52,7 @@ Language features with side effects are not allowed in WebPPL. The commented-out
 // Instead do this:
 var table = {key: 1};
 var updatedTable = {key: table.key + 1};
-updateTable;
+updatedTable;
 ~~~~
 
 There are no `for` or `while` loops. Instead use higher-order functions like WebPPL's builtin `map`, `filter` and `zip`:
@@ -85,10 +85,10 @@ var coinWithSide = function(){
 print(repeat(5, coinWithSide)); // draw i.i.d samples
     
 
-print(['Samples from standard Gaussian in 1D:', gaussian(0,1), gaussian(0,1)]);
+print(['Samples from standard Gaussian in 1D:  ', gaussian(0,1), gaussian(0,1)]);
 
-print(['Sample from 2D Gaussian', 
-    multivariateGaussian([0,0],[[1,0],[0,10]])]);
+print(['Sample from 2D Gaussian:  ', 
+    multivariateGaussian( [0,0], [[1,0],[0,10]] )]);
     
 
 ~~~~
