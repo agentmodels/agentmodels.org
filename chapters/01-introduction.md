@@ -36,32 +36,36 @@ This tutorial implements utility-maximizing Bayesian agents as functional, proba
 The first section of the tutorial implements agent models for sequential decision problems in stochastic environments. We introduce a program that solves finite-horizon and MDPs and show a simple extension to POMDPs. These agents behave *optimally*, making optimal plans given their knowledge of the world. Human behavior, by contrast, is often *sub-optimal*, whether due to irrational behavior or to constrained resources. The programs we use to implement optimal agents can, with slight modification, implement agents with biases (e.g. time inconsistency) and with resource bounds (e.g. bounded "look ahead" or Monte Carlo sampling).
 
 
-### Learning preferences from choices
+### Learning preferences from behavior
 
-Example 1 (above) illustrated a problem of learning or *inferring* an agent's preferences and beliefs from their behavior. The problem of learning people's preferences from observing their choices is important in economics ("revealed preference"), psychology and increasingly in machine learning and AI (recommender systems).
+The example of Bob (above) was not about simulating rational agents per se but about the problem *learning* or *inferring* an agent's preferences or beliefs from their choices. This problem is important to economics and psychology. Predicting preferences from past choices is also a major area of applied machine learning (e.g. for Netflix or for Facebook's newsfeed). 
 
-One approach to this problem is to model the agent using the utility-based models above, to model the environment as an MDP or POMDP, and then to infer the parameters that predict the observed behavior. This approach is called "structured estimation" in economics (cite something classic and something new), "inverse planning" in cognitive science, and "inverse reinforcement learning" (IRL) in machine learning / AI. It's been applied to infer the preferences of groups about health and education, to infer the preferences of drivers about how exactly to park a car, and to learn a nomadic groups preferences over areas of land.
+One approach to this problem is to assume the agent is a rational utility-maximizer, to assume the environment is an MDP or POMDP, and to infer the utilities and beliefs and predict the observed behavior. This approach is called "structured estimation" in economics refp:aguirregabiria2010dynamic, "inverse planning" in cognitive science refp:ullman2009help, and "inverse reinforcement learning" (IRL) refp:ng2000algorithms in machine learning and AI. It has been applied to inferring the perceived rewards of education from observed work and education choices, preferences for health outcomes from smoking behavior, and the preferences of a nomadic group over areas of land (see cites in \refp:evans2015learning). 
 
-Chapter X shows how to infer the preferences and beliefs of the agents we modeled in previous chapters. A great virtue of formulating agents as programs is that we can apply probabilistic programming techniques to carry out this inference automatically (without writing custom inference code). We illustrate full Bayesian inference and sampling-based approximations (rejection sampling, MCMC and particle filters). We also illustrate a standard non-Bayesian approach to IRL based on optimization (Abbeel and Ng). 
+[Section III](/chapters/07-reasoning-about-agents.md) shows how to infer the preferences and beliefs of the agents modeled in previous chapters. Since the agents were implemented as programs, we apply probabilistic programming techniques to perform inference with very little additional code. Inference techniques include exact Bayesian inference and sampling-based approximations (MCMC and particle filters).
+
 
 ## Taster
 
-This tutorial is about turning mathematical models of rational agents into programs for simulating plans and for learning preferences from observation. The programs all run in the browser, accompanied by visuals showing the agent's actions. The language of the tutorial is WebPPL, a probabilistic programming language based on Javascript refp:dippl. As a taster, here is a simple code snippet in WebPPL, using the interactive code boxes that we'll use throughtout. 
+Our models of agents and of inference all run in "code boxes" in the browser, accompanied by animated visualizations agent behavior. The language of the tutorial is [WebPPL](https://webppl.org), an easy-to-learn probabilistic programming language based on Javascript refp:dippl. As a taster, here is a simple code snippet in WebPPL, using the interactive code boxes that we'll use throughtout. 
 
 ~~~~
-var coinFlip = function(){return flip() ? 'H' : 'T';};
-print("Some coin flips:")
-print(repeat(5, coinFlip))
+// *flip* returns [true,false] with even probability
+var coinFlip = function(){return flip() ? 'H ' : 'T ';};
+print("Some coin flips:" + coinFlip() + coinFlip() + coinFlip());
 
+// use *flip* to define a sampler for the geometric distribution
 var geometric = function(p) {
   return flip(p) ? 1 + geometric(p) : 1
 };
-geometric(0.5);
+
+// produce a histogram from repeated sampling 
+viz.print( repeat(100, function(){return geometric(0.8);}) );
+
 ~~~~
 
-The [next chapter](/chapters/02-agents-as-models.html) provides an introduction to WebPPL. 
+The [next chapter](/chapters/02-webppl.html) provides an introduction to WebPPL.
 
+--------------
 
-## References
-
-- cite:dippl
+[Table of Contents](index.md)
