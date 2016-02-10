@@ -14,7 +14,7 @@ In the following, we give an overview of the WebPPL features that are essential 
 The only requirement to run the code for this tutorial is a current browser (Chrome/Firefox/Safari). However, to explore the models in more detail, you will want to run WebPPL from the command line. Installation is simple and is explained [here](http://webppl.org).
 
 
-## WebPPL: a functionally pure subset of Javascript
+## WebPPL: a purely functional subset of Javascript
 
 WebPPL includes a subset of Javascript, and follows the syntax of Javascript for this subset.
 
