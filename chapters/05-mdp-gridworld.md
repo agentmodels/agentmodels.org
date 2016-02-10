@@ -1,8 +1,7 @@
 ---
 layout: chapter
-title: "MDPs Part II: Gridworld"
+title: "Sequential decision problems, part II: Gridworld"
 description: Hiking example, softmax agent, stochastic transitions, policies, expected values of possible actions, discounting
-
 ---
 
 ## MDP Example: Hiking
