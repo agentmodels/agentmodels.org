@@ -23,19 +23,19 @@ WebPPL includes a subset of Javascript, and follows the syntax of Javascript for
 This example program uses most of the Javascript syntax that is available in WebPPL:
 
 ~~~~
-// function definition using JS's Math library
+// Function definition using Javascript's `isNaN` and `log` primitives:
 
 var verboseLog = function(x){
-    if (x<=0 || window.isNaN(x)) {
-      print("Input " + x + " was not a positive number");
-      return null;
-    } else {
-      return Math.log(x);
-    }
+  if (x<=0 || window.isNaN(x)) {
+    print("Input " + x + " was not a positive number");
+    return null;
+  } else {
+    return Math.log(x);
+  }
 };
 
 // Array with numbers, object, Boolean types
-var inputs = [1, 1.5, -1, {key:1}, true];
+var inputs = [1, 1.5, -1, {key: 1}, true];
 
 print("Apply verboseLog to elements in array: "); 
 map(verboseLog, inputs);
@@ -44,12 +44,16 @@ map(verboseLog, inputs);
 Language features with side effects are not allowed in WebPPL. The commented-out code uses assignment to update a table and produces an error.
 
 ~~~~
-// Assignment produces an error
-// var table = {}
-// table.key = 1
-// table.key += 1
+// Assignment produces an error:
+
+// var table = {};
+// table.key = 1;
+// table.key = table.key + 1;
+// => Assignment is allowed only to fields of globalStore.
+
 
 // Instead do this:
+
 var table = {key: 1};
 var updatedTable = {key: table.key + 1};
 updatedTable;
@@ -59,11 +63,13 @@ There are no `for` or `while` loops. Instead use higher-order functions like Web
 
 ~~~~
 var ar = [1,2,3];
-// for (var i = 0; i < ar.length; i++){
-//   print(ar[i]); }
 
-// Instead of for-loop, use *map* 
-map(print,ar);
+// for (var i = 0; i < ar.length; i++){
+//   print(ar[i]); 
+// }
+
+// Instead of for-loop, use `map`:
+map(print, ar);
 ~~~~
 
 It is possible to use normal Javascript functions (which make internal use of side effects) in WebPPL. See the [online book](http://dippl.org/chapters/02-webppl.html) on the implementation of WebPPL for details (section "Using Javascript Libraries"). 
@@ -75,22 +81,24 @@ It is possible to use normal Javascript functions (which make internal use of si
 WebPPL has an array of built-in functions for sampling random variables (i.e. generating random numbers from a particular probability distribution). These will be familiar from scientific computing and probability theory. A full list of functions is in the WebPPL library [source](https://github.com/probmods/webppl/blob/dev/src/header.wppl). Try clicking the "Run" button repeatedly to get different random samples. 
 
 ~~~~
-
-print(['Fair coins:', flip(0.5), flip(0.5)]);
-print(['Biased coins:', flip(0.9), flip(0.9)]);
+print('Fair coins: ' + [flip(0.5), flip(0.5)]);
+print('Biased coins: ' + [flip(0.9), flip(0.9)]);
 
 var coinWithSide = function(){
-    return categorical( [.49, .49, .02], ['heads', 'tails', 'side']);
+  return categorical([.49, .49, .02], ['heads', 'tails', 'side']);
 };
+
 print(repeat(5, coinWithSide)); // draw i.i.d samples
-    
+~~~~
 
-print(['Samples from standard Gaussian in 1D:  ', gaussian(0,1), gaussian(0,1)]);
+There are also continuous random variables:
 
-print(['Sample from 2D Gaussian:  ', 
-    multivariateGaussian( [0,0], [[1,0],[0,10]] )]);
-    
+~~~~
+print('Two samples from standard Gaussian in 1D: ' +
+      [gaussian(0,1), gaussian(0,1)]);
 
+print('A single sample from a 2D Gaussian: ' +
+      multivariateGaussian([0,0], [[1,0],[0,10]]));
 ~~~~
 
 You can write your own functions for sampling random variables . This example uses recursion to define a sampler for the Geometric distription:
@@ -136,54 +144,57 @@ var twoHeads = Enumerate(function(){
   var a = flip(0.5);
   var b = flip(0.5);
   var c = flip(0.5);
-  condition( a + b + c == 2 );
+  condition(a + b + c == 2);
   return a;
 });
 
-print('Probability first coin being Heads (given exactly two Heads) : ');
-print(Math.exp(twoHeads.score([],true)));
+print('Probability of first coin being Heads (given exactly two Heads) : ');
+print(Math.exp(twoHeads.score([], true)));
 
 var moreThanTwoHeads = Enumerate(function(){
   var a = flip(0.5);
   var b = flip(0.5);
   var c = flip(0.5);
-  condition( a + b + c >= 2 );
+  condition(a + b + c >= 2);
   return a;
 });
 
-print('\Probability on first coin being Heads (given at least two Heads): ');
-print(Math.exp(moreThanTwoHeads.score([],true)));
+print('\Probability of first coin being Heads (given at least two Heads): ');
+print(Math.exp(moreThanTwoHeads.score([], true)));
 ~~~~
 
 ### Codeboxes and Plotting
 You can use the code boxes to modify our examples or to write your own WebPPL code. Code is not shared between boxes. You can use the special function `viz.print` to plot ERPs:
 
 ~~~~
-var discrete_erp = Enumerate(function(){ 
-        return flip(0.9) ? "apple" : "orange";
-    });
-viz.print(discrete_erp);
+var appleOrangeERP = Enumerate(function(){ 
+  return flip(0.9) ? "apple" : "orange";
+});
+
+viz.print(appleOrangeERP);
 ~~~~
 
 ~~~~
-var discrete_erp_2d = Enumerate(function(){
+var fruitTasteERP = Enumerate(function(){
   return {
     fruit: categorical([0.3, 0.3, 0.4], ["apple", "banana", "orange"]),
-    boolean: flip(0.7)
+    tasty: flip(0.7)
   };
-  });
-viz.print(discrete_erp_2d);
+});
+
+viz.print(fruitTasteERP);
 ~~~~
 
 ~~~~
-var continuous_erp_2d = ParticleFilter(function(){
-  return { X: gaussian(0, 1), Y: gaussian(0, 1)};
-  }, 1000);
-viz.print(continuous_erp_2d);
+var positionERP = Rejection(function(){
+  return { 
+    X: gaussian(0, 1), 
+    Y: gaussian(0, 1)};
+}, 1000);
+
+viz.print(positionERP);
 ~~~~
 
 ### Next
 
 In the next [chapter](/chapters/03-one-shot-planning.html), we use inference functions to implementing rational decision making. 
-
-
