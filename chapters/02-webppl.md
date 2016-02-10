@@ -1,7 +1,7 @@
 ---
 layout: chapter
-title: "Overview of WebPPL: the language of this tutorial"
-description: "WebPPL is a functional subset of Javascript with primitives for sampling from random variables and for Bayesian inference."
+title: "Probabilistic programming in WebPPL"
+description: "WebPPL, the language used in this tutorial, is a functional subset of Javascript with primitives for sampling from random variables and for Bayesian inference."
 is_section: false
 ---
 
@@ -9,11 +9,11 @@ is_section: false
 
 ## Introduction
 
-This chapter introduces the probabilistic programming language WebPPL (pronounced "web people"). The models for agents (and for learning about agents) in this tutorial are all implemented in WebPPL -- so it's an important building block for what follows.
+This chapter introduces the probabilistic programming language WebPPL (pronounced "web people"). The models for agents (and for learning about agents) in this tutorial are all implemented in WebPPL -- so this is an important building block for what follows.
 
-This will be a overview of WebPPL features that are essential to the rest of the tutorial. It will move quickly over the key ideas of probabilistic programming. If you are new to probabilistic programming, you might read a more general introduction (e.g. [here](http://www.pl-enthusiast.net/2014/09/08/probabilistic-programming/) or [here](https://moalquraishi.wordpress.com/2015/03/29/the-state-of-probabilistic-programming/)). A detailed [tutorial](https://probmods.org) on Bayesian methods and probabilistic programming, using a language similar to WebPPL, is also good background.
+In the following, we give an overview of the WebPPL features that are essential to the rest of the tutorial. We will cover the key ideas of probabilistic programming quickly. If you are new to probabilistic programming, you might want to read a more general introduction (e.g. [here](http://www.pl-enthusiast.net/2014/09/08/probabilistic-programming/) or [here](https://moalquraishi.wordpress.com/2015/03/29/the-state-of-probabilistic-programming/)). [This detailed tutorial](https://probmods.org) on Bayesian methods and probabilistic programming, using a language similar to WebPPL, is also helpful background.
 
-The only requirement to run the code for this tutorial is a browser (Chrome/Safari). However, to explore the models in more detail, you will want to run WebPPL from the command line. Installation is simple and is explained [here](http://webppl.org).
+The only requirement to run the code for this tutorial is a current browser (Chrome/Firefox/Safari). However, to explore the models in more detail, you will want to run WebPPL from the command line. Installation is simple and is explained [here](http://webppl.org).
 
 
 ## WebPPL: a functionally pure subset of Javascript
@@ -59,7 +59,7 @@ var updatedTable = {key: table.key + 1};
 updatedTable;
 ~~~~
 
-There are no `for` or `while` loops. Instead use higher-order functions like WebPPL's builtin `map`, `filter` and `zip`:
+There are no `for` or `while` loops. Instead, use higher-order functions like WebPPL's builtin `map`, `filter` and `zip`:
 
 ~~~~
 var ar = [1,2,3];
@@ -78,7 +78,8 @@ It is possible to use normal Javascript functions (which make internal use of si
 ## WebPPL stochastic primitives
 
 ### Sampling from random variables
-WebPPL has an array of built-in functions for sampling random variables (i.e. generating random numbers from a particular probability distribution). These will be familiar from scientific computing and probability theory. A full list of functions is in the WebPPL library [source](https://github.com/probmods/webppl/blob/dev/src/header.wppl). Try clicking the "Run" button repeatedly to get different random samples. 
+
+WebPPL has a number of built-in functions for sampling from random variables (i.e. generating random numbers from a particular probability distribution). These will be familiar from scientific computing and probability theory. A full list of functions is in the WebPPL library [source](https://github.com/probmods/webppl/blob/dev/src/header.wppl). Try clicking the "Run" button repeatedly to get different random samples:
 
 ~~~~
 print('Fair coins: ' + [flip(0.5), flip(0.5)]);
@@ -101,7 +102,7 @@ print('A single sample from a 2D Gaussian: ' +
       multivariateGaussian([0,0], [[1,0],[0,10]]));
 ~~~~
 
-You can write your own functions for sampling random variables . This example uses recursion to define a sampler for the Geometric distription:
+You can write your own functions to sample from more complex distributions. This example uses recursion to define a sampler for the Geometric distribution:
 
 ~~~~
 var geometric = function(p) {
@@ -115,11 +116,24 @@ What makes WebPPL different from conventional programming languages is its abili
 
 1. You can draw *random i.i.d. samples* from an ERP using the special function `sample`. That is, you sample $$x \sim P$$ where $$P(x)$$ is the distribution represented by the ERP. 
 
-2. You can compute the probability (or density) the distribution assigns to a value. That is, to compute $$\log(P(x))$$, you use `erp.score([], x)`, where `erp` is the ERP in WebPPL. 
+2. You can compute the probability (or density) the distribution assigns to a value. That is, to compute $$\log(P(x))$$, you use `erp.score([], x)`, where `erp` is the ERP in WebPPL.
 
-The functions above that generate random samples are defined in the WebPPL library in terms of built-in ERPs (e.g. `bernoulliERP` for `flip` and `gaussianERP` for `gaussian`) and the built-in function `sample`.
+The functions above that generate random samples are defined in the WebPPL library in terms of built-in ERPs (e.g. `bernoulliERP` for `flip` and `gaussianERP` for `gaussian`) and the built-in function `sample`:
 
-To create a new ERP, we pass a *thunk* (a function with no arguments) with a random output, to a function that performs *marginalization*. For example, we can use `bernoulliERP` as an ingredient to construct a Binomial distribution with the marginalization function `Enumerate`:
+~~~~
+var flip = function(theta) {
+  var theta = (theta !== undefined) ? theta : 0.5;
+  return sample(bernoulliERP, [theta]);
+};
+
+var gaussian = function(mu, sigma) {
+  return sample(gaussianERP, [mu, sigma]);
+};
+
+[flip(), gaussian(1, 1)];
+~~~~
+
+To create a new ERP, we pass a (potentially stochastic) function with no arguments---a *thunk*---to a function that performs *marginalization*. For example, we can use `flip` as an ingredient to construct a Binomial distribution using the marginalization function `Enumerate`:
 
 ~~~~
 var binomial = function(){
@@ -137,14 +151,15 @@ var binomialERP = Enumerate(binomial);
 The function `Enumerate` is an *inference function* that computes the marginal probability of each possible output of the function `binomial` by enumerating each possible value of the random variables (`a`, `b` and `c`) in the function body.
 
 ### Bayesian inference by conditioning
-The most important use of `Enumerate` is for Bayesian inference. Our task is to *infer* the value of some unknown parameter by observing data that depends on the parameter. For example, if flipping three separate coins produce exactly two Heads, what is the probability that the first coin landed Heads? To solve this in WebPPL, we use `Enumerate` to enumerate all values for the random variables `a`, `b` and `c`. We use `condition` to constrain the sum of the variables. The result is an ERP representing the posterior distribution on the first variable `a` having value `true` (i.e. "Heads").  
+
+The most important use of inference functions such as `Enumerate` is for Bayesian inference. Here, our task is to *infer* the value of some unknown parameter by observing data that depends on the parameter. For example, if flipping three separate coins produce exactly two Heads, what is the probability that the first coin landed Heads? To solve this in WebPPL, we can use `Enumerate` to enumerate all values for the random variables `a`, `b` and `c`. We use `condition` to constrain the sum of the variables. The result is an ERP representing the posterior distribution on the first variable `a` having value `true` (i.e. "Heads").  
 
 ~~~~
 var twoHeads = Enumerate(function(){
   var a = flip(0.5);
   var b = flip(0.5);
   var c = flip(0.5);
-  condition(a + b + c == 2);
+  condition(a + b + c === 2);
   return a;
 });
 
@@ -164,7 +179,8 @@ print(Math.exp(moreThanTwoHeads.score([], true)));
 ~~~~
 
 ### Codeboxes and Plotting
-You can use the code boxes to modify our examples or to write your own WebPPL code. Code is not shared between boxes. You can use the special function `viz.print` to plot ERPs:
+
+The code boxes allow you to modify our examples and to write your own WebPPL code. Code is not shared between boxes. You can use the special function `viz.print` to plot ERPs:
 
 ~~~~
 var appleOrangeERP = Enumerate(function(){ 
@@ -197,4 +213,8 @@ viz.print(positionERP);
 
 ### Next
 
-In the next [chapter](/chapters/03-one-shot-planning.html), we use inference functions to implementing rational decision making. 
+In the [next chapter](/chapters/03-one-shot-planning.html), we will implement rational decision-making using inference functions. 
+
+--------------
+
+[Table of Contents](/)
