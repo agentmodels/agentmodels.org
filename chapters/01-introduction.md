@@ -50,18 +50,29 @@ One approach to this problem is to assume the agent is a rational utility-maximi
 Our models of agents and of inference all run in "code boxes" in the browser, accompanied by animated visualizations agent behavior. The language of the tutorial is [WebPPL](https://webppl.org), an easy-to-learn probabilistic programming language based on Javascript refp:dippl. As a taster, here is a simple code snippet in WebPPL, using the interactive code boxes that we'll use throughtout. 
 
 ~~~~
-// *flip* returns [true,false] with even probability
-var coinFlip = function(){return flip() ? ' H ' : ' T ';};
-print("Some coin flips:" + coinFlip() + coinFlip() + coinFlip());
+// Using the stochastic function `flip` we build a function that
+// returns 'H' and 'T' with equal probability:
+
+var coin = function(){
+  return flip(.5) ? 'H' : 'T';
+};
+
+var flips = [coin(), coin(), coin()];
+print("Some coin flips: " + flips);
 
 
-// use *flip* to define a sampler for the geometric distribution
+// We now use `flip` to define a sampler for the geometric distribution:
+
 var geometric = function(p) {
   return flip(p) ? 1 + geometric(p) : 1
-  };
-  
-print('\nHistogram of (approximate) Geometric distribution');
-viz.print(Enumerate(function(){return geometric(0.8);}, 50));
+};
+
+var boundedGeometric = Enumerate(
+  function(){ return geometric(0.5); }, 
+  20);
+
+print('Histogram of (bounded) Geometric distribution');
+viz.print(boundedGeometric);
 ~~~~
 
 The [next chapter](/chapters/02-webppl.html) provides an introduction to WebPPL.
