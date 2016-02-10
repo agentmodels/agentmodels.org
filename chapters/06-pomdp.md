@@ -1,8 +1,7 @@
 ---
 layout: chapter
-title: "Sequential decision problems with partial observability (POMDPs)"
+title: "Partial observability"
 description: Mathematical framework, implementation in WebPPL, Gridworld and restaurants example, bandit problems.
-
 ---
 
 PLAN
