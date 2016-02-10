@@ -10,21 +10,21 @@ is_section: true
 * fill in words
 * visualisation of trajectories doesn't show final action: how to fix this?
 
-# this is the real bit
-
-Explain the idea of IRL.
-
 ## Conditioning on a single action
 
 We're in donutWorld. This is what it looks like. There are stores.
 
+In this chapter, we discuss how to make inferences of an agent's utility function from observations about how that agent behaves. For illustration, we work in a gridworld that contains restaurants, similar to the one shown at the start of the [introduction](http://agentmodels.org/chapters/01-introduction.html). We display this gridworld, and the agent's starting state, below.
+
 ~~~
 var params = makeDonutInfer(true, {'donutSouth': 1, 'donutNorth': 1, 'veg': 1,
-                                   'noodle': 1, 'timeCost': 1}, 100, 0);
-GridWorld.draw(params, {labels: params.labels});
+                                   'noodle': 1, 'timeCost': -0.1}, 100, 0);
+GridWorld.draw(params, {labels: params.labels, trajectory: [[[2,1]]]});
 ~~~
 
-This is how you infer based on a single action.
+Different restaurants will have different utilities for the agent, with the only constraint being that the two donut shops have the same utility. There will also be a time cost to the agent that encourages it to reach a destination quickly. To start off with, we will have low softmax and transition noise.
+
+Suppose we see a single action by the agent. How can we make inferences about the agent's utilities?
 
 ~~~
 // startState is the state where the agent makes its action, observedAction is
@@ -172,8 +172,8 @@ var complexUtilPrior = function(){
 };
 
 var params = makeDonutInfer(true, {'donutSouth': 1, 'donutNorth': 1, 'veg': 1,
-                                   'noodle': 1, 'timeCost': 1}, 100, 0);
-var noodleTrajectory = [[[2,1], 'u'], [[2,2], 'u'], [[2,3], 'r']];
+                                   'noodle': 1, 'timeCost': -0.1}, 100, 0);
+var noodleTrajectory = [[[2,1], 'u'], [[2,2], 'u'], [[2,3], 'r'], [[3,3], 'r']];
 GridWorld.draw(params, {trajectory: noodleTrajectory, labels: params.labels});
 // viz.print(inferTrajUtil(noodleTrajectory, 7, complexUtilPrior));
 ~~~
@@ -182,12 +182,12 @@ Note that utility functions where noodles have the same utility as veggies are e
 
 ## inferring time cost from a trajectory
 
-this is how you do that
+this is how you do that. use MCMC because so many options for utility functions
 
 ~~~
 var inferTrajUtilTimeCost = function(trajectory, perceivedTotalTime,
                                      utilityPrior) {
-    return Enumerate(function(){
+    return MCMC(function(){
 		var newUtilityTable = utilityPrior();
 		var newParams = makeDonutInfer(true, newUtilityTable, 100, 0);
 
@@ -219,10 +219,10 @@ var inferTrajUtilTimeCost = function(trajectory, perceivedTotalTime,
 };
 
 var superComplexUtilPrior = function() {
-    var donutUtil = uniformDraw([1,2,3]);
-    var vegUtil = uniformDraw([1,2,3]);
-    var noodleUtil = uniformDraw([1,2,3]);
-    var timeCost = uniformDraw([-0.1, -1]);
+    var donutUtil = uniformDraw([1, 2, 3]);
+    var vegUtil = uniformDraw([1, 2, 3]);
+    var noodleUtil = uniformDraw([1, 2, 3]);
+    var timeCost = uniformDraw([-1, -0.5, -0.1]);
     return {'donutSouth': donutUtil,
     	    'donutNorth': donutUtil,
 	    	'veg': vegUtil,
@@ -231,10 +231,11 @@ var superComplexUtilPrior = function() {
 };
 
 var params = makeDonutInfer(true, {'donutSouth': 1, 'donutNorth': 1, 'veg': 1,
-                                   'noodle': 1, 'timeCost': 1}, 100, 0);
+                                   'noodle': 1, 'timeCost': -0.1}, 100, 0);
 var dsTrajectory = [[[2,1], 'l'], [[1,1], 'l']];
-GridWorld.draw(params, {trajectory: dsTrajectory, labels: params.labels});
-// viz.print(inferTrajUtilTimeCost(dsTrajectory, 7, superComplexUtilPrior));
+// GridWorld.draw(params, {trajectory: dsTrajectory, labels: params.labels});
+// note: viz.print is pretty good here.
+viz.print(inferTrajUtilTimeCost(dsTrajectory, 7, superComplexUtilPrior));
 ~~~
 
 ### inferring softmax noise from multiple trajectories
@@ -280,12 +281,13 @@ var inferTrajsUtilAlpha = function(trajectories, perceivedTotalTimes,
 };
 
 var params = makeDonutInfer(true, {'donutSouth': 1, 'donutNorth': 1, 'veg': 1,
-                                   'noodle': 1, 'timeCost': 1}, 100, 0);
+                                   'noodle': 1, 'timeCost': -0.1}, 100, 0);
 
-var dnTrajectory = [[[2,1], 'u'], [[2,2], 'u'], [[2,3], 'u'], [[2,4], 'l']];
+var dnTrajectory = [[[2,1], 'u'], [[2,2], 'u'], [[2,3], 'u'], [[2,4], 'l'],
+                    [[1,4], 'l']];
 var dnTrajectorys = [dnTrajectory];
 
-var noodleTrajectory = [[[2,1], 'u'], [[2,2], 'u'], [[2,3], 'r']];
+var noodleTrajectory = [[[2,1], 'u'], [[2,2], 'u'], [[2,3], 'r'], [[3,3], 'r']];
 var dsTrajectory = [[[2,1], 'l'], [[1,1], 'l']];
 var crazyTrajectories = [dsTrajectory, noodleTrajectory];
 
