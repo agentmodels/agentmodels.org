@@ -78,4 +78,4 @@ In the [next chapter](/chapters/02-webppl.html), we will introduce WebPPL in mor
 
 --------------
 
-[Table of Contents](https://agentmodels.org)
+[Table of Contents](/)
