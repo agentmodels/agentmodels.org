@@ -2,10 +2,8 @@
 layout: chapter
 title: "Probabilistic programming in WebPPL"
 description: "WebPPL, the language used in this tutorial, is a functional subset of Javascript with primitives for sampling from random variables and for Bayesian inference."
-is_section: false
+is_section: true
 ---
-
-
 
 ## Introduction
 
