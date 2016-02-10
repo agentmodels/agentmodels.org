@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: Introduction
-description: "We give a practical example of inferring human preferences from observed choices, and describe the goal of this book: to implement decision-theoretic agents as probabilistic programs, and inferences about such agents as Bayesian reasoning about such programs."
+description: "We give an example of inferring human preferences from observed choices, and describe our goals: to implement decision-theoretic agents as probabilistic programs, and inferences about such agents as Bayesian reasoning about such programs."
 is_section: true
 ---
 
