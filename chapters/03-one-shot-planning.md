@@ -194,4 +194,6 @@ Since rational agents will *always* take the best action, why consider softmax a
 
 [footnote:  One normative reason to consider softmax agents, which we won't pursue in this tutorial, is for *exploration* in the setting of reinforcement learning (link).]
 
+--------------
 
+[Table of Contents](/)
