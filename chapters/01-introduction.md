@@ -5,11 +5,9 @@ description: "Practical example of inferring human preferences from observed cho
 is_section: true
 ---
 
-## Example: Learning preferences and beliefs from behavior
+Imagine a dataset that records how individuals move through a city. The figure below shows what a datapoint from this set might look like. It depicts an individual, who we'll call Bob, moving along a street and then dwelling in the location of a restaurant. This restaurant is one of two nearby branches of a chain of Donut Stores. Two other nearby restaurants are also shown on the map.
 
 ![Donut temptation gridworld](/assets/img/ch1_donut_new.png)
-
-Imagine a dataset that records how individuals move through a city. The figure above shows what a datapoint from this set might look like. It depicts an individual, who we'll call Bob, moving along a street and then dwelling in the location of a restaurant. This restaurant is one of two nearby branches of a chain of Donut Stores. Two other nearby restaurants are also shown on the map.
 
 Given Bob's movements alone, what can we infer about his preferences and beliefs? Since Bob spent a long time at the Donut Store, we infer that he bought some food or drink there. Since Bob could easily have walked to one of the other nearby eateries, we infer that Bob has a preference for donuts over noodles or salad.
 
