@@ -1,14 +1,12 @@
 ---
 layout: chapter
-title: "Sequential decision problems (MDPs)"
+title: "Sequential decision problems, part I"
 description: Motivating example of sequential decision problem, MDP formalism and implementation in WebPPL with mutual recursion, exponential trees action evaluation and a resolution via memoization. 
-
 ---
 
 
+## Introduction
 
-
-## Sequential Decision Problems: Introduction
 The previous [chapter](/chapters/03-one-shot-planning) introduced agent models for solving very simple decision problems. The rest of the tutorial looks at more complex and interesting problems. Later chapters will look at problems where the outcome depends on the decison of another rational agent (as in *game theory*). The next few chapters look at single-agent problems that are *sequential* rather than *one-shot*. In sequential decision problems, an agent's choice of action *now* depends on the action they'll choose in the future. (Agents must *co-ordinate* with their future selves).
 
 ## Markov Decision Process (MDP): example
