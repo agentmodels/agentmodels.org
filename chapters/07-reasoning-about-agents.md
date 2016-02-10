@@ -303,3 +303,7 @@ GridWorld.draw(params, {trajectory: dnTrajectory, labels: params.labels})
 ~~~
 
 now you have learned.
+
+--------------
+
+[Table of Contents](/)
