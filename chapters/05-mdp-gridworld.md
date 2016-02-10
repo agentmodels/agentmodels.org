@@ -291,4 +291,6 @@ GridWorld.draw(params, {trajectory : trajectoryExpUtilities, expUtilities : traj
 NOTES:
 decrease time: more time pressure moves you to shortcut. (as does increasing the action cost). decrease time enough and you just go to close hill (sample for increasing action cost). 
 
+--------------
 
+[Table of Contents](/)
