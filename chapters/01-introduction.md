@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: Introduction
-description: "Practical example of inferring human preferences from observed choices. Implementing agent models from decision theory as functional programs. Inferring preferences (IRL) by inverting agent models."
+description: "We give a practical example of inferring human preferences from observed choices, and describe the goal of this book: to implement decision-theoretic agents as probabilistic programs, and inferences about such agents as Bayesian reasoning about such programs."
 is_section: true
 ---
 
