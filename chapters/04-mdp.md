@@ -334,3 +334,7 @@ var stateActionPairs = simulate(startState, totalTime);
 
 GridWorld.draw(params, {trajectory : stateActionPairs});
 ~~~~
+
+--------------
+
+[Table of Contents](/)
