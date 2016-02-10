@@ -1,7 +1,7 @@
 ---
 layout: chapter
-title: "Building agent models in WebPPL"
-description: "Introduction to building agents, starting from simple but extendable agent programs." 
+title: "Agents as probabilistic programs"
+description: "Introduction to building agents in WebPPL, starting from a simple but extendable agent programs." 
 is_section: true
 ---
 
