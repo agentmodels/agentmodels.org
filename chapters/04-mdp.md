@@ -191,7 +191,7 @@ var startState = 0;
 var getRuntime = function(totalTime){
     return timeit( function(){
         return agent(startState,totalTime);
-    }).runtimeInMilliseconds;
+    }).runtimeInMilliseconds.toPrecision(4);
 };
 
 var totalTimes = [3, 4, 5, 6, 7];
@@ -201,7 +201,7 @@ print('Runtime in ms for total times: ' + totalTimes + '\n' +
 ~~~~
 
 
-Most of this computation is unnecessary. If the agent starts at `state=0`, there are three ways the agent could be at `state=0` again after two steps: either the agent stays put twice or the agent goes one step away and then returns. The code above computes `agent(0,totalTime-2)` three times, while it only needs to be computed once. This problem can be resolved by *memoization* (via the `dp.cache` function), which stores the results of a function call for re-use when the function is called again on the same input. This use of memoization means the runtime is polynomial in the number of states and the total time. We explore the efficiency of these algorithms in more detail in Section VI.
+Most of this computation is unnecessary. If the agent starts at `state=0`, there are three ways the agent could be at `state=0` again after two steps: either the agent stays put twice or the agent goes one step away and then returns. The code above computes `agent(0,totalTime-2)` three times, while it only needs to be computed once. This problem can be resolved by *memoization*, which stores the results of a function call for re-use when the function is called again on the same input. This use of memoization means the runtime is polynomial in the number of states and the total time. We explore the efficiency of these algorithms in more detail in Section VI. In WebPPL, we use the higher-order function `dp.cache` to memoize the `agent` and `expUtility` functions:
 
 ~~~~
 var transition = function(state, action){
@@ -241,7 +241,7 @@ var startState = 0;
 var getRuntime = function(totalTime){
     return timeit( function(){
         return agent(startState,totalTime);
-    }).runtimeInMilliseconds;
+    }).runtimeInMilliseconds.toPrecision(4);
 };
 
 var totalTimes = [3, 4, 5, 6, 7];
@@ -253,28 +253,15 @@ print('Runtime in ms for total times: ' + totalTimes + '\n' +
 
 ## MDPs: Gridworld and choosing restaurants
 
-With this agent model including memoization, we can solve Alice's restaurant choice problem efficiently. To construct the MDP we use the library "webppl-gridworld" (link), which we'll use throughout this book. The next chapter discusses this library in more detail.
+The agent model above that includes memoization allows us to solve Bob's "Restaurant Choice" problem efficiently. 
 
-We extend the code above by adding checks for whether a state is terminal. If Alice reaches a restaurant, she receives the restaurant's utility score and the decision problem ends.
-
-The function `GridWorld.draw` visualizes a gridworld MDP.
+We extend the agent model above by adding `isTerminal` to halt simulations when the agent reaches a terminal state. For the Restaurant Choice problem, the restaurants are assumed to be terminal states. 
 
 ~~~~
-var noiseProb = 0;
-var alpha = 100;
-var params = makeDonut(noiseProb, alpha);
-var startState = [2,0];
 
-GridWorld.draw(params);
-~~~~
-
-Adding the optional parameter `{trajectory : stateActionPairs}` displays the agent's trajectory. 
-
-
-~~~~
-var noiseProb = 0;
-var alpha = 100;
-var params = makeDonut(noiseProb, alpha);
+// We use the WebPPL-gridworld library
+var params = makeDonutInfer(true, {'donutSouth': 1, 'donutNorth': 1, 'veg': 3,
+                                   'noodle': 2, 'timeCost': -0.1}, 100, 0);
 var transition = params.transition;
 var utility = params.utility;
 var actions = params.actions;
@@ -284,7 +271,7 @@ var agent = dp.cache(function(state, timeLeft){
   return Enumerate(function(){
     var action = uniformDraw(actions);
     var eu = expUtility(state, action, timeLeft);
-    factor( alpha * eu);
+    factor( params.alpha * eu);
     return action;
   });
 });
@@ -319,7 +306,7 @@ var simulate = function(startState, totalTime){
 };
 
 var startState = [2,0];
-var totalTime = 7;
+var totalTime = 9;
 var stateActionPairs = simulate(startState, totalTime);
 
 GridWorld.draw(params, {trajectory : stateActionPairs});
