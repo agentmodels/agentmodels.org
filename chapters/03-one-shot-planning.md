@@ -142,11 +142,7 @@ maxEUAgent("default");
 
 The `inferAgent`, which uses the planning-as-inference idiom, can also be extended using `expectation`. Previously, the agent's action was conditioned on its leading to the best consequence ("pizza"). This time, Tom is not aiming to choose the action most likely to have the best outcome. Instead, he wants the action with better outcomes in average. This can be represented in `inferAgent` by switching from a `condition` statement to a `factor` statement. The `condition` statement expresses a "hard" constraint on actions: actions that fail the condition are completely ruled out. The `factor` statement, by contrast, expresses a "soft" condition.
 
-To illustrate `factor`, consider this variant of the `twoHeads` example above. Instead of placing a hard constraint on the total number of Heads outcomes, we give each setting of `a`, `b` and `c` a *score* based on the total number of heads. The score is highest when all three coins are Heads, but even the "all tails" outcomes is not ruled out completely. 
-
-$$
-\frac {e^{2}} { (e^{0} + 2e^{1}) + e^{2} }
-$$. 
+To illustrate `factor`, consider this variant of the `twoHeads` example above. Instead of placing a hard constraint on the total number of Heads outcomes, we give each setting of `a`, `b` and `c` a *score* based on the total number of heads. The score is highest when all three coins are Heads, but even the "all tails" outcomes is not ruled out completely.
 
 ~~~~
 var softHeads = Enumerate(function(){
@@ -159,7 +155,7 @@ var softHeads = Enumerate(function(){
 viz.print(softHeads);
 ~~~~
 
-To be more precise abot `factor`, consider the following short program:
+To be more precise about `factor`, consider the following short program:
 
 ~~~~
 var mySample = Enumerate(function(){
@@ -209,7 +205,7 @@ var softmaxAgent = function(state){
   })
 };
 
-viz.print(softmaxAgent('default');
+viz.print(softmaxAgent('default'));
 ~~~~
 
 The `softmaxAgent` differs in two ways from the `maxEUAgent` above. First, it uses the planning-as-inference idiom. Second, it does not deterministically choose the maximal expected utility action. Instead, it implements *soft* maximization, selecting actions with a probability depending on their expected utility. Formally, let the agent's probability of choosing action be $$C(a;s)$$ for $$a \in A$$ and in $$s \in S$$. Then the *softmax* decision rule is:
