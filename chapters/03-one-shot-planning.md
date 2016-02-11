@@ -175,7 +175,7 @@ $$
 \frac {e^{4}} { (e^{0} + e^{1} + e^{4}) }
 $$. 
 
-Applying the same idea to the `inferAgent`, we obtain the `softmaxAgent`:
+Return to our implementation as planning-as-inference for maximizing *expected* utility, we use a `factor` statement to implement soft conditioning:
 
 ~~~~
 var transition = function(state, action){
