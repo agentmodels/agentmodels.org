@@ -6,32 +6,30 @@ description: Hiking example, softmax agent, stochastic transitions, policies, ex
 
 ## MDP Example: Hiking
 
-We introduced Markov Decision Processes (MDPs) with the example of Alice moving around a city with the aim of efficiently finding a good restaurant. Later chapters, which consider agents without full knowledge or complete rationality, will return to this example. This chapter explores some of the components of MDPs that will be important throughout this tutorial. 
+We introduced Markov Decision Processes (MDPs) with the example of Bob moving around a city with the aim of efficiently finding a good restaurant. We return to this example in later chapters, considering how agents with *uncertainty* or *bias* will behave in this environment. This chapter explores some key features of MDPs that will be important throughout the tutorial.
 
-We introduce a new sequential decision problem that can be represented by a "gridworld" MDP. Suppose that Bill is hiking. There are two peaks nearby, denoted "West" and "East". The peaks provide different views and Bill must choose between them. South of Bill's starting position is a steep hill. Falling down the hill would result in painful (but non-fatal) injury and end the hike early.
+We begin by introducing a new gridworld MDP:
 
-We represent Bill's hiking problem with a gridworld similar to Alice's restaurant choice example. The peaks are terminal states, providing differing utilities. The steep hill is also a terminal state, with negative utility. We assume a negative, constant time-cost -- so Bill prefers a shorter hike. 
+### Hiking MDP:
+Suppose that Alice is hiking. There are two peaks nearby, denoted "West" and "East". The peaks provide different views and Alice must choose between them. South of Alice's starting position is a steep hill. Falling down the hill would result in painful (but non-fatal) injury and end the hike early.
+
+We represent Alice's hiking problem with a gridworld similar to Bob's Restaurant Choice example. The peaks are terminal states, providing differing utilities. The steep hill is represented by a row of terminal state, each with identical negative utility. Each timestep before Alice reaches a terminal state incurs a "time-cost", which is negative. This means Alice prefers a shorter hike. 
 
 ~~~~
-var noiseProb = 0;
+var utilityTable = {east:10, west:1, hill:-10, timeCost:-.1};
 var alpha = 100;
-var utilityEast = 10;
-var utilityWest = 1;
-var utilityHill = -10;
-var timeCost = -.1;
+var transitionNoiseProb = 0;
 
-// TODO add docs for functions like *makeHike* which explain the arguments
-var params = makeHike(noiseProb, alpha, utilityEast, utilityWest, utilityHill, timeCost);
+var params = makeHike(transitionNoiseProb, alpha, utilityTable);
 
-GridWorld.draw(params, {trajectory : [[[0,1]]]});
+var startState = [0,1];
+GridWorld.draw(params, {labels: params.labels, trajectory: [[startState]]});
 ~~~~
 
-We start with a *deterministic* transition function. This means that Bill's only risk of falling down the steep hill is due to softmax noise in his actions. With `alpha=100`, the chance of this is tiny, and so Bill will take the short route to the peaks. The agent model is the same as the end of [Chapter 4]('/chapters/04-mdp.md'). The function `mdpSimulate` is also a library function and we will re-use throughout this chapter. 
-
+We start with a *deterministic* transition function. This means that Alice's only risk of falling down the steep hill is due to softmax noise in her actions (which is minimal in this case). The agent model is the same as the end of [Chapter 4]('/chapters/04-mdp.md'). We wrap the functions `agent`, `expUtility` and `simulate` in a function `mdpSimulateGridworld`. The following codebox defines this function and we use it later on without defining it (since it is also included in the WebPPL Gridworld library). 
 
 ~~~~
-var mdpSimulate = function(startState, totalTime, params, numRejectionSamples){
-  var alpha = params.alpha;
+var mdpSimulateGridworld = function(startState, totalTime, params, numRejectionSamples){
   var transition = params.transition;
   var utility = params.utility;
   var actions = params.actions;
@@ -42,7 +40,7 @@ var mdpSimulate = function(startState, totalTime, params, numRejectionSamples){
     return Enumerate(function(){
       var action = uniformDraw(actions);
       var eu = expUtility(state, action, timeLeft);    
-      factor( alpha * eu);
+      factor( params.alpha * eu);
     return action;
     });      
   });
@@ -82,28 +80,24 @@ var mdpSimulate = function(startState, totalTime, params, numRejectionSamples){
 };
 
 // parameters for building Hiking MDP
-var utilityEast = 10;
-var utilityWest = 1;
-var utilityHill = -10;
-var timeCost = -.1;
+var utilityTable = {east:10, west:1, hill:-10, timeCost:-.1};
 var startState = [0,1];
 
 // parameters for noisy agent (but no transition noise)
 var alpha = 100;
-var noiseProb = 0;
-var params = makeHike(noiseProb, alpha, utilityEast, 
-    utilityWest, utilityHill, timeCost);
+var transitionNoiseProb = 0;
+var params = makeHike(transitionNoiseProb, alpha, utilityTable);
 
 var totalTime = 12;
 var numRejectionSamples = 1;
-var out = sample( mdpSimulateTemp(startState, totalTime, params, 
+var out = sample( mdpSimulateGridworld(startState, totalTime, params, 
     numRejectionSamples) );
-GridWorld.draw(params, {trajectory : out});
+GridWorld.draw(params, {labels: params.labels, trajectory : out});
 
 ~~~~
 
 ## Hiking under the influence 
-If we set the softmax noise parameter `alpha=10`, the agent will often take sub-optimal decisions. While not realistic in Bill's situation, this might better describe an intoxicated agent. Since the agent is noisy, we sample many trajectories in order to approximate the full distribution. To construct an ERP based on these samples, we use the built-in function `Rejection` which performs inference by rejection sampling. (Our goal here is not inference over trajectories and so the `Rejection` function does not need any `factor` statement in its body). In this case, when the agent takes a suboptimal action, it will take *longer* than five steps to reach the East summit. So we plot the distribution on the length of trajectories to summarize the agent's behavior. 
+If we set the softmax noise parameter `alpha=10`, the agent will often take sub-optimal decisions. While not realistic in Alice's situation, this might better describe an intoxicated agent. Since the agent is noisy, we sample many trajectories in order to approximate the full distribution. To construct an ERP based on these samples, we use the built-in function `Rejection` which performs inference by rejection sampling. (Our goal here is not inference over trajectories and so the `Rejection` function does not need any `factor` statement in its body). In this case, when the agent takes a suboptimal action, it will take *longer* than five steps to reach the East summit. So we plot the distribution on the length of trajectories to summarize the agent's behavior. 
 
 
 ~~~~
@@ -123,9 +117,9 @@ var totalTime = 12;
 var numRejectionSamples = 500;
 var erp = Enumerate( function(){
   return sample( 
-    mdpSimulateTemp(startState, totalTime, params, numRejectionSamples)).length;
+    mdpSimulateGridworld(startState, totalTime, params, numRejectionSamples)).length;
 });
-var trajectory = sample(mdpSimulateTemp(startState, totalTime, params, numRejectionSamples));
+var trajectory = sample(mdpSimulateGridworld(startState, totalTime, params, numRejectionSamples));
 viz.print(erp);
 
 GridWorld.draw(params, {trajectory : trajectory});
@@ -138,7 +132,7 @@ Sample some of this noisy agent's trajectories. Does it ever fall down the hill?
 
 ## Hiking with stochastic transitions
 
-When softmax noise is high, the agent will make many small "mistakes" (i.e. suboptimal actions) but few large mistakes. In contrast, sources of noise in the environment will change the agent's state transitions independent of the agent's preferences. In the hiking example, imagine that the weather is very wet and windy. As a result, Bill will sometimes intend to go one way but actually go another way (because he slips in the mud). In this case, the shorter route to the peaks might be too risky for Bill. We will use a simplified model of bad weather. We assume that at every state and time, there is a constant independent probability `noiseProb` of the agent not going in their chosen direction. The independence assumption is unrealistic (since if a location is slippery at one timestep it's more likely slippery the next) but is simple and conforms to the Markov assumption for MDPs. When the agent does not go in their intended direction, they randomly go in one of the two orthogonal directions.
+When softmax noise is high, the agent will make many small "mistakes" (i.e. suboptimal actions) but few large mistakes. In contrast, sources of noise in the environment will change the agent's state transitions independent of the agent's preferences. In the hiking example, imagine that the weather is very wet and windy. As a result, Alice will sometimes intend to go one way but actually go another way (because he slips in the mud). In this case, the shorter route to the peaks might be too risky for Alice. We will use a simplified model of bad weather. We assume that at every state and time, there is a constant independent probability `noiseProb` of the agent not going in their chosen direction. The independence assumption is unrealistic (since if a location is slippery at one timestep it's more likely slippery the next) but is simple and conforms to the Markov assumption for MDPs. When the agent does not go in their intended direction, they randomly go in one of the two orthogonal directions.
 
 We set `noiseProb=0.1` and show that (a) the agent's first intended action is "up" not "right", and (b) that the agent's trajectory lengths vary due to stochastic transitions. **Exercise:** keeping `noiseProb=0.1`, find settings for the arguments to `makeHike` such that the agent goes "right" instead of up. <!-- put up action cost to -.5 or so --> 
 
@@ -155,7 +149,7 @@ var noiseProb = 0.1;
 var totalTime = 12;
 var numRejectionSamples = 1;
 var params = makeHike(noiseProb, alpha, utilityEast, utilityWest, utilityHill, timeCost);
-var out = sample(mdpSimulateTemp(startState, totalTime, params, numRejectionSamples));
+var out = sample(mdpSimulateGridworld(startState, totalTime, params, numRejectionSamples));
 GridWorld.draw(params, {trajectory : out});
 ~~~~
 
@@ -178,7 +172,7 @@ var numRejectionSamples = 1;
 var alpha = 100;
 var noiseProb = 0.1;
 var params = makeHike(noiseProb, alpha, utilityEast, utilityWest, utilityHill, timeCost);
-var out = sample(mdpSimulateTemp(startState, totalTime, params, numRejectionSamples));
+var out = sample(mdpSimulateGridworld(startState, totalTime, params, numRejectionSamples));
 GridWorld.draw(params, {trajectory : out});
 ~~~~
 
