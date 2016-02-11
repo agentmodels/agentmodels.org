@@ -171,7 +171,7 @@ $$
 \frac {e^{4}} { (e^{0} + e^{1} + e^{4}) }
 $$. 
 
-Return to our implementation as planning-as-inference for maximizing *expected* utility, we use a `factor` statement to implement soft conditioning:
+Returning to our implementation as planning-as-inference for maximizing *expected* utility, we use a `factor` statement to implement soft conditioning:
 
 ~~~~
 var transition = function(state, action){
@@ -190,25 +190,25 @@ var utility = function(state){
 
 var alpha = 1;
 
-var softmaxAgent = function(state){
+var softMaxAgent = function(state){
   return Enumerate(function(){
       
     var action = uniformDraw(['french', 'italian']);
       
-    var EU = function(action){
+    var expectedUtility = function(action){
       return expectation( Enumerate( function(){
         return utility(transition(state,action));
       }));
     };
-    factor( alpha*EU(action) )  
+    factor( alpha*expectedUtility(action) )  
     return action;
   })
 };
 
-viz.print(softmaxAgent('default'));
+viz.print(softMaxAgent('default'));
 ~~~~
 
-The `softmaxAgent` differs in two ways from the `maxEUAgent` above. First, it uses the planning-as-inference idiom. Second, it does not deterministically choose the maximal expected utility action. Instead, it implements *soft* maximization, selecting actions with a probability depending on their expected utility. Formally, let the agent's probability of choosing action be $$C(a;s)$$ for $$a \in A$$ and in $$s \in S$$. Then the *softmax* decision rule is:
+The `softMaxAgent` differs in two ways from the `maxEUAgent` above. First, it uses the planning-as-inference idiom. Second, it does not deterministically choose the maximal expected utility action. Instead, it implements *soft* maximization, selecting actions with a probability depending on their expected utility. Formally, let the agent's probability of choosing an action be $$C(a;s)$$ for $$a \in A$$ when in state $$s \in S$$. Then the *softmax* decision rule is:
 
 $$
 C(a; s) \propto e^{\alpha E(U(T(s,a))) }
@@ -216,10 +216,16 @@ $$
 
 The noise parameter $$\alpha$$ modulates between random choice $$(\alpha=0)$$ and the perfect maximization $$(\alpha = \infty)$$ of the `maxEUAgent`.
 
-Since rational agents will *always* take the best action, why consider softmax agents? If the task is to provide normative advice on how to solve a one-shot decision problem, then "hard" maximization is the way to go. An important goal for this tutorial is to infer the preferences and beliefs of agents from their choices. These agents might not always choose the normatively optimal actions. The softmax agent provides a computationally simple, analytically tractable model of suboptimal choices. This model has been tested empirically on human action selection [cite saccades, luce choice]. Moreover, it has been used extensively in Inverse Reinforcement Learning as a model of human errors (cambridge turn taking dialogue, taxi cab paper). For for this reason, we employ the softmax model throughout this tutorial. When modeling an agent assumed to be optimal, the noise parameter $$\alpha$$ can be chosen to approximation hard maximization. 
+Since rational agents will *always* take the best action, why consider softmax agents? If the task is to provide normative advice on how to solve a one-shot decision problem, then "hard" maximization is the way to go. An important goal for this tutorial is to infer the preferences and beliefs of agents from their choices. These agents might not always choose the normatively optimal actions. The softmax agent provides a computationally simple, analytically tractable model of suboptimal choice. This model has been tested empirically on human action selection [TODO cite luce choice]. Moreover, it has been used extensively in Inverse Reinforcement Learning as a model of human errors refp:kim2014inverse, refp:zheng2014robust. For for this reason, we employ the softmax model throughout this tutorial. When modeling an agent assumed to be optimal, the noise parameter $$\alpha$$ can be set to a large value. [TODO: Alternatively, agent could output erp.MAP().val instead of erp.]
 
-[footnote:  One normative reason to consider softmax agents, which we won't pursue in this tutorial, is for *exploration* in the setting of reinforcement learning (link).]
+### Moving to complex decision problems
+This chapter has introduced some of the core concepts that we'll need for this tutorial, including *expected utility*, *(stochastic) transition functions*, *soft conditioning* and *softmax decision making*. These concepts would also appear in standard treatments of rational planning and reinforcement learning refp:russell1995modern. The actual decision problems in this chapter are so trivial that our notation and programs are overkill. The next [chapter](/chapters/04-mdp.md) introduces *sequential* decisions problems. These problems are more complex and more interesting. They cannot be solved without the kind of machinery we've introduced here. 
 
 --------------
 
 [Table of Contents](/)
+
+
+
+
+
