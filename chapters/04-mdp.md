@@ -43,17 +43,17 @@ The intuition to keep in mind for MDPs is that the expected utility will propaga
 ## MDPs: implementation
 The recursive decision rule for MDP agents (Equation 1) can be directly translated into WebPPL. The resulting agent model is also a natural extension of the `softmaxAgent` from the previous [chapter](/chapters/03-one-shot-planning). The `agent` function takes the agent's state, evaluates the expectation of actions in the state, and returns a softmax distribution over actions. The expected utility of an action is computed by a separate function `expUtility`. Since an action's expected utility depends on the agent's future actions, `expUtility` calls `agent` in a mutual recursion, bottoming out when a terminal state is reached or when time runs out. 
 
-We illustrate this agent model with a trival example of an MDP and return to Bob's choice of restaurant later on. The trivial MDP is implemented in WebPPL by functions `transition` and `utility`, and by agents available actions `[-1, 1]`. The MDP is as follows:
+We illustrate this agent model with a trival example of an MDP and return to Bob's choice of restaurant later on. The trivial MDP is implemented in WebPPL by functions `transition` and `utility`, and by agent's available actions `[-1, 0, 1]`. The MDP is as follows:
 
 ### Integer Line MDP
 - **States**: Points on the integer line (e.g -1, 0, 1, 2).
 
-- **Actions/transitions**: Actions "left" and "right" move agent deterministically long the line in either direction.
+- **Actions/transitions**: Actions "left", "right" and "stay" move the agent deterministically along the line in either direction.
 
-- **Utility**: We have `utility(3)==1` and zero elsewhere. 
+- **Utility**: We have `utility(3)==1` and `utility(n)==0` for all other `n`.
 
 
-Here is a WebPPL agent that solves this problem:
+Here is a WebPPL agent that starts at the origin (`state==0`) takes a first step (to the right):
 
 ~~~~
 var transition = function(state, action){
@@ -66,7 +66,7 @@ var utility = function(state){
 
 var agent = function(state, timeLeft){
   return Enumerate(function(){
-    var action = uniformDraw([-1, 1]);
+    var action = uniformDraw([-1, 0, 1]);
     var eu = expUtility(state, action, timeLeft);    
     factor(100 * eu);
     return action;
@@ -90,16 +90,11 @@ var expUtility = function(state, action, timeLeft){
 
 var startState = 0;
 var totalTime = 4;
-viz.print(agent(startState, totalTime));
-
-// TODO: could try a gridworld here for line environment. could just make a gridworld
-// of form [.... -1,0,1,2,3,4 ...]. no terminal states and only state 3 has utility 1 (rest
-// zero). 
-
+// agent's move '1' means 'right'
+sample(agent(startState, totalTime));
 ~~~~
 
-This code computes the agent's initial action, where the agent starts at `state=0` and assumes four actions will be taken total. To simulate the agent's entire trajectory, we add a third function `simulate`, which updates and stores the world state given the agent's action.
-
+This code computes the agent's initial action, given that the agent will get to make four actions total. To simulate the agent's entire trajectory, we add a third function `simulate`, which updates and stores the world-state in response to the agent's actions. 
 
 ~~~~
 var transition = function(state, action){
@@ -150,13 +145,13 @@ var simulate = function(startState, totalTime){
 
 var startState = 0;
 var totalTime = 4;
-print(simulate(startState, totalTime));
+simulate(startState, totalTime);
 
 ~~~~
 
-The `expUtility` and `simulate` functions are similar. The `expUtilty` function includes the agent's own (subjective) simulation of the future distribution on states. In the case of an MDP and an optimal agent, the agent's simulation is identical to the world simulator (up to irreducible random noise in the the transition and choice functions). In later chapters, the agent's subjective simulations will diverge from the world simulator and become inaccurate.
+The `expUtility` and `simulate` functions are similar. The `expUtilty` function includes the agent's own (subjective) simulation of the future distribution on states. In the case of an MDP and an optimal agent, the agent's simulation is identical to the world simulator (up to irreducible random noise in the transition and choice functions). In later chapters, the agent's subjective simulations will diverge from the world simulator and become inaccurate.
 
-What does the mutual recursion between `agent` and `expUtility` look like if we unpack it? In this example, where the transition function is deterministic, there is a tree that expands up until `timeLeft` reaches zero. The root is the starting state and this branches into three successor states. This leads to an exponential blow-up in the runtime of a single action:
+What does the mutual recursion between `agent` and `expUtility` look like if we unroll it? In this example, where the transition function is deterministic, there is a tree that expands until `timeLeft` reaches zero. The root is the starting state (`startState==0`) and this branches into three successor states (`-1`, `0`, `1`). This leads to an exponential blow-up in the runtime of a single action:
 
 ~~~~
 var transition = function(state, action){
@@ -206,7 +201,7 @@ print('Runtime in ms for total times: ' + totalTimes + '\n' +
 ~~~~
 
 
-Most of this computation is unnecessary. If the agent starts at `state=0`, there are three ways the agent could be at `state=0` again at `timeLeft=totalTime-2`: either the agent stays put twice or the agent away and then returns. The current code will compute `agent(0,totalTime-2)` three times, while it only needs to be computed once. This problem can be resolved by *memoization* (via the `dp.cache` function), which stores the results of a function call so they can be re-used if the function is called again on the same input. In general, memoization means the runtime is polynomial in the number of states and the total time. 
+Most of this computation is unnecessary. If the agent starts at `state=0`, there are three ways the agent could be at `state=0` again after two steps: either the agent stays put twice or the agent goes one step away and then returns. The code above computes `agent(0,totalTime-2)` three times, while it only needs to be computed once. This problem can be resolved by *memoization* (via the `dp.cache` function), which stores the results of a function call for re-use when the function is called again on the same input. This use of memoization means the runtime is polynomial in the number of states and the total time. We explore the efficiency of these algorithms in more detail in Section VI.
 
 ~~~~
 var transition = function(state, action){
