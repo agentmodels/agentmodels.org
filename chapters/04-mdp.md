@@ -7,58 +7,53 @@ description: Motivating example of sequential decision problem, MDP formalism an
 
 ## Introduction
 
-The previous [chapter](/chapters/03-one-shot-planning) introduced agent models for solving very simple decision problems. The rest of the tutorial looks at more complex and interesting problems. Later chapters will look at problems where the outcome depends on the decison of another rational agent (as in *game theory*). The next few chapters look at single-agent problems that are *sequential* rather than *one-shot*. In sequential decision problems, an agent's choice of action *now* depends on the action they'll choose in the future. (Agents must *co-ordinate* with their future selves).
+The previous [chapter](/chapters/03-one-shot-planning) introduced agent models for solving very simple decision problems. From here on, we tackled more interesting decision problems. Later sections will look at problems where the outcome depends on the decision of another rational agent (as in *game theory*). The present sections looks at single-agent problems that are *sequential* rather than *one-shot*. In sequential decision problems, an agent's choice of action *now* depends on the action they'll choose in the future. (As in game theory, the decision maker must co-ordinate with another rational agent. But in sequential decision problems, that rational agent is one's future self).
 
 ## Markov Decision Process (MDP): example
-As a simple illustration of a sequential decision problem, suppose that an agent, Alice, is looking for somewhere to eat. Alice gets out of work in a particular location (labeled "start"). She knows the streets and the restaurants nearby. Her decision problem is to take a sequence of actions such that (a) she eats at a restaurant she likes, (b) she does not spend too much time walking. Here is a visualization of the street layout, including Alice's starting location and the nearby restaurants.
+As a simple illustration of a sequential decision problem, suppose that an agent, Bob, is looking for somewhere to eat. Bob gets out of work in a particular location (indicated below by the blue circle). He knows the streets and the restaurants nearby. His decision problem is to take a sequence of actions such that (a) he eats at a restaurant he likes, (b) he does not spend too much time walking. Here is a visualization of the street layout. The labels refer to different types of restaurant: a chain selling Donuts, a Vegetarian Salad Bar and a Noodle Shop. 
 
 ~~~~
-var params = makeDonut(0,100); // args: noiseProb, alpha
-var startState = [2,0];
-
-// TODO show grid with params and startState
+// We use functions from the WebPPL-gridworld library, which we'll explain later
+var params = makeDonutInfer(true, {'donutSouth': 1, 'donutNorth': 1, 'veg': 1,
+                                   'noodle': 1, 'timeCost': -0.1}, 100, 0);
+GridWorld.draw(params, {labels: params.labels, trajectory: [[[2,0]]]});
 ~~~~
 
-[ depiction of restaurant gridworld. for now, just use an illustration of "makeDonut" gridworld. later change to: Variant on the restaurant "donut" domain. (Because probably we don't want people distracted by those features). Could have a similar loop, but on left rather than right. Maybe make the two ways to Veg Cafe pretty close. 
-]
-
-~~~~
-var labels = [ 
-  { point : [0, 1], content : "Donut"},
-  { point : [1, 3], content : "Donut"},
-  { point : [3, 5], content : "Veg"},
-  { point : [5, 3], content : "Noodle"},
-  { point : [2, 0], content : "Start"}
-  ];
-GridWorld.draw(makeDonut(0,100), { labels : labels} );
-~~~~
 
 ## MDP: formal definition
-We represent Alice's decision problem as a Markov Decision Process (MDP) and specifically as a discrete "Gridworld" environment. An MDP is characterized by a tuple $$(S,A(s),T(s,a),U(s,a))$$, including the *states*, the *actions* in each state, the *transition function*, and the *utility* or *reward* function. In our example, the states $$S$$ are Alice's locations on the grid. At each state, Alice selects an action $$a \in {up, down, left, right}$$, which move Alice around the grid (according to transition function $$T$$). We assume that Alice's actions, as well as the transitions and utilities of restaurants, are all deterministic. However, we will describe an agent model (and implementation in WebPPL) that solves the general case of an MDP with stochastic transitions, actions and rewards.
+We represent Bob's decision problem as a Markov Decision Process (MDP) and specifically as a discrete "Gridworld" environment. An MDP is characterized by a tuple $$(S,A(s),T(s,a),U(s,a))$$, including the *states*, the *actions* in each state, the *transition function*, and the *utility* or *reward* function. In our example, the states $$S$$ are Bob's locations on the grid. At each state, Bob selects an action $$a \in \{ \text{up}, \text{down}, \text{left}, \text{right} \} $$, which moves Bob around the grid (according to transition function $$T$$). We assume that Bob's actions, as well as the transitions and utilities of restaurants, are all deterministic. However, we will describe an agent model (and implementation in WebPPL) that solves the general case of an MDP with stochastic transitions, noisy actions and stochastic rewards.
 
-[Sidenote: The problem is called a "Markov Decision Process" because the environment it describes satisfies the *Markov assumption*. That is, the current state $$s \in S$$ fully characterizes the distribution on rewards and the conditional distribution on state transitions given actions.]
-
-As with the one-shot decisions of the previous chapter, the agent in an MDP will choose actions that maximize expected utility. This depends on the total utility over the sequence of states the agent visits. Formally, let $$EU_{s}[a]$$ be the expected (total) utility of action $$a$$ in state $$s$$. The agent's choice is a softmax function of this expected utility:
+As with the one-shot decisions of the previous chapter, the agent in an MDP will choose actions that *maximize expected utility*. This now depends on the total utility over the *sequence* of states the agent visits. Formally, let $$EU_{s}[a]$$ be the expected (total) utility of action $$a$$ in state $$s$$. The agent's choice is a softmax function of this expected utility:
 
 $$
 C(a; s) \propto e^{\alpha EU_{s}[a]}
 $$
 
-The expected utility depends (recursively) on the current and the future utility: 
+The expected utility depends (recursively) on the current and the future utility:
 
 $$
 EU_{s}[a] = U(s, a) + E_{s', a'}(EU_{s'}[a'])
 $$
 
-with the next state $$s' \sim T(s,a)$$ and $$a' \sim C(s')$$. The decision problem ends either when a *terminal* state is reached or when the time-horizon is reached. (In the next few chapters, the time-horizon will always be finite). 
+with the next state $$s' \sim T(s,a)$$ and $$a' \sim C(s')$$. This equation for expected utility will be denoted **Equation 1**. The decision problem ends either when a *terminal* state is reached or when the time-horizon is reached. (In the next few chapters, the time-horizon will always be finite). 
 
-The intuition to keep in mind for MDPs is the that expected utility will propagate backwards from possible future states to the current action. If a high utility state can be reached by a sequence of actions starting from action $$a$$, then that action will have high expected utility -- *provided* that the sequence of actions is taken with high probability and there are no low utility steps along the way.
+The intuition to keep in mind for MDPs is that the expected utility will propagate backwards from possible future states to the current action. If a high utility state can be reached by a sequence of actions starting from action $$a$$, then action $$a$$ will have high expected utility -- *provided* that the sequence of actions is taken with high probability and there are no low utility steps along the way.
 
 
 ## MDPs: implementation
-The recursive decision rule for MDP agents [reference?] can be directly translated into WebPPL. The resulting agent model is also a natural extension of the `softmaxAgent` from the previous [chapter](/chapters/03-one-shot-planning). The `agent` function takes the agent's state, evaluates the expectation of actions in the state, and returns a softmax distribution over actions. The expected utility of an action is computed by a separate function `expUtility`. Since an action's expected utility depends on the agent's future actions, `expUtility` calls `agent` in a mutual recursion, bottoming out when a terminal state is reached or when time runs out. 
+The recursive decision rule for MDP agents (Equation 1) can be directly translated into WebPPL. The resulting agent model is also a natural extension of the `softmaxAgent` from the previous [chapter](/chapters/03-one-shot-planning). The `agent` function takes the agent's state, evaluates the expectation of actions in the state, and returns a softmax distribution over actions. The expected utility of an action is computed by a separate function `expUtility`. Since an action's expected utility depends on the agent's future actions, `expUtility` calls `agent` in a mutual recursion, bottoming out when a terminal state is reached or when time runs out. 
 
-We illustrate this agent model with a trivial MDP, where states are integers and actions are movements up or down the integers. In the next section we return to Alice's choice of restaurants. 
+We illustrate this agent model with a trival example of an MDP and return to Bob's choice of restaurant later on. The trivial MDP is implemented in WebPPL by functions `transition` and `utility`, and by agents available actions `[-1, 1]`. The MDP is as follows:
+
+### Integer Line MDP
+- **States**: Points on the integer line (e.g -1, 0, 1, 2).
+
+- **Actions/transitions**: Actions "left" and "right" move agent deterministically long the line in either direction.
+
+- **Utility**: We have `utility(3)==1` and zero elsewhere. 
+
+
+Here is a WebPPL agent that solves this problem:
 
 ~~~~
 var transition = function(state, action){
@@ -71,7 +66,7 @@ var utility = function(state){
 
 var agent = function(state, timeLeft){
   return Enumerate(function(){
-    var action = uniformDraw([-1,1]);
+    var action = uniformDraw([-1, 1]);
     var eu = expUtility(state, action, timeLeft);    
     factor(100 * eu);
     return action;
