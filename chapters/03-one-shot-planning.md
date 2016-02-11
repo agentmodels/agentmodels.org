@@ -8,30 +8,40 @@ is_section: true
 
 ## Agents for simple decision problems
 
-The goal for the next two chapters is to build up to agent models that solve decision problems that involve long sequences of actions (e.g. MDPs). We start with "one-shot" decision problems where the agent selects a single action. These problems are trivial to solve without WebPPL. The point is to illustrate the WebPPL idioms we'll use to tackle more complex problems. 
+The goal for this section is to implement agents that compute rational *policies*. We can think of policies as *plans* for achieiving good outcomes in situations where:
+
+- The agent makes a *sequence* of *distinct* choices, rather than choosing once or playing the same game repeatedly (as in multiple rounds of roulette). 
+
+- The environment is *stochastic* and so the agent's plans must take into account unlikely contingencies (e.g. avoiding a series of actions that has unlikely but calamitous risks). 
+
+- The environment contains features which are not stochastic but which are initially *unknown* to agent. So the agent's plans should value gaining information by *observation* that will facilitate better future plans. 
+
+As a concrete example, consider navigating a foreign city to efficiently find a good coffee shop.
+
+To build up to agents that form such policies, we start with agents that solve the very simplest decision problems. These are *one-shot* problems, where the agent selects a single action (not a sequence of actions). The problems can be trivially solved with pen and paper. We use WebPPL to solve them in order to illustrate the core concepts and idioms that we'll use to tackle more complex problems. 
+
 
 ## One-shot decisions: deterministic world
-In a decision problem, an agent must choose between a set of actions. The agent will try to choose the action that is best in terms of their own preferences. This usually depends only on the *consequences* of the action. So the agent will try to pick actions with preferable consequences.
+In a *one-shot decision problem* an agent makes a single choice between a set of *actions*, each of which has potentially distinct *consequences*. A rational agent chooses the action that is best in terms of his or her own preferences. Often this depends not on the *action* itself being preferred but only on its *consequences*. 
 
-For example, suppose Tom is choosing between restaurants and he cares only about getting pizza. There's an Italian restaurant and a French restaurant. So Tom will choose the Italian restaurant because it leads to the state where gets pizza.
+For example, suppose Tom is choosing between restaurants and all he cares about is eating pizza. There's an Italian restaurant and a French restaurant. Tom would be quite happy to choose the French restaurant if it offered pizza. Since it does *not* offer pizza, Tom will choose the Italian (which does).
 
-Formally, Tom selects an action $$a \in A$$ from the set of actions (one action for each restaurant). The consequences of an action are represented by a transition function $$T \colon S \times A \to S$$ from state-action pairs to states. In our example, the relevant states are whether or not Tom gets pizza. Tom's preferences are represented by a real-valued utility function $$U \colon S \to R$$, which indicates the relative goodness of each state. 
+While this problem is trivial, we formalize it to illustrate the notation. We suppose Tom selects an action $$a \in A$$ from the set of all actions. The actions in this case are {"eat at Italian restaurant", "eat at French restaurant"}. The consequences of an action are represented by a transition function $$T \colon S \times A \to S$$ from state-action pairs to states. In our example, the relevant *state* is whether or not Tom gets his pizza. Tom's preferences are represented by a real-valued utility function $$U \colon S \to R$$, [TODO can we make this math-style "R" in the latex?] which indicates the relative preferableness of each state. 
 
-Tom's decision rule is to take action $$a$$ such that:
+Tom's *decision rule* is to take action $$a$$ such that:
 
 $$
 \max_{a \in A} U(T(s,a))
 $$
 
-An *agent* function takes a state $$s \in S$$ as input and returns an action. For this problem, we suppose Tom starts of in the state `"default"`. The first agent we consider explicitly computes the maximum utility action:
+In WebPPL, we can implement this utility-maximizing agent as a function `maxAgent` that takes a state $$s \in S$$ as input and returns an action. For Tom's choice between restaurants, we assume the agent starts off in a state `"default"`, denoting whatever Tom does before going off to eat. The program directly translates the decision rule, using the `argMax` higher-order function. 
 
 ~~~~
-var argMax = function(f,ar){return maxWith(f,ar)[0]};
-
+// Choose to eat at the Italian or French restaurants
 var actions = ['italian', 'french'];
   
 var transition = function(state, action){
-    return action=='italian' ? 'pizza' : 'no pizza';
+    return action=='italian' ? 'pizza' : 'steak frites';
 };
   
 var utility = function(state){
@@ -43,11 +53,12 @@ var maxAgent = function(state){
                    actions);
 };
 
-maxAgent("default");
+print("Choice in default state:     " + maxAgent("default"));
+
 
 ~~~~
 
-There is an alternative way to compute the optimal action for this problem. The idea is to treat planning and decision making as an inference problem ("Planning as inference" cite Toussaint Botvinik). The previous chapter showed how we can infer the probability that a coin landed Heads from the observation that two of three coins were Heads. 
+There is an alternative way to compute the optimal action for this problem. The idea is to treat choosing an action as an *inference* problem. The previous chapter showed how we can *infer* the probability that a coin landed Heads from the observation that two of three coins were Heads. 
 
 ~~~~
 var twoHeads = Enumerate(function(){
@@ -60,13 +71,15 @@ var twoHeads = Enumerate(function(){
 viz.print(twoHeads);
 ~~~~
 
-The same inference machinery can compute the optimal action in Tom's decision problem. We sample random actions with `uniformDraw` and condition on the consequence of the action being preferred. Instead of constraining a random variable with an observation, we constrain it by the desirability of an outcome. (This resembles logical planning by backwards-chaining -- link?). 
+The same inference machinery can compute the optimal action in Tom's decision problem. We sample random actions with `uniformDraw` and condition on the consequence of the action being preferred. Intuitively, we imagine observing the consequence we prefer (e.g. pizza) and then *infer* from this the action that caused this consequence.
+
+This idea is known as "planning as inference" refp:botvinick2012planning. It also resembles the idea of "backwards chaining" in logical inference and planning. The `inferAgent` solves the same problem as `maxAgent` but uses planning-as-inference: 
 
 ~~~~
 var actions = ['italian', 'french'];
   
 var transition = function(state, action){
-    return action=='italian' ? 'pizza' : 'no pizza';
+    return action=='italian' ? 'pizza' : 'steak frites';
 };
   
 var inferAgent = function(state){
@@ -84,9 +97,9 @@ viz.print(inferAgent("default"));
 
 
 ## One-shot decisions: stochastic (random) world and random actions
-In the previous example, the transition function from state-action pairs to states was deterministic. So the world or *environment* was deterministic. Moreover, the agent's actions were deterministic; Tom always chose the best action ("Italian"). In contrast, many examples in this tutorial will involve a stochastic world and a "soft-max" agent. 
+In the previous example, the transition function from state-action pairs to states was *deterministic* and so described a deterministic world or environment. Moreover, the agent's actions were deterministic; Tom always chose the best action ("Italian"). In contrast, many examples in this tutorial will involve a *stochastic* world and a noisy "soft-max" agent. 
 
-Imagine Tom is choosing between restaurants again. This time, Tom's preferences are about the overall quality of the meal. The meal can be "bad", "good" or "spectacular". Restaurants vary in the probability of each outcome. The formal setup is mostly the same as above. The transition function now has type signature $$ T\colon S \times A \to \Delta S $$, where $$\Delta S$$ represents a distribution over states. Tom's decision rule is now to take the action $$a \in A$$ that has the highest *average* or *expected* utility, with the expectation $$E$$ taken over the probability of different successor states $$s' \sim T(s,a)$$:
+Imagine Tom is choosing between restaurants again. This time, Tom's preferences are about the overall quality of the meal. A meal can be "bad", "good" or "spectacular" and restaurants vary in the probability they produce each level of quality. The formal setup is mostly as above. The transition function now has type signature $$ T\colon S \times A \to \Delta S $$, where $$\Delta S$$ represents a distribution over states. Tom's decision rule is now to take the action $$a \in A$$ that has the highest *average* or *expected* utility, with the expectation $$E$$ [TODO math style E] taken over the probability of different successor states $$s' \sim T(s,a)$$:
 
 $$
 \max_{a \in A} E( U(T(s,a)) )
@@ -115,21 +128,21 @@ var utility = function(state){
 
 
 var maxEUAgent = function(state){
-  var EU = function(action){
+  var expectedUtility = function(action){
     return expectation( Enumerate( function(){
       return utility(transition(state, action));
     }));
   };
-  return argMax( EU, actions);
+  return argMax( expectedUtility, actions);
 };
 
 
 maxEUAgent("default");
 ~~~~
 
-The `inferAgent`, which uses the "planning-as-inference" idiom, can also be extended using `expectation`. Previously, the action of the `inferAgent` was conditioned on its leading to the best outcome ("pizza"). This time, Tom is not aiming to choose the action most likely to have the best outcome. Instead, he wants the action with better outcomes in average. This can be represented in `inferAgent` by switching from a `condition` statement to a `factor` statement. The `condition` statement expresses a "hard" constraint on actions: actions that fail the condition are completely ruled out. The `factor` statement expresses a "soft" condition: the input to `factor` for an action is added to the action's log-score. 
+The `inferAgent`, which uses the planning-as-inference idiom, can also be extended using `expectation`. Previously, the agent's action was conditioned on its leading to the best consequence ("pizza"). This time, Tom is not aiming to choose the action most likely to have the best outcome. Instead, he wants the action with better outcomes in average. This can be represented in `inferAgent` by switching from a `condition` statement to a `factor` statement. The `condition` statement expresses a "hard" constraint on actions: actions that fail the condition are completely ruled out. The `factor` statement, by contrast, expresses a "soft" condition.
 
-To illustrate `factor`, consider this variant of the `twoHeads` example above. Instead of placing a hard constraint on the total number of heads, we increase the log-score of each possible return value (`a & b` can be `true` or `false`) by adding the number of heads. This results in a probability for `a & b` of
+To illustrate `factor`, consider this variant of the `twoHeads` example above. Instead of placing a hard constraint on the total number of Heads outcomes, we give each setting of `a`, `b` and `c` a *score* based on the total number of heads. The score is highest when all three coins are Heads, but even the "all tails" outcomes is not ruled out completely. 
 
 $$
 \frac {e^{2}} { (e^{0} + 2e^{1}) + e^{2} }
@@ -139,11 +152,28 @@ $$.
 var softHeads = Enumerate(function(){
   var a = flip(0.5);
   var b = flip(0.5);
-  factor( a + b );
-  return a & b;
+  var c = flip(0.5);
+  factor( a + b + c );
+  return a;
 });
-viz.print(twoHeads);
+viz.print(softHeads);
 ~~~~
+
+To be more precise abot `factor`, consider the following short program:
+
+~~~~
+var mySample = Enumerate(function(){
+    var n = uniformDraw([0,1,2]);
+    factor( n*n );
+    return n;
+});
+viz.print(mySample);
+~~~~
+Without the `factor` statement, each value of `n` has equal probability. Adding the `factor` statements adds `n*n` to the log-score of each value. To get the new probabilities (after adding `factor`) we compute the normalizing constant given these log-scores. The resulting probability of `mySample()==2` will be:
+
+$$
+\frac {e^{4}} { (e^{0} + e^{1} + e^{4}) }
+$$. 
 
 Applying the same idea to the `inferAgent`, we obtain the `softmaxAgent`:
 
