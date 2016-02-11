@@ -255,7 +255,7 @@ print('Runtime in ms for total times: ' + totalTimes + '\n' +
 
 The agent model above that includes memoization allows us to solve Bob's "Restaurant Choice" problem efficiently. 
 
-We extend the agent model above by adding `isTerminal` to halt simulations when the agent reaches a terminal state. For the Restaurant Choice problem, the restaurants are assumed to be terminal states. 
+We extend the agent model above by adding `isTerminal` to halt simulations when the agent reaches a terminal state. For the Restaurant Choice problem, the restaurants are assumed to be terminal states. After computing the agent's trajectory, we use the WebPPL Gridworld library to animate it. 
 
 ~~~~
 
@@ -312,8 +312,8 @@ var stateActionPairs = simulate(startState, totalTime);
 GridWorld.draw(params, {trajectory : stateActionPairs});
 ~~~~
 
-### Conclusion
-Add a short conclusion
+### Noisy agents, stochastic environments
+This section looked at two MDPs that were essentially deterministic. Part of the difficulty of solving MDPs is that actions, rewards and transitions can be random. The next [chapter](/chapters/05-mdp-gridworld) explores both noisy agents and stochastic gridworld environments.
 
 --------------
 
