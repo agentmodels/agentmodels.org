@@ -1,15 +1,17 @@
 /* these two styles prevent the ~300px empty space below editor; HT customized styling section of http://codemirror.net/2/doc/manual.html */
 
+.wpedit .progress {
+    font-size: 11px;
+    transition: background 0.1s ease;
+}
+
 .wpedit .CodeMirror {
     height: auto;
+    border: 1px solid black;
+    border-radius: 2px;
 }
 .wpedit .CodeMirror-scroll {
     height: auto;
-}
-
-.wpedit .CodeMirror-lines {
-    border: 1px solid black;
-    border-radius: 2px;
 }
 
 .wpedit button {
