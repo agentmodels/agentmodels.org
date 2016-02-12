@@ -1,6 +1,6 @@
 ---
 layout: chapter
-title: "Sequential decision problems, part II: Gridworld"
+title: "Sequential decision problems, part II"
 description: We extend the previous setup to stochastic actions (softmax) and transitions, and introduce policies and expected action values.
 ---
 
