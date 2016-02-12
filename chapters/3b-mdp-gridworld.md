@@ -26,7 +26,7 @@ var startState = [0,1];
 GridWorld.draw(params, {labels: params.labels, trajectory: [[startState]]});
 ~~~~
 
-We start with a *deterministic* transition function. This means that Alice's only risk of falling down the steep hill is due to softmax noise in her actions (which is minimal in this case). The agent model is the same as the end of [Chapter III.1](/chapters/3a-mdp.html'). We wrap the functions `agent`, `expUtility` and `simulate` in a function `mdpSimulateGridworld`. The following code box defines this function and we use it later on without defining it (since it is also included in the WebPPL Gridworld library). 
+We start with a *deterministic* transition function. This means that Alice's only risk of falling down the steep hill is due to softmax noise in her actions (which is minimal in this case). The agent model is the same as the end of [Chapter III.1](/chapters/3a-mdp.html'). We wrap the functions `agent`, `expectedUtility` and `simulate` in a function `mdpSimulateGridworld`. The following code box defines this function and we use it later on without defining it (since it is also included in the WebPPL Gridworld library). 
 
 ~~~~
 var mdpSimulateGridworld = function(startState, totalTime, params, numRejectionSamples){
@@ -39,14 +39,14 @@ var mdpSimulateGridworld = function(startState, totalTime, params, numRejectionS
   var agent = dp.cache(function(state, timeLeft){
     return Enumerate(function(){
       var action = uniformDraw(actions);
-      var eu = expUtility(state, action, timeLeft);    
+      var eu = expectedUtility(state, action, timeLeft);    
       factor( params.alpha * eu);
     return action;
     });      
   });
   
   
-  var expUtility = dp.cache(function(state, action, timeLeft){
+  var expectedUtility = dp.cache(function(state, action, timeLeft){
     var u = utility(state,action);
     var newTimeLeft = timeLeft - 1;
     
@@ -56,7 +56,7 @@ var mdpSimulateGridworld = function(startState, totalTime, params, numRejectionS
       return u + expectation( Enumerate(function(){
         var nextState = transition(state, action); 
         var nextAction = sample(agent(nextState, newTimeLeft));
-        return expUtility(nextState, nextAction, newTimeLeft);  
+        return expectedUtility(nextState, nextAction, newTimeLeft);  
       }));
     }                      
   });
@@ -155,7 +155,7 @@ var out = sample(mdpSimulateGridworld(startState, totalTime, params, numRejectio
 GridWorld.draw(params, {labels: params.labels, trajectory : out});
 ~~~~
 
-In a world with stochastic transitions, the agent sometimes finds itself in a state it did not intend to reach. The functions `agent` and `expUtility` (inside `mdpSimulateGridworld`) implicitly compute the expected utility of actions for every possible future state -- including states that the agent will try to avoid. In the MDP literature, this function from state-time pairs to actions (or distributions on actions) is called a *policy*. (For infinite horizon MDPs, policies are functions from states to actions, which makes them somewhat simpler to think about.) 
+In a world with stochastic transitions, the agent sometimes finds itself in a state it did not intend to reach. The functions `agent` and `expectedUtility` (inside `mdpSimulateGridworld`) implicitly compute the expected utility of actions for every possible future state -- including states that the agent will try to avoid. In the MDP literature, this function from state-time pairs to actions (or distributions on actions) is called a *policy*. (For infinite horizon MDPs, policies are functions from states to actions, which makes them somewhat simpler to think about.) 
 
 The example above showed that the agent chooses the long route (steering clear of the steep hill). At the same time, the agent computes what to do if it ends up moving right on the first action. (The code below doesn't prove this; it just illustrates what the agent would do it moved right.)
 
@@ -195,14 +195,14 @@ var mdpSimulateGridworld = function(startState, totalTime, params, numRejectionS
   var agent = dp.cache(function(state, timeLeft){
     return Enumerate(function(){
         var action = uniformDraw(actions);
-        var eu = expUtility(state, action, timeLeft);    
+        var eu = expectedUtility(state, action, timeLeft);    
         factor( alpha * eu);
         return action;
         });      
     });
   
   
-  var expUtility = dp.cache(function(state, action, timeLeft){
+  var expectedUtility = dp.cache(function(state, action, timeLeft){
     var u = utility(state,action);
     var newTimeLeft = timeLeft - 1;
     
@@ -212,7 +212,7 @@ var mdpSimulateGridworld = function(startState, totalTime, params, numRejectionS
       return u + expectation( Enumerate(function(){
         var nextState = transition(state, action); 
         var nextAction = sample(agent(nextState, newTimeLeft));
-        return expUtility(nextState, nextAction, newTimeLeft);  
+        return expectedUtility(nextState, nextAction, newTimeLeft);  
       }));
     }                      
   });
@@ -243,18 +243,18 @@ var mdpSimulateGridworld = function(startState, totalTime, params, numRejectionS
     var states = map(first, erp.MAP().val); // go from [[state,action]] to [state]
     var timeStates = zip(downToOne(states.length), states); // [ [timeLeft, state] ] for states in trajectory
 
-    // compute expUtility for each pair of form [timeLeft,state]
+    // compute expectedUtility for each pair of form [timeLeft,state]
     return map( function(timeState){
       var timeLeft = timeState[0];
       var state = timeState[1];
       return [state, map(function(action){
-        return expUtility(state, action, timeLeft);
+        return expectedUtility(state, action, timeLeft);
       }, params.actions)];
     }, timeStates);
   };
   
   // mdpSimulateGridworld now returns both an ERP over trajectories and
-  // the expUtility values for MAP trajectory
+  // the expectedUtility values for MAP trajectory
   return {erp: simulate(startState, totalTime),
           stateToExpUtilityLRUD:  getExpUtility()};
 

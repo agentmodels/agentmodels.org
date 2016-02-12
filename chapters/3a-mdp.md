@@ -41,7 +41,7 @@ The intuition to keep in mind for MDPs is that the expected utility will propaga
 
 
 ## MDPs: implementation
-The recursive decision rule for MDP agents (Equation 1) can be directly translated into WebPPL. The resulting agent model is also a natural extension of the `softmaxAgent` from the previous [chapter](/chapters/3-agents-as-programs.html). The `agent` function takes the agent's state, evaluates the expectation of actions in the state, and returns a softmax distribution over actions. The expected utility of an action is computed by a separate function `expUtility`. Since an action's expected utility depends on the agent's future actions, `expUtility` calls `agent` in a mutual recursion, bottoming out when a terminal state is reached or when time runs out. 
+The recursive decision rule for MDP agents (Equation 1) can be directly translated into WebPPL. The resulting agent model is also a natural extension of the `softmaxAgent` from the previous [chapter](/chapters/3-agents-as-programs.html). The `agent` function takes the agent's state, evaluates the expectation of actions in the state, and returns a softmax distribution over actions. The expected utility of an action is computed by a separate function `expectedUtility`. Since an action's expected utility depends on the agent's future actions, `expectedUtility` calls `agent` in a mutual recursion, bottoming out when a terminal state is reached or when time runs out. 
 
 We illustrate this agent model with a trival example of an MDP and return to Bob's choice of restaurant later on. The trivial MDP is implemented in WebPPL by functions `transition` and `utility`, and by agent's available actions `[-1, 0, 1]`. The MDP is as follows:
 
@@ -67,13 +67,13 @@ var utility = function(state){
 var agent = function(state, timeLeft){
   return Enumerate(function(){
     var action = uniformDraw([-1, 0, 1]);
-    var eu = expUtility(state, action, timeLeft);    
+    var eu = expectedUtility(state, action, timeLeft);    
     factor(100 * eu);
     return action;
   });      
 };
 
-var expUtility = function(state, action, timeLeft){
+var expectedUtility = function(state, action, timeLeft){
   var u = utility(state,action);
   var newTimeLeft = timeLeft - 1;
   
@@ -83,7 +83,7 @@ var expUtility = function(state, action, timeLeft){
     return u + expectation( Enumerate(function(){
       var nextState = transition(state, action); 
       var nextAction = sample(agent(nextState, newTimeLeft));
-      return expUtility(nextState, nextAction, newTimeLeft);  
+      return expectedUtility(nextState, nextAction, newTimeLeft);  
     }));
   }                      
 };
@@ -108,13 +108,13 @@ var utility = function(state){
 var agent = function(state, timeLeft){
   return Enumerate(function(){
     var action = uniformDraw([-1,0,1]);
-    var eu = expUtility(state, action, timeLeft);    
+    var eu = expectedUtility(state, action, timeLeft);    
     factor(100 * eu);
     return action;
   });
 };
 
-var expUtility = function(state, action, timeLeft){
+var expectedUtility = function(state, action, timeLeft){
   var u = utility(state,action);
   var newTimeLeft = timeLeft - 1;
   
@@ -124,7 +124,7 @@ var expUtility = function(state, action, timeLeft){
     return u + expectation( Enumerate(function(){
       var nextState = transition(state, action); 
       var nextAction = sample(agent(nextState, newTimeLeft));
-      return expUtility(nextState, nextAction, newTimeLeft);  
+      return expectedUtility(nextState, nextAction, newTimeLeft);  
     }));
   }
 };
@@ -149,9 +149,9 @@ simulate(startState, totalTime);
 
 ~~~~
 
-The `expUtility` and `simulate` functions are similar. The `expUtilty` function includes the agent's own (subjective) simulation of the future distribution on states. In the case of an MDP and an optimal agent, the agent's simulation is identical to the world simulator (up to irreducible random noise in the transition and choice functions). In later chapters, the agent's subjective simulations will diverge from the world simulator and become inaccurate.
+The `expectedUtility` and `simulate` functions are similar. The `expUtilty` function includes the agent's own (subjective) simulation of the future distribution on states. In the case of an MDP and an optimal agent, the agent's simulation is identical to the world simulator (up to irreducible random noise in the transition and choice functions). In later chapters, the agent's subjective simulations will diverge from the world simulator and become inaccurate.
 
-What does the mutual recursion between `agent` and `expUtility` look like if we unroll it? In this example, where the transition function is deterministic, there is a tree that expands until `timeLeft` reaches zero. The root is the starting state (`startState==0`) and this branches into three successor states (`-1`, `0`, `1`). This leads to an exponential blow-up in the runtime of a single action:
+What does the mutual recursion between `agent` and `expectedUtility` look like if we unroll it? In this example, where the transition function is deterministic, there is a tree that expands until `timeLeft` reaches zero. The root is the starting state (`startState==0`) and this branches into three successor states (`-1`, `0`, `1`). This leads to an exponential blow-up in the runtime of a single action:
 
 ~~~~
 var transition = function(state, action){
@@ -165,13 +165,13 @@ var utility = function(state){
 var agent = function(state, timeLeft){
   return Enumerate(function(){
     var action = uniformDraw([-1,0,1]);
-    var eu = expUtility(state, action, timeLeft);    
+    var eu = expectedUtility(state, action, timeLeft);    
     factor(100 * eu);
     return action;
   });
 };
 
-var expUtility = function(state, action, timeLeft){
+var expectedUtility = function(state, action, timeLeft){
   var u = utility(state,action);
   var newTimeLeft = timeLeft - 1;
   
@@ -181,7 +181,7 @@ var expUtility = function(state, action, timeLeft){
     return u + expectation( Enumerate(function(){
       var nextState = transition(state, action); 
       var nextAction = sample(agent(nextState, newTimeLeft));
-      return expUtility(nextState, nextAction, newTimeLeft);
+      return expectedUtility(nextState, nextAction, newTimeLeft);
     }));
   }
 };
@@ -201,7 +201,7 @@ print('Runtime in ms for total times: ' + totalTimes + '\n' +
 ~~~~
 
 
-Most of this computation is unnecessary. If the agent starts at `state=0`, there are three ways the agent could be at `state=0` again after two steps: either the agent stays put twice or the agent goes one step away and then returns. The code above computes `agent(0,totalTime-2)` three times, while it only needs to be computed once. This problem can be resolved by *memoization*, which stores the results of a function call for re-use when the function is called again on the same input. This use of memoization means the runtime is polynomial in the number of states and the total time. We explore the efficiency of these algorithms in more detail in Section VI. In WebPPL, we use the higher-order function `dp.cache` to memoize the `agent` and `expUtility` functions:
+Most of this computation is unnecessary. If the agent starts at `state=0`, there are three ways the agent could be at `state=0` again after two steps: either the agent stays put twice or the agent goes one step away and then returns. The code above computes `agent(0,totalTime-2)` three times, while it only needs to be computed once. This problem can be resolved by *memoization*, which stores the results of a function call for re-use when the function is called again on the same input. This use of memoization means the runtime is polynomial in the number of states and the total time. We explore the efficiency of these algorithms in more detail in Section VI. In WebPPL, we use the higher-order function `dp.cache` to memoize the `agent` and `expectedUtility` functions:
 
 ~~~~
 var transition = function(state, action){
@@ -215,13 +215,13 @@ var utility = function(state){
 var agent = dp.cache(function(state, timeLeft){
   return Enumerate(function(){
     var action = uniformDraw([-1,0,1]);
-    var eu = expUtility(state, action, timeLeft);    
+    var eu = expectedUtility(state, action, timeLeft);    
     factor(100 * eu);
     return action;
   });
 });
 
-var expUtility = dp.cache(function(state, action, timeLeft){
+var expectedUtility = dp.cache(function(state, action, timeLeft){
   var u = utility(state,action);
   var newTimeLeft = timeLeft - 1;
   
@@ -231,7 +231,7 @@ var expUtility = dp.cache(function(state, action, timeLeft){
     return u + expectation( Enumerate(function(){
       var nextState = transition(state, action); 
       var nextAction = sample(agent(nextState, newTimeLeft));
-      return expUtility(nextState, nextAction, newTimeLeft);
+      return expectedUtility(nextState, nextAction, newTimeLeft);
     }));
   }
 });
@@ -270,13 +270,13 @@ var isTerminal = function(state){return state[0]=='dead';};
 var agent = dp.cache(function(state, timeLeft){
   return Enumerate(function(){
     var action = uniformDraw(actions);
-    var eu = expUtility(state, action, timeLeft);
+    var eu = expectedUtility(state, action, timeLeft);
     factor( params.alpha * eu);
     return action;
   });
 });
 
-var expUtility = dp.cache(function(state, action, timeLeft){
+var expectedUtility = dp.cache(function(state, action, timeLeft){
   var u = utility(state,action);
   var newTimeLeft = timeLeft - 1;
   
@@ -286,7 +286,7 @@ var expUtility = dp.cache(function(state, action, timeLeft){
     return u + expectation( Enumerate(function(){
       var nextState = transition(state, action); 
       var nextAction = sample(agent(nextState, newTimeLeft));
-      return expUtility(nextState, nextAction, newTimeLeft);  
+      return expectedUtility(nextState, nextAction, newTimeLeft);  
     }));
   }
 });
