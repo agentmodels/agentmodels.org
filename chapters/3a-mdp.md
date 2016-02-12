@@ -1,9 +1,8 @@
 ---
 layout: chapter
 title: "Sequential decision problems, part I: Setup"
-description: Motivating example of sequential decision problem, MDP formalism and implementation in WebPPL with mutual recursion, exponential trees action evaluation and a resolution via memoization. 
+description: We look at sequential decision problems, how to formalize them mathematically, and how to implement them concisely and efficiently using probabilitic programs with mutual recursion and caching. 
 ---
-
 
 ## Introduction
 
