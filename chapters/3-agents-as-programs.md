@@ -5,6 +5,8 @@ description: "We show how to represent agents in WebPPL, starting from a simple 
 is_section: true
 ---
 
+## Introduction
+
 The goal for this section is to implement agents that compute rational *policies*. We can think of policies as *plans* for achieving good outcomes in situations where:
 
 - The agent makes a *sequence* of *distinct* choices, rather than choosing once or playing the same game repeatedly (as in multiple rounds of roulette). 
