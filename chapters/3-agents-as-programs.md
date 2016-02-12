@@ -26,7 +26,7 @@ In a *one-shot decision problem* an agent makes a single choice between a set of
 
 For example, suppose Tom is choosing between restaurants and all he cares about is eating pizza. There's an Italian restaurant and a French restaurant. Tom would be quite happy to choose the French restaurant if it offered pizza. Since it does *not* offer pizza, Tom will choose the Italian (which does).
 
-While this problem is trivial, we formalize it to illustrate the notation. We suppose Tom selects an action $$a \in A$$ from the set of all actions. The actions in this case are {"eat at Italian restaurant", "eat at French restaurant"}. The consequences of an action are represented by a transition function $$T \colon S \times A \to S$$ from state-action pairs to states. In our example, the relevant *state* is whether or not Tom gets his pizza. Tom's preferences are represented by a real-valued utility function $$U \colon S \to R$$, [TODO can we make this math-style "R" in the latex?] which indicates the relative preferableness of each state. 
+While this problem is trivial, we formalize it to illustrate the notation. We suppose Tom selects an action $$a \in A$$ from the set of all actions. The actions in this case are {"eat at Italian restaurant", "eat at French restaurant"}. The consequences of an action are represented by a transition function $$T \colon S \times A \to S$$ from state-action pairs to states. In our example, the relevant *state* is whether or not Tom gets his pizza. Tom's preferences are represented by a real-valued utility function $$U \colon S \to \mathbb{R}$$, which indicates the relative preferableness of each state. 
 
 Tom's *decision rule* is to take action $$a$$ such that:
 
@@ -100,10 +100,10 @@ viz.print(inferAgent("default"));
 
 In the previous example, the transition function from state-action pairs to states was *deterministic* and so described a deterministic world or environment. Moreover, the agent's actions were deterministic; Tom always chose the best action ("Italian"). In contrast, many examples in this tutorial will involve a *stochastic* world and a noisy "soft-max" agent. 
 
-Imagine Tom is choosing between restaurants again. This time, Tom's preferences are about the overall quality of the meal. A meal can be "bad", "good" or "spectacular" and restaurants vary in the probability they produce each level of quality. The formal setup is mostly as above. The transition function now has type signature $$ T\colon S \times A \to \Delta S $$, where $$\Delta S$$ represents a distribution over states. Tom's decision rule is now to take the action $$a \in A$$ that has the highest *average* or *expected* utility, with the expectation $$E$$ [TODO math style E] taken over the probability of different successor states $$s' \sim T(s,a)$$:
+Imagine Tom is choosing between restaurants again. This time, Tom's preferences are about the overall quality of the meal. A meal can be "bad", "good" or "spectacular" and restaurants vary in the probability they produce each level of quality. The formal setup is mostly as above. The transition function now has type signature $$ T\colon S \times A \to \Delta S $$, where $$\Delta S$$ represents a distribution over states. Tom's decision rule is now to take the action $$a \in A$$ that has the highest *average* or *expected* utility, with the expectation $$\mathbb{E}$$ taken over the probability of different successor states $$s' \sim T(s,a)$$:
 
 $$
-\max_{a \in A} E( U(T(s,a)) )
+\max_{a \in A} \mathbb{E}( U(T(s,a)) )
 $$
 
 To represent this in WebPPL we extend `maxAgent` using the `expectation` function, which maps an ERP with finite support to its (real-valued) expectation:
