@@ -169,7 +169,7 @@ Without the `factor` statement, each value of `n` has equal probability. Adding 
 
 $$
 \frac {e^{4}} { (e^{0} + e^{1} + e^{4}) }
-$$. 
+$$
 
 Returning to our implementation as planning-as-inference for maximizing *expected* utility, we use a `factor` statement to implement soft conditioning:
 
