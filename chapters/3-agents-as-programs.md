@@ -73,7 +73,7 @@ viz.print(twoHeads);
 
 The same inference machinery can compute the optimal action in Tom's decision problem. We sample random actions with `uniformDraw` and condition on the preferred outcome happening. Intuitively, we imagine observing the consequence we prefer (e.g. pizza) and then *infer* from this the action that caused this consequence. <!-- address evidential vs causal decision theory? -->
 
-This idea is known as "planning as inference" refp:botvinick2012planning. It also resembles the idea of "backwards chaining" in logical inference and planning. The `inferAgent` solves the same problem as `maxAgent` but uses planning-as-inference: 
+This idea is known as "planning as inference" refp:botvinick2012planning. It also resembles the idea of "backwards chaining" in logical inference and planning. The `inferenceAgent` solves the same problem as `maxAgent` but uses planning-as-inference: 
 
 ~~~~
 var actions = ['italian', 'french'];
@@ -82,7 +82,7 @@ var transition = function(state, action){
   return (action === 'italian') ? 'pizza' : 'steak frites';
 };
 
-var inferAgent = function(state){
+var inferenceAgent = function(state){
   return Enumerate(function(){
     var action = uniformDraw(actions);
     condition(transition(state, action) === 'pizza');
@@ -90,7 +90,7 @@ var inferAgent = function(state){
   });
 };
 
-viz.print(inferAgent("default"));
+viz.print(inferenceAgent("default"));
 ~~~~
 
 
@@ -135,7 +135,7 @@ var maxEUAgent = function(state){
 maxEUAgent("default");
 ~~~~
 
-The `inferAgent`, which uses the planning-as-inference idiom, can also be extended using `expectation`. Previously, the agent's action was conditioned on its leading to the best consequence ("pizza"). This time, Tom is not aiming to choose the action most likely to have the best outcome. Instead, he wants the action with better outcomes in average. This can be represented in `inferAgent` by switching from a `condition` statement to a `factor` statement. The `condition` statement expresses a "hard" constraint on actions: actions that fail the condition are completely ruled out. The `factor` statement, by contrast, expresses a "soft" condition.
+The `inferenceAgent`, which uses the planning-as-inference idiom, can also be extended using `expectation`. Previously, the agent's action was conditioned on its leading to the best consequence ("pizza"). This time, Tom is not aiming to choose the action most likely to have the best outcome. Instead, he wants the action with better outcomes in average. This can be represented in `inferenceAgent` by switching from a `condition` statement to a `factor` statement. The `condition` statement expresses a "hard" constraint on actions: actions that fail the condition are completely ruled out. The `factor` statement, by contrast, expresses a "soft" condition.
 
 To illustrate `factor`, consider this variant of the `twoHeads` example above. Instead of placing a hard constraint on the total number of Heads outcomes, we give each setting of `a`, `b` and `c` a *score* based on the total number of heads. The score is highest when all three coins are Heads, but even the "all tails" outcomes is not ruled out completely.
 
