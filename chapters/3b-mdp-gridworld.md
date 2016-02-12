@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: "Sequential decision problems, part II: Gridworld"
-description: Hiking example, softmax agent, stochastic transitions, policies, expected values of possible actions, discounting
+description: We extend the previous setup to stochastic actions (softmax) and transitions, and introduce policies and expected action values.
 ---
 
 ## Introduction
