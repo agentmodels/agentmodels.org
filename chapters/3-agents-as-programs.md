@@ -5,36 +5,34 @@ description: "We show how to represent agents in WebPPL, starting from a simple 
 is_section: true
 ---
 
-
-## Agents for simple decision problems
-
-The goal for this section is to implement agents that compute rational *policies*. We can think of policies as *plans* for achieiving good outcomes in situations where:
+The goal for this section is to implement agents that compute rational *policies*. We can think of policies as *plans* for achieving good outcomes in situations where:
 
 - The agent makes a *sequence* of *distinct* choices, rather than choosing once or playing the same game repeatedly (as in multiple rounds of roulette). 
 
 - The environment is *stochastic* and so the agent's plans must take into account unlikely contingencies (e.g. avoiding a series of actions that has unlikely but calamitous risks). 
 
-- The environment contains features which are not stochastic but which are initially *unknown* to agent. So the agent's plans should value gaining information by *observation* that will facilitate better future plans. 
+- The environment contains features which are not stochastic, but which are initially *unknown* to the agent. The agent's plans should value gaining information by *observation* that will facilitate better future plans. 
 
 As a concrete example, consider navigating a foreign city to efficiently find a good coffee shop.
 
-To build up to agents that form such policies, we start with agents that solve the very simplest decision problems. These are *one-shot* problems, where the agent selects a single action (not a sequence of actions). The problems can be trivially solved with pen and paper. We use WebPPL to solve them in order to illustrate the core concepts and idioms that we'll use to tackle more complex problems. 
+To build up to agents that form such policies, we start with agents that solve the very simplest decision problems. These are *one-shot* problems, where the agent selects a single action (not a sequence of actions). The problems can be trivially solved with pen and paper. We use WebPPL to solve them in order to illustrate the core concepts and idioms that we will use to tackle more complex problems. 
 
 
-## One-shot decisions: deterministic world
-In a *one-shot decision problem* an agent makes a single choice between a set of *actions*, each of which has potentially distinct *consequences*. A rational agent chooses the action that is best in terms of his or her own preferences. Often this depends not on the *action* itself being preferred but only on its *consequences*. 
+## One-shot decisions in a deterministic world
+
+In a *one-shot decision problem* an agent makes a single choice between a set of *actions*, each of which has potentially distinct *consequences*. A rational agent chooses the action that is best in terms of his or her own preferences. Often, this depends not on the *action* itself being preferred, but only on its *consequences*. 
 
 For example, suppose Tom is choosing between restaurants and all he cares about is eating pizza. There's an Italian restaurant and a French restaurant. Tom would be quite happy to choose the French restaurant if it offered pizza. Since it does *not* offer pizza, Tom will choose the Italian (which does).
 
-While this problem is trivial, we formalize it to illustrate the notation. We suppose Tom selects an action $$a \in A$$ from the set of all actions. The actions in this case are {"eat at Italian restaurant", "eat at French restaurant"}. The consequences of an action are represented by a transition function $$T \colon S \times A \to S$$ from state-action pairs to states. In our example, the relevant *state* is whether or not Tom gets his pizza. Tom's preferences are represented by a real-valued utility function $$U \colon S \to \mathbb{R}$$, which indicates the relative preferableness of each state. 
+While this problem is trivial, we formalize it to illustrate the notation. We suppose Tom selects an action $$a \in A$$ from the set of all actions. The actions in this case are {"eat at Italian restaurant", "eat at French restaurant"}. The consequences of an action are represented by a transition function $$T \colon S \times A \to S$$ from state-action pairs to states. In our example, the relevant *state* is whether or not Tom gets his pizza. Tom's preferences are represented by a real-valued utility function $$U \colon S \to \mathbb{R}$$, which indicates the relative goodness of each state. 
 
-Tom's *decision rule* is to take action $$a$$ such that:
+Tom's *decision rule* is to take action $$a$$ that maximizes utility, i.e., the action
 
 $$
-\max_{a \in A} U(T(s,a))
+{\arg \max}_{a \in A} U(T(s,a))
 $$
 
-In WebPPL, we can implement this utility-maximizing agent as a function `maxAgent` that takes a state $$s \in S$$ as input and returns an action. For Tom's choice between restaurants, we assume the agent starts off in a state `"default"`, denoting whatever Tom does before going off to eat. The program directly translates the decision rule, using the `argMax` higher-order function. 
+In WebPPL, we can implement this utility-maximizing agent as a function `maxAgent` that takes a state $$s \in S$$ as input and returns an action. For Tom's choice between restaurants, we assume that the agent starts off in a state `"default"`, denoting whatever Tom does before going off to eat. The program directly translates the decision rule above using the higher-order function `argMax`.
 
 ~~~~
 // Choose to eat at the Italian or French restaurants
@@ -73,7 +71,7 @@ var twoHeads = Enumerate(function(){
 viz.print(twoHeads);
 ~~~~
 
-The same inference machinery can compute the optimal action in Tom's decision problem. We sample random actions with `uniformDraw` and condition on the consequence of the action being preferred. Intuitively, we imagine observing the consequence we prefer (e.g. pizza) and then *infer* from this the action that caused this consequence.
+The same inference machinery can compute the optimal action in Tom's decision problem. We sample random actions with `uniformDraw` and condition on the preferred outcome happening. Intuitively, we imagine observing the consequence we prefer (e.g. pizza) and then *infer* from this the action that caused this consequence. <!-- address evidential vs causal decision theory? -->
 
 This idea is known as "planning as inference" refp:botvinick2012planning. It also resembles the idea of "backwards chaining" in logical inference and planning. The `inferAgent` solves the same problem as `maxAgent` but uses planning-as-inference: 
 
