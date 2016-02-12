@@ -39,23 +39,24 @@ In WebPPL, we can implement this utility-maximizing agent as a function `maxAgen
 ~~~~
 // Choose to eat at the Italian or French restaurants
 var actions = ['italian', 'french'];
-  
+
 var transition = function(state, action){
-    return action=='italian' ? 'pizza' : 'steak frites';
+  return (action === 'italian') ? 'pizza' : 'steak frites';
 };
-  
+
 var utility = function(state){
-    return state == 'pizza' ? 1 : 0;
+  return (state === 'pizza') ? 1 : 0;
 };
 
 var maxAgent = function(state){
-    return argMax( function(action){return utility(transition(state, action));},
-                   actions);
+  return argMax(
+    function(action){
+      return utility(transition(state, action));
+    },
+    actions);
 };
 
-print("Choice in default state:     " + maxAgent("default"));
-
-
+print("Choice in default state: " + maxAgent("default"));
 ~~~~
 
 There is an alternative way to compute the optimal action for this problem. The idea is to treat choosing an action as an *inference* problem. The previous chapter showed how we can *infer* the probability that a coin landed Heads from the observation that two of three coins were Heads. 
@@ -65,9 +66,10 @@ var twoHeads = Enumerate(function(){
   var a = flip(0.5);
   var b = flip(0.5);
   var c = flip(0.5);
-  condition( a + b + c == 2 );
+  condition(a + b + c === 2);
   return a;
 });
+
 viz.print(twoHeads);
 ~~~~
 
@@ -77,26 +79,25 @@ This idea is known as "planning as inference" refp:botvinick2012planning. It als
 
 ~~~~
 var actions = ['italian', 'french'];
-  
+
 var transition = function(state, action){
-    return action=='italian' ? 'pizza' : 'steak frites';
+  return (action === 'italian') ? 'pizza' : 'steak frites';
 };
-  
+
 var inferAgent = function(state){
-    return Enumerate(function(){
-        var action = uniformDraw(actions);
-        condition( transition(state, action) === 'pizza' );
-        return action;
-    });
+  return Enumerate(function(){
+    var action = uniformDraw(actions);
+    condition(transition(state, action) === 'pizza');
+    return action;
+  });
 };
 
 viz.print(inferAgent("default"));
-
 ~~~~
 
 
-
 ## One-shot decisions: stochastic (random) world and random actions
+
 In the previous example, the transition function from state-action pairs to states was *deterministic* and so described a deterministic world or environment. Moreover, the agent's actions were deterministic; Tom always chose the best action ("Italian"). In contrast, many examples in this tutorial will involve a *stochastic* world and a noisy "soft-max" agent. 
 
 Imagine Tom is choosing between restaurants again. This time, Tom's preferences are about the overall quality of the meal. A meal can be "bad", "good" or "spectacular" and restaurants vary in the probability they produce each level of quality. The formal setup is mostly as above. The transition function now has type signature $$ T\colon S \times A \to \Delta S $$, where $$\Delta S$$ represents a distribution over states. Tom's decision rule is now to take the action $$a \in A$$ that has the highest *average* or *expected* utility, with the expectation $$E$$ [TODO math style E] taken over the probability of different successor states $$s' \sim T(s,a)$$:
@@ -108,34 +109,30 @@ $$
 To represent this in WebPPL we extend `maxAgent` using the `expectation` function, which maps an ERP with finite support to its (real-valued) expectation:
 
 ~~~~
-var argMax = function(f,ar){return maxWith(f,ar)[0]};
-
 var actions = ['italian', 'french'];
-  
+
 var transition = function(state, action){
   var nextStates = ['bad', 'good', 'spectacular'];
-  if (action=='italian'){ 
-    return categorical( [0.2, 0.6, 0.2], nextStates );
+  if (action === 'italian'){ 
+    return categorical([0.2, 0.6, 0.2], nextStates);
   } else {
-    return categorical( [0.05, 0.9, 0.05], nextStates );
+    return categorical([0.05, 0.9, 0.05], nextStates);
   };
 };
-  
+
 var utility = function(state){
-  var table = {bad: -10, good: 6, spectacular:8};
+  var table = { bad: -10, good: 6, spectacular: 8 };
   return table[state];
 };
 
-
 var maxEUAgent = function(state){
   var expectedUtility = function(action){
-    return expectation( Enumerate( function(){
+    return expectation(Enumerate(function(){
       return utility(transition(state, action));
     }));
   };
-  return argMax( expectedUtility, actions);
+  return argMax(expectedUtility, actions);
 };
-
 
 maxEUAgent("default");
 ~~~~
@@ -149,23 +146,26 @@ var softHeads = Enumerate(function(){
   var a = flip(0.5);
   var b = flip(0.5);
   var c = flip(0.5);
-  factor( a + b + c );
+  factor(a + b + c);
   return a;
 });
+
 viz.print(softHeads);
 ~~~~
 
 To be more precise about `factor`, consider the following short program:
 
 ~~~~
-var mySample = Enumerate(function(){
-    var n = uniformDraw([0,1,2]);
-    factor( n*n );
-    return n;
+var dist = Enumerate(function(){
+  var n = uniformDraw([0,1,2]);
+  factor(n*n);
+  return n;
 });
-viz.print(mySample);
+
+viz.print(dist);
 ~~~~
-Without the `factor` statement, each value of `n` has equal probability. Adding the `factor` statements adds `n*n` to the log-score of each value. To get the new probabilities (after adding `factor`) we compute the normalizing constant given these log-scores. The resulting probability of `mySample()==2` will be:
+
+Without the `factor` statement, each value of `n` has equal probability. Adding the `factor` statements adds `n*n` to the log-score of each value. To get the new probabilities (after adding `factor`) we compute the normalizing constant given these log-scores. The resulting probability of `sample(dist) === 2` will be:
 
 $$
 \frac {e^{4}} { (e^{0} + e^{1} + e^{4}) }
@@ -176,15 +176,15 @@ Returning to our implementation as planning-as-inference for maximizing *expecte
 ~~~~
 var transition = function(state, action){
   var nextStates = ['bad', 'good', 'spectacular'];
-  if (action=='italian'){ 
-    return categorical( [0.2, 0.6, 0.2], nextStates );
+  if (action === 'italian'){ 
+    return categorical([0.2, 0.6, 0.2], nextStates);
   } else {
-    return categorical( [0.05, 0.9, 0.05], nextStates );
+    return categorical([0.05, 0.9, 0.05], nextStates);
   };
 };
-  
+
 var utility = function(state){
-  var table = {bad: -10, good: 6, spectacular:8};
+  var table = { bad: -10, good: 6, spectacular: 8 };
   return table[state];
 };
 
@@ -192,15 +192,15 @@ var alpha = 1;
 
 var softMaxAgent = function(state){
   return Enumerate(function(){
-      
+
     var action = uniformDraw(['french', 'italian']);
-      
+
     var expectedUtility = function(action){
-      return expectation( Enumerate( function(){
+      return expectation( Enumerate(function(){
         return utility(transition(state,action));
       }));
     };
-    factor( alpha*expectedUtility(action) )  
+    factor(alpha * expectedUtility(action));
     return action;
   })
 };
@@ -219,13 +219,9 @@ The noise parameter $$\alpha$$ modulates between random choice $$(\alpha=0)$$ an
 Since rational agents will *always* take the best action, why consider softmax agents? If the task is to provide normative advice on how to solve a one-shot decision problem, then "hard" maximization is the way to go. An important goal for this tutorial is to infer the preferences and beliefs of agents from their choices. These agents might not always choose the normatively optimal actions. The softmax agent provides a computationally simple, analytically tractable model of suboptimal choice. This model has been tested empirically on human action selection [TODO cite luce choice]. Moreover, it has been used extensively in Inverse Reinforcement Learning as a model of human errors refp:kim2014inverse, refp:zheng2014robust. For for this reason, we employ the softmax model throughout this tutorial. When modeling an agent assumed to be optimal, the noise parameter $$\alpha$$ can be set to a large value. [TODO: Alternatively, agent could output erp.MAP().val instead of erp.]
 
 ### Moving to complex decision problems
+
 This chapter has introduced some of the core concepts that we'll need for this tutorial, including *expected utility*, *(stochastic) transition functions*, *soft conditioning* and *softmax decision making*. These concepts would also appear in standard treatments of rational planning and reinforcement learning refp:russell1995modern. The actual decision problems in this chapter are so trivial that our notation and programs are overkill. The next [chapter](/chapters/3a-mdp.md) introduces *sequential* decisions problems. These problems are more complex and more interesting. They cannot be solved without the kind of machinery we've introduced here. 
 
 --------------
 
 [Table of Contents](/)
-
-
-
-
-
