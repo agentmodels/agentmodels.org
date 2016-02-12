@@ -1,6 +1,6 @@
 ---
 layout: chapter
-title: "Sequential decision problems, part I: Setup"
+title: "Sequential decision problems, part I"
 description: We look at sequential decision problems, how to formalize them mathematically, and how to implement them concisely and efficiently using probabilitic programs with mutual recursion and caching. 
 ---
 
