@@ -39,7 +39,7 @@ The example of Bob (above) was not primarily about *simulating* a rational agent
 
 One approach to this problem is to assume the agent is a rational utility-maximizer, to assume the environment is an MDP or POMDP, and to infer the utilities and beliefs and predict the observed behavior. This approach is called "structural estimation" in economics refp:aguirregabiria2010dynamic, "inverse planning" in cognitive science refp:ullman2009help, and "inverse reinforcement learning" (IRL) in machine learning and AI refp:ng2000algorithms. It has been applied to inferring the perceived rewards of education from observed work and education choices, preferences for health outcomes from smoking behavior, and the preferences of a nomadic group over areas of land (see cites in reft:evans2015learning). 
 
-[Section III](/chapters/07-reasoning-about-agents.md) shows how to infer the preferences and beliefs of the agents modeled in earlier chapters. Since the agents are implemented as programs, we can apply probabilistic programming techniques to perform this sort of inference with little additional code. We will make use of both exact Bayesian inference and sampling-based approximations (MCMC and particle filters).
+[Section IV](/chapters/4-reasoning-about-agents.html) shows how to infer the preferences and beliefs of the agents modeled in earlier chapters. Since the agents are implemented as programs, we can apply probabilistic programming techniques to perform this sort of inference with little additional code. We will make use of both exact Bayesian inference and sampling-based approximations (MCMC and particle filters).
 
 
 ## Taster: probabilistic programming
@@ -72,7 +72,7 @@ print('Histogram of (bounded) Geometric distribution');
 viz.print(boundedGeometric);
 ~~~~
 
-In the [next chapter](/chapters/02-webppl.html), we will introduce WebPPL in more detail.
+In the [next chapter](/chapters/2-webppl.html), we will introduce WebPPL in more detail.
 
 --------------
 

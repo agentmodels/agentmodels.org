@@ -211,7 +211,7 @@ viz.print(positionERP);
 
 ### Next
 
-In the [next chapter](/chapters/03-one-shot-planning.html), we will implement rational decision-making using inference functions. 
+In the [next chapter](/chapters/3-agents-as-programs.html), we will implement rational decision-making using inference functions. 
 
 --------------
 

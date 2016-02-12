@@ -7,7 +7,7 @@ description: Motivating example of sequential decision problem, MDP formalism an
 
 ## Introduction
 
-The previous [chapter](/chapters/03-one-shot-planning) introduced agent models for solving very simple decision problems. From here on, we tackled more interesting decision problems. Later sections will look at problems where the outcome depends on the decision of another rational agent (as in *game theory*). The present sections looks at single-agent problems that are *sequential* rather than *one-shot*. In sequential decision problems, an agent's choice of action *now* depends on the action they'll choose in the future. (As in game theory, the decision maker must co-ordinate with another rational agent. But in sequential decision problems, that rational agent is one's future self).
+The previous [chapter](/chapters/3-agents-as-programs.html) introduced agent models for solving very simple decision problems. From here on, we tackled more interesting decision problems. Later sections will look at problems where the outcome depends on the decision of another rational agent (as in *game theory*). The present sections looks at single-agent problems that are *sequential* rather than *one-shot*. In sequential decision problems, an agent's choice of action *now* depends on the action they'll choose in the future. (As in game theory, the decision maker must co-ordinate with another rational agent. But in sequential decision problems, that rational agent is one's future self).
 
 ## Markov Decision Process (MDP): example
 As a simple illustration of a sequential decision problem, suppose that an agent, Bob, is looking for somewhere to eat. Bob gets out of work in a particular location (indicated below by the blue circle). He knows the streets and the restaurants nearby. His decision problem is to take a sequence of actions such that (a) he eats at a restaurant he likes, (b) he does not spend too much time walking. Here is a visualization of the street layout. The labels refer to different types of restaurant: a chain selling Donuts, a Vegetarian Salad Bar and a Noodle Shop. 
@@ -41,7 +41,7 @@ The intuition to keep in mind for MDPs is that the expected utility will propaga
 
 
 ## MDPs: implementation
-The recursive decision rule for MDP agents (Equation 1) can be directly translated into WebPPL. The resulting agent model is also a natural extension of the `softmaxAgent` from the previous [chapter](/chapters/03-one-shot-planning). The `agent` function takes the agent's state, evaluates the expectation of actions in the state, and returns a softmax distribution over actions. The expected utility of an action is computed by a separate function `expUtility`. Since an action's expected utility depends on the agent's future actions, `expUtility` calls `agent` in a mutual recursion, bottoming out when a terminal state is reached or when time runs out. 
+The recursive decision rule for MDP agents (Equation 1) can be directly translated into WebPPL. The resulting agent model is also a natural extension of the `softmaxAgent` from the previous [chapter](/chapters/3-agents-as-programs.html). The `agent` function takes the agent's state, evaluates the expectation of actions in the state, and returns a softmax distribution over actions. The expected utility of an action is computed by a separate function `expUtility`. Since an action's expected utility depends on the agent's future actions, `expUtility` calls `agent` in a mutual recursion, bottoming out when a terminal state is reached or when time runs out. 
 
 We illustrate this agent model with a trival example of an MDP and return to Bob's choice of restaurant later on. The trivial MDP is implemented in WebPPL by functions `transition` and `utility`, and by agent's available actions `[-1, 0, 1]`. The MDP is as follows:
 
@@ -313,7 +313,7 @@ GridWorld.draw(params, {trajectory : stateActionPairs});
 ~~~~
 
 ### Noisy agents, stochastic environments
-This section looked at two MDPs that were essentially deterministic. Part of the difficulty of solving MDPs is that actions, rewards and transitions can be random. The next [chapter](/chapters/05-mdp-gridworld) explores both noisy agents and stochastic gridworld environments.
+This section looked at two MDPs that were essentially deterministic. Part of the difficulty of solving MDPs is that actions, rewards and transitions can be random. The next [chapter](/chapters/3b-mdp-gridworld.html) explores both noisy agents and stochastic gridworld environments.
 
 --------------
 

@@ -26,7 +26,7 @@ var startState = [0,1];
 GridWorld.draw(params, {labels: params.labels, trajectory: [[startState]]});
 ~~~~
 
-We start with a *deterministic* transition function. This means that Alice's only risk of falling down the steep hill is due to softmax noise in her actions (which is minimal in this case). The agent model is the same as the end of [Chapter 4]('/chapters/04-mdp.md'). We wrap the functions `agent`, `expUtility` and `simulate` in a function `mdpSimulateGridworld`. The following code box defines this function and we use it later on without defining it (since it is also included in the WebPPL Gridworld library). 
+We start with a *deterministic* transition function. This means that Alice's only risk of falling down the steep hill is due to softmax noise in her actions (which is minimal in this case). The agent model is the same as the end of [Chapter III.1](/chapters/3a-mdp.html'). We wrap the functions `agent`, `expUtility` and `simulate` in a function `mdpSimulateGridworld`. The following code box defines this function and we use it later on without defining it (since it is also included in the WebPPL Gridworld library). 
 
 ~~~~
 var mdpSimulateGridworld = function(startState, totalTime, params, numRejectionSamples){
