@@ -28,16 +28,17 @@ GridWorld.draw(params, {labels: params.labels, trajectory: [[[2,1]]]});
 
 Different restaurants will have different utilities for the agent, with the only constraint being that the two donut shops have the same utility. There will also be a time cost to the agent that encourages it to reach a destination quickly. To start off with, we will have low softmax and transition noise.
 
-Suppose we see a single action by the agent. How can we make inferences about the agent's utilities? We first display the agent making a single move to the left. We then provide a function that does inference based on this single action.
+Suppose we see a single action by the agent. How can we make inferences about the agent's utilities? We first display the agent making a single move to the left.
 
 ~~~
 var params = makeDonutInfer(true, {'donutSouth': 1, 'donutNorth': 1, 'veg': 1,
                                    'noodle': 1, 'timeCost': -0.1}, 100, 0);
 GridWorld.draw(params, 
     {labels: params.labels, 
-     trajectory: [[[2,1],[1,1]]]});
+     trajectory: [ [[2,1],'l'], [[1,1],'l'] ] });
 ~~~
 
+Here is a function that does inference over utility functions given an observation. 
 
 ~~~
 // startState is the state where the agent makes its action, observedAction is
@@ -85,13 +86,29 @@ var simpleUtilPrior = function(){
     }
 };
 
-viz.print(inferSingleAction([2,1], ["l"], 7, simpleUtilPrior))
+print('Inferred utility function after agent moves one step to the left');
+inferSingleAction([2,1], ["l"], 7, simpleUtilPrior).MAP().val;
+
+//viz.print(inferSingleAction([2,1], ["l"], 7, simpleUtilPrior))
 // viz.print(inferSingleAction([2,1], ["u"], 7, simpleUtilPrior))
 ~~~
 
-we figured out that donuts are better than veg/noodles. can we figure out whether veg is better than noodles?
+We inferred that the Donut Store is preferred to the Vegetarian Cafe and the Noodle Bar. Can we figure out whether Vegetarian Cafe is better than Noodles? No, this is not identifiable from this single observation. 
 
 ~~~
+var printERP = function(x,k) {
+  var erpValues = sort(x.support(), undefined, function(v){return -x.score([], v);});
+  var erpValues = typeof(k)=='undefined' ? erpValues : erpValues.slice(0,k);
+  map(
+    function(v){
+      var prob = Math.exp(x.score([], v));
+      if (prob > 0.0){
+        print(JSON.stringify(v) + ': ' + prob.toFixed(5));
+      }
+    },
+    erpValues);
+};
+
 
 var inferSingleAction = function(startState, observedAction, perceivedTotalTime,
                                  utilityPrior) {
@@ -107,7 +124,7 @@ var inferSingleAction = function(startState, observedAction, perceivedTotalTime,
 
 	    factor(actionERP.score([], observedAction));
 
-	    return {donutUtil: newUtilityTable['donutSouth'],
+	    return {
 			    vegUtil: newUtilityTable['veg'],
 			    noodleUtil: newUtilityTable['noodle']};
     });
@@ -124,15 +141,16 @@ var complexUtilPrior = function(){
 			'timeCost': -0.1};
 };
 
-viz.print(inferSingleAction([2,1], ["l"], 7, complexUtilPrior))
-// viz.print(inferSingleAction([2,1], ["u"], 7, complexUtilPrior))
-~~~
+print('Inferred posterior on utilities for Veg and Noodle after move one step to the left');
+print('NB: We cannot tell which of Veg and Noodle is preferred\n');
+printERP(inferSingleAction([2,1], ["l"], 7, complexUtilPrior));
+~~~~
 
-nope. the actions don't tell us because the agent would do the same thing in either case.
 
-## Conditioning on a trajectory
 
-Do it like this. Am conditioning on actions rather than trajectories because that's what gives the relevant information, because Markov.
+## Conditioning on a trajectory [work in progress]
+
+We can also condition on a trajectory (not just a single action of the agent). 
 
 ~~~
 // second inference function: inferring restaurant utilities from a
@@ -188,11 +206,13 @@ var params = makeDonutInfer(true, {'donutSouth': 1, 'donutNorth': 1, 'veg': 1,
                                    'noodle': 1, 'timeCost': -0.1}, 100, 0);
 var noodleTrajectory = [[[2,1], 'u'], [[2,2], 'u'], [[2,3], 'r'], [[3,3], 'r']];
 GridWorld.draw(params, {trajectory: noodleTrajectory, labels: params.labels});
-// viz.print(inferTrajUtil(noodleTrajectory, 7, complexUtilPrior));
+viz.print(inferTrajUtil(noodleTrajectory, 7, complexUtilPrior));
 ~~~
 
-Note that utility functions where noodles have the same utility as veggies are equally likely as those where noodles have strictly higher utility. This is because if there were a tie, the agent would go to the closest shop to minimise the time cost, which is the noodle place.
+Note that utility functions where Noodle has the same utility as Veg are equally likely as those where noodles have strictly higher utility. This is because if there were a tie, the agent would go to the closest shop to minimize the time cost, which is the noodle place.
 
+
+<!--
 ## inferring time cost from a trajectory
 
 this is how you do that. use MCMC because so many options for utility functions
@@ -316,6 +336,7 @@ GridWorld.draw(params, {trajectory: dnTrajectory, labels: params.labels})
 ~~~
 
 now you have learned.
+-->
 
 --------------
 
