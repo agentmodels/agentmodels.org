@@ -13,14 +13,14 @@ var utility = function(state){
 var agent = dp.cache(function(state, timeLeft){
   return Enumerate(function(){
     var action = uniformDraw([-1,0,1]);
-    var eu = expUtility(state, action, timeLeft);    
+    var eu = expectedUtility(state, action, timeLeft);    
     factor(100 * eu);
     return action;
   });      
 });
 
 
-var expUtility = dp.cache(function(state, action, timeLeft){
+var expectedUtility = dp.cache(function(state, action, timeLeft){
   var u = utility(state,action);
   var newTimeLeft = timeLeft - 1;
   
@@ -30,7 +30,7 @@ var expUtility = dp.cache(function(state, action, timeLeft){
     return u + expectation( Enumerate(function(){
       var nextState = transition(state, action); 
       var nextAction = sample(agent(nextState, newTimeLeft));
-      return expUtility(nextState, nextAction, newTimeLeft);  
+      return expectedUtility(nextState, nextAction, newTimeLeft);  
     }));
   }                      
 });
@@ -100,14 +100,14 @@ var actions = params.actions;
 var agent = dp.cache(function(state, timeLeft){
   return Enumerate(function(){
     var action = uniformDraw(actions);
-    var eu = expUtility(state, action, timeLeft);    
+    var eu = expectedUtility(state, action, timeLeft);    
     factor( alpha * eu);
     return action;
   });      
 });
 
 
-var expUtility = dp.cache(function(state, action, timeLeft){
+var expectedUtility = dp.cache(function(state, action, timeLeft){
   var u = utility(state,action);
   var newTimeLeft = timeLeft - 1;
   
@@ -117,7 +117,7 @@ var expUtility = dp.cache(function(state, action, timeLeft){
     return u + expectation( Enumerate(function(){
       var nextState = transition(state, action); 
       var nextAction = sample(agent(nextState, newTimeLeft));
-      return expUtility(nextState, nextAction, newTimeLeft);  
+      return expectedUtility(nextState, nextAction, newTimeLeft);  
     }));
   }                      
 });
