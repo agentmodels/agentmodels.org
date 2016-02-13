@@ -5,16 +5,20 @@ description: Overview of inverse planning / IRL. WebPPL examples of inferring ut
 is_section: true
 ---
 
-## TODOs:
+<!--## TODOs:
 * what's up with the visualisation?
 * fill in words
 * visualisation of trajectories doesn't show final action: how to fix this?
+-->
+
+## Introduction [WORK IN PROGRESS]
+Previous chapters exhibited models for planning in MDPs and POMDPs. This chapter shows how we can add a few lines of code to our agent models in order to infer the agent's beliefs and utilities from their observed behavior. 
 
 ## Conditioning on a single action
 
-We're in donutWorld. This is what it looks like. There are stores.
+We work in the Restaurant Choice MDP. Bob has preferences over restaurants and has a preference for getting food quickly. 
 
-In this chapter, we discuss how to make inferences of an agent's utility function from observations about how that agent behaves. For illustration, we work in a gridworld that contains restaurants, similar to the one shown at the start of the [introduction](http://agentmodels.org/chapters/01-introduction.html). We display this gridworld, and the agent's starting state, below.
+We display this gridworld, and the agent's starting state:
 
 ~~~
 var params = makeDonutInfer(true, {'donutSouth': 1, 'donutNorth': 1, 'veg': 1,
@@ -24,7 +28,16 @@ GridWorld.draw(params, {labels: params.labels, trajectory: [[[2,1]]]});
 
 Different restaurants will have different utilities for the agent, with the only constraint being that the two donut shops have the same utility. There will also be a time cost to the agent that encourages it to reach a destination quickly. To start off with, we will have low softmax and transition noise.
 
-Suppose we see a single action by the agent. How can we make inferences about the agent's utilities?
+Suppose we see a single action by the agent. How can we make inferences about the agent's utilities? We first display the agent making a single move to the left. We then provide a function that does inference based on this single action.
+
+~~~
+var params = makeDonutInfer(true, {'donutSouth': 1, 'donutNorth': 1, 'veg': 1,
+                                   'noodle': 1, 'timeCost': -0.1}, 100, 0);
+GridWorld.draw(params, 
+    {labels: params.labels, 
+     trajectory: [[[2,1],[1,1]]]});
+~~~
+
 
 ~~~
 // startState is the state where the agent makes its action, observedAction is
