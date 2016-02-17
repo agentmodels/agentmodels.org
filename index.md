@@ -5,7 +5,7 @@ layout: default
 {% assign sorted_pages = site.pages | sort:"name" %}
 
 {% for p in sorted_pages %}
-    {% if p.hidden %}
+    {% if p.hidden == 'true' %}
     {% else %}
         {% if p.layout == 'chapter' %}
             {% if p.is_section %}
