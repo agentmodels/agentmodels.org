@@ -63,6 +63,15 @@ Show a simple bandit examples. First, with k arms. Agent is uncertain about valu
 Then show inference in gridworld for the naive and sophisticated trajectories. The hardest case (where we infer preferences, alpha and beliefs) will probably need MCMC. 
 
 
+-----
+
+### BeliefDelay agent
+
+- The pomdp gridworld library should also work for the `beliefDelayAgent`. (It generates a world object that can be an input to `beliefDelay` agent). Tests for gridworld for `beliefAgent` should carry over, either using `noDelays` or by setting `discount` parameter to zero. Using `noDelays` should have the same runtime as `beliefAgent`, while using zero `discount` should take longer. (`beliefDelay` with a delta prior should have runtime close to the pure `hyperbolic` agent). 
+
+- It's important to find the cost of a trajectory on the big gridworld for the `beliefDelay` agent with both uncertainty and delays. This will allow an upper-bound for inference. If this is too slow, we can profile (and possibly change caching of ERPs). 
+
+- Need to add myopic and bound-VOI. Need to clear tests for correctness. Example from NIPS paper is not ideal and maybe need a better illustration. Maybe it should just be bandits with 'long corridors'. You don't go down the long corridors because you won't update on the result. (Just say there's a gap between the observation of the corridor and using that observation. Then myopic agent might try: because they might get a good reward. The bound-VOI agent would not see value of info in trying and so instead try something where they get more rapid feedback).  In the TV setting, this could be that you don't watch a show that's very slow and hard to get into, because you don't model the fact that you'll have useful info in the far future.  
  
 
 
