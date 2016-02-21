@@ -4,7 +4,7 @@
 It seems valuable to do the standard stochastic bandits. This requires a modification of our code (which assumes deterministic rewards and doesn't do belief updating on the basis of rewards). Stochastic bandits will be slow but we can at least show some small examples. 
 
 ###2. Inference on trajectories for POMDP agents.
-Bandits and gridworld examples. In Gridworld, you can explain Naive and Sophisticated trajectories in terms of false beliefs about Donut and Noodle respectively. For bandits, you infer the agent's prior belief about the utility of an arm by whether they try the arm. Daniel has been working towards this. One thing is to use agent/world factoring from John's hyperbolic code. 
+Bandits and gridworld examples. In Gridworld, you can explain Naive and Sophisticated trajectories in terms of false beliefs about Donut and Noodle respectively. For bandits, you infer the agent's prior belief about the utility of an arm by whether they try the arm. Daniel has been working towards this. One thing new task is to use the improved agent/world factoring from John's hyperbolic code. 
 
 ###3. Hyperbolic discounting agent generative model and inference
 Have it run fast on gridworld with the naive and sophisticated behavior. John is close to finishing here. (Need to make code part of src, add comments and clearer variable names, and also have documented library functions for constructing gridworld and hyperbolic agent). 
