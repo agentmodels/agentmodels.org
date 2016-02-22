@@ -79,11 +79,11 @@ Myopia can be implemented using `perceivedTotalTime`. If actualTotalTIme is 50, 
 
 With delays, you can implement *sophisticated* myopia. If you are myopic with k=2, then agent simulates fact that after one time step they will care about third timestep (even though they don't care about it now). This is a pretty weird kind of agent. (For example, suppose options are A (u=1) or B (road to C and D), where C=2, D=3, and C and D are two and three steps away from start respectively. Then soph agent would take A to avoid being tempted by D when going to C.)
 
-(We can elegantly express myopic with delays, assuming we set agent to Naive. But we will waste time dealing with delays.)
-
+We can elegantly express myopic with delays, assuming we set agent to Naive. Seems it will be similar in terms of efficiency to modifying simulate. When doing inference, we want get agent action distributions for given states. In the belief case, we also need to pass a current belief and observation to the agent. How does this interact with delays? We would always set the delay to zero, because we are computing how likely the trajectory is for the agent --- not how likely a given move is. 
 
 ~~~~
-// from *simulateBeliefAgent*
+// if we did this via modifying *simulateBeliefAgent*
+// (to do this by delays, we just kill state when delay > myopia constant)
 
 var myopiaConstant = 5;
 
