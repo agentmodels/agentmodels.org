@@ -22,7 +22,7 @@ This should result in multi-modal explanations of Naive and Sophisticated scenar
 These compare inferences of the flexible model (which includes biases) vs. the optimal model. (We should be able to improve on this by having a broader flexible model than in the NIPS paper).
 
 ###8. Visualizations
-For the various examples, we need the Gridworld showing the trajectory we condition on and the graph (using viz.print) showing comparing the optimal model to our flexible model. 
+For the various examples, we need the Gridworld showing the trajectory we condition on and the graph (using viz.print) comparing the optimal model to our flexible model. 
 
 
 
