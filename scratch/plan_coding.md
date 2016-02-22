@@ -71,11 +71,75 @@ Then show inference in gridworld for the naive and sophisticated trajectories. T
 
 - It's important to find the cost of a trajectory on the big gridworld for the `beliefDelay` agent with both uncertainty and delays. This will allow an upper-bound for inference. If this is too slow, we can profile (and possibly change caching of ERPs). 
 
-- Need to add myopic and bound-VOI. Need to clear tests for correctness. Example from NIPS paper is not ideal and maybe need a better illustration. Maybe it should just be bandits with 'long corridors'. Bound-VOI will go down a long corridor if it knows the result is good but not otherwise. Myopic agent won't go down a long corridor at all. In the web setting, the myopic agent won't do any activity with a long payoff (e.g. read something that is 'slow at first' but good, do a hard MOOC where you only get certificate at the end). Bound-VOI will only do thing will long payoff if it already knows it's a good payoff or if the gets rapid feedback. (It won't start a MOOC if it would only know at the mid-term whether it's worth continuing -- somewhat weird as a model of humans in this context). 
+- Need to add myopic and bound-VOI. Need to clear tests for correctness. Example from NIPS paper is not ideal and maybe need a better illustration. Maybe it should just be bandits with 'long corridors'. Bound-VOI will go down a long corridor if it knows the result is good but not otherwise. Myopic agent won't go down a long corridor at all. In the web setting, the myopic agent won't do any activity with a long payoff (e.g. read something that is 'slow at first' but good, do a hard MOOC where you only get certificate at the end). Bound-VOI will only do thing will long payoff if it already knows it's a good payoff or if the gets rapid feedback. (It won't start a MOOC if it would only know at the mid-term whether it's worth continuing -- somewhat weird as a model of humans in this context).
  
+### Myopic and bound VOI
+
+Myopia can be implemented using `perceivedTotalTime`. If actualTotalTIme is 50, k is 5, then simulate calls agent with perceivedTotalTime==5 for every time step (overriding `transition` which would otherwise be counting this down). Do this until the time remaining is 5 and then do the normal thing. This works without having any delays.
+
+With delays, you can implement *sophisticated* myopia. If you are myopic with k=2, then agent simulates fact that after one time step they will care about third timestep (even though they don't care about it now). This is a pretty weird kind of agent. (For example, suppose options are A (u=1) or B (road to C and D), where C=2, D=3, and C and D are two and three steps away from start respectively. Then soph agent would take A to avoid being tempted by D when going to C.)
+
+(We can elegantly express myopic with delays, assuming we set agent to Naive. But we will waste time dealing with delays.)
 
 
+~~~~
+// from *simulateBeliefAgent*
 
+var myopiaConstant = 5;
+
+var sampleSequence = function(state, currentBelief, actualTimeLeft) {
+	if (cutoffCondition(actualTimeLeft, state.manifestState) ) {
+	    return [];
+	} else {
+        var manifestState = actualTimeLeft < myopiaConstant ? state.manifestState :
+        update(state.manifestState,{perceivedTotalTime: myopiaConstant});
+        
+	    var nextAction = sample(agentAction(manifestState, currentBelief, observe(state)));
+	    
+	    var nextState = transition(state, nextAction.action);
+	    var out = {states:state, actions:nextAction, both:[state, nextAction],
+                       stateBelief: [state, currentBelief]}[outputStatesOrActions];
+	    
+	    return [out].concat( sampleSequence(nextState, nextAction.belief,
+						actualTimeLeft - 1));
+        }
+    };
+    return sampleSequence(startState, priorBelief, actualTotalTime);
+}
+~~~~
+
+For boundVOI, we check the delay and only get a non-trivial observation if the `delay < boundVOI_constant`. Suppose you are sophisticated about boundVOI. Suppose you have `boundVOI_constant==1`. You simulate yourself at timestep 2 getting an observation. Since your simulation of your future self is accurate, you simulate yourself updating on this observation. Hence sophistication makes the VOI bound irrelevant. So best to ensure that boundVOI agent is *naive*. 
+
+
+~~~~
+// modification of beliefDelayAgent
+
+assert.ok( !(agentParams.boundVOI && !agentParams.sophisticatedOrNaive == 'naive'), 'if boundVOI then not sophisticated');
+
+var getObservation = function(state,delay){
+    return (delay < boundVOI_constant) ? observe(state) : 'noObservation';
+};
+
+ var expectedUtility = dp.cache(
+    function (manifestState, currentBelief, action, delay) {
+      return expectation(
+        Enumerate(function () {
+          var latentState = sample(currentBelief);
+          var state = buildState(manifestState, latentState);
+          var u = 1.0 / (1 + agentParams.discount * delay) * utility(state, action);
+          if (state.manifestState.dead) {
+            return u;
+          } else {
+            var nextState = transition(state, action);
+            var perceivedDelay = getPerceivedDelay(delay);
+            var observation = getObservation(nextState);
+            var nextAction = sample(_agent(nextState.manifestState, currentBelief, observation, perceivedDelay));
+            var futureU = expectedUtility(nextState.manifestState, nextAction.belief, nextAction.action, incrementDelay(delay));                                                                                                                
+            return u + futureU;
+          }
+        }));
+        });
+        ~~~~
 
 
 
