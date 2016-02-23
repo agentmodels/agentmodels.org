@@ -72,7 +72,14 @@ Then show inference in gridworld for the naive and sophisticated trajectories. T
 - It's important to find the cost of a trajectory on the big gridworld for the `beliefDelay` agent with both uncertainty and delays. This will allow an upper-bound for inference. If this is too slow, we can profile (and possibly change caching of ERPs). 
 
 - Need to add myopic and bound-VOI. Need to clear tests for correctness. Example from NIPS paper is not ideal and maybe need a better illustration. Maybe it should just be bandits with 'long corridors'. Bound-VOI will go down a long corridor if it knows the result is good but not otherwise. Myopic agent won't go down a long corridor at all. In the web setting, the myopic agent won't do any activity with a long payoff (e.g. read something that is 'slow at first' but good, do a hard MOOC where you only get certificate at the end). Bound-VOI will only do thing will long payoff if it already knows it's a good payoff or if the gets rapid feedback. (It won't start a MOOC if it would only know at the mid-term whether it's worth continuing -- somewhat weird as a model of humans in this context).
- 
+
+
+### Design for IRL bandits
+We want a version of bandits where the agent's preferences over rewards are not given. We get to see the agent choosing between arms, we (doing the inference) know the results or dist on results of pulling the arms, but we don't know how much the agent prefers each possible result. The example case is that agents are heterogeneous in their preferences. We are watching them choose between different content sources (e.g. blog, youtube channel, tv channel, news site, twitter feed etc.). We know about the distribution the sources put on types of content. We don't know what type of content the agent prefers. We jointly infer the agent's preferences on type of content along their prior distribution on which content each source favors. (We don't have control of the sources or the content a user sees. We don't know what background info or presumptions the agent has about which sources are likely to be a good match for their preferences. We don't know how much they've watched different sources in the past). 
+
+A simple model of the stochastic version is that a source is a multinomial on content-type. The agent has Dirichlet priors on each source which are updated analytically from samples. The unknowns are the agent priors and then the agent's mapping from the types to utilities. (What about arms that give numerical rewards. Then we could learn a function on the numbers, e.g. a log function or a sigmoid function or some other threshold function). 
+
+
 ### Myopic and bound VOI
 
 Myopia can be implemented using `perceivedTotalTime`. If actualTotalTIme is 50, k is 5, then simulate calls agent with perceivedTotalTime==5 for every time step (overriding `transition` which would otherwise be counting this down). Do this until the time remaining is 5 and then do the normal thing. This works without having any delays.
