@@ -28,11 +28,8 @@ To represent decision problems where the agent's uncertainty is altered by obser
 - to give a concrete example, consider the example of Restaurant Choice where Bob doesn't know whether the Noodle shop is open or not. previously, the state simply consisted of Bob's location in the grid. now we think of the state as also storing whether the Noodle Shop is open (which determines whether Bob would transition to inside the Noodle Shop is he moved there from an adjacent location). If Bob knows his location (e.g. location [2,1]) but doesn't know if the Noodle Shop is open, then he has a distribution over the states [{myLocation:[2,1], Noodle Shop:'closed'}, {myLocation:[2,1], Noodle Shop:'open'}]. When Bob is close to the Noodle Shop, he will get an observation that varies depending on whether the Noodle Shop is open or closed, and so he'll rule out one of the these possible states. 
 
 ### Formal model
-- definition of a POMDP
-- define the belief update
-- new definition of expected utility of a state (in terms of expected utility of a state and updated belief). Bellman version. 
 
-We first define a class of decision probems (POMDPs) and then define an agent model for optimally solving these problems (following ADD kael refp:kaelbling). A Partially Observable Markov Decision Process (POMDP) is a tuple $$(S,A(s),T(s,a),U(s,a),\Omega,O$$, where:
+We first define a class of decision probems (POMDPs) and then define an agent model for optimally solving these problems (following ADD kaelbling refp:kaelbling). A Partially Observable Markov Decision Process (POMDP) is a tuple $$(S,A(s),T(s,a),U(s,a),\Omega,O$$, where:
 
 - The components $$S$$ (state space), $$A$$ (action space), $$T$$ (transition function), $$U$$ (utility or reward function) form an MDP as defined in [chapter III.1](/chapters/3a-mdp.html), with $$U$$ assumed to be deterministic. 
 
@@ -48,12 +45,34 @@ $$
 b'(s') \propto O(s',a,o)\sum_{s \in S}{T(s,a,s')b(s)}
 $$
 
-Intuitively, the probability that $$s'$$ is the new state depends on the marginal probability of transition to $$s'$$ (given $$b$$) and the probability of the observation $$o$$ coming in $$s'$$. 
+Intuitively, the probability that $$s'$$ is the new state depends on the marginal probability of transitioning to $$s'$$ (given $$b$$) and the probability of the observation $$o$$ coming in $$s'$$. 
 
-In our previous agent model for MDPs, we defined the expected utility of an action $$a$$ in a state $$s$$ recursively in terms of the expected utility of the resulting pair of state $$s'$$ and action $$a'$$. This same recursive characterization of expected utility still holds. The important difference is that the agent's action $$a'$$ in $$s'$$ depends on their updated belief $$b'(s')$$ given the observation they receive in $$s'$$. So the expected utility of $$a$$ in $$s$$ depends on the agent's belief $$b$$ over the state $$s$$. We call the following the *Expected Utility of State Recursion*. This is analogous to the characterization of the *value* of a state (see p109 in Kaelbling et al).
+In our previous agent model for MDPs, we defined the expected utility of an action $$a$$ in a state $$s$$ recursively in terms of the expected utility of the resulting pair of state $$s'$$ and action $$a'$$. This same recursive characterization of expected utility still holds. The important difference is that the agent's action $$a'$$ in $$s'$$ depends on their updated belief $$b'(s')$$ given the observation they receive in $$s'$$. So the expected utility of $$a$$ in $$s$$ depends on the agent's belief $$b$$ over the state $$s$$. We call the following the *Expected Utility of State Recursion*, which defines the function $$EUS$$. This is analogous to the characterization of the *value*, $$V$$, of a state (see p109 in Kaelbling et al).
 
 $$
-EU_{s}[a] = U(s,a) + 
+EUS_{b}[s,a] = U(s,a) + E_{s',o,a'}(EUS_{b'}[s',a'_{b'}])
+$$
+
+where:
+- $$s' \sim T(s,a)$$
+- $$o \sim O(s',a)$$
+- $$b'$$ is the updated belief function $$b$$ on $$o$$ (as defined above)
+- $$a'_{b'}$$ is the softmax action the agent takes given belief $$b'$$
+
+The agent cannot use the Expected Utility of State Recursion to directly compute the best action, since the agent doesn't know the state. Instead the agent takes an expectation over their belief distribution, picking the action $$a$$ that maximizes:
+
+$$
+EU_[b,a] = E_{s \sim b}(EUS_{b}[s,a])
+$$
+
+We can also represent the expected utility of action $$a$$ given belief $$b$$ in terms of a recursion on the successor belief state. We call this the *Expected Utility of Belief Recursion*. It's analogous to the Bellman update rule.
+
+$$
+EU_[b,a] = E_{s \sim b}( U(s,a) + E_{s',o,a'}(EU_[b',a']) )
+$$
+
+where $$s'$$, $$o$$, $$a'$$ and $$b'$$ are distributed as in the Expected Utility of State Recursion.
+
 
 
 
