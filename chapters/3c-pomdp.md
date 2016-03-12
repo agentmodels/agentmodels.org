@@ -34,7 +34,7 @@ To represent decision problems where the agent's uncertainty is altered by obser
 
 We first define a class of decision probems (POMDPs) and then define an agent model for optimally solving these problems (following ADD kael refp:kaelbling). A Partially Observable Markov Decision Process (POMDP) is a tuple $$(S,A(s),T(s,a),U(s,a),\Omega,O$$, where:
 
-- The components $$S$$ (state space), $$A$$ (action space), $$T$$ (transition function), $$U$$ (utility or reward function) form an MDP as defined in [chapter III.1](/chapters/3a-mdp.html).
+- The components $$S$$ (state space), $$A$$ (action space), $$T$$ (transition function), $$U$$ (utility or reward function) form an MDP as defined in [chapter III.1](/chapters/3a-mdp.html), with $$U$$ assumed to be deterministic. 
 
 - The component $$\Omega$$ is the finite space of observations the agent can receive.
 
@@ -45,12 +45,15 @@ So at each timestep, the agent transitions from state $$s$$ to state $$s'$$ (gen
 To characterize the behavior of an expected-utility maximizing agent, we need to formalize the belief-updating process. Let the agent's belief about their current state $$s$$ be a probability function $$b$$ over $$S$$. Then the agent's belief function $$b'$$ over their successor state is the result of a Bayesian update on the observation $$o \sim O(s',a)$$ where $$a$$ is the agent's action in $$s$$.  That is:
 
 $$
-b'(s') \propto O(s',a,o)\sum{s \in S}{T(s,a,s')b(s)}
+b'(s') \propto O(s',a,o)\sum_{s \in S}{T(s,a,s')b(s)}
 $$
 
 Intuitively, the probability that $$s'$$ is the new state depends on the marginal probability of transition to $$s'$$ (given $$b$$) and the probability of the observation $$o$$ coming in $$s'$$. 
 
+In our previous agent model for MDPs, we defined the expected utility of an action $$a$$ in a state $$s$$ recursively in terms of the expected utility of the resulting pair of state $$s'$$ and action $$a'$$. This same recursive characterization of expected utility still holds. The important difference is that the agent's action $$a'$$ in $$s'$$ depends on their updated belief $$b'(s')$$ given the observation they receive in $$s'$$. So the expected utility of $$a$$ in $$s$$ depends on the agent's belief $$b$$ over the state $$s$$. We call the following the *Expected Utility of State Recursion*. This is analogous to the characterization of the *value* of a state (see p109 in Kaelbling et al).
 
+$$
+EU_{s}[a] = U(s,a) + 
 
 
 
