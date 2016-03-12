@@ -15,15 +15,13 @@ The previous chapters included MDPs where the transition function is *stochastic
 
 In contrast, we often face problems where our uncertainty can be *reduced* by observation. In the example of Bob choosing between restaurants, Bob would not have complete knowledge of the restaurants in his neighborhood. He'd be uncertain about opening hours, chance of getting a table, restaurant quality, the exact distances between locations, and so on. This uncertainty can be reduced observation: Bob can walk to the restaurant and see whether or not it's open. In other examples, the environment is stochastic but the agent can gain knowledge of the *distribution* on outcomes. For example, in Multi-arm Bandit problems, the agent learns a distribution over rewards for some of the arms by observing their rewards. 
 
+
 ## Extending our agent model for POMDPs
-[WORK IN PROGRESS]
-We now relax the assumption that the agent knows the true world state. Instead, we use a distribution $$p(s)$$ to represent the agent's belief about which state holds. Using a likelihood function $$p(o|s)$$, the agent can update this belief.
 
-[ADD: Formal definition of POMDP agent].
+- the environment now includes an observation function from states to observations.
+- agent has prior uncertainty about some elements of the environment. these elements could influence observations, transitions or utilities. we focus on the case where they influence observations and transitions.
+- in our examples, apart from the observation function, the environment has the same structure as before (including the markov assumption). previously an agent was given a state as input and had to take an action (which caused a transition). now the agent is uncertain about which state they are in. consider the example of Restaurant Choice where Bob doesn't know whether a restaurant is open or not. the property "restaurant is open" can be thought of as part of the state. Another aspect is Bob's location. If Bob knows his location but doesn't know if Donut South is open, then he has a distribution over the states [{myLocation:[2,1], donutSouth:'closed'}, {myLocation:[2,1], donutSouth:'open'}]. Bob might also be uncertain about his location (esp. if he's out at night in unfamiliar city) but we won't consider that example in the seqel. 
 
-We present a simple extension of our previous agent model for MDPs. The agent is uncertain about the world state. For instance, the agent may be uncertain about whether a restaurant is open or closed. For a bandit problem, the agent is uncertain about the expected value of a particular arm. As before, we assume the agent knows some of the state without observation. In Gridworld, the agent knows their location in the grid. In Bandits, the agent knows which arm they just pulled. We call the unknown state the `latentState` and the known state the `manifestState`. The `agent` function is called on a `manifestState`, updates beliefs about the `latentState`, and computes expectations for actions (integrating over posterior uncertainty in the `latentState`). The `simulate` function operates on `states`, where the state-space is simply the Cartesian product of the manifest and latent state spaces, e.g. in the Gridworld domain, an example state would have the form:
-
-`state == {manifestState: [0,1], latentState: { donutRestaurantOpen: true } }`
 
 ~~~~
 
