@@ -9,7 +9,7 @@ Use math formalism of the paper and from Kaelbling et al paper. Introduce simpli
 Should we introduce bandit example here? Yes, because we'll want to talk about it for myopic and boundVOI agents and it's good to have multiple examples. If so, showing stochastic bandits also would be ideal -- otherwise we have no stochasticity in the environment for the next few chapters. This also is a good way to introduce the intractability of POMDPs.
 
  
-## Introduction: Agents with uncertainty and belief updating [WORK IN PROGRESS]
+## Introduction: Agents with uncertainty and belief updating
 
 The previous chapters included MDPs where the transition function is *stochastic*. This means the agent is *uncertain* about the result of taking an action in a given state. For example in Gridworld Hiking, Alice is uncertain whether she would fall down the hill if she takes the shortcut. In an MDP the agent's uncertainty cannot be altered by observation. Transitions occur according to a particular probability distribution that is fixed (with no learnable parameters). An MDP is like a fair lottery: observing the winning ticket one week does not change the distribution on tickets the following week.  
 
@@ -104,7 +104,8 @@ var expectedUtility = function(belief, action) {
     }));
 });
 
-
+// *startState* is agent's actual startState (unknown to agent)
+// *priorBelief* is agent's initial belief function
 var simulate = function(startState, priorBelief) {
     
   var sampleSequence = function(state, priorBelief, action) {
@@ -124,121 +125,12 @@ var simulate = function(startState, priorBelief) {
 };
 ~~~~
 
+To illustrate the POMDP agent in action, we implement a simplified variant of the Multi-arm Bandit Problem. In this variant, there are just two arms. Pulling an arm produces a prize (deterministically). The agent does not know initially the mapping from arms to prizes but can learn by trying the arms. In our concrete example, the first arm is known to have the prize "chocolate" and the second arm either has "champagne" or has no prize at all ("nothing").  
 
-~~~~
+In our implementation of this problem, we label the two arms `[0,1]`, and use the same labels for the actions of pulling the arms. After taking action `0`, the agent transitions to a state with whatever prize is associated with Arm0 (and gets to observe that prize). States contain properties for counting down the time (as before), as well as a `prize` property indicating the prize the agent won. They also contain the "latent" fixed mapping from arms to prizes (called `armToPrize`) that determines how an agent transitions on pulling an arm. The agent's start state (prior to pulling any arm) has zero utility. 
 
-// generalization of *mdpSimulate* from previous chapters
+If the agent only has one timestep in total (i.e. one bandit trial), then they will take the arm with highest expected utility (given their prior on `armToPrize`). If there are multiple trials, the agent might *explore* the lower expected utility arm (e.g. if it's maximum possible utility is higher).
 
-var pomdpSimulate = function(startState, actualTotalTime, 
-                              perceivedTotalTime, params){
-
-  // Key functions defining POMDP
-  var utility = params.utility;
-  var transition = params.transition;
-  var observe = params.observe;
-  var observationEquality = params.observationEquality;
-
-  // Constructor for states
-  var buildState = function(manifestState,latentState){
-    return {manifestState:manifestState, latentState:latentState};
-  };
-
-  // Takes agent's belief ERP and updates it on a single observation.
-  // Since *observe* takes a state (not a latentState) 
-  // we need to build a state from the sampled latentState. 
-  var updateBelief = dp.cache(
-    function(currentBelief, manifestState, observation, params){
-
-      return Enumerate( function(){
-        var hypotheticalLatentState = sample(currentBelief);
-        var hypotheticalState = buildState(manifestState, hypotheticalLatentState);
-        var hypotheticalObservation = observe(hypotheticalState, params);
-        condition( observationEquality(hypotheticalObservation, observation) );
-        return hypotheticalLatentState;
-      });
-    });
-  
-
-  // Agent is called on *manifestState* not *state* 
-  // since he doesn't know his *state*
-  
-  var agent = dp.cache( 
-    function(manifestState, timeLeft, currentBelief, observation, params){
-    
-    return Enumerate( function(){
-      var updatedBelief = updateBelief(currentBelief, manifestState,
-                                       observation);
-      var action = uniformDraw(params.actions);
-      
-      var expectedUtility = expectation(
-        Enumerate(function(){
-          var state = buildState(manifestState, sample(updatedBelief));
-          return expUtility(state, action, timeLeft, updatedBelief, params);   
-        }));
-      
-      factor(params.alpha * expectedUtility);
-      return {action: action, belief: updatedBelief};
-    });
-  });
-  
-  
-  var expUtility = dp.cache(
-    function(state, action, timeLeft, currentBelief, params){ 
-      var u = utility(state, action, params);
-      
-      if (timeLeft - 1 == 0){
-        return u;
-      } else {                     
-        return u + expectation( Enumerate(function(){
-          var nextState = transition(state, action, params);
-          var nextManifestState = getManifestState(nextState,params);
-          var observation = observe(nextState,params);
-          var out = sample(agent(nextManifestState, timeLeft-1, 
-                                 currentBelief, observation, params));
-          var nextAction = out.action;
-          var nextBelief = out.belief;
-          return expUtility(nextState, nextAction, timeLeft-1, nextBelief, params);
-        }));
-      }                      
-    });
-  
-
-  var simulate = function(startState, actualTotalTime, perceivedTotalTime, params){
-    
-    var sampleSequence = function(state, actualTimeLeft, perceivedTimeLeft, 
-                                   history, currentBelief, observation){
-      
-      if (actualTimeLeft==0){
-        return history.slice(0,history.length-1);
-      } else {
-        
-        var out = sample(agent(getManifestState(state, params), perceivedTimeLeft,
-                               currentBelief, observation, params));
-        var action = out.action;
-        var updatedBelief = out.belief;
-        var nextState = transition(state, action, params);
-        var nextObservation = observe(nextState, params);
-        var nextHistory = push(history, nextState);
-        
-        return sampleSequence(nextState, actualTimeLeft-1, perceivedTimeLeft-1, 
-                              nextHistory, updatedBelief, nextObservation);
-      }
-    };
-    
-    return Enumerate(function(){    
-      var startHistory = [startState];
-      var observation = observe(startState, params);
-      var latentStatePrior = params.latentStatePrior;
-      return sampleSequence(startState, actualTotalTime, perceivedTotalTime, 
-                            startHistory, latentStatePrior, observation);
-      
-    });                 
-  };
-  
-  return simulate(startState, actualTotalTime, perceivedTotalTime, params);
-};
-pomdpSimulate;
-~~~~
 
 
 
