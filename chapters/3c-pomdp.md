@@ -127,10 +127,116 @@ var simulate = function(startState, priorBelief) {
 
 To illustrate the POMDP agent in action, we implement a simplified variant of the Multi-arm Bandit Problem. In this variant, there are just two arms. Pulling an arm produces a prize (deterministically). The agent does not know initially the mapping from arms to prizes but can learn by trying the arms. In our concrete example, the first arm is known to have the prize "chocolate" and the second arm either has "champagne" or has no prize at all ("nothing").  
 
-In our implementation of this problem, we label the two arms `[0,1]`, and use the same labels for the actions of pulling the arms. After taking action `0`, the agent transitions to a state with whatever prize is associated with Arm0 (and gets to observe that prize). States contain properties for counting down the time (as before), as well as a `prize` property indicating the prize the agent won. They also contain the "latent" fixed mapping from arms to prizes (called `armToPrize`) that determines how an agent transitions on pulling an arm. The agent's start state (prior to pulling any arm) has zero utility. 
+In our implementation of this problem, we label the two arms `[0,1]`, and use the same labels for the actions of pulling the arms. After taking action `0`, the agent transitions to a state with whatever prize is associated with `Arm0` (and gets to observe that prize). States contain properties for counting down the time (as before), as well as a `prize` property. States also contain the "latent" mapping from arms to prizes (called `armToPrize`) that determines how an agent transitions on pulling an arm.
 
-If the agent only has one timestep in total (i.e. one bandit trial), then they will take the arm with highest expected utility (given their prior on `armToPrize`). If there are multiple trials, the agent might *explore* the lower expected utility arm (e.g. if it's maximum possible utility is higher).
+If the agent only has one timestep in total (i.e. one bandit trial), then they will take the arm with highest expected utility (given their prior on `armToPrize`). If there are multiple trials, the agent might *explore* the lower expected utility arm (e.g. if it's maximum possible utility is higher). Try changing the number trials to see how it affects the agent's choice on the first trial. 
 
+~~~~
+
+// ---------------
+// Defining the Bandits decision problem
+
+// Pull arm0 or arm1
+var actions = [0,1];
+
+// use latent "armToPrize" mapping in
+// state to determine which prize agent gets
+var transition = function(state, action){
+  return update(state, 
+                {prize: state.armToPrize[action], 
+                 timeLeft: state.timeLeft - 1,
+                 terminateAfterAction: state.timeLeft == 2})
+};
+
+// After pulling an arm, agent observes associated prize
+var observe = function(state){return state.prize;};
+
+var startState = { prize: 'start',
+                   timeLeft:3, 
+                   terminateAfterAction:false,
+                   armToPrize: {0:'chocolate', 1:'champagne'}
+                 };
+                
+// ---------------
+// Defining the POMDP agent
+
+// Agent's preferences over prizes
+var utility = function(state,action){
+  var prizeToUtility = {chocolate: 1, nothing: 0, champagne: 1.5, start:0};
+  return prizeToUtility[state.prize];
+};
+
+// Agent's prior prior includes possibility that arm1 has no prize
+// (instead of champagne)
+var alternativeStartState = update(startState, {armToPrize:{0:'chocolate', 1:'nothing'}});
+
+var priorBelief = Enumerate(function(){
+  return categorical( [.5, .5], [startState, alternativeStartState]);
+});
+
+
+// Agent's belief update: directly translates the belief update
+// equation above
+
+var updateBelief = function(belief, observation, action){
+  return Enumerate(function(){
+    var state = sample(belief);
+    var predictedNextState = transition(state, action);
+    var predictedObservation = observe(predictedNextState);
+    condition(_.isEqual(predictedObservation, observation));
+    return predictedNextState;
+  });
+};
+
+var act = dp.cache(
+  function(belief) {
+    return Enumerate(function(){
+      var action = uniformDraw(actions);
+      var eu = expectedUtility(belief, action);
+      factor(100 * eu);
+      return action;
+    });
+  });
+
+var expectedUtility = dp.cache(
+  function(belief, action) {
+    return expectation(
+      Enumerate(function(){
+	var state = sample(belief);
+	var u = utility(state, action);
+	if (state.terminateAfterAction) {
+	  return u;
+	} else {
+	  var nextState = transition(state, action);
+	  var nextObservation = observe(nextState);
+	  var nextBelief = updateBelief(belief, nextObservation, action);            
+	  var nextAction = sample(act(nextBelief));   
+	  return u + expectedUtility(nextBelief, nextAction);
+	}
+      }));
+  });
+
+
+var simulate = function(startState, priorBelief) {
+    
+  var sampleSequence = function(state, priorBelief, action) {
+    var observation = observe(state);
+    var belief = action=='startAction' ? priorBelief : updateBelief(priorBelief, observation, action);
+    var action = sample(act(belief));
+    var output = [ [state,action] ];
+         
+    if (state.terminateAfterAction){
+      return output;
+    } else {   
+      var nextState = transition(state, action);
+      return output.concat(sampleSequence(nextState, belief, action));
+    }
+  };
+  return sampleSequence(startState, priorBelief, 'startAction');
+};
+
+simulate(startState, priorBelief);
+~~~~
 
 
 
