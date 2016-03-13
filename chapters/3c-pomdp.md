@@ -74,7 +74,55 @@ $$
 where $$s'$$, $$o$$, $$a'$$ and $$b'$$ are distributed as in the Expected Utility of State Recursion.
 
 
+### Implementation of the Model
+As with the agent model for MDPs, we provide a direct translation of the equations above into an agent model for solving POMDPs. The variables `nextState`, `nextObservation`, `nextBelief`, and `nextAction` correspond to $$s'$$,  $$o$$, $$b'$$ and $$a'$$ respectively, and we use Expected Utility of Belief Recursion. The following codebox displays the core `act` and `expectedUtility` functions, without defining `updateBelief`, `transition`, `observe` or `utility`. 
 
+~~~~
+var act = function(belief) {
+  return Enumerate(function(){
+    var action = uniformDraw(actions);
+    var eu = expectedUtility(belief, action);
+    factor(alpha * eu);
+    return action;
+  });
+});
+
+var expectedUtility = function(belief, action) {
+  return expectation(
+    Enumerate(function(){
+      var state = sample(belief);
+	  var u = utility(state, action);
+	  if (state.terminateAfterAction) {
+	    return u;
+	  } else {
+	    var nextState = transition(state, action);
+	    var nextObservation = observe(nextState);
+	    var nextBelief = updateBelief(belief, nextObservation, action);            
+	    var nextAction = sample(act(nextBelief));   
+	    return u + expectedUtility(nextBelief, nextAction);
+	    }
+    }));
+});
+
+
+var simulate = function(startState, priorBelief) {
+    
+  var sampleSequence = function(state, priorBelief, action) {
+    var observation = observe(state);
+    var belief = updateBelief(priorBelief, observation, action);
+    var action = sample(act(belief));
+    var output = [ [state,action] ];
+      
+    if (state.terminateAfterAction){
+      return output;
+    } else {   
+      var nextState = transition(state, action);
+      return output.concat(sampleSequence(nextState, belief, action));
+      }
+    };
+  return sampleSequence(startState, priorBelief, 'startAction');
+};
+~~~~
 
 
 ~~~~
