@@ -4,18 +4,15 @@ title: "Partial observability"
 description: Mathematical framework, implementation in WebPPL, Gridworld and restaurants example, bandit problems.
 ---
 
-Use math formalism of the paper and from Kaelbling et al paper. Introduce simplified version of beliefAgent.wppl. Bring updateBelief into scope of agent. Simplify simulate. Might be worth discussing recursing on state vs. belief but not clear.
-
-Should we introduce bandit example here? Yes, because we'll want to talk about it for myopic and boundVOI agents and it's good to have multiple examples. If so, showing stochastic bandits also would be ideal -- otherwise we have no stochasticity in the environment for the next few chapters. This also is a good way to introduce the intractability of POMDPs.
 
  
 ## Introduction: Agents with uncertainty and belief updating
 
-The previous chapters included MDPs where the transition function is *stochastic*. This means the agent is *uncertain* about the result of taking an action in a given state. For example in Gridworld Hiking, Alice is uncertain whether she would fall down the hill if she takes the shortcut. In an MDP the agent's uncertainty cannot be altered by observation. Transitions occur according to a particular probability distribution that is fixed (with no learnable parameters). An MDP is like a fair lottery: observing the winning ticket one week does not change the distribution on tickets the following week.  
+The previous chapters included MDPs where the transition function is *stochastic*. This means the agent is *uncertain* about the result of taking an action in a given state. For example in Gridworld Hiking, Alice is uncertain whether she would fall down the hill if she takes the shortcut. In an MDP the agent's uncertainty cannot be altered by observation. Transitions occur according to a particular probability distribution that is fixed (with no learnable parameters). An MDP is like a fair lottery: observing the winning ticket one week does not change the distribution on tickets the following week.
 
-In contrast, we often face problems where our uncertainty can be *reduced* by observation. In the example of Bob choosing between restaurants, Bob would not have complete knowledge of the restaurants in his neighborhood. He'd be uncertain about opening hours, chance of getting a table, restaurant quality, the exact distances between locations, and so on. This uncertainty can be reduced observation: Bob can walk to the restaurant and see whether or not it's open. In other examples, the environment is stochastic but the agent can gain knowledge of the *distribution* on outcomes. For example, in Multi-arm Bandit problems, the agent learns about the distribution over rewards given by each of the arms.
+In contrast, we often face problems where our uncertainty can be *reduced* by observation. In the example of Bob choosing between restaurants, Bob would not have complete knowledge of the restaurants in his neighborhood. He'd be uncertain about opening hours, the chance of getting a table, the quality of restaurants, the exact distances between locations, and so on. This uncertainty can be reduced observation: Bob can walk to a restaurant and see whether or not it's open. In other examples, the environment is stochastic but the agent can gain knowledge of the *distribution* on outcomes. For example, in Multi-arm Bandit problems, the agent learns about the distribution over rewards given by each of the arms.
 
-To represent decision problems where the agent's uncertainty is altered by observations, we use Partially Observable Markov Decision Processes (POMDPs). We first introduce the formalism for POMDPs and show how to extend our agent model that solves MDPs to an agent that solves POMDPs. 
+To represent decision problems where the agent's uncertainty is altered by observations, we use Partially Observable Markov Decision Processes (POMDPs). We first introduce the formalism for POMDPs and then show how to extend our agent model for MDPs to an agent model that solves POMDPs. 
 
 
 ## Extending our agent model for POMDPs
@@ -238,6 +235,10 @@ var simulate = function(startState, priorBelief) {
 simulate(startState, priorBelief);
 ~~~~
 
+PLAN:
+Stochastic bandits. In two arm case, as time increases the number of possible sequences of observations blows up exponentially, so the run time should also. (What's the prior over coin weights? Shouldn't matter too much. Do we need two arms to be noisy or just one?).  
+
+Gridworld POMDP: Same set up as before with POMDPgridworld library functions. Now we get different possible behaviors -- e.g. agent doesn't go to donut south because of ignorance or agent tries noodle and then goes on to veg. 
 
 
 --------------
