@@ -914,6 +914,7 @@
 
     d.sizer.style.paddingRight = (d.barWidth = sizes.right) + "px";
     d.sizer.style.paddingBottom = (d.barHeight = sizes.bottom) + "px";
+    d.heightForcer.style.borderBottom = sizes.bottom + "px solid transparent"
 
     if (sizes.right && sizes.bottom) {
       d.scrollbarFiller.style.display = "block";
@@ -1158,9 +1159,9 @@
 
   function setDocumentHeight(cm, measure) {
     cm.display.sizer.style.minHeight = measure.docHeight + "px";
-    var total = measure.docHeight + cm.display.barHeight;
-    cm.display.heightForcer.style.top = total + "px";
-    cm.display.gutters.style.height = Math.max(total + scrollGap(cm), measure.clientHeight) + "px";
+    cm.display.heightForcer.style.top = measure.docHeight + "px";
+    cm.display.gutters.style.height = Math.max(measure.docHeight + cm.display.barHeight + scrollGap(cm),
+                                               measure.clientHeight) + "px";
   }
 
   // Read the actual heights of the rendered lines, and update their
@@ -1853,10 +1854,11 @@
       if (reset && cm.doc.sel.contains(pos) == -1)
         operation(cm, setSelection)(cm.doc, simpleSelection(pos), sel_dontScroll);
 
-      var oldCSS = te.style.cssText;
-      input.wrapper.style.position = "absolute";
-      te.style.cssText = "position: fixed; width: 30px; height: 30px; top: " + (e.clientY - 5) +
-        "px; left: " + (e.clientX - 5) + "px; z-index: 1000; background: " +
+      var oldCSS = te.style.cssText, oldWrapperCSS = input.wrapper.style.cssText;
+      input.wrapper.style.cssText = "position: absolute"
+      var wrapperBox = input.wrapper.getBoundingClientRect()
+      te.style.cssText = "position: absolute; width: 30px; height: 30px; top: " + (e.clientY - wrapperBox.top - 5) +
+        "px; left: " + (e.clientX - wrapperBox.left - 5) + "px; z-index: 1000; background: " +
         (ie ? "rgba(255, 255, 255, .05)" : "transparent") +
         "; outline: none; border-width: 0; outline: none; overflow: hidden; opacity: .05; filter: alpha(opacity=5);";
       if (webkit) var oldScrollY = window.scrollY; // Work around Chrome issue (#2712)
@@ -1887,7 +1889,7 @@
       }
       function rehide() {
         input.contextMenuPending = false;
-        input.wrapper.style.position = "relative";
+        input.wrapper.style.cssText = oldWrapperCSS
         te.style.cssText = oldCSS;
         if (ie && ie_version < 9) display.scrollbars.setScrollTop(display.scroller.scrollTop = scrollPos);
 
@@ -3510,7 +3512,7 @@
       display.scroller.scrollTop = doc.scrollTop;
     }
     if (op.scrollLeft != null && (display.scroller.scrollLeft != op.scrollLeft || op.forceScroll)) {
-      doc.scrollLeft = Math.max(0, Math.min(display.scroller.scrollWidth - displayWidth(cm), op.scrollLeft));
+      doc.scrollLeft = Math.max(0, Math.min(display.scroller.scrollWidth - display.scroller.clientWidth, op.scrollLeft));
       display.scrollbars.setScrollLeft(doc.scrollLeft);
       display.scroller.scrollLeft = doc.scrollLeft;
       alignHorizontally(cm);
@@ -9255,7 +9257,7 @@
 
   // THE END
 
-  CodeMirror.version = "5.11.0";
+  CodeMirror.version = "5.12.0";
 
   return CodeMirror;
 });
@@ -10512,7 +10514,7 @@ CodeMirror.defineMIME("application/typescript", { name: "javascript", typescript
 },{}],8:[function(require,module,exports){
 !function() {
   var d3 = {
-    version: "3.5.15"
+    version: "3.5.16"
   };
   var d3_arraySlice = [].slice, d3_array = function(list) {
     return d3_arraySlice.call(list);
@@ -11132,9 +11134,10 @@ CodeMirror.defineMIME("application/typescript", { name: "javascript", typescript
       return d3_selectAll(selector, this);
     };
   }
+  var d3_nsXhtml = "http://www.w3.org/1999/xhtml";
   var d3_nsPrefix = {
     svg: "http://www.w3.org/2000/svg",
-    xhtml: "http://www.w3.org/1999/xhtml",
+    xhtml: d3_nsXhtml,
     xlink: "http://www.w3.org/1999/xlink",
     xml: "http://www.w3.org/XML/1998/namespace",
     xmlns: "http://www.w3.org/2000/xmlns/"
@@ -11317,7 +11320,7 @@ CodeMirror.defineMIME("application/typescript", { name: "javascript", typescript
   function d3_selection_creator(name) {
     function create() {
       var document = this.ownerDocument, namespace = this.namespaceURI;
-      return namespace && namespace !== document.documentElement.namespaceURI ? document.createElementNS(namespace, name) : document.createElement(name);
+      return namespace === d3_nsXhtml && document.documentElement.namespaceURI === d3_nsXhtml ? document.createElement(name) : document.createElementNS(namespace, name);
     }
     function createNS() {
       return this.ownerDocument.createElementNS(name.space, name.local);
@@ -23022,7 +23025,7 @@ load.headers = {};
 
 module.exports = load;
 
-},{"../util":34,"fs":313,"request":313,"sync-request":313,"url":313}],27:[function(require,module,exports){
+},{"../util":34,"fs":316,"request":316,"sync-request":316,"url":316}],27:[function(require,module,exports){
 var util = require('../util'),
   type = require('./type'),
   formats = require('./formats'),
@@ -23208,7 +23211,7 @@ module.exports = type;
 var util = require('./util');
 
 var dl = {
-  version:    '1.5.9',
+  version:    '1.6.3',
   load:       require('./import/load'),
   read:       require('./import/read'),
   type:       require('./import/type'),
@@ -23361,6 +23364,38 @@ stats.mean = function(values, f) {
     }
   }
   return mean;
+};
+
+// Compute the geometric mean of an array of numbers.
+stats.mean.geometric = function(values, f) {
+  f = util.$(f);
+  var mean = 1, c, n, v, i;
+  for (i=0, c=0, n=values.length; i<n; ++i) {
+    v = f ? f(values[i]) : values[i];
+    if (util.isValid(v)) {
+      if (v <= 0) {
+        throw Error("Geometric mean only defined for positive values.");
+      }
+      mean *= v;
+      ++c;
+    }
+  }
+  mean = c > 0 ? Math.pow(mean, 1/c) : 0;
+  return mean;
+};
+
+// Compute the harmonic mean of an array of numbers.
+stats.mean.harmonic = function(values, f) {
+  f = util.$(f);
+  var mean = 0, c, n, v, i;
+  for (i=0, c=0, n=values.length; i<n; ++i) {
+    v = f ? f(values[i]) : values[i];
+    if (util.isValid(v)) {
+      mean += 1/v;
+      ++c;
+    }
+  }
+  return c / mean;
 };
 
 // Compute the sample variance of an array of numbers.
@@ -24458,15 +24493,12 @@ u.array = function(x) {
 
 u.str = function(x) {
   return u.isArray(x) ? '[' + x.map(u.str) + ']'
-    : u.isObject(x) ? JSON.stringify(x)
-    : u.isString(x) ? ('\''+util_escape_str(x)+'\'') : x;
+    : u.isObject(x) || u.isString(x) ?
+      // Output valid JSON and JS source strings.
+      // See http://timelessrepo.com/json-isnt-a-javascript-subset
+      JSON.stringify(x).replace('\u2028','\\u2028').replace('\u2029', '\\u2029')
+    : x;
 };
-
-var escape_str_re = /(^|[^\\])'/g;
-
-function util_escape_str(x) {
-  return x.replace(escape_str_re, '$1\\\'');
-}
 
 // data access functions
 
@@ -24481,12 +24513,9 @@ u.field = function(f) {
 };
 
 u.accessor = function(f) {
-  var s;
+  /* jshint evil: true */
   return f==null || u.isFunction(f) ? f :
-    u.namedfunc(f, (s = u.field(f)).length > 1 ?
-      function(x) { return s.reduce(function(x,f) { return x[f]; }, x); } :
-      function(x) { return x[f]; }
-    );
+    u.namedfunc(f, Function('x', 'return x[' + u.field(f).map(u.str).join('][') + '];'));
 };
 
 // short-cut for accessor
@@ -24634,7 +24663,7 @@ function truncateOnWord(s, len, rev) {
 var truncate_word_re = /([\u0009\u000A\u000B\u000C\u000D\u0020\u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u2028\u2029\u3000\uFEFF])/;
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":313}],35:[function(require,module,exports){
+},{"buffer":316}],35:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -24721,7 +24750,7 @@ var EventListener = {
 
 module.exports = EventListener;
 }).call(this,require('_process'))
-},{"./emptyFunction":42,"_process":314}],36:[function(require,module,exports){
+},{"./emptyFunction":42,"_process":317}],36:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -25061,7 +25090,7 @@ function createNodesFromMarkup(markup, handleScript) {
 
 module.exports = createNodesFromMarkup;
 }).call(this,require('_process'))
-},{"./ExecutionEnvironment":36,"./createArrayFromMixed":40,"./getMarkupWrap":46,"./invariant":50,"_process":314}],42:[function(require,module,exports){
+},{"./ExecutionEnvironment":36,"./createArrayFromMixed":40,"./getMarkupWrap":46,"./invariant":50,"_process":317}],42:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -25123,7 +25152,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = emptyObject;
 }).call(this,require('_process'))
-},{"_process":314}],44:[function(require,module,exports){
+},{"_process":317}],44:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -25284,7 +25313,7 @@ function getMarkupWrap(nodeName) {
 
 module.exports = getMarkupWrap;
 }).call(this,require('_process'))
-},{"./ExecutionEnvironment":36,"./invariant":50,"_process":314}],47:[function(require,module,exports){
+},{"./ExecutionEnvironment":36,"./invariant":50,"_process":317}],47:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -25450,7 +25479,7 @@ function invariant(condition, format, a, b, c, d, e, f) {
 
 module.exports = invariant;
 }).call(this,require('_process'))
-},{"_process":314}],51:[function(require,module,exports){
+},{"_process":317}],51:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -25551,7 +25580,7 @@ var keyMirror = function (obj) {
 
 module.exports = keyMirror;
 }).call(this,require('_process'))
-},{"./invariant":50,"_process":314}],54:[function(require,module,exports){
+},{"./invariant":50,"_process":317}],54:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -25841,7 +25870,7 @@ function toArray(obj) {
 
 module.exports = toArray;
 }).call(this,require('_process'))
-},{"./invariant":50,"_process":314}],61:[function(require,module,exports){
+},{"./invariant":50,"_process":317}],61:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.
@@ -25901,9 +25930,9 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = warning;
 }).call(this,require('_process'))
-},{"./emptyFunction":42,"_process":314}],62:[function(require,module,exports){
+},{"./emptyFunction":42,"_process":317}],62:[function(require,module,exports){
 /*!
- * jQuery JavaScript Library v2.2.0
+ * jQuery JavaScript Library v2.2.1
  * http://jquery.com/
  *
  * Includes Sizzle.js
@@ -25913,7 +25942,7 @@ module.exports = warning;
  * Released under the MIT license
  * http://jquery.org/license
  *
- * Date: 2016-01-08T20:02Z
+ * Date: 2016-02-22T19:11Z
  */
 
 (function( global, factory ) {
@@ -25969,7 +25998,7 @@ var support = {};
 
 
 var
-	version = "2.2.0",
+	version = "2.2.1",
 
 	// Define a local copy of jQuery
 	jQuery = function( selector, context ) {
@@ -30383,7 +30412,7 @@ function on( elem, types, selector, data, fn, one ) {
 	if ( fn === false ) {
 		fn = returnFalse;
 	} else if ( !fn ) {
-		return this;
+		return elem;
 	}
 
 	if ( one === 1 ) {
@@ -31032,14 +31061,14 @@ var
 	rscriptTypeMasked = /^true\/(.*)/,
 	rcleanScript = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
 
+// Manipulating tables requires a tbody
 function manipulationTarget( elem, content ) {
-	if ( jQuery.nodeName( elem, "table" ) &&
-		jQuery.nodeName( content.nodeType !== 11 ? content : content.firstChild, "tr" ) ) {
+	return jQuery.nodeName( elem, "table" ) &&
+		jQuery.nodeName( content.nodeType !== 11 ? content : content.firstChild, "tr" ) ?
 
-		return elem.getElementsByTagName( "tbody" )[ 0 ] || elem;
-	}
-
-	return elem;
+		elem.getElementsByTagName( "tbody" )[ 0 ] ||
+			elem.appendChild( elem.ownerDocument.createElement( "tbody" ) ) :
+		elem;
 }
 
 // Replace/restore the type attribute of script elements for safe DOM manipulation
@@ -31546,7 +31575,7 @@ var getStyles = function( elem ) {
 		// FF meanwhile throws on frame elements through "defaultView.getComputedStyle"
 		var view = elem.ownerDocument.defaultView;
 
-		if ( !view.opener ) {
+		if ( !view || !view.opener ) {
 			view = window;
 		}
 
@@ -31695,15 +31724,18 @@ function curCSS( elem, name, computed ) {
 		style = elem.style;
 
 	computed = computed || getStyles( elem );
+	ret = computed ? computed.getPropertyValue( name ) || computed[ name ] : undefined;
+
+	// Support: Opera 12.1x only
+	// Fall back to style even without computed
+	// computed is undefined for elems on document fragments
+	if ( ( ret === "" || ret === undefined ) && !jQuery.contains( elem.ownerDocument, elem ) ) {
+		ret = jQuery.style( elem, name );
+	}
 
 	// Support: IE9
 	// getPropertyValue is only needed for .css('filter') (#12537)
 	if ( computed ) {
-		ret = computed.getPropertyValue( name ) || computed[ name ];
-
-		if ( ret === "" && !jQuery.contains( elem.ownerDocument, elem ) ) {
-			ret = jQuery.style( elem, name );
-		}
 
 		// A tribute to the "awesome hack by Dean Edwards"
 		// Android Browser returns percentage for some values,
@@ -33753,7 +33785,7 @@ jQuery.extend( jQuery.event, {
 				// But now, this "simulate" function is used only for events
 				// for which stopPropagation() is noop, so there is no need for that anymore.
 				//
-				// For the compat branch though, guard for "click" and "submit"
+				// For the 1.x branch though, guard for "click" and "submit"
 				// events is still used, but was moved to jQuery.event.stopPropagation function
 				// because `originalEvent` should point to the original event for the constancy
 				// with other events and for more focused logic
@@ -35523,11 +35555,8 @@ jQuery.fn.extend( {
 			}
 
 			// Add offsetParent borders
-			// Subtract offsetParent scroll positions
-			parentOffset.top += jQuery.css( offsetParent[ 0 ], "borderTopWidth", true ) -
-				offsetParent.scrollTop();
-			parentOffset.left += jQuery.css( offsetParent[ 0 ], "borderLeftWidth", true ) -
-				offsetParent.scrollLeft();
+			parentOffset.top += jQuery.css( offsetParent[ 0 ], "borderTopWidth", true );
+			parentOffset.left += jQuery.css( offsetParent[ 0 ], "borderLeftWidth", true );
 		}
 
 		// Subtract parent offsets and element margins
@@ -36585,7 +36614,7 @@ ReactPerf.measureMethods(CSSPropertyOperations, 'CSSPropertyOperations', {
 
 module.exports = CSSPropertyOperations;
 }).call(this,require('_process'))
-},{"./CSSProperty":67,"./ReactPerf":135,"./dangerousStyleValue":169,"_process":314,"fbjs/lib/ExecutionEnvironment":36,"fbjs/lib/camelizeStyleName":38,"fbjs/lib/hyphenateStyleName":49,"fbjs/lib/memoizeStringOnly":56,"fbjs/lib/warning":61}],69:[function(require,module,exports){
+},{"./CSSProperty":67,"./ReactPerf":135,"./dangerousStyleValue":169,"_process":317,"fbjs/lib/ExecutionEnvironment":36,"fbjs/lib/camelizeStyleName":38,"fbjs/lib/hyphenateStyleName":49,"fbjs/lib/memoizeStringOnly":56,"fbjs/lib/warning":61}],69:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -36681,7 +36710,7 @@ PooledClass.addPoolingTo(CallbackQueue);
 
 module.exports = CallbackQueue;
 }).call(this,require('_process'))
-},{"./Object.assign":86,"./PooledClass":87,"_process":314,"fbjs/lib/invariant":50}],70:[function(require,module,exports){
+},{"./Object.assign":86,"./PooledClass":87,"_process":317,"fbjs/lib/invariant":50}],70:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -37159,7 +37188,7 @@ ReactPerf.measureMethods(DOMChildrenOperations, 'DOMChildrenOperations', {
 
 module.exports = DOMChildrenOperations;
 }).call(this,require('_process'))
-},{"./Danger":75,"./ReactMultiChildUpdateTypes":131,"./ReactPerf":135,"./setInnerHTML":188,"./setTextContent":189,"_process":314,"fbjs/lib/invariant":50}],73:[function(require,module,exports){
+},{"./Danger":75,"./ReactMultiChildUpdateTypes":131,"./ReactPerf":135,"./setInnerHTML":188,"./setTextContent":189,"_process":317,"fbjs/lib/invariant":50}],73:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -37396,7 +37425,7 @@ var DOMProperty = {
 
 module.exports = DOMProperty;
 }).call(this,require('_process'))
-},{"_process":314,"fbjs/lib/invariant":50}],74:[function(require,module,exports){
+},{"_process":317,"fbjs/lib/invariant":50}],74:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -37624,7 +37653,7 @@ ReactPerf.measureMethods(DOMPropertyOperations, 'DOMPropertyOperations', {
 
 module.exports = DOMPropertyOperations;
 }).call(this,require('_process'))
-},{"./DOMProperty":73,"./ReactPerf":135,"./quoteAttributeValueForBrowser":186,"_process":314,"fbjs/lib/warning":61}],75:[function(require,module,exports){
+},{"./DOMProperty":73,"./ReactPerf":135,"./quoteAttributeValueForBrowser":186,"_process":317,"fbjs/lib/warning":61}],75:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -37772,7 +37801,7 @@ var Danger = {
 
 module.exports = Danger;
 }).call(this,require('_process'))
-},{"_process":314,"fbjs/lib/ExecutionEnvironment":36,"fbjs/lib/createNodesFromMarkup":41,"fbjs/lib/emptyFunction":42,"fbjs/lib/getMarkupWrap":46,"fbjs/lib/invariant":50}],76:[function(require,module,exports){
+},{"_process":317,"fbjs/lib/ExecutionEnvironment":36,"fbjs/lib/createNodesFromMarkup":41,"fbjs/lib/emptyFunction":42,"fbjs/lib/getMarkupWrap":46,"fbjs/lib/invariant":50}],76:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -38300,7 +38329,7 @@ var EventPluginHub = {
 
 module.exports = EventPluginHub;
 }).call(this,require('_process'))
-},{"./EventPluginRegistry":80,"./EventPluginUtils":81,"./ReactErrorUtils":120,"./accumulateInto":166,"./forEachAccumulated":174,"_process":314,"fbjs/lib/invariant":50,"fbjs/lib/warning":61}],80:[function(require,module,exports){
+},{"./EventPluginRegistry":80,"./EventPluginUtils":81,"./ReactErrorUtils":120,"./accumulateInto":166,"./forEachAccumulated":174,"_process":317,"fbjs/lib/invariant":50,"fbjs/lib/warning":61}],80:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -38523,7 +38552,7 @@ var EventPluginRegistry = {
 
 module.exports = EventPluginRegistry;
 }).call(this,require('_process'))
-},{"_process":314,"fbjs/lib/invariant":50}],81:[function(require,module,exports){
+},{"_process":317,"fbjs/lib/invariant":50}],81:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -38728,7 +38757,7 @@ var EventPluginUtils = {
 
 module.exports = EventPluginUtils;
 }).call(this,require('_process'))
-},{"./EventConstants":78,"./ReactErrorUtils":120,"_process":314,"fbjs/lib/invariant":50,"fbjs/lib/warning":61}],82:[function(require,module,exports){
+},{"./EventConstants":78,"./ReactErrorUtils":120,"_process":317,"fbjs/lib/invariant":50,"fbjs/lib/warning":61}],82:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -38866,7 +38895,7 @@ var EventPropagators = {
 
 module.exports = EventPropagators;
 }).call(this,require('_process'))
-},{"./EventConstants":78,"./EventPluginHub":79,"./accumulateInto":166,"./forEachAccumulated":174,"_process":314,"fbjs/lib/warning":61}],83:[function(require,module,exports){
+},{"./EventConstants":78,"./EventPluginHub":79,"./accumulateInto":166,"./forEachAccumulated":174,"_process":317,"fbjs/lib/warning":61}],83:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -39330,7 +39359,7 @@ var LinkedValueUtils = {
 
 module.exports = LinkedValueUtils;
 }).call(this,require('_process'))
-},{"./ReactPropTypeLocations":137,"./ReactPropTypes":138,"_process":314,"fbjs/lib/invariant":50,"fbjs/lib/warning":61}],86:[function(require,module,exports){
+},{"./ReactPropTypeLocations":137,"./ReactPropTypes":138,"_process":317,"fbjs/lib/invariant":50,"fbjs/lib/warning":61}],86:[function(require,module,exports){
 /**
  * Copyright 2014-2015, Facebook, Inc.
  * All rights reserved.
@@ -39500,7 +39529,7 @@ var PooledClass = {
 
 module.exports = PooledClass;
 }).call(this,require('_process'))
-},{"_process":314,"fbjs/lib/invariant":50}],88:[function(require,module,exports){
+},{"_process":317,"fbjs/lib/invariant":50}],88:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -39580,7 +39609,7 @@ var ReactBrowserComponentMixin = {
 
 module.exports = ReactBrowserComponentMixin;
 }).call(this,require('_process'))
-},{"./ReactInstanceMap":126,"./findDOMNode":172,"_process":314,"fbjs/lib/warning":61}],90:[function(require,module,exports){
+},{"./ReactInstanceMap":126,"./findDOMNode":172,"_process":317,"fbjs/lib/warning":61}],90:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -40030,7 +40059,7 @@ var ReactChildReconciler = {
 
 module.exports = ReactChildReconciler;
 }).call(this,require('_process'))
-},{"./ReactReconciler":140,"./instantiateReactComponent":182,"./shouldUpdateReactComponent":190,"./traverseAllChildren":191,"_process":314,"fbjs/lib/warning":61}],92:[function(require,module,exports){
+},{"./ReactReconciler":140,"./instantiateReactComponent":182,"./shouldUpdateReactComponent":190,"./traverseAllChildren":191,"_process":317,"fbjs/lib/warning":61}],92:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -40987,7 +41016,7 @@ var ReactClass = {
 
 module.exports = ReactClass;
 }).call(this,require('_process'))
-},{"./Object.assign":86,"./ReactComponent":94,"./ReactElement":116,"./ReactNoopUpdateQueue":133,"./ReactPropTypeLocationNames":136,"./ReactPropTypeLocations":137,"_process":314,"fbjs/lib/emptyObject":43,"fbjs/lib/invariant":50,"fbjs/lib/keyMirror":53,"fbjs/lib/keyOf":54,"fbjs/lib/warning":61}],94:[function(require,module,exports){
+},{"./Object.assign":86,"./ReactComponent":94,"./ReactElement":116,"./ReactNoopUpdateQueue":133,"./ReactPropTypeLocationNames":136,"./ReactPropTypeLocations":137,"_process":317,"fbjs/lib/emptyObject":43,"fbjs/lib/invariant":50,"fbjs/lib/keyMirror":53,"fbjs/lib/keyOf":54,"fbjs/lib/warning":61}],94:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -41112,7 +41141,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = ReactComponent;
 }).call(this,require('_process'))
-},{"./ReactNoopUpdateQueue":133,"./canDefineProperty":168,"_process":314,"fbjs/lib/emptyObject":43,"fbjs/lib/invariant":50,"fbjs/lib/warning":61}],95:[function(require,module,exports){
+},{"./ReactNoopUpdateQueue":133,"./canDefineProperty":168,"_process":317,"fbjs/lib/emptyObject":43,"fbjs/lib/invariant":50,"fbjs/lib/warning":61}],95:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -41208,7 +41237,7 @@ var ReactComponentEnvironment = {
 
 module.exports = ReactComponentEnvironment;
 }).call(this,require('_process'))
-},{"_process":314,"fbjs/lib/invariant":50}],97:[function(require,module,exports){
+},{"_process":317,"fbjs/lib/invariant":50}],97:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -41905,7 +41934,7 @@ var ReactCompositeComponent = {
 
 module.exports = ReactCompositeComponent;
 }).call(this,require('_process'))
-},{"./Object.assign":86,"./ReactComponentEnvironment":96,"./ReactCurrentOwner":98,"./ReactElement":116,"./ReactInstanceMap":126,"./ReactPerf":135,"./ReactPropTypeLocationNames":136,"./ReactPropTypeLocations":137,"./ReactReconciler":140,"./ReactUpdateQueue":146,"./shouldUpdateReactComponent":190,"_process":314,"fbjs/lib/emptyObject":43,"fbjs/lib/invariant":50,"fbjs/lib/warning":61}],98:[function(require,module,exports){
+},{"./Object.assign":86,"./ReactComponentEnvironment":96,"./ReactCurrentOwner":98,"./ReactElement":116,"./ReactInstanceMap":126,"./ReactPerf":135,"./ReactPropTypeLocationNames":136,"./ReactPropTypeLocations":137,"./ReactReconciler":140,"./ReactUpdateQueue":146,"./shouldUpdateReactComponent":190,"_process":317,"fbjs/lib/emptyObject":43,"fbjs/lib/invariant":50,"fbjs/lib/warning":61}],98:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -42031,7 +42060,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = React;
 }).call(this,require('_process'))
-},{"./ReactCurrentOwner":98,"./ReactDOMTextComponent":110,"./ReactDefaultInjection":113,"./ReactInstanceHandles":125,"./ReactMount":129,"./ReactPerf":135,"./ReactReconciler":140,"./ReactUpdates":147,"./ReactVersion":148,"./findDOMNode":172,"./renderSubtreeIntoContainer":187,"_process":314,"fbjs/lib/ExecutionEnvironment":36,"fbjs/lib/warning":61}],100:[function(require,module,exports){
+},{"./ReactCurrentOwner":98,"./ReactDOMTextComponent":110,"./ReactDefaultInjection":113,"./ReactInstanceHandles":125,"./ReactMount":129,"./ReactPerf":135,"./ReactReconciler":140,"./ReactUpdates":147,"./ReactVersion":148,"./findDOMNode":172,"./renderSubtreeIntoContainer":187,"_process":317,"fbjs/lib/ExecutionEnvironment":36,"fbjs/lib/warning":61}],100:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -43047,7 +43076,7 @@ assign(ReactDOMComponent.prototype, ReactDOMComponent.Mixin, ReactMultiChild.Mix
 
 module.exports = ReactDOMComponent;
 }).call(this,require('_process'))
-},{"./AutoFocusUtils":65,"./CSSPropertyOperations":68,"./DOMProperty":73,"./DOMPropertyOperations":74,"./EventConstants":78,"./Object.assign":86,"./ReactBrowserEventEmitter":90,"./ReactComponentBrowserEnvironment":95,"./ReactDOMButton":100,"./ReactDOMInput":105,"./ReactDOMOption":106,"./ReactDOMSelect":107,"./ReactDOMTextarea":111,"./ReactMount":129,"./ReactMultiChild":130,"./ReactPerf":135,"./ReactUpdateQueue":146,"./canDefineProperty":168,"./escapeTextContentForBrowser":171,"./isEventSupported":183,"./setInnerHTML":188,"./setTextContent":189,"./validateDOMNesting":192,"_process":314,"fbjs/lib/invariant":50,"fbjs/lib/keyOf":54,"fbjs/lib/shallowEqual":59,"fbjs/lib/warning":61}],102:[function(require,module,exports){
+},{"./AutoFocusUtils":65,"./CSSPropertyOperations":68,"./DOMProperty":73,"./DOMPropertyOperations":74,"./EventConstants":78,"./Object.assign":86,"./ReactBrowserEventEmitter":90,"./ReactComponentBrowserEnvironment":95,"./ReactDOMButton":100,"./ReactDOMInput":105,"./ReactDOMOption":106,"./ReactDOMSelect":107,"./ReactDOMTextarea":111,"./ReactMount":129,"./ReactMultiChild":130,"./ReactPerf":135,"./ReactUpdateQueue":146,"./canDefineProperty":168,"./escapeTextContentForBrowser":171,"./isEventSupported":183,"./setInnerHTML":188,"./setTextContent":189,"./validateDOMNesting":192,"_process":317,"fbjs/lib/invariant":50,"fbjs/lib/keyOf":54,"fbjs/lib/shallowEqual":59,"fbjs/lib/warning":61}],102:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -43227,7 +43256,7 @@ var ReactDOMFactories = mapObject({
 
 module.exports = ReactDOMFactories;
 }).call(this,require('_process'))
-},{"./ReactElement":116,"./ReactElementValidator":117,"_process":314,"fbjs/lib/mapObject":55}],103:[function(require,module,exports){
+},{"./ReactElement":116,"./ReactElementValidator":117,"_process":317,"fbjs/lib/mapObject":55}],103:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -43343,7 +43372,7 @@ ReactPerf.measureMethods(ReactDOMIDOperations, 'ReactDOMIDOperations', {
 
 module.exports = ReactDOMIDOperations;
 }).call(this,require('_process'))
-},{"./DOMChildrenOperations":72,"./DOMPropertyOperations":74,"./ReactMount":129,"./ReactPerf":135,"_process":314,"fbjs/lib/invariant":50}],105:[function(require,module,exports){
+},{"./DOMChildrenOperations":72,"./DOMPropertyOperations":74,"./ReactMount":129,"./ReactPerf":135,"_process":317,"fbjs/lib/invariant":50}],105:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -43499,7 +43528,7 @@ function _handleChange(event) {
 
 module.exports = ReactDOMInput;
 }).call(this,require('_process'))
-},{"./LinkedValueUtils":85,"./Object.assign":86,"./ReactDOMIDOperations":104,"./ReactMount":129,"./ReactUpdates":147,"_process":314,"fbjs/lib/invariant":50}],106:[function(require,module,exports){
+},{"./LinkedValueUtils":85,"./Object.assign":86,"./ReactDOMIDOperations":104,"./ReactMount":129,"./ReactUpdates":147,"_process":317,"fbjs/lib/invariant":50}],106:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -43591,7 +43620,7 @@ var ReactDOMOption = {
 
 module.exports = ReactDOMOption;
 }).call(this,require('_process'))
-},{"./Object.assign":86,"./ReactChildren":92,"./ReactDOMSelect":107,"_process":314,"fbjs/lib/warning":61}],107:[function(require,module,exports){
+},{"./Object.assign":86,"./ReactChildren":92,"./ReactDOMSelect":107,"_process":317,"fbjs/lib/warning":61}],107:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -43782,7 +43811,7 @@ function _handleChange(event) {
 
 module.exports = ReactDOMSelect;
 }).call(this,require('_process'))
-},{"./LinkedValueUtils":85,"./Object.assign":86,"./ReactMount":129,"./ReactUpdates":147,"_process":314,"fbjs/lib/warning":61}],108:[function(require,module,exports){
+},{"./LinkedValueUtils":85,"./Object.assign":86,"./ReactMount":129,"./ReactUpdates":147,"_process":317,"fbjs/lib/warning":61}],108:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -44152,7 +44181,7 @@ assign(ReactDOMTextComponent.prototype, {
 
 module.exports = ReactDOMTextComponent;
 }).call(this,require('_process'))
-},{"./DOMChildrenOperations":72,"./DOMPropertyOperations":74,"./Object.assign":86,"./ReactComponentBrowserEnvironment":95,"./ReactMount":129,"./escapeTextContentForBrowser":171,"./setTextContent":189,"./validateDOMNesting":192,"_process":314}],111:[function(require,module,exports){
+},{"./DOMChildrenOperations":72,"./DOMPropertyOperations":74,"./Object.assign":86,"./ReactComponentBrowserEnvironment":95,"./ReactMount":129,"./escapeTextContentForBrowser":171,"./setTextContent":189,"./validateDOMNesting":192,"_process":317}],111:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -44268,7 +44297,7 @@ function _handleChange(event) {
 
 module.exports = ReactDOMTextarea;
 }).call(this,require('_process'))
-},{"./LinkedValueUtils":85,"./Object.assign":86,"./ReactDOMIDOperations":104,"./ReactUpdates":147,"_process":314,"fbjs/lib/invariant":50,"fbjs/lib/warning":61}],112:[function(require,module,exports){
+},{"./LinkedValueUtils":85,"./Object.assign":86,"./ReactDOMIDOperations":104,"./ReactUpdates":147,"_process":317,"fbjs/lib/invariant":50,"fbjs/lib/warning":61}],112:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -44436,7 +44465,7 @@ module.exports = {
   inject: inject
 };
 }).call(this,require('_process'))
-},{"./BeforeInputEventPlugin":66,"./ChangeEventPlugin":70,"./ClientReactRootIndex":71,"./DefaultEventPluginOrder":76,"./EnterLeaveEventPlugin":77,"./HTMLDOMPropertyConfig":84,"./ReactBrowserComponentMixin":89,"./ReactComponentBrowserEnvironment":95,"./ReactDOMComponent":101,"./ReactDOMTextComponent":110,"./ReactDefaultBatchingStrategy":112,"./ReactDefaultPerf":114,"./ReactEventListener":122,"./ReactInjection":123,"./ReactInstanceHandles":125,"./ReactMount":129,"./ReactReconcileTransaction":139,"./SVGDOMPropertyConfig":149,"./SelectEventPlugin":150,"./ServerReactRootIndex":151,"./SimpleEventPlugin":152,"_process":314,"fbjs/lib/ExecutionEnvironment":36}],114:[function(require,module,exports){
+},{"./BeforeInputEventPlugin":66,"./ChangeEventPlugin":70,"./ClientReactRootIndex":71,"./DefaultEventPluginOrder":76,"./EnterLeaveEventPlugin":77,"./HTMLDOMPropertyConfig":84,"./ReactBrowserComponentMixin":89,"./ReactComponentBrowserEnvironment":95,"./ReactDOMComponent":101,"./ReactDOMTextComponent":110,"./ReactDefaultBatchingStrategy":112,"./ReactDefaultPerf":114,"./ReactEventListener":122,"./ReactInjection":123,"./ReactInstanceHandles":125,"./ReactMount":129,"./ReactReconcileTransaction":139,"./SVGDOMPropertyConfig":149,"./SelectEventPlugin":150,"./ServerReactRootIndex":151,"./SimpleEventPlugin":152,"_process":317,"fbjs/lib/ExecutionEnvironment":36}],114:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -45126,7 +45155,7 @@ ReactElement.isValidElement = function (object) {
 
 module.exports = ReactElement;
 }).call(this,require('_process'))
-},{"./Object.assign":86,"./ReactCurrentOwner":98,"./canDefineProperty":168,"_process":314}],117:[function(require,module,exports){
+},{"./Object.assign":86,"./ReactCurrentOwner":98,"./canDefineProperty":168,"_process":317}],117:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.
@@ -45410,7 +45439,7 @@ var ReactElementValidator = {
 
 module.exports = ReactElementValidator;
 }).call(this,require('_process'))
-},{"./ReactCurrentOwner":98,"./ReactElement":116,"./ReactPropTypeLocationNames":136,"./ReactPropTypeLocations":137,"./canDefineProperty":168,"./getIteratorFn":179,"_process":314,"fbjs/lib/invariant":50,"fbjs/lib/warning":61}],118:[function(require,module,exports){
+},{"./ReactCurrentOwner":98,"./ReactElement":116,"./ReactPropTypeLocationNames":136,"./ReactPropTypeLocations":137,"./canDefineProperty":168,"./getIteratorFn":179,"_process":317,"fbjs/lib/invariant":50,"fbjs/lib/warning":61}],118:[function(require,module,exports){
 /**
  * Copyright 2014-2015, Facebook, Inc.
  * All rights reserved.
@@ -45591,7 +45620,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = ReactErrorUtils;
 }).call(this,require('_process'))
-},{"_process":314}],121:[function(require,module,exports){
+},{"_process":317}],121:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -46311,7 +46340,7 @@ var ReactInstanceHandles = {
 
 module.exports = ReactInstanceHandles;
 }).call(this,require('_process'))
-},{"./ReactRootIndex":142,"_process":314,"fbjs/lib/invariant":50}],126:[function(require,module,exports){
+},{"./ReactRootIndex":142,"_process":317,"fbjs/lib/invariant":50}],126:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -46436,7 +46465,7 @@ var React = {
 
 module.exports = React;
 }).call(this,require('_process'))
-},{"./Object.assign":86,"./ReactChildren":92,"./ReactClass":93,"./ReactComponent":94,"./ReactDOMFactories":102,"./ReactElement":116,"./ReactElementValidator":117,"./ReactPropTypes":138,"./ReactVersion":148,"./onlyChild":185,"_process":314}],128:[function(require,module,exports){
+},{"./Object.assign":86,"./ReactChildren":92,"./ReactClass":93,"./ReactComponent":94,"./ReactDOMFactories":102,"./ReactElement":116,"./ReactElementValidator":117,"./ReactPropTypes":138,"./ReactVersion":148,"./onlyChild":185,"_process":317}],128:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -47335,7 +47364,7 @@ ReactPerf.measureMethods(ReactMount, 'ReactMount', {
 
 module.exports = ReactMount;
 }).call(this,require('_process'))
-},{"./DOMProperty":73,"./Object.assign":86,"./ReactBrowserEventEmitter":90,"./ReactCurrentOwner":98,"./ReactDOMFeatureFlags":103,"./ReactElement":116,"./ReactEmptyComponentRegistry":119,"./ReactInstanceHandles":125,"./ReactInstanceMap":126,"./ReactMarkupChecksum":128,"./ReactPerf":135,"./ReactReconciler":140,"./ReactUpdateQueue":146,"./ReactUpdates":147,"./instantiateReactComponent":182,"./setInnerHTML":188,"./shouldUpdateReactComponent":190,"./validateDOMNesting":192,"_process":314,"fbjs/lib/containsNode":39,"fbjs/lib/emptyObject":43,"fbjs/lib/invariant":50,"fbjs/lib/warning":61}],130:[function(require,module,exports){
+},{"./DOMProperty":73,"./Object.assign":86,"./ReactBrowserEventEmitter":90,"./ReactCurrentOwner":98,"./ReactDOMFeatureFlags":103,"./ReactElement":116,"./ReactEmptyComponentRegistry":119,"./ReactInstanceHandles":125,"./ReactInstanceMap":126,"./ReactMarkupChecksum":128,"./ReactPerf":135,"./ReactReconciler":140,"./ReactUpdateQueue":146,"./ReactUpdates":147,"./instantiateReactComponent":182,"./setInnerHTML":188,"./shouldUpdateReactComponent":190,"./validateDOMNesting":192,"_process":317,"fbjs/lib/containsNode":39,"fbjs/lib/emptyObject":43,"fbjs/lib/invariant":50,"fbjs/lib/warning":61}],130:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -47834,7 +47863,7 @@ var ReactMultiChild = {
 
 module.exports = ReactMultiChild;
 }).call(this,require('_process'))
-},{"./ReactChildReconciler":91,"./ReactComponentEnvironment":96,"./ReactCurrentOwner":98,"./ReactMultiChildUpdateTypes":131,"./ReactReconciler":140,"./flattenChildren":173,"_process":314}],131:[function(require,module,exports){
+},{"./ReactChildReconciler":91,"./ReactComponentEnvironment":96,"./ReactCurrentOwner":98,"./ReactMultiChildUpdateTypes":131,"./ReactReconciler":140,"./flattenChildren":173,"_process":317}],131:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -47964,7 +47993,7 @@ var ReactNativeComponent = {
 
 module.exports = ReactNativeComponent;
 }).call(this,require('_process'))
-},{"./Object.assign":86,"_process":314,"fbjs/lib/invariant":50}],133:[function(require,module,exports){
+},{"./Object.assign":86,"_process":317,"fbjs/lib/invariant":50}],133:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2015, Facebook, Inc.
@@ -48085,7 +48114,7 @@ var ReactNoopUpdateQueue = {
 
 module.exports = ReactNoopUpdateQueue;
 }).call(this,require('_process'))
-},{"_process":314,"fbjs/lib/warning":61}],134:[function(require,module,exports){
+},{"_process":317,"fbjs/lib/warning":61}],134:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -48179,7 +48208,7 @@ var ReactOwner = {
 
 module.exports = ReactOwner;
 }).call(this,require('_process'))
-},{"_process":314,"fbjs/lib/invariant":50}],135:[function(require,module,exports){
+},{"_process":317,"fbjs/lib/invariant":50}],135:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -48278,7 +48307,7 @@ function _noMeasure(objName, fnName, func) {
 
 module.exports = ReactPerf;
 }).call(this,require('_process'))
-},{"_process":314}],136:[function(require,module,exports){
+},{"_process":317}],136:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -48305,7 +48334,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = ReactPropTypeLocationNames;
 }).call(this,require('_process'))
-},{"_process":314}],137:[function(require,module,exports){
+},{"_process":317}],137:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -49164,7 +49193,7 @@ module.exports = {
   renderToStaticMarkup: renderToStaticMarkup
 };
 }).call(this,require('_process'))
-},{"./ReactDefaultBatchingStrategy":112,"./ReactElement":116,"./ReactInstanceHandles":125,"./ReactMarkupChecksum":128,"./ReactServerBatchingStrategy":143,"./ReactServerRenderingTransaction":145,"./ReactUpdates":147,"./instantiateReactComponent":182,"_process":314,"fbjs/lib/emptyObject":43,"fbjs/lib/invariant":50}],145:[function(require,module,exports){
+},{"./ReactDefaultBatchingStrategy":112,"./ReactElement":116,"./ReactInstanceHandles":125,"./ReactMarkupChecksum":128,"./ReactServerBatchingStrategy":143,"./ReactServerRenderingTransaction":145,"./ReactUpdates":147,"./instantiateReactComponent":182,"_process":317,"fbjs/lib/emptyObject":43,"fbjs/lib/invariant":50}],145:[function(require,module,exports){
 /**
  * Copyright 2014-2015, Facebook, Inc.
  * All rights reserved.
@@ -49512,7 +49541,7 @@ var ReactUpdateQueue = {
 
 module.exports = ReactUpdateQueue;
 }).call(this,require('_process'))
-},{"./Object.assign":86,"./ReactCurrentOwner":98,"./ReactElement":116,"./ReactInstanceMap":126,"./ReactUpdates":147,"_process":314,"fbjs/lib/invariant":50,"fbjs/lib/warning":61}],147:[function(require,module,exports){
+},{"./Object.assign":86,"./ReactCurrentOwner":98,"./ReactElement":116,"./ReactInstanceMap":126,"./ReactUpdates":147,"_process":317,"fbjs/lib/invariant":50,"fbjs/lib/warning":61}],147:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -49738,7 +49767,7 @@ var ReactUpdates = {
 
 module.exports = ReactUpdates;
 }).call(this,require('_process'))
-},{"./CallbackQueue":69,"./Object.assign":86,"./PooledClass":87,"./ReactPerf":135,"./ReactReconciler":140,"./Transaction":164,"_process":314,"fbjs/lib/invariant":50}],148:[function(require,module,exports){
+},{"./CallbackQueue":69,"./Object.assign":86,"./PooledClass":87,"./ReactPerf":135,"./ReactReconciler":140,"./Transaction":164,"_process":317,"fbjs/lib/invariant":50}],148:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -50703,7 +50732,7 @@ var SimpleEventPlugin = {
 
 module.exports = SimpleEventPlugin;
 }).call(this,require('_process'))
-},{"./EventConstants":78,"./EventPropagators":82,"./ReactMount":129,"./SyntheticClipboardEvent":153,"./SyntheticDragEvent":155,"./SyntheticEvent":156,"./SyntheticFocusEvent":157,"./SyntheticKeyboardEvent":159,"./SyntheticMouseEvent":160,"./SyntheticTouchEvent":161,"./SyntheticUIEvent":162,"./SyntheticWheelEvent":163,"./getEventCharCode":175,"_process":314,"fbjs/lib/EventListener":35,"fbjs/lib/emptyFunction":42,"fbjs/lib/invariant":50,"fbjs/lib/keyOf":54}],153:[function(require,module,exports){
+},{"./EventConstants":78,"./EventPropagators":82,"./ReactMount":129,"./SyntheticClipboardEvent":153,"./SyntheticDragEvent":155,"./SyntheticEvent":156,"./SyntheticFocusEvent":157,"./SyntheticKeyboardEvent":159,"./SyntheticMouseEvent":160,"./SyntheticTouchEvent":161,"./SyntheticUIEvent":162,"./SyntheticWheelEvent":163,"./getEventCharCode":175,"_process":317,"fbjs/lib/EventListener":35,"fbjs/lib/emptyFunction":42,"fbjs/lib/invariant":50,"fbjs/lib/keyOf":54}],153:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -51002,7 +51031,7 @@ PooledClass.addPoolingTo(SyntheticEvent, PooledClass.fourArgumentPooler);
 
 module.exports = SyntheticEvent;
 }).call(this,require('_process'))
-},{"./Object.assign":86,"./PooledClass":87,"_process":314,"fbjs/lib/emptyFunction":42,"fbjs/lib/warning":61}],157:[function(require,module,exports){
+},{"./Object.assign":86,"./PooledClass":87,"_process":317,"fbjs/lib/emptyFunction":42,"fbjs/lib/warning":61}],157:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -51637,7 +51666,7 @@ var Transaction = {
 
 module.exports = Transaction;
 }).call(this,require('_process'))
-},{"_process":314,"fbjs/lib/invariant":50}],165:[function(require,module,exports){
+},{"_process":317,"fbjs/lib/invariant":50}],165:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -51727,7 +51756,7 @@ function accumulateInto(current, next) {
 
 module.exports = accumulateInto;
 }).call(this,require('_process'))
-},{"_process":314,"fbjs/lib/invariant":50}],167:[function(require,module,exports){
+},{"_process":317,"fbjs/lib/invariant":50}],167:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -51797,7 +51826,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = canDefineProperty;
 }).call(this,require('_process'))
-},{"_process":314}],169:[function(require,module,exports){
+},{"_process":317}],169:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -51904,7 +51933,7 @@ function deprecated(fnName, newModule, newPackage, ctx, fn) {
 
 module.exports = deprecated;
 }).call(this,require('_process'))
-},{"./Object.assign":86,"_process":314,"fbjs/lib/warning":61}],171:[function(require,module,exports){
+},{"./Object.assign":86,"_process":317,"fbjs/lib/warning":61}],171:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -51995,7 +52024,7 @@ function findDOMNode(componentOrElement) {
 
 module.exports = findDOMNode;
 }).call(this,require('_process'))
-},{"./ReactCurrentOwner":98,"./ReactInstanceMap":126,"./ReactMount":129,"_process":314,"fbjs/lib/invariant":50,"fbjs/lib/warning":61}],173:[function(require,module,exports){
+},{"./ReactCurrentOwner":98,"./ReactInstanceMap":126,"./ReactMount":129,"_process":317,"fbjs/lib/invariant":50,"fbjs/lib/warning":61}],173:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -52046,7 +52075,7 @@ function flattenChildren(children) {
 
 module.exports = flattenChildren;
 }).call(this,require('_process'))
-},{"./traverseAllChildren":191,"_process":314,"fbjs/lib/warning":61}],174:[function(require,module,exports){
+},{"./traverseAllChildren":191,"_process":317,"fbjs/lib/warning":61}],174:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -52570,7 +52599,7 @@ function instantiateReactComponent(node) {
 
 module.exports = instantiateReactComponent;
 }).call(this,require('_process'))
-},{"./Object.assign":86,"./ReactCompositeComponent":97,"./ReactEmptyComponent":118,"./ReactNativeComponent":132,"_process":314,"fbjs/lib/invariant":50,"fbjs/lib/warning":61}],183:[function(require,module,exports){
+},{"./Object.assign":86,"./ReactCompositeComponent":97,"./ReactEmptyComponent":118,"./ReactNativeComponent":132,"_process":317,"fbjs/lib/invariant":50,"fbjs/lib/warning":61}],183:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -52708,7 +52737,7 @@ function onlyChild(children) {
 
 module.exports = onlyChild;
 }).call(this,require('_process'))
-},{"./ReactElement":116,"_process":314,"fbjs/lib/invariant":50}],186:[function(require,module,exports){
+},{"./ReactElement":116,"_process":317,"fbjs/lib/invariant":50}],186:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -53120,7 +53149,7 @@ function traverseAllChildren(children, callback, traverseContext) {
 
 module.exports = traverseAllChildren;
 }).call(this,require('_process'))
-},{"./ReactCurrentOwner":98,"./ReactElement":116,"./ReactInstanceHandles":125,"./getIteratorFn":179,"_process":314,"fbjs/lib/invariant":50,"fbjs/lib/warning":61}],192:[function(require,module,exports){
+},{"./ReactCurrentOwner":98,"./ReactElement":116,"./ReactInstanceHandles":125,"./getIteratorFn":179,"_process":317,"fbjs/lib/invariant":50,"fbjs/lib/warning":61}],192:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2015, Facebook, Inc.
@@ -53486,7 +53515,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = validateDOMNesting;
 }).call(this,require('_process'))
-},{"./Object.assign":86,"_process":314,"fbjs/lib/emptyFunction":42,"fbjs/lib/warning":61}],193:[function(require,module,exports){
+},{"./Object.assign":86,"_process":317,"fbjs/lib/emptyFunction":42,"fbjs/lib/warning":61}],193:[function(require,module,exports){
 'use strict';
 
 module.exports = require('./lib/React');
@@ -55676,7 +55705,7 @@ prototype.evaluate = function(input) {
 };
 
 module.exports = Collector;
-},{"./ChangeSet":196,"./Node":202,"./Tuple":204,"vega-logging":211}],198:[function(require,module,exports){
+},{"./ChangeSet":196,"./Node":202,"./Tuple":204,"vega-logging":212}],198:[function(require,module,exports){
 var dl = require('datalib'),
     log = require('vega-logging'),
     ChangeSet = require('./ChangeSet'),
@@ -55984,7 +56013,7 @@ function DataSourceListener(ds) {
 
 module.exports = DataSource;
 
-},{"./ChangeSet":196,"./Collector":197,"./Node":202,"./Tuple":204,"datalib":30,"vega-logging":211}],199:[function(require,module,exports){
+},{"./ChangeSet":196,"./Collector":197,"./Node":202,"./Tuple":204,"datalib":30,"vega-logging":212}],199:[function(require,module,exports){
 var deps = module.exports = {
   ALL: ['data', 'fields', 'scales', 'signals']
 };
@@ -56326,7 +56355,7 @@ prototype.evaluate = function(pulse, node) {
 
 module.exports = Graph;
 
-},{"./ChangeSet":196,"./Collector":197,"./DataSource":198,"./Dependencies":199,"./Heap":201,"./Signal":203,"./Tuple":204,"datalib":30,"vega-logging":211}],201:[function(require,module,exports){
+},{"./ChangeSet":196,"./Collector":197,"./DataSource":198,"./Dependencies":199,"./Heap":201,"./Signal":203,"./Tuple":204,"datalib":30,"vega-logging":212}],201:[function(require,module,exports){
 function Heap(comparator) {
   this.cmp = comparator;
   this.nodes = [];
@@ -56781,7 +56810,1179 @@ module.exports = {
   debug:        require('vega-logging').debug
 };
 
-},{"./ChangeSet":196,"./Collector":197,"./DataSource":198,"./Dependencies":199,"./Graph":200,"./Node":202,"./Signal":203,"./Tuple":204,"vega-logging":211}],206:[function(require,module,exports){
+},{"./ChangeSet":196,"./Collector":197,"./DataSource":198,"./Dependencies":199,"./Graph":200,"./Node":202,"./Signal":203,"./Tuple":204,"vega-logging":212}],206:[function(require,module,exports){
+module.exports = (function() {
+  "use strict";
+
+  /*
+   * Generated by PEG.js 0.9.0.
+   *
+   * http://pegjs.org/
+   */
+
+  function peg$subclass(child, parent) {
+    function ctor() { this.constructor = child; }
+    ctor.prototype = parent.prototype;
+    child.prototype = new ctor();
+  }
+
+  function peg$SyntaxError(message, expected, found, location) {
+    this.message  = message;
+    this.expected = expected;
+    this.found    = found;
+    this.location = location;
+    this.name     = "SyntaxError";
+
+    if (typeof Error.captureStackTrace === "function") {
+      Error.captureStackTrace(this, peg$SyntaxError);
+    }
+  }
+
+  peg$subclass(peg$SyntaxError, Error);
+
+  function peg$parse(input) {
+    var options = arguments.length > 1 ? arguments[1] : {},
+        parser  = this,
+
+        peg$FAILED = {},
+
+        peg$startRuleFunctions = { start: peg$parsestart },
+        peg$startRuleFunction  = peg$parsestart,
+
+        peg$c0 = ",",
+        peg$c1 = { type: "literal", value: ",", description: "\",\"" },
+        peg$c2 = function(o, m) { return [o].concat(m); },
+        peg$c3 = function(o) { return [o]; },
+        peg$c4 = "[",
+        peg$c5 = { type: "literal", value: "[", description: "\"[\"" },
+        peg$c6 = "]",
+        peg$c7 = { type: "literal", value: "]", description: "\"]\"" },
+        peg$c8 = ">",
+        peg$c9 = { type: "literal", value: ">", description: "\">\"" },
+        peg$c10 = function(f1, f2, o) { return {start: f1, end: f2, middle: o}; },
+        peg$c11 = function(s, f) { return (s.filters = f, s); },
+        peg$c12 = function(s) { return s; },
+        peg$c13 = "(",
+        peg$c14 = { type: "literal", value: "(", description: "\"(\"" },
+        peg$c15 = ")",
+        peg$c16 = { type: "literal", value: ")", description: "\")\"" },
+        peg$c17 = function(m) { return {stream: m}; },
+        peg$c18 = "@",
+        peg$c19 = { type: "literal", value: "@", description: "\"@\"" },
+        peg$c20 = ":",
+        peg$c21 = { type: "literal", value: ":", description: "\":\"" },
+        peg$c22 = function(n, e) { return {event: e, name: n}; },
+        peg$c23 = function(m, e) { return {event: e, mark: m}; },
+        peg$c24 = function(t, e) { return {event: e, target: t}; },
+        peg$c25 = function(e) { return {event: e}; },
+        peg$c26 = function(s) { return {signal: s}; },
+        peg$c27 = "rect",
+        peg$c28 = { type: "literal", value: "rect", description: "\"rect\"" },
+        peg$c29 = "symbol",
+        peg$c30 = { type: "literal", value: "symbol", description: "\"symbol\"" },
+        peg$c31 = "path",
+        peg$c32 = { type: "literal", value: "path", description: "\"path\"" },
+        peg$c33 = "arc",
+        peg$c34 = { type: "literal", value: "arc", description: "\"arc\"" },
+        peg$c35 = "area",
+        peg$c36 = { type: "literal", value: "area", description: "\"area\"" },
+        peg$c37 = "line",
+        peg$c38 = { type: "literal", value: "line", description: "\"line\"" },
+        peg$c39 = "rule",
+        peg$c40 = { type: "literal", value: "rule", description: "\"rule\"" },
+        peg$c41 = "image",
+        peg$c42 = { type: "literal", value: "image", description: "\"image\"" },
+        peg$c43 = "text",
+        peg$c44 = { type: "literal", value: "text", description: "\"text\"" },
+        peg$c45 = "group",
+        peg$c46 = { type: "literal", value: "group", description: "\"group\"" },
+        peg$c47 = "mousedown",
+        peg$c48 = { type: "literal", value: "mousedown", description: "\"mousedown\"" },
+        peg$c49 = "mouseup",
+        peg$c50 = { type: "literal", value: "mouseup", description: "\"mouseup\"" },
+        peg$c51 = "click",
+        peg$c52 = { type: "literal", value: "click", description: "\"click\"" },
+        peg$c53 = "dblclick",
+        peg$c54 = { type: "literal", value: "dblclick", description: "\"dblclick\"" },
+        peg$c55 = "wheel",
+        peg$c56 = { type: "literal", value: "wheel", description: "\"wheel\"" },
+        peg$c57 = "keydown",
+        peg$c58 = { type: "literal", value: "keydown", description: "\"keydown\"" },
+        peg$c59 = "keypress",
+        peg$c60 = { type: "literal", value: "keypress", description: "\"keypress\"" },
+        peg$c61 = "keyup",
+        peg$c62 = { type: "literal", value: "keyup", description: "\"keyup\"" },
+        peg$c63 = "mousewheel",
+        peg$c64 = { type: "literal", value: "mousewheel", description: "\"mousewheel\"" },
+        peg$c65 = "mousemove",
+        peg$c66 = { type: "literal", value: "mousemove", description: "\"mousemove\"" },
+        peg$c67 = "mouseout",
+        peg$c68 = { type: "literal", value: "mouseout", description: "\"mouseout\"" },
+        peg$c69 = "mouseover",
+        peg$c70 = { type: "literal", value: "mouseover", description: "\"mouseover\"" },
+        peg$c71 = "mouseenter",
+        peg$c72 = { type: "literal", value: "mouseenter", description: "\"mouseenter\"" },
+        peg$c73 = "touchstart",
+        peg$c74 = { type: "literal", value: "touchstart", description: "\"touchstart\"" },
+        peg$c75 = "touchmove",
+        peg$c76 = { type: "literal", value: "touchmove", description: "\"touchmove\"" },
+        peg$c77 = "touchend",
+        peg$c78 = { type: "literal", value: "touchend", description: "\"touchend\"" },
+        peg$c79 = "dragenter",
+        peg$c80 = { type: "literal", value: "dragenter", description: "\"dragenter\"" },
+        peg$c81 = "dragover",
+        peg$c82 = { type: "literal", value: "dragover", description: "\"dragover\"" },
+        peg$c83 = "dragleave",
+        peg$c84 = { type: "literal", value: "dragleave", description: "\"dragleave\"" },
+        peg$c85 = function(e) { return e; },
+        peg$c86 = /^[a-zA-Z0-9_\-]/,
+        peg$c87 = { type: "class", value: "[a-zA-Z0-9_-]", description: "[a-zA-Z0-9_-]" },
+        peg$c88 = function(n) { return n.join(""); },
+        peg$c89 = /^[a-zA-Z0-9\-_  #.>+~[\]=|\^$*]/,
+        peg$c90 = { type: "class", value: "[a-zA-Z0-9-_  #\\.\\>\\+~\\[\\]=|\\^\\$\\*]", description: "[a-zA-Z0-9-_  #\\.\\>\\+~\\[\\]=|\\^\\$\\*]" },
+        peg$c91 = function(c) { return c.join(""); },
+        peg$c92 = /^['"a-zA-Z0-9_().><=! \t-&|~]/,
+        peg$c93 = { type: "class", value: "['\"a-zA-Z0-9_\\(\\)\\.\\>\\<\\=\\! \\t-&|~]", description: "['\"a-zA-Z0-9_\\(\\)\\.\\>\\<\\=\\! \\t-&|~]" },
+        peg$c94 = function(v) { return v.join(""); },
+        peg$c95 = /^[ \t\r\n]/,
+        peg$c96 = { type: "class", value: "[ \\t\\r\\n]", description: "[ \\t\\r\\n]" },
+
+        peg$currPos          = 0,
+        peg$savedPos         = 0,
+        peg$posDetailsCache  = [{ line: 1, column: 1, seenCR: false }],
+        peg$maxFailPos       = 0,
+        peg$maxFailExpected  = [],
+        peg$silentFails      = 0,
+
+        peg$result;
+
+    if ("startRule" in options) {
+      if (!(options.startRule in peg$startRuleFunctions)) {
+        throw new Error("Can't start parsing from rule \"" + options.startRule + "\".");
+      }
+
+      peg$startRuleFunction = peg$startRuleFunctions[options.startRule];
+    }
+
+    function text() {
+      return input.substring(peg$savedPos, peg$currPos);
+    }
+
+    function location() {
+      return peg$computeLocation(peg$savedPos, peg$currPos);
+    }
+
+    function expected(description) {
+      throw peg$buildException(
+        null,
+        [{ type: "other", description: description }],
+        input.substring(peg$savedPos, peg$currPos),
+        peg$computeLocation(peg$savedPos, peg$currPos)
+      );
+    }
+
+    function error(message) {
+      throw peg$buildException(
+        message,
+        null,
+        input.substring(peg$savedPos, peg$currPos),
+        peg$computeLocation(peg$savedPos, peg$currPos)
+      );
+    }
+
+    function peg$computePosDetails(pos) {
+      var details = peg$posDetailsCache[pos],
+          p, ch;
+
+      if (details) {
+        return details;
+      } else {
+        p = pos - 1;
+        while (!peg$posDetailsCache[p]) {
+          p--;
+        }
+
+        details = peg$posDetailsCache[p];
+        details = {
+          line:   details.line,
+          column: details.column,
+          seenCR: details.seenCR
+        };
+
+        while (p < pos) {
+          ch = input.charAt(p);
+          if (ch === "\n") {
+            if (!details.seenCR) { details.line++; }
+            details.column = 1;
+            details.seenCR = false;
+          } else if (ch === "\r" || ch === "\u2028" || ch === "\u2029") {
+            details.line++;
+            details.column = 1;
+            details.seenCR = true;
+          } else {
+            details.column++;
+            details.seenCR = false;
+          }
+
+          p++;
+        }
+
+        peg$posDetailsCache[pos] = details;
+        return details;
+      }
+    }
+
+    function peg$computeLocation(startPos, endPos) {
+      var startPosDetails = peg$computePosDetails(startPos),
+          endPosDetails   = peg$computePosDetails(endPos);
+
+      return {
+        start: {
+          offset: startPos,
+          line:   startPosDetails.line,
+          column: startPosDetails.column
+        },
+        end: {
+          offset: endPos,
+          line:   endPosDetails.line,
+          column: endPosDetails.column
+        }
+      };
+    }
+
+    function peg$fail(expected) {
+      if (peg$currPos < peg$maxFailPos) { return; }
+
+      if (peg$currPos > peg$maxFailPos) {
+        peg$maxFailPos = peg$currPos;
+        peg$maxFailExpected = [];
+      }
+
+      peg$maxFailExpected.push(expected);
+    }
+
+    function peg$buildException(message, expected, found, location) {
+      function cleanupExpected(expected) {
+        var i = 1;
+
+        expected.sort(function(a, b) {
+          if (a.description < b.description) {
+            return -1;
+          } else if (a.description > b.description) {
+            return 1;
+          } else {
+            return 0;
+          }
+        });
+
+        while (i < expected.length) {
+          if (expected[i - 1] === expected[i]) {
+            expected.splice(i, 1);
+          } else {
+            i++;
+          }
+        }
+      }
+
+      function buildMessage(expected, found) {
+        function stringEscape(s) {
+          function hex(ch) { return ch.charCodeAt(0).toString(16).toUpperCase(); }
+
+          return s
+            .replace(/\\/g,   '\\\\')
+            .replace(/"/g,    '\\"')
+            .replace(/\x08/g, '\\b')
+            .replace(/\t/g,   '\\t')
+            .replace(/\n/g,   '\\n')
+            .replace(/\f/g,   '\\f')
+            .replace(/\r/g,   '\\r')
+            .replace(/[\x00-\x07\x0B\x0E\x0F]/g, function(ch) { return '\\x0' + hex(ch); })
+            .replace(/[\x10-\x1F\x80-\xFF]/g,    function(ch) { return '\\x'  + hex(ch); })
+            .replace(/[\u0100-\u0FFF]/g,         function(ch) { return '\\u0' + hex(ch); })
+            .replace(/[\u1000-\uFFFF]/g,         function(ch) { return '\\u'  + hex(ch); });
+        }
+
+        var expectedDescs = new Array(expected.length),
+            expectedDesc, foundDesc, i;
+
+        for (i = 0; i < expected.length; i++) {
+          expectedDescs[i] = expected[i].description;
+        }
+
+        expectedDesc = expected.length > 1
+          ? expectedDescs.slice(0, -1).join(", ")
+              + " or "
+              + expectedDescs[expected.length - 1]
+          : expectedDescs[0];
+
+        foundDesc = found ? "\"" + stringEscape(found) + "\"" : "end of input";
+
+        return "Expected " + expectedDesc + " but " + foundDesc + " found.";
+      }
+
+      if (expected !== null) {
+        cleanupExpected(expected);
+      }
+
+      return new peg$SyntaxError(
+        message !== null ? message : buildMessage(expected, found),
+        expected,
+        found,
+        location
+      );
+    }
+
+    function peg$parsestart() {
+      var s0;
+
+      s0 = peg$parsemerged();
+
+      return s0;
+    }
+
+    function peg$parsemerged() {
+      var s0, s1, s2, s3, s4, s5;
+
+      s0 = peg$currPos;
+      s1 = peg$parseordered();
+      if (s1 !== peg$FAILED) {
+        s2 = peg$parsesep();
+        if (s2 !== peg$FAILED) {
+          if (input.charCodeAt(peg$currPos) === 44) {
+            s3 = peg$c0;
+            peg$currPos++;
+          } else {
+            s3 = peg$FAILED;
+            if (peg$silentFails === 0) { peg$fail(peg$c1); }
+          }
+          if (s3 !== peg$FAILED) {
+            s4 = peg$parsesep();
+            if (s4 !== peg$FAILED) {
+              s5 = peg$parsemerged();
+              if (s5 !== peg$FAILED) {
+                peg$savedPos = s0;
+                s1 = peg$c2(s1, s5);
+                s0 = s1;
+              } else {
+                peg$currPos = s0;
+                s0 = peg$FAILED;
+              }
+            } else {
+              peg$currPos = s0;
+              s0 = peg$FAILED;
+            }
+          } else {
+            peg$currPos = s0;
+            s0 = peg$FAILED;
+          }
+        } else {
+          peg$currPos = s0;
+          s0 = peg$FAILED;
+        }
+      } else {
+        peg$currPos = s0;
+        s0 = peg$FAILED;
+      }
+      if (s0 === peg$FAILED) {
+        s0 = peg$currPos;
+        s1 = peg$parseordered();
+        if (s1 !== peg$FAILED) {
+          peg$savedPos = s0;
+          s1 = peg$c3(s1);
+        }
+        s0 = s1;
+      }
+
+      return s0;
+    }
+
+    function peg$parseordered() {
+      var s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13;
+
+      s0 = peg$currPos;
+      if (input.charCodeAt(peg$currPos) === 91) {
+        s1 = peg$c4;
+        peg$currPos++;
+      } else {
+        s1 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$c5); }
+      }
+      if (s1 !== peg$FAILED) {
+        s2 = peg$parsesep();
+        if (s2 !== peg$FAILED) {
+          s3 = peg$parsefiltered();
+          if (s3 !== peg$FAILED) {
+            s4 = peg$parsesep();
+            if (s4 !== peg$FAILED) {
+              if (input.charCodeAt(peg$currPos) === 44) {
+                s5 = peg$c0;
+                peg$currPos++;
+              } else {
+                s5 = peg$FAILED;
+                if (peg$silentFails === 0) { peg$fail(peg$c1); }
+              }
+              if (s5 !== peg$FAILED) {
+                s6 = peg$parsesep();
+                if (s6 !== peg$FAILED) {
+                  s7 = peg$parsefiltered();
+                  if (s7 !== peg$FAILED) {
+                    s8 = peg$parsesep();
+                    if (s8 !== peg$FAILED) {
+                      if (input.charCodeAt(peg$currPos) === 93) {
+                        s9 = peg$c6;
+                        peg$currPos++;
+                      } else {
+                        s9 = peg$FAILED;
+                        if (peg$silentFails === 0) { peg$fail(peg$c7); }
+                      }
+                      if (s9 !== peg$FAILED) {
+                        s10 = peg$parsesep();
+                        if (s10 !== peg$FAILED) {
+                          if (input.charCodeAt(peg$currPos) === 62) {
+                            s11 = peg$c8;
+                            peg$currPos++;
+                          } else {
+                            s11 = peg$FAILED;
+                            if (peg$silentFails === 0) { peg$fail(peg$c9); }
+                          }
+                          if (s11 !== peg$FAILED) {
+                            s12 = peg$parsesep();
+                            if (s12 !== peg$FAILED) {
+                              s13 = peg$parseordered();
+                              if (s13 !== peg$FAILED) {
+                                peg$savedPos = s0;
+                                s1 = peg$c10(s3, s7, s13);
+                                s0 = s1;
+                              } else {
+                                peg$currPos = s0;
+                                s0 = peg$FAILED;
+                              }
+                            } else {
+                              peg$currPos = s0;
+                              s0 = peg$FAILED;
+                            }
+                          } else {
+                            peg$currPos = s0;
+                            s0 = peg$FAILED;
+                          }
+                        } else {
+                          peg$currPos = s0;
+                          s0 = peg$FAILED;
+                        }
+                      } else {
+                        peg$currPos = s0;
+                        s0 = peg$FAILED;
+                      }
+                    } else {
+                      peg$currPos = s0;
+                      s0 = peg$FAILED;
+                    }
+                  } else {
+                    peg$currPos = s0;
+                    s0 = peg$FAILED;
+                  }
+                } else {
+                  peg$currPos = s0;
+                  s0 = peg$FAILED;
+                }
+              } else {
+                peg$currPos = s0;
+                s0 = peg$FAILED;
+              }
+            } else {
+              peg$currPos = s0;
+              s0 = peg$FAILED;
+            }
+          } else {
+            peg$currPos = s0;
+            s0 = peg$FAILED;
+          }
+        } else {
+          peg$currPos = s0;
+          s0 = peg$FAILED;
+        }
+      } else {
+        peg$currPos = s0;
+        s0 = peg$FAILED;
+      }
+      if (s0 === peg$FAILED) {
+        s0 = peg$parsefiltered();
+      }
+
+      return s0;
+    }
+
+    function peg$parsefiltered() {
+      var s0, s1, s2, s3;
+
+      s0 = peg$currPos;
+      s1 = peg$parsestream();
+      if (s1 !== peg$FAILED) {
+        s2 = [];
+        s3 = peg$parsefilter();
+        if (s3 !== peg$FAILED) {
+          while (s3 !== peg$FAILED) {
+            s2.push(s3);
+            s3 = peg$parsefilter();
+          }
+        } else {
+          s2 = peg$FAILED;
+        }
+        if (s2 !== peg$FAILED) {
+          peg$savedPos = s0;
+          s1 = peg$c11(s1, s2);
+          s0 = s1;
+        } else {
+          peg$currPos = s0;
+          s0 = peg$FAILED;
+        }
+      } else {
+        peg$currPos = s0;
+        s0 = peg$FAILED;
+      }
+      if (s0 === peg$FAILED) {
+        s0 = peg$currPos;
+        s1 = peg$parsestream();
+        if (s1 !== peg$FAILED) {
+          peg$savedPos = s0;
+          s1 = peg$c12(s1);
+        }
+        s0 = s1;
+      }
+
+      return s0;
+    }
+
+    function peg$parsestream() {
+      var s0, s1, s2, s3, s4;
+
+      s0 = peg$currPos;
+      if (input.charCodeAt(peg$currPos) === 40) {
+        s1 = peg$c13;
+        peg$currPos++;
+      } else {
+        s1 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$c14); }
+      }
+      if (s1 !== peg$FAILED) {
+        s2 = peg$parsemerged();
+        if (s2 !== peg$FAILED) {
+          if (input.charCodeAt(peg$currPos) === 41) {
+            s3 = peg$c15;
+            peg$currPos++;
+          } else {
+            s3 = peg$FAILED;
+            if (peg$silentFails === 0) { peg$fail(peg$c16); }
+          }
+          if (s3 !== peg$FAILED) {
+            peg$savedPos = s0;
+            s1 = peg$c17(s2);
+            s0 = s1;
+          } else {
+            peg$currPos = s0;
+            s0 = peg$FAILED;
+          }
+        } else {
+          peg$currPos = s0;
+          s0 = peg$FAILED;
+        }
+      } else {
+        peg$currPos = s0;
+        s0 = peg$FAILED;
+      }
+      if (s0 === peg$FAILED) {
+        s0 = peg$currPos;
+        if (input.charCodeAt(peg$currPos) === 64) {
+          s1 = peg$c18;
+          peg$currPos++;
+        } else {
+          s1 = peg$FAILED;
+          if (peg$silentFails === 0) { peg$fail(peg$c19); }
+        }
+        if (s1 !== peg$FAILED) {
+          s2 = peg$parsename();
+          if (s2 !== peg$FAILED) {
+            if (input.charCodeAt(peg$currPos) === 58) {
+              s3 = peg$c20;
+              peg$currPos++;
+            } else {
+              s3 = peg$FAILED;
+              if (peg$silentFails === 0) { peg$fail(peg$c21); }
+            }
+            if (s3 !== peg$FAILED) {
+              s4 = peg$parseeventType();
+              if (s4 !== peg$FAILED) {
+                peg$savedPos = s0;
+                s1 = peg$c22(s2, s4);
+                s0 = s1;
+              } else {
+                peg$currPos = s0;
+                s0 = peg$FAILED;
+              }
+            } else {
+              peg$currPos = s0;
+              s0 = peg$FAILED;
+            }
+          } else {
+            peg$currPos = s0;
+            s0 = peg$FAILED;
+          }
+        } else {
+          peg$currPos = s0;
+          s0 = peg$FAILED;
+        }
+        if (s0 === peg$FAILED) {
+          s0 = peg$currPos;
+          s1 = peg$parsemarkType();
+          if (s1 !== peg$FAILED) {
+            if (input.charCodeAt(peg$currPos) === 58) {
+              s2 = peg$c20;
+              peg$currPos++;
+            } else {
+              s2 = peg$FAILED;
+              if (peg$silentFails === 0) { peg$fail(peg$c21); }
+            }
+            if (s2 !== peg$FAILED) {
+              s3 = peg$parseeventType();
+              if (s3 !== peg$FAILED) {
+                peg$savedPos = s0;
+                s1 = peg$c23(s1, s3);
+                s0 = s1;
+              } else {
+                peg$currPos = s0;
+                s0 = peg$FAILED;
+              }
+            } else {
+              peg$currPos = s0;
+              s0 = peg$FAILED;
+            }
+          } else {
+            peg$currPos = s0;
+            s0 = peg$FAILED;
+          }
+          if (s0 === peg$FAILED) {
+            s0 = peg$currPos;
+            s1 = peg$parsecss();
+            if (s1 !== peg$FAILED) {
+              if (input.charCodeAt(peg$currPos) === 58) {
+                s2 = peg$c20;
+                peg$currPos++;
+              } else {
+                s2 = peg$FAILED;
+                if (peg$silentFails === 0) { peg$fail(peg$c21); }
+              }
+              if (s2 !== peg$FAILED) {
+                s3 = peg$parseeventType();
+                if (s3 !== peg$FAILED) {
+                  peg$savedPos = s0;
+                  s1 = peg$c24(s1, s3);
+                  s0 = s1;
+                } else {
+                  peg$currPos = s0;
+                  s0 = peg$FAILED;
+                }
+              } else {
+                peg$currPos = s0;
+                s0 = peg$FAILED;
+              }
+            } else {
+              peg$currPos = s0;
+              s0 = peg$FAILED;
+            }
+            if (s0 === peg$FAILED) {
+              s0 = peg$currPos;
+              s1 = peg$parseeventType();
+              if (s1 !== peg$FAILED) {
+                peg$savedPos = s0;
+                s1 = peg$c25(s1);
+              }
+              s0 = s1;
+              if (s0 === peg$FAILED) {
+                s0 = peg$currPos;
+                s1 = peg$parsename();
+                if (s1 !== peg$FAILED) {
+                  peg$savedPos = s0;
+                  s1 = peg$c26(s1);
+                }
+                s0 = s1;
+              }
+            }
+          }
+        }
+      }
+
+      return s0;
+    }
+
+    function peg$parsemarkType() {
+      var s0;
+
+      if (input.substr(peg$currPos, 4) === peg$c27) {
+        s0 = peg$c27;
+        peg$currPos += 4;
+      } else {
+        s0 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$c28); }
+      }
+      if (s0 === peg$FAILED) {
+        if (input.substr(peg$currPos, 6) === peg$c29) {
+          s0 = peg$c29;
+          peg$currPos += 6;
+        } else {
+          s0 = peg$FAILED;
+          if (peg$silentFails === 0) { peg$fail(peg$c30); }
+        }
+        if (s0 === peg$FAILED) {
+          if (input.substr(peg$currPos, 4) === peg$c31) {
+            s0 = peg$c31;
+            peg$currPos += 4;
+          } else {
+            s0 = peg$FAILED;
+            if (peg$silentFails === 0) { peg$fail(peg$c32); }
+          }
+          if (s0 === peg$FAILED) {
+            if (input.substr(peg$currPos, 3) === peg$c33) {
+              s0 = peg$c33;
+              peg$currPos += 3;
+            } else {
+              s0 = peg$FAILED;
+              if (peg$silentFails === 0) { peg$fail(peg$c34); }
+            }
+            if (s0 === peg$FAILED) {
+              if (input.substr(peg$currPos, 4) === peg$c35) {
+                s0 = peg$c35;
+                peg$currPos += 4;
+              } else {
+                s0 = peg$FAILED;
+                if (peg$silentFails === 0) { peg$fail(peg$c36); }
+              }
+              if (s0 === peg$FAILED) {
+                if (input.substr(peg$currPos, 4) === peg$c37) {
+                  s0 = peg$c37;
+                  peg$currPos += 4;
+                } else {
+                  s0 = peg$FAILED;
+                  if (peg$silentFails === 0) { peg$fail(peg$c38); }
+                }
+                if (s0 === peg$FAILED) {
+                  if (input.substr(peg$currPos, 4) === peg$c39) {
+                    s0 = peg$c39;
+                    peg$currPos += 4;
+                  } else {
+                    s0 = peg$FAILED;
+                    if (peg$silentFails === 0) { peg$fail(peg$c40); }
+                  }
+                  if (s0 === peg$FAILED) {
+                    if (input.substr(peg$currPos, 5) === peg$c41) {
+                      s0 = peg$c41;
+                      peg$currPos += 5;
+                    } else {
+                      s0 = peg$FAILED;
+                      if (peg$silentFails === 0) { peg$fail(peg$c42); }
+                    }
+                    if (s0 === peg$FAILED) {
+                      if (input.substr(peg$currPos, 4) === peg$c43) {
+                        s0 = peg$c43;
+                        peg$currPos += 4;
+                      } else {
+                        s0 = peg$FAILED;
+                        if (peg$silentFails === 0) { peg$fail(peg$c44); }
+                      }
+                      if (s0 === peg$FAILED) {
+                        if (input.substr(peg$currPos, 5) === peg$c45) {
+                          s0 = peg$c45;
+                          peg$currPos += 5;
+                        } else {
+                          s0 = peg$FAILED;
+                          if (peg$silentFails === 0) { peg$fail(peg$c46); }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      return s0;
+    }
+
+    function peg$parseeventType() {
+      var s0;
+
+      if (input.substr(peg$currPos, 9) === peg$c47) {
+        s0 = peg$c47;
+        peg$currPos += 9;
+      } else {
+        s0 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$c48); }
+      }
+      if (s0 === peg$FAILED) {
+        if (input.substr(peg$currPos, 7) === peg$c49) {
+          s0 = peg$c49;
+          peg$currPos += 7;
+        } else {
+          s0 = peg$FAILED;
+          if (peg$silentFails === 0) { peg$fail(peg$c50); }
+        }
+        if (s0 === peg$FAILED) {
+          if (input.substr(peg$currPos, 5) === peg$c51) {
+            s0 = peg$c51;
+            peg$currPos += 5;
+          } else {
+            s0 = peg$FAILED;
+            if (peg$silentFails === 0) { peg$fail(peg$c52); }
+          }
+          if (s0 === peg$FAILED) {
+            if (input.substr(peg$currPos, 8) === peg$c53) {
+              s0 = peg$c53;
+              peg$currPos += 8;
+            } else {
+              s0 = peg$FAILED;
+              if (peg$silentFails === 0) { peg$fail(peg$c54); }
+            }
+            if (s0 === peg$FAILED) {
+              if (input.substr(peg$currPos, 5) === peg$c55) {
+                s0 = peg$c55;
+                peg$currPos += 5;
+              } else {
+                s0 = peg$FAILED;
+                if (peg$silentFails === 0) { peg$fail(peg$c56); }
+              }
+              if (s0 === peg$FAILED) {
+                if (input.substr(peg$currPos, 7) === peg$c57) {
+                  s0 = peg$c57;
+                  peg$currPos += 7;
+                } else {
+                  s0 = peg$FAILED;
+                  if (peg$silentFails === 0) { peg$fail(peg$c58); }
+                }
+                if (s0 === peg$FAILED) {
+                  if (input.substr(peg$currPos, 8) === peg$c59) {
+                    s0 = peg$c59;
+                    peg$currPos += 8;
+                  } else {
+                    s0 = peg$FAILED;
+                    if (peg$silentFails === 0) { peg$fail(peg$c60); }
+                  }
+                  if (s0 === peg$FAILED) {
+                    if (input.substr(peg$currPos, 5) === peg$c61) {
+                      s0 = peg$c61;
+                      peg$currPos += 5;
+                    } else {
+                      s0 = peg$FAILED;
+                      if (peg$silentFails === 0) { peg$fail(peg$c62); }
+                    }
+                    if (s0 === peg$FAILED) {
+                      if (input.substr(peg$currPos, 10) === peg$c63) {
+                        s0 = peg$c63;
+                        peg$currPos += 10;
+                      } else {
+                        s0 = peg$FAILED;
+                        if (peg$silentFails === 0) { peg$fail(peg$c64); }
+                      }
+                      if (s0 === peg$FAILED) {
+                        if (input.substr(peg$currPos, 9) === peg$c65) {
+                          s0 = peg$c65;
+                          peg$currPos += 9;
+                        } else {
+                          s0 = peg$FAILED;
+                          if (peg$silentFails === 0) { peg$fail(peg$c66); }
+                        }
+                        if (s0 === peg$FAILED) {
+                          if (input.substr(peg$currPos, 8) === peg$c67) {
+                            s0 = peg$c67;
+                            peg$currPos += 8;
+                          } else {
+                            s0 = peg$FAILED;
+                            if (peg$silentFails === 0) { peg$fail(peg$c68); }
+                          }
+                          if (s0 === peg$FAILED) {
+                            if (input.substr(peg$currPos, 9) === peg$c69) {
+                              s0 = peg$c69;
+                              peg$currPos += 9;
+                            } else {
+                              s0 = peg$FAILED;
+                              if (peg$silentFails === 0) { peg$fail(peg$c70); }
+                            }
+                            if (s0 === peg$FAILED) {
+                              if (input.substr(peg$currPos, 10) === peg$c71) {
+                                s0 = peg$c71;
+                                peg$currPos += 10;
+                              } else {
+                                s0 = peg$FAILED;
+                                if (peg$silentFails === 0) { peg$fail(peg$c72); }
+                              }
+                              if (s0 === peg$FAILED) {
+                                if (input.substr(peg$currPos, 10) === peg$c73) {
+                                  s0 = peg$c73;
+                                  peg$currPos += 10;
+                                } else {
+                                  s0 = peg$FAILED;
+                                  if (peg$silentFails === 0) { peg$fail(peg$c74); }
+                                }
+                                if (s0 === peg$FAILED) {
+                                  if (input.substr(peg$currPos, 9) === peg$c75) {
+                                    s0 = peg$c75;
+                                    peg$currPos += 9;
+                                  } else {
+                                    s0 = peg$FAILED;
+                                    if (peg$silentFails === 0) { peg$fail(peg$c76); }
+                                  }
+                                  if (s0 === peg$FAILED) {
+                                    if (input.substr(peg$currPos, 8) === peg$c77) {
+                                      s0 = peg$c77;
+                                      peg$currPos += 8;
+                                    } else {
+                                      s0 = peg$FAILED;
+                                      if (peg$silentFails === 0) { peg$fail(peg$c78); }
+                                    }
+                                    if (s0 === peg$FAILED) {
+                                      if (input.substr(peg$currPos, 9) === peg$c79) {
+                                        s0 = peg$c79;
+                                        peg$currPos += 9;
+                                      } else {
+                                        s0 = peg$FAILED;
+                                        if (peg$silentFails === 0) { peg$fail(peg$c80); }
+                                      }
+                                      if (s0 === peg$FAILED) {
+                                        if (input.substr(peg$currPos, 8) === peg$c81) {
+                                          s0 = peg$c81;
+                                          peg$currPos += 8;
+                                        } else {
+                                          s0 = peg$FAILED;
+                                          if (peg$silentFails === 0) { peg$fail(peg$c82); }
+                                        }
+                                        if (s0 === peg$FAILED) {
+                                          if (input.substr(peg$currPos, 9) === peg$c83) {
+                                            s0 = peg$c83;
+                                            peg$currPos += 9;
+                                          } else {
+                                            s0 = peg$FAILED;
+                                            if (peg$silentFails === 0) { peg$fail(peg$c84); }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      return s0;
+    }
+
+    function peg$parsefilter() {
+      var s0, s1, s2, s3;
+
+      s0 = peg$currPos;
+      if (input.charCodeAt(peg$currPos) === 91) {
+        s1 = peg$c4;
+        peg$currPos++;
+      } else {
+        s1 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$c5); }
+      }
+      if (s1 !== peg$FAILED) {
+        s2 = peg$parseexpr();
+        if (s2 !== peg$FAILED) {
+          if (input.charCodeAt(peg$currPos) === 93) {
+            s3 = peg$c6;
+            peg$currPos++;
+          } else {
+            s3 = peg$FAILED;
+            if (peg$silentFails === 0) { peg$fail(peg$c7); }
+          }
+          if (s3 !== peg$FAILED) {
+            peg$savedPos = s0;
+            s1 = peg$c85(s2);
+            s0 = s1;
+          } else {
+            peg$currPos = s0;
+            s0 = peg$FAILED;
+          }
+        } else {
+          peg$currPos = s0;
+          s0 = peg$FAILED;
+        }
+      } else {
+        peg$currPos = s0;
+        s0 = peg$FAILED;
+      }
+
+      return s0;
+    }
+
+    function peg$parsename() {
+      var s0, s1, s2;
+
+      s0 = peg$currPos;
+      s1 = [];
+      if (peg$c86.test(input.charAt(peg$currPos))) {
+        s2 = input.charAt(peg$currPos);
+        peg$currPos++;
+      } else {
+        s2 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$c87); }
+      }
+      if (s2 !== peg$FAILED) {
+        while (s2 !== peg$FAILED) {
+          s1.push(s2);
+          if (peg$c86.test(input.charAt(peg$currPos))) {
+            s2 = input.charAt(peg$currPos);
+            peg$currPos++;
+          } else {
+            s2 = peg$FAILED;
+            if (peg$silentFails === 0) { peg$fail(peg$c87); }
+          }
+        }
+      } else {
+        s1 = peg$FAILED;
+      }
+      if (s1 !== peg$FAILED) {
+        peg$savedPos = s0;
+        s1 = peg$c88(s1);
+      }
+      s0 = s1;
+
+      return s0;
+    }
+
+    function peg$parsecss() {
+      var s0, s1, s2;
+
+      s0 = peg$currPos;
+      s1 = [];
+      if (peg$c89.test(input.charAt(peg$currPos))) {
+        s2 = input.charAt(peg$currPos);
+        peg$currPos++;
+      } else {
+        s2 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$c90); }
+      }
+      if (s2 !== peg$FAILED) {
+        while (s2 !== peg$FAILED) {
+          s1.push(s2);
+          if (peg$c89.test(input.charAt(peg$currPos))) {
+            s2 = input.charAt(peg$currPos);
+            peg$currPos++;
+          } else {
+            s2 = peg$FAILED;
+            if (peg$silentFails === 0) { peg$fail(peg$c90); }
+          }
+        }
+      } else {
+        s1 = peg$FAILED;
+      }
+      if (s1 !== peg$FAILED) {
+        peg$savedPos = s0;
+        s1 = peg$c91(s1);
+      }
+      s0 = s1;
+
+      return s0;
+    }
+
+    function peg$parseexpr() {
+      var s0, s1, s2;
+
+      s0 = peg$currPos;
+      s1 = [];
+      if (peg$c92.test(input.charAt(peg$currPos))) {
+        s2 = input.charAt(peg$currPos);
+        peg$currPos++;
+      } else {
+        s2 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$c93); }
+      }
+      if (s2 !== peg$FAILED) {
+        while (s2 !== peg$FAILED) {
+          s1.push(s2);
+          if (peg$c92.test(input.charAt(peg$currPos))) {
+            s2 = input.charAt(peg$currPos);
+            peg$currPos++;
+          } else {
+            s2 = peg$FAILED;
+            if (peg$silentFails === 0) { peg$fail(peg$c93); }
+          }
+        }
+      } else {
+        s1 = peg$FAILED;
+      }
+      if (s1 !== peg$FAILED) {
+        peg$savedPos = s0;
+        s1 = peg$c94(s1);
+      }
+      s0 = s1;
+
+      return s0;
+    }
+
+    function peg$parsesep() {
+      var s0, s1;
+
+      s0 = [];
+      if (peg$c95.test(input.charAt(peg$currPos))) {
+        s1 = input.charAt(peg$currPos);
+        peg$currPos++;
+      } else {
+        s1 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$c96); }
+      }
+      while (s1 !== peg$FAILED) {
+        s0.push(s1);
+        if (peg$c95.test(input.charAt(peg$currPos))) {
+          s1 = input.charAt(peg$currPos);
+          peg$currPos++;
+        } else {
+          s1 = peg$FAILED;
+          if (peg$silentFails === 0) { peg$fail(peg$c96); }
+        }
+      }
+
+      return s0;
+    }
+
+    peg$result = peg$startRuleFunction();
+
+    if (peg$result !== peg$FAILED && peg$currPos === input.length) {
+      return peg$result;
+    } else {
+      if (peg$result !== peg$FAILED && peg$currPos < input.length) {
+        peg$fail({ type: "end", description: "end of input" });
+      }
+
+      throw peg$buildException(
+        null,
+        peg$maxFailExpected,
+        peg$maxFailPos < input.length ? input.charAt(peg$maxFailPos) : null,
+        peg$maxFailPos < input.length
+          ? peg$computeLocation(peg$maxFailPos, peg$maxFailPos + 1)
+          : peg$computeLocation(peg$maxFailPos, peg$maxFailPos)
+      );
+    }
+  }
+
+  return {
+    SyntaxError: peg$SyntaxError,
+    parse:       peg$parse
+  };
+})();
+
+},{}],207:[function(require,module,exports){
 function toMap(list) {
   var map = {}, i, n;
   for (i=0, n=list.length; i<n; ++i) map[list[i]] = 1;
@@ -56924,7 +58125,7 @@ module.exports = function(opt) {
   return codegen_wrap;
 };
 
-},{"./constants":207,"./functions":208}],207:[function(require,module,exports){
+},{"./constants":208,"./functions":209}],208:[function(require,module,exports){
 module.exports = {
   'NaN':     'NaN',
   'E':       'Math.E',
@@ -56936,7 +58137,7 @@ module.exports = {
   'SQRT1_2': 'Math.SQRT1_2',
   'SQRT2':   'Math.SQRT2'
 };
-},{}],208:[function(require,module,exports){
+},{}],209:[function(require,module,exports){
 module.exports = function(codegen) {
 
   function fncall(name, args, cast, type) {
@@ -57045,7 +58246,7 @@ module.exports = function(codegen) {
   };
 };
 
-},{}],209:[function(require,module,exports){
+},{}],210:[function(require,module,exports){
 var parser = require('./parser'),
     codegen = require('./codegen');
 
@@ -57077,7 +58278,7 @@ var expr = module.exports = {
   functions: require('./functions'),
   constants: require('./constants')
 };
-},{"./codegen":206,"./constants":207,"./functions":208,"./parser":210}],210:[function(require,module,exports){
+},{"./codegen":207,"./constants":208,"./functions":209,"./parser":211}],211:[function(require,module,exports){
 /*
   The following expression parser is based on Esprima (http://esprima.org/).
   Original header comment and license for Esprima is included here:
@@ -59405,7 +60606,7 @@ module.exports = (function() {
   };
 
 })();
-},{}],211:[function(require,module,exports){
+},{}],212:[function(require,module,exports){
 var ts = Date.now();
 
 function write(msg) {
@@ -59441,7 +60642,7 @@ module.exports = {
   debug: (debug.enable = false, debug)
 };
 
-},{}],212:[function(require,module,exports){
+},{}],213:[function(require,module,exports){
 module.exports = {
   path:       require('./path'),
   render:     require('./render'),
@@ -59453,7 +60654,7 @@ module.exports = {
   toJSON:     require('./util/scene').toJSON,
   fromJSON:   require('./util/scene').fromJSON
 };
-},{"./path":214,"./render":234,"./util/Bounds":240,"./util/Gradient":242,"./util/Item":244,"./util/bound":245,"./util/canvas":246,"./util/scene":248}],213:[function(require,module,exports){
+},{"./path":215,"./render":235,"./util/Bounds":241,"./util/Gradient":243,"./util/Item":245,"./util/bound":246,"./util/canvas":247,"./util/scene":249}],214:[function(require,module,exports){
 var segmentCache = {},
     bezierCache = {},
     join = [].join;
@@ -59568,13 +60769,13 @@ module.exports = {
   }
 };
 
-},{}],214:[function(require,module,exports){
+},{}],215:[function(require,module,exports){
 module.exports = {
   parse:  require('./parse'),
   render: require('./render')
 };
 
-},{"./parse":215,"./render":216}],215:[function(require,module,exports){
+},{"./parse":216,"./render":217}],216:[function(require,module,exports){
 // Path parsing and rendering code adapted from fabric.js -- Thanks!
 var cmdlen = { m:2, l:2, h:1, v:1, c:6, s:4, q:4, t:2, a:7 },
     regexp = [/([MLHVCSQTAZmlhvcsqtaz])/g, /###/, /(\d)([-+])/g, /\s|,|###/];
@@ -59625,7 +60826,7 @@ module.exports = function(pathstr) {
   return result;
 };
 
-},{}],216:[function(require,module,exports){
+},{}],217:[function(require,module,exports){
 var arc = require('./arc');
 
 module.exports = function(g, path, l, t) {
@@ -59921,7 +61122,7 @@ function drawArc(g, x, y, coords) {
   }
 }
 
-},{"./arc":213}],217:[function(require,module,exports){
+},{"./arc":214}],218:[function(require,module,exports){
 function Handler() {
   this._active = null;
   this._handlers = {};
@@ -59971,7 +61172,7 @@ prototype.eventName = function(name) {
 };
 
 module.exports = Handler;
-},{}],218:[function(require,module,exports){
+},{}],219:[function(require,module,exports){
 function Renderer() {
   this._el = null;
   this._bgcolor = null;
@@ -60013,7 +61214,7 @@ prototype.render = function(/*scene, items*/) {
 };
 
 module.exports = Renderer;
-},{}],219:[function(require,module,exports){
+},{}],220:[function(require,module,exports){
 var DOM = require('../../util/dom'),
     Handler = require('../Handler'),
     marks = require('./marks');
@@ -60202,7 +61403,7 @@ prototype.pick = function(scene, x, y, gx, gy) {
 
 module.exports = CanvasHandler;
 
-},{"../../util/dom":247,"../Handler":217,"./marks":226}],220:[function(require,module,exports){
+},{"../../util/dom":248,"../Handler":218,"./marks":227}],221:[function(require,module,exports){
 var DOM = require('../../util/dom'),
     Bounds = require('../../util/Bounds'),
     ImageLoader = require('../../util/ImageLoader'),
@@ -60340,12 +61541,12 @@ prototype.renderAsync = function(scene) {
 
 module.exports = CanvasRenderer;
 
-},{"../../util/Bounds":240,"../../util/ImageLoader":243,"../../util/canvas":246,"../../util/dom":247,"../Renderer":218,"./marks":226}],221:[function(require,module,exports){
+},{"../../util/Bounds":241,"../../util/ImageLoader":244,"../../util/canvas":247,"../../util/dom":248,"../Renderer":219,"./marks":227}],222:[function(require,module,exports){
 module.exports = {
   Handler:  require('./CanvasHandler'),
   Renderer: require('./CanvasRenderer')
 };
-},{"./CanvasHandler":219,"./CanvasRenderer":220}],222:[function(require,module,exports){
+},{"./CanvasHandler":220,"./CanvasRenderer":221}],223:[function(require,module,exports){
 var util = require('./util');
 var halfpi = Math.PI / 2;
 
@@ -60367,7 +61568,7 @@ module.exports = {
   draw: util.drawAll(path),
   pick: util.pickPath(path)
 };
-},{"./util":233}],223:[function(require,module,exports){
+},{"./util":234}],224:[function(require,module,exports){
 var util = require('./util'),
     parse = require('../../../path/parse'),
     render = require('../../../path/render'),
@@ -60402,7 +61603,7 @@ module.exports = {
   nested: true
 };
 
-},{"../../../path/parse":215,"../../../path/render":216,"../../../util/svg":249,"./util":233}],224:[function(require,module,exports){
+},{"../../../path/parse":216,"../../../path/render":217,"../../../util/svg":250,"./util":234}],225:[function(require,module,exports){
 var util = require('./util'),
     EMPTY = [];
 
@@ -60541,7 +61742,7 @@ module.exports = {
   pick: pick
 };
 
-},{"./util":233}],225:[function(require,module,exports){
+},{"./util":234}],226:[function(require,module,exports){
 var util = require('./util');
 
 function draw(g, scene, bounds) {
@@ -60579,7 +61780,7 @@ module.exports = {
   draw: draw,
   pick: util.pick()
 };
-},{"./util":233}],226:[function(require,module,exports){
+},{"./util":234}],227:[function(require,module,exports){
 module.exports = {
   arc:    require('./arc'),
   area:   require('./area'),
@@ -60593,7 +61794,7 @@ module.exports = {
   text:   require('./text')
 };
 
-},{"./arc":222,"./area":223,"./group":224,"./image":225,"./line":227,"./path":228,"./rect":229,"./rule":230,"./symbol":231,"./text":232}],227:[function(require,module,exports){
+},{"./arc":223,"./area":224,"./group":225,"./image":226,"./line":228,"./path":229,"./rect":230,"./rule":231,"./symbol":232,"./text":233}],228:[function(require,module,exports){
 var util = require('./util'),
     parse = require('../../../path/parse'),
     render = require('../../../path/render'),
@@ -60628,7 +61829,7 @@ module.exports = {
   nested: true
 };
 
-},{"../../../path/parse":215,"../../../path/render":216,"../../../util/svg":249,"./util":233}],228:[function(require,module,exports){
+},{"../../../path/parse":216,"../../../path/render":217,"../../../util/svg":250,"./util":234}],229:[function(require,module,exports){
 var util = require('./util'),
     parse = require('../../../path/parse'),
     render = require('../../../path/render');
@@ -60644,7 +61845,7 @@ module.exports = {
   pick: util.pickPath(path)
 };
 
-},{"../../../path/parse":215,"../../../path/render":216,"./util":233}],229:[function(require,module,exports){
+},{"../../../path/parse":216,"../../../path/render":217,"./util":234}],230:[function(require,module,exports){
 var util = require('./util');
 
 function draw(g, scene, bounds) {
@@ -60679,7 +61880,7 @@ module.exports = {
   draw: draw,
   pick: util.pick()
 };
-},{"./util":233}],230:[function(require,module,exports){
+},{"./util":234}],231:[function(require,module,exports){
 var util = require('./util');
 
 function draw(g, scene, bounds) {
@@ -60736,7 +61937,7 @@ module.exports = {
   pick: util.pick(hit)
 };
 
-},{"./util":233}],231:[function(require,module,exports){
+},{"./util":234}],232:[function(require,module,exports){
 var util = require('./util');
 
 var sqrt3 = Math.sqrt(3),
@@ -60810,7 +62011,7 @@ module.exports = {
   draw: util.drawAll(path),
   pick: util.pickPath(path)
 };
-},{"./util":233}],232:[function(require,module,exports){
+},{"./util":234}],233:[function(require,module,exports){
 var Bounds = require('../../../util/Bounds'),
     textBounds = require('../../../util/bound').text,
     text = require('../../../util/text'),
@@ -60885,7 +62086,7 @@ module.exports = {
   pick: util.pick(hit)
 };
 
-},{"../../../util/Bounds":240,"../../../util/bound":245,"../../../util/text":250,"./util":233}],233:[function(require,module,exports){
+},{"../../../util/Bounds":241,"../../../util/bound":246,"../../../util/text":251,"./util":234}],234:[function(require,module,exports){
 function drawPathOne(path, g, o, items) {
   if (path(g, items)) return;
 
@@ -61034,13 +62235,13 @@ module.exports = {
   gradient: gradient
 };
 
-},{}],234:[function(require,module,exports){
+},{}],235:[function(require,module,exports){
 module.exports = {
   'canvas': require('./canvas'),
   'svg':    require('./svg')
 };
 
-},{"./canvas":221,"./svg":238}],235:[function(require,module,exports){
+},{"./canvas":222,"./svg":239}],236:[function(require,module,exports){
 var DOM = require('../../util/dom'),
     Handler = require('../Handler');
 
@@ -61106,7 +62307,7 @@ prototype.off = function(type, handler) {
 
 module.exports = SVGHandler;
 
-},{"../../util/dom":247,"../Handler":217}],236:[function(require,module,exports){
+},{"../../util/dom":248,"../Handler":218}],237:[function(require,module,exports){
 var ImageLoader = require('../../util/ImageLoader'),
     Renderer = require('../Renderer'),
     text = require('../../util/text'),
@@ -61531,7 +62732,7 @@ function href() {
 
 module.exports = SVGRenderer;
 
-},{"../../util/ImageLoader":243,"../../util/dom":247,"../../util/svg":249,"../../util/text":250,"../Renderer":218,"./marks":239}],237:[function(require,module,exports){
+},{"../../util/ImageLoader":244,"../../util/dom":248,"../../util/svg":250,"../../util/text":251,"../Renderer":219,"./marks":240}],238:[function(require,module,exports){
 var Renderer = require('../Renderer'),
     ImageLoader = require('../../util/ImageLoader'),
     SVG = require('../../util/svg'),
@@ -61775,7 +62976,7 @@ function escape_text(s) {
 
 module.exports = SVGStringRenderer;
 
-},{"../../util/ImageLoader":243,"../../util/dom":247,"../../util/svg":249,"../../util/text":250,"../Renderer":218,"./marks":239}],238:[function(require,module,exports){
+},{"../../util/ImageLoader":244,"../../util/dom":248,"../../util/svg":250,"../../util/text":251,"../Renderer":219,"./marks":240}],239:[function(require,module,exports){
 module.exports = {
   Handler:  require('./SVGHandler'),
   Renderer: require('./SVGRenderer'),
@@ -61783,7 +62984,7 @@ module.exports = {
     Renderer : require('./SVGStringRenderer')
   }
 };
-},{"./SVGHandler":235,"./SVGRenderer":236,"./SVGStringRenderer":237}],239:[function(require,module,exports){
+},{"./SVGHandler":236,"./SVGRenderer":237,"./SVGStringRenderer":238}],240:[function(require,module,exports){
 var text = require('../../util/text'),
     SVG = require('../../util/svg'),
     textAlign = SVG.textAlign,
@@ -61930,7 +63131,7 @@ module.exports = {
   }
 };
 
-},{"../../util/svg":249,"../../util/text":250}],240:[function(require,module,exports){
+},{"../../util/svg":250,"../../util/text":251}],241:[function(require,module,exports){
 function Bounds(b) {
   this.clear();
   if (b) this.union(b);
@@ -62059,7 +63260,7 @@ prototype.height = function() {
 
 module.exports = Bounds;
 
-},{}],241:[function(require,module,exports){
+},{}],242:[function(require,module,exports){
 module.exports = function(b) {
   function noop() { }
   function add(x,y) { b.add(x, y); }
@@ -62085,7 +63286,7 @@ module.exports = function(b) {
   };
 };
 
-},{}],242:[function(require,module,exports){
+},{}],243:[function(require,module,exports){
 var gradient_id = 0;
 
 function Gradient(type) {
@@ -62109,7 +63310,7 @@ prototype.stop = function(offset, color) {
 };
 
 module.exports = Gradient;
-},{}],243:[function(require,module,exports){
+},{}],244:[function(require,module,exports){
 (function (global){
 var load = require('datalib/src/import/load');
 
@@ -62188,7 +63389,7 @@ prototype.loadImage = function(uri, callback) {
 module.exports = ImageLoader;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"datalib/src/import/load":26}],244:[function(require,module,exports){
+},{"datalib/src/import/load":26}],245:[function(require,module,exports){
 function Item(mark) {
   this.mark = mark;
 }
@@ -62237,7 +63438,7 @@ prototype.touch = function() {
 };
 
 module.exports = Item;
-},{}],245:[function(require,module,exports){
+},{}],246:[function(require,module,exports){
 var BoundsContext = require('./BoundsContext'),
     Bounds = require('./Bounds'),
     canvas = require('./canvas'),
@@ -62534,7 +63735,7 @@ module.exports = {
   group: group
 };
 
-},{"../path":214,"./Bounds":240,"./BoundsContext":241,"./canvas":246,"./svg":249,"./text":250}],246:[function(require,module,exports){
+},{"../path":215,"./Bounds":241,"./BoundsContext":242,"./canvas":247,"./svg":250,"./text":251}],247:[function(require,module,exports){
 (function (global){
 function instance(w, h) {
   w = w || 1;
@@ -62627,7 +63828,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],247:[function(require,module,exports){
+},{}],248:[function(require,module,exports){
 // create a new DOM element
 function create(doc, tag, ns) {
   return ns ? doc.createElementNS(ns, tag) : doc.createElement(tag);
@@ -62705,7 +63906,7 @@ module.exports = {
   }
 };
 
-},{}],248:[function(require,module,exports){
+},{}],249:[function(require,module,exports){
 var bound = require('../util/bound');
 
 var sets = [
@@ -62763,7 +63964,7 @@ module.exports = {
   toJSON:   toJSON,
   fromJSON: fromJSON
 };
-},{"../util/bound":245}],249:[function(require,module,exports){
+},{"../util/bound":246}],250:[function(require,module,exports){
 (function (global){
 var d3_svg = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null).svg;
 
@@ -62837,7 +64038,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],250:[function(require,module,exports){
+},{}],251:[function(require,module,exports){
 function size(item) {
   return item.fontSize != null ? item.fontSize : 11;
 }
@@ -62872,9 +64073,9 @@ module.exports = {
   }
 };
 
-},{}],251:[function(require,module,exports){
+},{}],252:[function(require,module,exports){
 module.exports = {
-  version: '2.4.2',
+  version: '2.5.1',
   dataflow: require('vega-dataflow'),
   parse: require('./src/parse/'),
   scene: {
@@ -62882,6 +64083,7 @@ module.exports = {
     Builder: require('./src/scene/Builder'),
     Encoder: require('./src/scene/Encoder'),
     GroupBuilder: require('./src/scene/GroupBuilder'),
+    visit: require('./src/scene/visit')
   },
   transforms: require('./src/transforms'),
   Transform: require('./src/transforms/Transform'),
@@ -62889,11 +64091,11 @@ module.exports = {
   Parameter: require('./src/transforms/Parameter'),
   schema: require('./src/core/schema'),
   config: require('./src/core/config'),
-  util:  require('datalib'),
+  util: require('./src/util'),
   logging: require('vega-logging'),
   debug: require('vega-logging').debug
 };
-},{"./src/core/config":255,"./src/core/schema":256,"./src/parse/":262,"./src/scene/Bounder":274,"./src/scene/Builder":275,"./src/scene/Encoder":276,"./src/scene/GroupBuilder":277,"./src/transforms":309,"./src/transforms/BatchTransform":284,"./src/transforms/Parameter":300,"./src/transforms/Transform":304,"datalib":30,"vega-dataflow":205,"vega-logging":211}],252:[function(require,module,exports){
+},{"./src/core/config":256,"./src/core/schema":257,"./src/parse/":262,"./src/scene/Bounder":274,"./src/scene/Builder":275,"./src/scene/Encoder":276,"./src/scene/GroupBuilder":277,"./src/scene/visit":282,"./src/transforms":310,"./src/transforms/BatchTransform":284,"./src/transforms/Parameter":300,"./src/transforms/Transform":305,"./src/util":313,"vega-dataflow":205,"vega-logging":212}],253:[function(require,module,exports){
 var sg = require('vega-scenegraph').render,
     canvas = sg.canvas,
     svg = sg.svg.string,
@@ -62957,7 +64159,7 @@ prototype.initialize = function() {
 };
 
 module.exports = HeadlessView;
-},{"./View":254,"vega-scenegraph":212}],253:[function(require,module,exports){
+},{"./View":255,"vega-scenegraph":213}],254:[function(require,module,exports){
 var dl = require('datalib'),
     df = require('vega-dataflow'),
     ChangeSet = df.ChangeSet,
@@ -62965,6 +64167,7 @@ var dl = require('datalib'),
     Node  = df.Node, // jshint ignore:line
     GroupBuilder = require('../scene/GroupBuilder'),
     visit = require('../scene/visit'),
+    compiler = require('../parse/expr'),
     config = require('./config');
 
 function Model(cfg) {
@@ -62980,6 +64183,7 @@ function Model(cfg) {
   this._reset = {axes: false, legends: false};
 
   this.config(cfg);
+  this.expr = compiler(this);
   Base.init.call(this);
 }
 
@@ -62998,7 +64202,7 @@ prototype.config = function(cfg) {
   for (var name in cfg) {
     var x = cfg[name], y = this._config[name];
     if (dl.isObject(x) && dl.isObject(y)) {
-      dl.extend(y, x);
+      this._config[name] = dl.extend({}, y, x);
     } else {
       this._config[name] = x;
     }
@@ -63118,7 +64322,7 @@ prototype.fire = function(cs) {
 };
 
 module.exports = Model;
-},{"../scene/GroupBuilder":277,"../scene/visit":282,"./config":255,"datalib":30,"vega-dataflow":205}],254:[function(require,module,exports){
+},{"../parse/expr":261,"../scene/GroupBuilder":277,"../scene/visit":282,"./config":256,"datalib":30,"vega-dataflow":205}],255:[function(require,module,exports){
 (function (global){
 var d3 = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null),
     dl = require('datalib'),
@@ -63136,12 +64340,14 @@ function View(el, width, height) {
   this._width   = this.__width = width || 500;
   this._height  = this.__height = height || 300;
   this._bgcolor = null;
+  this._cursor  = true; // Set cursor based on hover propset?
   this._autopad = 1;
   this._padding = {top:0, left:0, bottom:0, right:0};
   this._viewport = null;
   this._renderer = null;
   this._handler  = null;
   this._streamer = null; // Targeted update for streaming changes
+  this._skipSignals = false; // Batch set signals can skip reevaluation.
   this._changeset = null;
   this._repaint = true; // Full re-render on every re-init
   this._renderers = sg;
@@ -63166,9 +64372,10 @@ prototype.model = function(model) {
 // Sandboxed streaming data API
 function streaming(src) {
   var view = this,
-      ds = this._model.data(src),
-      name = ds.name(),
-      listener = ds.pipeline()[0],
+      ds = this._model.data(src);
+  if (!ds) return log.error('Data source "'+src+'" is not defined.');
+
+  var listener = ds.pipeline()[0],
       streamer = this._streamer,
       api = {};
 
@@ -63178,19 +64385,19 @@ function streaming(src) {
   api.insert = function(vals) {
     ds.insert(dl.duplicate(vals));  // Don't pollute the environment
     streamer.addListener(listener);
-    view._changeset.data[name] = 1;
+    view._changeset.data[src] = 1;
     return api;
   };
 
   api.update = function() {
     streamer.addListener(listener);
-    view._changeset.data[name] = 1;
+    view._changeset.data[src] = 1;
     return (ds.update.apply(ds, arguments), api);
   };
 
   api.remove = function() {
     streamer.addListener(listener);
-    view._changeset.data[name] = 1;
+    view._changeset.data[src] = 1;
     return (ds.remove.apply(ds, arguments), api);
   };
 
@@ -63214,7 +64421,7 @@ prototype.data = function(data) {
 
 var VIEW_SIGNALS = dl.toMap(['width', 'height', 'padding']);
 
-prototype.signal = function(name, value, propagate) {
+prototype.signal = function(name, value, skip) {
   var m = this._model,
       key, values;
 
@@ -63227,10 +64434,10 @@ prototype.signal = function(name, value, propagate) {
   }
 
   // Setter. Can be done in batch or individually. In either case,
-  // the final argument determines if set values should propagate.
+  // the final argument determines if set signals should be skipped.
   if (dl.isObject(name)) {
     values = name;
-    propagate = value;
+    skip = value;
   } else {
     values = {};
     values[name] = value;
@@ -63239,16 +64446,19 @@ prototype.signal = function(name, value, propagate) {
     if (VIEW_SIGNALS[key]) {
       this[key](values[key]);
     } else {
-      setSignal.call(this, key, values[key], propagate);
+      setSignal.call(this, key, values[key]);
     }
   }
-  return this;
+  return (this._skipSignals = skip, this);
 };
 
-function setSignal(name, value, propagate) {
-  var cs = this._changeset;
-  this._streamer.addListener(this._model.signal(name).value(value));
-  if (propagate !== false) cs.signals[name] = 1;
+function setSignal(name, value) {
+  var cs = this._changeset,
+      sg = this._model.signal(name);
+  if (!sg) return log.error('Signal "'+name+'" is not defined.');
+
+  this._streamer.addListener(sg.value(value));
+  cs.signals[name] = 1;
   cs.reflow = true;
 }
 
@@ -63430,7 +64640,6 @@ function build() {
       input.trans.start(function(items) { v._renderer.render(s, items); });
     } else if (v._repaint) {
       v._renderer.render(s);
-      v._repaint = false;
     } else if (input.dirty.length) {
       v._renderer.render(s, input.dirty);
     }
@@ -63440,6 +64649,7 @@ function build() {
       s.items[0]._dirty = false;
     }
 
+    v._repaint = v._skipSignals = false;
     return input;
   };
 
@@ -63479,7 +64689,7 @@ prototype.update = function(opt) {
   } else if (streamer.listeners().length && built) {
     // Include re-evaluation entire model when repaint flag is set
     if (this._repaint) streamer.addListener(model.node());
-    model.propagate(cs, streamer);
+    model.propagate(cs, streamer, null, this._skipSignals);
     streamer.disconnect();
   } else {
     model.fire(cs);
@@ -63509,6 +64719,7 @@ prototype.toImageURL = function(type) {
   // render the scenegraph
   var ren = new Renderer(v._model.config.load)
     .initialize(null, v._width, v._height, v._padding)
+    .background(v._bgcolor)
     .render(v._model.scene());
 
   sg.canvas.Renderer.RETINA = retina; // restore retina settings
@@ -63533,8 +64744,9 @@ prototype.on = function() {
 };
 
 prototype.onSignal = function(name, handler) {
-  this._model.signal(name).on(handler);
-  return this;
+  var sg = this._model.signal(name);
+  return (sg ?
+    sg.on(handler) : log.error('Signal "'+name+'" is not defined.'), this);
 };
 
 prototype.off = function() {
@@ -63543,8 +64755,9 @@ prototype.off = function() {
 };
 
 prototype.offSignal = function(name, handler) {
-  this._model.signal(name).off(handler);
-  return this;
+  var sg = this._model.signal(name);
+  return (sg ?
+    sg.off(handler) : log.error('Signal "'+name+'" is not defined.'), this);
 };
 
 View.factory = function(model) {
@@ -63564,17 +64777,35 @@ View.factory = function(model) {
 
     if (opt.data) v.data(opt.data);
 
-    if (opt.hover !== false && opt.el) {
-      v.on('mouseover', function(evt, item) {
-        if (item && item.hasPropertySet('hover')) {
-          this.update({props:'hover', items:item});
-        }
-      })
-      .on('mouseout', function(evt, item) {
-        if (item && item.hasPropertySet('hover')) {
-          this.update({props:'update', items:item});
-        }
-      });
+    // Register handlers for the hover propset and cursors.
+    if (opt.el) {
+      if (opt.hover !== false) {
+        v.on('mouseover', function(evt, item) {
+          if (item && item.hasPropertySet('hover')) {
+            this.update({props:'hover', items:item});
+          }
+        })
+        .on('mouseout', function(evt, item) {
+          if (item && item.hasPropertySet('hover')) {
+            this.update({props:'update', items:item});
+          }
+        });
+      }
+
+      if (opt.cursor !== false) {
+        // If value is a string, it is a custom value set by the user.
+        // In this case, the user is responsible for maintaining the cursor state
+        // and control only reverts back to this handler if set back to 'default'.
+        v.onSignal('cursor', function(name, value) {
+          var body = d3.select('body');
+          if (dl.isString(value)) {
+            v._cursor = value === 'default';
+            body.style('cursor', value);
+          } else if (dl.isObject(value) && v._cursor) {
+            body.style('cursor', value.default);
+          }
+        });
+      }
     }
 
     return v;
@@ -63583,7 +64814,7 @@ View.factory = function(model) {
 
 module.exports = View;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../parse/streams":272,"../scene/Encoder":276,"../scene/Transition":279,"./HeadlessView":252,"datalib":30,"vega-dataflow":205,"vega-logging":211,"vega-scenegraph":212}],255:[function(require,module,exports){
+},{"../parse/streams":272,"../scene/Encoder":276,"../scene/Transition":279,"./HeadlessView":253,"datalib":30,"vega-dataflow":205,"vega-logging":212,"vega-scenegraph":213}],256:[function(require,module,exports){
 (function (global){
 var d3 = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null),
     config = {};
@@ -63701,7 +64932,7 @@ config.range = {
 
 module.exports = config;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],256:[function(require,module,exports){
+},{}],257:[function(require,module,exports){
 var dl = require('datalib'),
     parse = require('../parse'),
     Scale = require('../scene/Scale'),
@@ -63748,7 +64979,7 @@ module.exports = function(opt) {
 
   return schema;
 };
-},{"../parse":262,"../scene/Scale":278,"./config":255,"datalib":30}],257:[function(require,module,exports){
+},{"../parse":262,"../scene/Scale":278,"./config":256,"datalib":30}],258:[function(require,module,exports){
 var dl = require('datalib'),
     axs = require('../scene/axis');
 
@@ -63834,7 +65065,7 @@ function parseAxis(config, def, index, axis, group) {
 }
 
 module.exports = parseAxes;
-},{"../scene/axis":280,"datalib":30}],258:[function(require,module,exports){
+},{"../scene/axis":280,"datalib":30}],259:[function(require,module,exports){
 (function (global){
 var d3 = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null);
 
@@ -63847,7 +65078,7 @@ function parseBg(bg) {
 
 module.exports = parseBg;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],259:[function(require,module,exports){
+},{}],260:[function(require,module,exports){
 var dl = require('datalib'),
     log = require('vega-logging'),
     parseTransforms = require('./transforms'),
@@ -63916,1140 +65147,137 @@ parseData.datasource = function(model, d) {
 };
 
 module.exports = parseData;
-},{"./modify":266,"./transforms":273,"datalib":30,"vega-logging":211}],260:[function(require,module,exports){
-module.exports = (function() {
-  /*
-   * Generated by PEG.js 0.8.0.
-   *
-   * http://pegjs.majda.cz/
-   */
-
-  function peg$subclass(child, parent) {
-    function ctor() { this.constructor = child; }
-    ctor.prototype = parent.prototype;
-    child.prototype = new ctor();
-  }
-
-  function SyntaxError(message, expected, found, offset, line, column) {
-    this.message  = message;
-    this.expected = expected;
-    this.found    = found;
-    this.offset   = offset;
-    this.line     = line;
-    this.column   = column;
-
-    this.name     = "SyntaxError";
-  }
-
-  peg$subclass(SyntaxError, Error);
-
-  function parse(input) {
-    var options = arguments.length > 1 ? arguments[1] : {},
-
-        peg$FAILED = {},
-
-        peg$startRuleFunctions = { start: peg$parsestart },
-        peg$startRuleFunction  = peg$parsestart,
-
-        peg$c0 = peg$FAILED,
-        peg$c1 = ",",
-        peg$c2 = { type: "literal", value: ",", description: "\",\"" },
-        peg$c3 = function(o, m) { return [o].concat(m); },
-        peg$c4 = function(o) { return [o]; },
-        peg$c5 = "[",
-        peg$c6 = { type: "literal", value: "[", description: "\"[\"" },
-        peg$c7 = "]",
-        peg$c8 = { type: "literal", value: "]", description: "\"]\"" },
-        peg$c9 = ">",
-        peg$c10 = { type: "literal", value: ">", description: "\">\"" },
-        peg$c11 = function(f1, f2, o) { return {start: f1, end: f2, middle: o}; },
-        peg$c12 = [],
-        peg$c13 = function(s, f) { return (s.filters = f, s); },
-        peg$c14 = function(s) { return s; },
-        peg$c15 = "(",
-        peg$c16 = { type: "literal", value: "(", description: "\"(\"" },
-        peg$c17 = ")",
-        peg$c18 = { type: "literal", value: ")", description: "\")\"" },
-        peg$c19 = function(m) { return {stream: m}; },
-        peg$c20 = "@",
-        peg$c21 = { type: "literal", value: "@", description: "\"@\"" },
-        peg$c22 = ":",
-        peg$c23 = { type: "literal", value: ":", description: "\":\"" },
-        peg$c24 = function(n, e) { return {event: e, name: n}; },
-        peg$c25 = function(m, e) { return {event: e, mark: m}; },
-        peg$c26 = function(t, e) { return {event: e, target: t}; },
-        peg$c27 = function(e) { return {event: e}; },
-        peg$c28 = function(s) { return {signal: s}; },
-        peg$c29 = "rect",
-        peg$c30 = { type: "literal", value: "rect", description: "\"rect\"" },
-        peg$c31 = "symbol",
-        peg$c32 = { type: "literal", value: "symbol", description: "\"symbol\"" },
-        peg$c33 = "path",
-        peg$c34 = { type: "literal", value: "path", description: "\"path\"" },
-        peg$c35 = "arc",
-        peg$c36 = { type: "literal", value: "arc", description: "\"arc\"" },
-        peg$c37 = "area",
-        peg$c38 = { type: "literal", value: "area", description: "\"area\"" },
-        peg$c39 = "line",
-        peg$c40 = { type: "literal", value: "line", description: "\"line\"" },
-        peg$c41 = "rule",
-        peg$c42 = { type: "literal", value: "rule", description: "\"rule\"" },
-        peg$c43 = "image",
-        peg$c44 = { type: "literal", value: "image", description: "\"image\"" },
-        peg$c45 = "text",
-        peg$c46 = { type: "literal", value: "text", description: "\"text\"" },
-        peg$c47 = "group",
-        peg$c48 = { type: "literal", value: "group", description: "\"group\"" },
-        peg$c49 = "mousedown",
-        peg$c50 = { type: "literal", value: "mousedown", description: "\"mousedown\"" },
-        peg$c51 = "mouseup",
-        peg$c52 = { type: "literal", value: "mouseup", description: "\"mouseup\"" },
-        peg$c53 = "click",
-        peg$c54 = { type: "literal", value: "click", description: "\"click\"" },
-        peg$c55 = "dblclick",
-        peg$c56 = { type: "literal", value: "dblclick", description: "\"dblclick\"" },
-        peg$c57 = "wheel",
-        peg$c58 = { type: "literal", value: "wheel", description: "\"wheel\"" },
-        peg$c59 = "keydown",
-        peg$c60 = { type: "literal", value: "keydown", description: "\"keydown\"" },
-        peg$c61 = "keypress",
-        peg$c62 = { type: "literal", value: "keypress", description: "\"keypress\"" },
-        peg$c63 = "keyup",
-        peg$c64 = { type: "literal", value: "keyup", description: "\"keyup\"" },
-        peg$c65 = "mousewheel",
-        peg$c66 = { type: "literal", value: "mousewheel", description: "\"mousewheel\"" },
-        peg$c67 = "mousemove",
-        peg$c68 = { type: "literal", value: "mousemove", description: "\"mousemove\"" },
-        peg$c69 = "mouseout",
-        peg$c70 = { type: "literal", value: "mouseout", description: "\"mouseout\"" },
-        peg$c71 = "mouseover",
-        peg$c72 = { type: "literal", value: "mouseover", description: "\"mouseover\"" },
-        peg$c73 = "mouseenter",
-        peg$c74 = { type: "literal", value: "mouseenter", description: "\"mouseenter\"" },
-        peg$c75 = "touchstart",
-        peg$c76 = { type: "literal", value: "touchstart", description: "\"touchstart\"" },
-        peg$c77 = "touchmove",
-        peg$c78 = { type: "literal", value: "touchmove", description: "\"touchmove\"" },
-        peg$c79 = "touchend",
-        peg$c80 = { type: "literal", value: "touchend", description: "\"touchend\"" },
-        peg$c81 = function(e) { return e; },
-        peg$c82 = /^[a-zA-Z0-9_\-]/,
-        peg$c83 = { type: "class", value: "[a-zA-Z0-9_\\-]", description: "[a-zA-Z0-9_\\-]" },
-        peg$c84 = function(n) { return n.join(""); },
-        peg$c85 = /^[a-zA-Z0-9\-_  #.>+~[\]=|\^$*]/,
-        peg$c86 = { type: "class", value: "[a-zA-Z0-9\\-_  #.>+~[\\]=|\\^$*]", description: "[a-zA-Z0-9\\-_  #.>+~[\\]=|\\^$*]" },
-        peg$c87 = function(c) { return c.join(""); },
-        peg$c88 = /^['"a-zA-Z0-9_().><=! \t-&|~]/,
-        peg$c89 = { type: "class", value: "['\"a-zA-Z0-9_().><=! \\t-&|~]", description: "['\"a-zA-Z0-9_().><=! \\t-&|~]" },
-        peg$c90 = function(v) { return v.join(""); },
-        peg$c91 = /^[ \t\r\n]/,
-        peg$c92 = { type: "class", value: "[ \\t\\r\\n]", description: "[ \\t\\r\\n]" },
-
-        peg$currPos          = 0,
-        peg$reportedPos      = 0,
-        peg$cachedPos        = 0,
-        peg$cachedPosDetails = { line: 1, column: 1, seenCR: false },
-        peg$maxFailPos       = 0,
-        peg$maxFailExpected  = [],
-        peg$silentFails      = 0,
-
-        peg$result;
-
-    if ("startRule" in options) {
-      if (!(options.startRule in peg$startRuleFunctions)) {
-        throw new Error("Can't start parsing from rule \"" + options.startRule + "\".");
-      }
-
-      peg$startRuleFunction = peg$startRuleFunctions[options.startRule];
-    }
-
-    function text() {
-      return input.substring(peg$reportedPos, peg$currPos);
-    }
-
-    function offset() {
-      return peg$reportedPos;
-    }
-
-    function line() {
-      return peg$computePosDetails(peg$reportedPos).line;
-    }
-
-    function column() {
-      return peg$computePosDetails(peg$reportedPos).column;
-    }
-
-    function expected(description) {
-      throw peg$buildException(
-        null,
-        [{ type: "other", description: description }],
-        peg$reportedPos
-      );
-    }
-
-    function error(message) {
-      throw peg$buildException(message, null, peg$reportedPos);
-    }
-
-    function peg$computePosDetails(pos) {
-      function advance(details, startPos, endPos) {
-        var p, ch;
-
-        for (p = startPos; p < endPos; p++) {
-          ch = input.charAt(p);
-          if (ch === "\n") {
-            if (!details.seenCR) { details.line++; }
-            details.column = 1;
-            details.seenCR = false;
-          } else if (ch === "\r" || ch === "\u2028" || ch === "\u2029") {
-            details.line++;
-            details.column = 1;
-            details.seenCR = true;
-          } else {
-            details.column++;
-            details.seenCR = false;
-          }
-        }
-      }
-
-      if (peg$cachedPos !== pos) {
-        if (peg$cachedPos > pos) {
-          peg$cachedPos = 0;
-          peg$cachedPosDetails = { line: 1, column: 1, seenCR: false };
-        }
-        advance(peg$cachedPosDetails, peg$cachedPos, pos);
-        peg$cachedPos = pos;
-      }
-
-      return peg$cachedPosDetails;
-    }
-
-    function peg$fail(expected) {
-      if (peg$currPos < peg$maxFailPos) { return; }
-
-      if (peg$currPos > peg$maxFailPos) {
-        peg$maxFailPos = peg$currPos;
-        peg$maxFailExpected = [];
-      }
-
-      peg$maxFailExpected.push(expected);
-    }
-
-    function peg$buildException(message, expected, pos) {
-      function cleanupExpected(expected) {
-        var i = 1;
-
-        expected.sort(function(a, b) {
-          if (a.description < b.description) {
-            return -1;
-          } else if (a.description > b.description) {
-            return 1;
-          } else {
-            return 0;
-          }
-        });
-
-        while (i < expected.length) {
-          if (expected[i - 1] === expected[i]) {
-            expected.splice(i, 1);
-          } else {
-            i++;
-          }
-        }
-      }
-
-      function buildMessage(expected, found) {
-        function stringEscape(s) {
-          function hex(ch) { return ch.charCodeAt(0).toString(16).toUpperCase(); }
-
-          return s
-            .replace(/\\/g,   '\\\\')
-            .replace(/"/g,    '\\"')
-            .replace(/\x08/g, '\\b')
-            .replace(/\t/g,   '\\t')
-            .replace(/\n/g,   '\\n')
-            .replace(/\f/g,   '\\f')
-            .replace(/\r/g,   '\\r')
-            .replace(/[\x00-\x07\x0B\x0E\x0F]/g, function(ch) { return '\\x0' + hex(ch); })
-            .replace(/[\x10-\x1F\x80-\xFF]/g,    function(ch) { return '\\x'  + hex(ch); })
-            .replace(/[\u0180-\u0FFF]/g,         function(ch) { return '\\u0' + hex(ch); })
-            .replace(/[\u1080-\uFFFF]/g,         function(ch) { return '\\u'  + hex(ch); });
-        }
-
-        var expectedDescs = new Array(expected.length),
-            expectedDesc, foundDesc, i;
-
-        for (i = 0; i < expected.length; i++) {
-          expectedDescs[i] = expected[i].description;
-        }
-
-        expectedDesc = expected.length > 1
-          ? expectedDescs.slice(0, -1).join(", ")
-              + " or "
-              + expectedDescs[expected.length - 1]
-          : expectedDescs[0];
-
-        foundDesc = found ? "\"" + stringEscape(found) + "\"" : "end of input";
-
-        return "Expected " + expectedDesc + " but " + foundDesc + " found.";
-      }
-
-      var posDetails = peg$computePosDetails(pos),
-          found      = pos < input.length ? input.charAt(pos) : null;
-
-      if (expected !== null) {
-        cleanupExpected(expected);
-      }
-
-      return new SyntaxError(
-        message !== null ? message : buildMessage(expected, found),
-        expected,
-        found,
-        pos,
-        posDetails.line,
-        posDetails.column
-      );
-    }
-
-    function peg$parsestart() {
-      var s0;
-
-      s0 = peg$parsemerged();
-
-      return s0;
-    }
-
-    function peg$parsemerged() {
-      var s0, s1, s2, s3, s4, s5;
-
-      s0 = peg$currPos;
-      s1 = peg$parseordered();
-      if (s1 !== peg$FAILED) {
-        s2 = peg$parsesep();
-        if (s2 !== peg$FAILED) {
-          if (input.charCodeAt(peg$currPos) === 44) {
-            s3 = peg$c1;
-            peg$currPos++;
-          } else {
-            s3 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c2); }
-          }
-          if (s3 !== peg$FAILED) {
-            s4 = peg$parsesep();
-            if (s4 !== peg$FAILED) {
-              s5 = peg$parsemerged();
-              if (s5 !== peg$FAILED) {
-                peg$reportedPos = s0;
-                s1 = peg$c3(s1, s5);
-                s0 = s1;
-              } else {
-                peg$currPos = s0;
-                s0 = peg$c0;
-              }
-            } else {
-              peg$currPos = s0;
-              s0 = peg$c0;
-            }
-          } else {
-            peg$currPos = s0;
-            s0 = peg$c0;
-          }
-        } else {
-          peg$currPos = s0;
-          s0 = peg$c0;
-        }
-      } else {
-        peg$currPos = s0;
-        s0 = peg$c0;
-      }
-      if (s0 === peg$FAILED) {
-        s0 = peg$currPos;
-        s1 = peg$parseordered();
-        if (s1 !== peg$FAILED) {
-          peg$reportedPos = s0;
-          s1 = peg$c4(s1);
-        }
-        s0 = s1;
-      }
-
-      return s0;
-    }
-
-    function peg$parseordered() {
-      var s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13;
-
-      s0 = peg$currPos;
-      if (input.charCodeAt(peg$currPos) === 91) {
-        s1 = peg$c5;
-        peg$currPos++;
-      } else {
-        s1 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c6); }
-      }
-      if (s1 !== peg$FAILED) {
-        s2 = peg$parsesep();
-        if (s2 !== peg$FAILED) {
-          s3 = peg$parsefiltered();
-          if (s3 !== peg$FAILED) {
-            s4 = peg$parsesep();
-            if (s4 !== peg$FAILED) {
-              if (input.charCodeAt(peg$currPos) === 44) {
-                s5 = peg$c1;
-                peg$currPos++;
-              } else {
-                s5 = peg$FAILED;
-                if (peg$silentFails === 0) { peg$fail(peg$c2); }
-              }
-              if (s5 !== peg$FAILED) {
-                s6 = peg$parsesep();
-                if (s6 !== peg$FAILED) {
-                  s7 = peg$parsefiltered();
-                  if (s7 !== peg$FAILED) {
-                    s8 = peg$parsesep();
-                    if (s8 !== peg$FAILED) {
-                      if (input.charCodeAt(peg$currPos) === 93) {
-                        s9 = peg$c7;
-                        peg$currPos++;
-                      } else {
-                        s9 = peg$FAILED;
-                        if (peg$silentFails === 0) { peg$fail(peg$c8); }
-                      }
-                      if (s9 !== peg$FAILED) {
-                        s10 = peg$parsesep();
-                        if (s10 !== peg$FAILED) {
-                          if (input.charCodeAt(peg$currPos) === 62) {
-                            s11 = peg$c9;
-                            peg$currPos++;
-                          } else {
-                            s11 = peg$FAILED;
-                            if (peg$silentFails === 0) { peg$fail(peg$c10); }
-                          }
-                          if (s11 !== peg$FAILED) {
-                            s12 = peg$parsesep();
-                            if (s12 !== peg$FAILED) {
-                              s13 = peg$parseordered();
-                              if (s13 !== peg$FAILED) {
-                                peg$reportedPos = s0;
-                                s1 = peg$c11(s3, s7, s13);
-                                s0 = s1;
-                              } else {
-                                peg$currPos = s0;
-                                s0 = peg$c0;
-                              }
-                            } else {
-                              peg$currPos = s0;
-                              s0 = peg$c0;
-                            }
-                          } else {
-                            peg$currPos = s0;
-                            s0 = peg$c0;
-                          }
-                        } else {
-                          peg$currPos = s0;
-                          s0 = peg$c0;
-                        }
-                      } else {
-                        peg$currPos = s0;
-                        s0 = peg$c0;
-                      }
-                    } else {
-                      peg$currPos = s0;
-                      s0 = peg$c0;
-                    }
-                  } else {
-                    peg$currPos = s0;
-                    s0 = peg$c0;
-                  }
-                } else {
-                  peg$currPos = s0;
-                  s0 = peg$c0;
-                }
-              } else {
-                peg$currPos = s0;
-                s0 = peg$c0;
-              }
-            } else {
-              peg$currPos = s0;
-              s0 = peg$c0;
-            }
-          } else {
-            peg$currPos = s0;
-            s0 = peg$c0;
-          }
-        } else {
-          peg$currPos = s0;
-          s0 = peg$c0;
-        }
-      } else {
-        peg$currPos = s0;
-        s0 = peg$c0;
-      }
-      if (s0 === peg$FAILED) {
-        s0 = peg$parsefiltered();
-      }
-
-      return s0;
-    }
-
-    function peg$parsefiltered() {
-      var s0, s1, s2, s3;
-
-      s0 = peg$currPos;
-      s1 = peg$parsestream();
-      if (s1 !== peg$FAILED) {
-        s2 = [];
-        s3 = peg$parsefilter();
-        if (s3 !== peg$FAILED) {
-          while (s3 !== peg$FAILED) {
-            s2.push(s3);
-            s3 = peg$parsefilter();
-          }
-        } else {
-          s2 = peg$c0;
-        }
-        if (s2 !== peg$FAILED) {
-          peg$reportedPos = s0;
-          s1 = peg$c13(s1, s2);
-          s0 = s1;
-        } else {
-          peg$currPos = s0;
-          s0 = peg$c0;
-        }
-      } else {
-        peg$currPos = s0;
-        s0 = peg$c0;
-      }
-      if (s0 === peg$FAILED) {
-        s0 = peg$currPos;
-        s1 = peg$parsestream();
-        if (s1 !== peg$FAILED) {
-          peg$reportedPos = s0;
-          s1 = peg$c14(s1);
-        }
-        s0 = s1;
-      }
-
-      return s0;
-    }
-
-    function peg$parsestream() {
-      var s0, s1, s2, s3, s4;
-
-      s0 = peg$currPos;
-      if (input.charCodeAt(peg$currPos) === 40) {
-        s1 = peg$c15;
-        peg$currPos++;
-      } else {
-        s1 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c16); }
-      }
-      if (s1 !== peg$FAILED) {
-        s2 = peg$parsemerged();
-        if (s2 !== peg$FAILED) {
-          if (input.charCodeAt(peg$currPos) === 41) {
-            s3 = peg$c17;
-            peg$currPos++;
-          } else {
-            s3 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c18); }
-          }
-          if (s3 !== peg$FAILED) {
-            peg$reportedPos = s0;
-            s1 = peg$c19(s2);
-            s0 = s1;
-          } else {
-            peg$currPos = s0;
-            s0 = peg$c0;
-          }
-        } else {
-          peg$currPos = s0;
-          s0 = peg$c0;
-        }
-      } else {
-        peg$currPos = s0;
-        s0 = peg$c0;
-      }
-      if (s0 === peg$FAILED) {
-        s0 = peg$currPos;
-        if (input.charCodeAt(peg$currPos) === 64) {
-          s1 = peg$c20;
-          peg$currPos++;
-        } else {
-          s1 = peg$FAILED;
-          if (peg$silentFails === 0) { peg$fail(peg$c21); }
-        }
-        if (s1 !== peg$FAILED) {
-          s2 = peg$parsename();
-          if (s2 !== peg$FAILED) {
-            if (input.charCodeAt(peg$currPos) === 58) {
-              s3 = peg$c22;
-              peg$currPos++;
-            } else {
-              s3 = peg$FAILED;
-              if (peg$silentFails === 0) { peg$fail(peg$c23); }
-            }
-            if (s3 !== peg$FAILED) {
-              s4 = peg$parseeventType();
-              if (s4 !== peg$FAILED) {
-                peg$reportedPos = s0;
-                s1 = peg$c24(s2, s4);
-                s0 = s1;
-              } else {
-                peg$currPos = s0;
-                s0 = peg$c0;
-              }
-            } else {
-              peg$currPos = s0;
-              s0 = peg$c0;
-            }
-          } else {
-            peg$currPos = s0;
-            s0 = peg$c0;
-          }
-        } else {
-          peg$currPos = s0;
-          s0 = peg$c0;
-        }
-        if (s0 === peg$FAILED) {
-          s0 = peg$currPos;
-          s1 = peg$parsemarkType();
-          if (s1 !== peg$FAILED) {
-            if (input.charCodeAt(peg$currPos) === 58) {
-              s2 = peg$c22;
-              peg$currPos++;
-            } else {
-              s2 = peg$FAILED;
-              if (peg$silentFails === 0) { peg$fail(peg$c23); }
-            }
-            if (s2 !== peg$FAILED) {
-              s3 = peg$parseeventType();
-              if (s3 !== peg$FAILED) {
-                peg$reportedPos = s0;
-                s1 = peg$c25(s1, s3);
-                s0 = s1;
-              } else {
-                peg$currPos = s0;
-                s0 = peg$c0;
-              }
-            } else {
-              peg$currPos = s0;
-              s0 = peg$c0;
-            }
-          } else {
-            peg$currPos = s0;
-            s0 = peg$c0;
-          }
-          if (s0 === peg$FAILED) {
-            s0 = peg$currPos;
-            s1 = peg$parsecss();
-            if (s1 !== peg$FAILED) {
-              if (input.charCodeAt(peg$currPos) === 58) {
-                s2 = peg$c22;
-                peg$currPos++;
-              } else {
-                s2 = peg$FAILED;
-                if (peg$silentFails === 0) { peg$fail(peg$c23); }
-              }
-              if (s2 !== peg$FAILED) {
-                s3 = peg$parseeventType();
-                if (s3 !== peg$FAILED) {
-                  peg$reportedPos = s0;
-                  s1 = peg$c26(s1, s3);
-                  s0 = s1;
-                } else {
-                  peg$currPos = s0;
-                  s0 = peg$c0;
-                }
-              } else {
-                peg$currPos = s0;
-                s0 = peg$c0;
-              }
-            } else {
-              peg$currPos = s0;
-              s0 = peg$c0;
-            }
-            if (s0 === peg$FAILED) {
-              s0 = peg$currPos;
-              s1 = peg$parseeventType();
-              if (s1 !== peg$FAILED) {
-                peg$reportedPos = s0;
-                s1 = peg$c27(s1);
-              }
-              s0 = s1;
-              if (s0 === peg$FAILED) {
-                s0 = peg$currPos;
-                s1 = peg$parsename();
-                if (s1 !== peg$FAILED) {
-                  peg$reportedPos = s0;
-                  s1 = peg$c28(s1);
-                }
-                s0 = s1;
-              }
-            }
-          }
-        }
-      }
-
-      return s0;
-    }
-
-    function peg$parsemarkType() {
-      var s0;
-
-      if (input.substr(peg$currPos, 4) === peg$c29) {
-        s0 = peg$c29;
-        peg$currPos += 4;
-      } else {
-        s0 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c30); }
-      }
-      if (s0 === peg$FAILED) {
-        if (input.substr(peg$currPos, 6) === peg$c31) {
-          s0 = peg$c31;
-          peg$currPos += 6;
-        } else {
-          s0 = peg$FAILED;
-          if (peg$silentFails === 0) { peg$fail(peg$c32); }
-        }
-        if (s0 === peg$FAILED) {
-          if (input.substr(peg$currPos, 4) === peg$c33) {
-            s0 = peg$c33;
-            peg$currPos += 4;
-          } else {
-            s0 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c34); }
-          }
-          if (s0 === peg$FAILED) {
-            if (input.substr(peg$currPos, 3) === peg$c35) {
-              s0 = peg$c35;
-              peg$currPos += 3;
-            } else {
-              s0 = peg$FAILED;
-              if (peg$silentFails === 0) { peg$fail(peg$c36); }
-            }
-            if (s0 === peg$FAILED) {
-              if (input.substr(peg$currPos, 4) === peg$c37) {
-                s0 = peg$c37;
-                peg$currPos += 4;
-              } else {
-                s0 = peg$FAILED;
-                if (peg$silentFails === 0) { peg$fail(peg$c38); }
-              }
-              if (s0 === peg$FAILED) {
-                if (input.substr(peg$currPos, 4) === peg$c39) {
-                  s0 = peg$c39;
-                  peg$currPos += 4;
-                } else {
-                  s0 = peg$FAILED;
-                  if (peg$silentFails === 0) { peg$fail(peg$c40); }
-                }
-                if (s0 === peg$FAILED) {
-                  if (input.substr(peg$currPos, 4) === peg$c41) {
-                    s0 = peg$c41;
-                    peg$currPos += 4;
-                  } else {
-                    s0 = peg$FAILED;
-                    if (peg$silentFails === 0) { peg$fail(peg$c42); }
-                  }
-                  if (s0 === peg$FAILED) {
-                    if (input.substr(peg$currPos, 5) === peg$c43) {
-                      s0 = peg$c43;
-                      peg$currPos += 5;
-                    } else {
-                      s0 = peg$FAILED;
-                      if (peg$silentFails === 0) { peg$fail(peg$c44); }
-                    }
-                    if (s0 === peg$FAILED) {
-                      if (input.substr(peg$currPos, 4) === peg$c45) {
-                        s0 = peg$c45;
-                        peg$currPos += 4;
-                      } else {
-                        s0 = peg$FAILED;
-                        if (peg$silentFails === 0) { peg$fail(peg$c46); }
-                      }
-                      if (s0 === peg$FAILED) {
-                        if (input.substr(peg$currPos, 5) === peg$c47) {
-                          s0 = peg$c47;
-                          peg$currPos += 5;
-                        } else {
-                          s0 = peg$FAILED;
-                          if (peg$silentFails === 0) { peg$fail(peg$c48); }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-
-      return s0;
-    }
-
-    function peg$parseeventType() {
-      var s0;
-
-      if (input.substr(peg$currPos, 9) === peg$c49) {
-        s0 = peg$c49;
-        peg$currPos += 9;
-      } else {
-        s0 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c50); }
-      }
-      if (s0 === peg$FAILED) {
-        if (input.substr(peg$currPos, 7) === peg$c51) {
-          s0 = peg$c51;
-          peg$currPos += 7;
-        } else {
-          s0 = peg$FAILED;
-          if (peg$silentFails === 0) { peg$fail(peg$c52); }
-        }
-        if (s0 === peg$FAILED) {
-          if (input.substr(peg$currPos, 5) === peg$c53) {
-            s0 = peg$c53;
-            peg$currPos += 5;
-          } else {
-            s0 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c54); }
-          }
-          if (s0 === peg$FAILED) {
-            if (input.substr(peg$currPos, 8) === peg$c55) {
-              s0 = peg$c55;
-              peg$currPos += 8;
-            } else {
-              s0 = peg$FAILED;
-              if (peg$silentFails === 0) { peg$fail(peg$c56); }
-            }
-            if (s0 === peg$FAILED) {
-              if (input.substr(peg$currPos, 5) === peg$c57) {
-                s0 = peg$c57;
-                peg$currPos += 5;
-              } else {
-                s0 = peg$FAILED;
-                if (peg$silentFails === 0) { peg$fail(peg$c58); }
-              }
-              if (s0 === peg$FAILED) {
-                if (input.substr(peg$currPos, 7) === peg$c59) {
-                  s0 = peg$c59;
-                  peg$currPos += 7;
-                } else {
-                  s0 = peg$FAILED;
-                  if (peg$silentFails === 0) { peg$fail(peg$c60); }
-                }
-                if (s0 === peg$FAILED) {
-                  if (input.substr(peg$currPos, 8) === peg$c61) {
-                    s0 = peg$c61;
-                    peg$currPos += 8;
-                  } else {
-                    s0 = peg$FAILED;
-                    if (peg$silentFails === 0) { peg$fail(peg$c62); }
-                  }
-                  if (s0 === peg$FAILED) {
-                    if (input.substr(peg$currPos, 5) === peg$c63) {
-                      s0 = peg$c63;
-                      peg$currPos += 5;
-                    } else {
-                      s0 = peg$FAILED;
-                      if (peg$silentFails === 0) { peg$fail(peg$c64); }
-                    }
-                    if (s0 === peg$FAILED) {
-                      if (input.substr(peg$currPos, 10) === peg$c65) {
-                        s0 = peg$c65;
-                        peg$currPos += 10;
-                      } else {
-                        s0 = peg$FAILED;
-                        if (peg$silentFails === 0) { peg$fail(peg$c66); }
-                      }
-                      if (s0 === peg$FAILED) {
-                        if (input.substr(peg$currPos, 9) === peg$c67) {
-                          s0 = peg$c67;
-                          peg$currPos += 9;
-                        } else {
-                          s0 = peg$FAILED;
-                          if (peg$silentFails === 0) { peg$fail(peg$c68); }
-                        }
-                        if (s0 === peg$FAILED) {
-                          if (input.substr(peg$currPos, 8) === peg$c69) {
-                            s0 = peg$c69;
-                            peg$currPos += 8;
-                          } else {
-                            s0 = peg$FAILED;
-                            if (peg$silentFails === 0) { peg$fail(peg$c70); }
-                          }
-                          if (s0 === peg$FAILED) {
-                            if (input.substr(peg$currPos, 9) === peg$c71) {
-                              s0 = peg$c71;
-                              peg$currPos += 9;
-                            } else {
-                              s0 = peg$FAILED;
-                              if (peg$silentFails === 0) { peg$fail(peg$c72); }
-                            }
-                            if (s0 === peg$FAILED) {
-                              if (input.substr(peg$currPos, 10) === peg$c73) {
-                                s0 = peg$c73;
-                                peg$currPos += 10;
-                              } else {
-                                s0 = peg$FAILED;
-                                if (peg$silentFails === 0) { peg$fail(peg$c74); }
-                              }
-                              if (s0 === peg$FAILED) {
-                                if (input.substr(peg$currPos, 10) === peg$c75) {
-                                  s0 = peg$c75;
-                                  peg$currPos += 10;
-                                } else {
-                                  s0 = peg$FAILED;
-                                  if (peg$silentFails === 0) { peg$fail(peg$c76); }
-                                }
-                                if (s0 === peg$FAILED) {
-                                  if (input.substr(peg$currPos, 9) === peg$c77) {
-                                    s0 = peg$c77;
-                                    peg$currPos += 9;
-                                  } else {
-                                    s0 = peg$FAILED;
-                                    if (peg$silentFails === 0) { peg$fail(peg$c78); }
-                                  }
-                                  if (s0 === peg$FAILED) {
-                                    if (input.substr(peg$currPos, 8) === peg$c79) {
-                                      s0 = peg$c79;
-                                      peg$currPos += 8;
-                                    } else {
-                                      s0 = peg$FAILED;
-                                      if (peg$silentFails === 0) { peg$fail(peg$c80); }
-                                    }
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-
-      return s0;
-    }
-
-    function peg$parsefilter() {
-      var s0, s1, s2, s3;
-
-      s0 = peg$currPos;
-      if (input.charCodeAt(peg$currPos) === 91) {
-        s1 = peg$c5;
-        peg$currPos++;
-      } else {
-        s1 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c6); }
-      }
-      if (s1 !== peg$FAILED) {
-        s2 = peg$parseexpr();
-        if (s2 !== peg$FAILED) {
-          if (input.charCodeAt(peg$currPos) === 93) {
-            s3 = peg$c7;
-            peg$currPos++;
-          } else {
-            s3 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c8); }
-          }
-          if (s3 !== peg$FAILED) {
-            peg$reportedPos = s0;
-            s1 = peg$c81(s2);
-            s0 = s1;
-          } else {
-            peg$currPos = s0;
-            s0 = peg$c0;
-          }
-        } else {
-          peg$currPos = s0;
-          s0 = peg$c0;
-        }
-      } else {
-        peg$currPos = s0;
-        s0 = peg$c0;
-      }
-
-      return s0;
-    }
-
-    function peg$parsename() {
-      var s0, s1, s2;
-
-      s0 = peg$currPos;
-      s1 = [];
-      if (peg$c82.test(input.charAt(peg$currPos))) {
-        s2 = input.charAt(peg$currPos);
-        peg$currPos++;
-      } else {
-        s2 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c83); }
-      }
-      if (s2 !== peg$FAILED) {
-        while (s2 !== peg$FAILED) {
-          s1.push(s2);
-          if (peg$c82.test(input.charAt(peg$currPos))) {
-            s2 = input.charAt(peg$currPos);
-            peg$currPos++;
-          } else {
-            s2 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c83); }
-          }
-        }
-      } else {
-        s1 = peg$c0;
-      }
-      if (s1 !== peg$FAILED) {
-        peg$reportedPos = s0;
-        s1 = peg$c84(s1);
-      }
-      s0 = s1;
-
-      return s0;
-    }
-
-    function peg$parsecss() {
-      var s0, s1, s2;
-
-      s0 = peg$currPos;
-      s1 = [];
-      if (peg$c85.test(input.charAt(peg$currPos))) {
-        s2 = input.charAt(peg$currPos);
-        peg$currPos++;
-      } else {
-        s2 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c86); }
-      }
-      if (s2 !== peg$FAILED) {
-        while (s2 !== peg$FAILED) {
-          s1.push(s2);
-          if (peg$c85.test(input.charAt(peg$currPos))) {
-            s2 = input.charAt(peg$currPos);
-            peg$currPos++;
-          } else {
-            s2 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c86); }
-          }
-        }
-      } else {
-        s1 = peg$c0;
-      }
-      if (s1 !== peg$FAILED) {
-        peg$reportedPos = s0;
-        s1 = peg$c87(s1);
-      }
-      s0 = s1;
-
-      return s0;
-    }
-
-    function peg$parseexpr() {
-      var s0, s1, s2;
-
-      s0 = peg$currPos;
-      s1 = [];
-      if (peg$c88.test(input.charAt(peg$currPos))) {
-        s2 = input.charAt(peg$currPos);
-        peg$currPos++;
-      } else {
-        s2 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c89); }
-      }
-      if (s2 !== peg$FAILED) {
-        while (s2 !== peg$FAILED) {
-          s1.push(s2);
-          if (peg$c88.test(input.charAt(peg$currPos))) {
-            s2 = input.charAt(peg$currPos);
-            peg$currPos++;
-          } else {
-            s2 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c89); }
-          }
-        }
-      } else {
-        s1 = peg$c0;
-      }
-      if (s1 !== peg$FAILED) {
-        peg$reportedPos = s0;
-        s1 = peg$c90(s1);
-      }
-      s0 = s1;
-
-      return s0;
-    }
-
-    function peg$parsesep() {
-      var s0, s1;
-
-      s0 = [];
-      if (peg$c91.test(input.charAt(peg$currPos))) {
-        s1 = input.charAt(peg$currPos);
-        peg$currPos++;
-      } else {
-        s1 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c92); }
-      }
-      while (s1 !== peg$FAILED) {
-        s0.push(s1);
-        if (peg$c91.test(input.charAt(peg$currPos))) {
-          s1 = input.charAt(peg$currPos);
-          peg$currPos++;
-        } else {
-          s1 = peg$FAILED;
-          if (peg$silentFails === 0) { peg$fail(peg$c92); }
-        }
-      }
-
-      return s0;
-    }
-
-    peg$result = peg$startRuleFunction();
-
-    if (peg$result !== peg$FAILED && peg$currPos === input.length) {
-      return peg$result;
-    } else {
-      if (peg$result !== peg$FAILED && peg$currPos < input.length) {
-        peg$fail({ type: "end", description: "end of input" });
-      }
-
-      throw peg$buildException(null, peg$maxFailExpected, peg$maxFailPos);
-    }
-  }
-
-  return {
-    SyntaxError: SyntaxError,
-    parse:       parse
-  };
-})();
-},{}],261:[function(require,module,exports){
-var expr = require('vega-expression'),
+},{"./modify":266,"./transforms":273,"datalib":30,"vega-logging":212}],261:[function(require,module,exports){
+var dl = require('datalib'),
+    template = dl.template,
+    expr = require('vega-expression'),
     args = ['datum', 'event', 'signals'];
 
-module.exports = expr.compiler(args, {
+var compile = expr.compiler(args, {
   idWhiteList: args,
   fieldVar:    args[0],
-  globalVar:   args[2],
+  globalVar:   function(id) {
+    return 'this.sig[' + dl.str(id) + ']._value';
+  },
   functions:   function(codegen) {
     var fn = expr.functions(codegen);
-    fn.eventItem = function() { return 'event.vg.item'; };
+    fn.eventItem  = 'event.vg.getItem';
     fn.eventGroup = 'event.vg.getGroup';
-    fn.eventX = 'event.vg.getX';
-    fn.eventY = 'event.vg.getY';
-    fn.open = 'window.open';
+    fn.eventX     = 'event.vg.getX';
+    fn.eventY     = 'event.vg.getY';
+    fn.open       = 'window.open';
+    fn.scale      = scaleGen(codegen, false);
+    fn.iscale     = scaleGen(codegen, true);
+    fn.inrange    = 'this.defs.inrange';
+    fn.indata     = indataGen(codegen);
+    fn.format     = 'this.defs.format';
+    fn.timeFormat = 'this.defs.timeFormat';
+    fn.utcFormat  = 'this.defs.utcFormat';
     return fn;
+  },
+  functionDefs: function(/*codegen*/) {
+    return {
+      'scale':      scale,
+      'inrange':    inrange,
+      'indata':     indata,
+      'format':     numberFormat,
+      'timeFormat': timeFormat,
+      'utcFormat':  utcFormat
+    };
   }
 });
-},{"vega-expression":209}],262:[function(require,module,exports){
+
+function scaleGen(codegen, invert) {
+  return function(args) {
+    args = args.map(codegen);
+    var n = args.length;
+    if (n < 2 || n > 3) {
+      throw Error("scale takes exactly 2 or 3 arguments.");
+    }
+    return 'this.defs.scale(this.model, ' + invert + ', ' +
+      args[0] + ',' + args[1] + (n > 2 ? ',' + args[2] : '') + ')';
+  };
+}
+
+function scale(model, invert, name, value, scope) {
+  if (!scope || !scope.scale) {
+    scope = (scope && scope.mark) ? scope.mark.group : model.scene().items[0];
+  }
+  // Verify scope is valid
+  if (model.group(scope._id) !== scope) {
+    throw Error('Scope for scale "'+name+'" is not a valid group item.');
+  }
+  var s = scope.scale(name);
+  return !s ? value : (invert ? s.invert(value) : s(value));
+}
+
+function inrange(val, a, b, exclusive) {
+  var min = a, max = b;
+  if (a > b) { min = b; max = a; }
+  return exclusive ?
+    (min < val && max > val) :
+    (min <= val && max >= val);
+}
+
+function indataGen(codegen) {
+  return function(args, globals, fields, dataSources) {
+    var data;
+    if (args.length !== 3) {
+      throw Error("indata takes 3 arguments.");
+    }
+    if (args[0].type !== 'Literal') {
+      throw Error("Data source name must be a literal for indata.");
+    }
+
+    data = args[0].value;
+    dataSources[data] = 1;
+    if (args[2].type === 'Literal') {
+      indataGen.model.requestIndex(data, args[2].value);
+    }
+
+    args = args.map(codegen);
+    return 'this.defs.indata(this.model,' + 
+      args[0] + ',' + args[1] + ',' + args[2] + ')';
+  };
+}
+
+function indata(model, dataname, val, field) {
+  var data = model.data(dataname),
+      index = data.getIndex(field);
+  return index[val] > 0;
+}
+
+function numberFormat(specifier, v) {
+  return template.format(specifier, 'number')(v);
+}
+
+function timeFormat(specifier, d) {
+  return template.format(specifier, 'time')(d);
+}
+
+function utcFormat(specifier, d) {
+  return template.format(specifier, 'utc')(d);
+}
+
+function wrap(model) {
+  return function(str) {
+    indataGen.model = model;
+    var x = compile(str);
+    x.model = model;
+    x.sig = model ? model._signals : {};
+    return x;
+  };
+}
+
+wrap.scale = scale;
+wrap.codegen = compile.codegen;
+module.exports = wrap;
+},{"datalib":30,"vega-expression":210}],262:[function(require,module,exports){
 module.exports = {
   axes:       require('./axes'),
   background: require('./background'),
   data:       require('./data'),
-  events:     require('./events'),
+  events:     require('vega-event-selector'),
   expr:       require('./expr'),
   legends:    require('./legends'),
   mark:       require('./mark'),
@@ -65063,7 +65291,7 @@ module.exports = {
   streams:    require('./streams'),
   transforms: require('./transforms')
 };
-},{"./axes":257,"./background":258,"./data":259,"./events":260,"./expr":261,"./legends":263,"./mark":264,"./marks":265,"./modify":266,"./padding":267,"./predicates":268,"./properties":269,"./signals":270,"./spec":271,"./streams":272,"./transforms":273}],263:[function(require,module,exports){
+},{"./axes":258,"./background":259,"./data":260,"./expr":261,"./legends":263,"./mark":264,"./marks":265,"./modify":266,"./padding":267,"./predicates":268,"./properties":269,"./signals":270,"./spec":271,"./streams":272,"./transforms":273,"vega-event-selector":206}],263:[function(require,module,exports){
 var lgnd = require('../scene/legend');
 
 function parseLegends(model, spec, legends, group) {
@@ -65094,6 +65322,7 @@ function parseLegend(def, index, legend, group) {
 
   // legend label formatting
   legend.format(def.format !== undefined ? def.format : null);
+  legend.formatType(def.formatType || null);
 
   // style properties
   var p = def.properties;
@@ -65190,10 +65419,23 @@ var Types = {
 
 var EMPTY = [];
 
-var filter = function(field, value, src, dest) {
-  for(var i = src.length-1; i >= 0; --i) {
-    if (src[i][field] == value)
-      dest.push.apply(dest, src.splice(i, 1));
+var filter = function(fields, value, src, dest) {
+  if ((fields = dl.array(fields)) && !fields.length) {
+    fields = dl.isObject(value) ? dl.keys(value) : ['data'];
+  }
+
+  var splice = true, len = fields.length, i, j, f, v;
+  for (i = src.length - 1; i >= 0; --i) {
+    for (j=0; j<len; ++j) {
+      v = value[f=fields[j]] || value;
+      if (src[i][f] !== v) {
+        splice = false;
+        break;
+      }
+    }
+
+    if (splice) dest.push.apply(dest, src.splice(i, 1));
+    splice = true;
   }
 };
 
@@ -65201,58 +65443,77 @@ function parseModify(model, def, ds) {
   var signal = def.signal ? dl.field(def.signal) : null,
       signalName = signal ? signal[0] : null,
       predicate = def.predicate ? model.predicate(def.predicate.name || def.predicate) : null,
-      reeval = (predicate === null),
+      exprTrigger = def.test ? model.expr(def.test) : null,
+      reeval  = (predicate === null && exprTrigger === null),
       isClear = def.type === Types.CLEAR,
+      fieldName = def.field,
       node = new Node(model).router(isClear);
 
   node.evaluate = function(input) {
+    var db, sg;
+
     if (predicate !== null) {  // TODO: predicate args
-      var db = model.values(Deps.DATA, predicate.data || EMPTY),
-          sg = model.values(Deps.SIGNALS, predicate.signals || EMPTY);
+      db = model.values(Deps.DATA, predicate.data || EMPTY);
+      sg = model.values(Deps.SIGNALS, predicate.signals || EMPTY);
       reeval = predicate.call(predicate, {}, db, sg, model._predicates);
+    }
+
+    if (exprTrigger !== null) {
+      sg = model.values(Deps.SIGNALS, exprTrigger.globals || EMPTY);
+      reeval = exprTrigger.fn();
     }
 
     log.debug(input, [def.type+"ing", reeval]);
     if (!reeval || (!isClear && !input.signals[signalName])) return input;
 
-    var datum = {},
-        value = signal ? model.signalRef(def.signal) : null,
+    var value = signal ? model.signalRef(def.signal) : null,
         d = model.data(ds.name),
-        t = null;
+        t = null, add = [], rem = [], datum;
 
-    datum[def.field] = value;
+    if (dl.isObject(value)) {
+      datum = value;
+    } else {
+      datum = {};
+      datum[fieldName || 'data'] = value;
+    }
 
     // We have to modify ds._data so that subsequent pulses contain
     // our dynamic data. W/o modifying ds._data, only the output
     // collector will contain dynamic tuples.
     if (def.type === Types.INSERT) {
-      t = Tuple.ingest(datum);
-      input.add.push(t);
+      input.add.push(t=Tuple.ingest(datum));
       d._data.push(t);
     } else if (def.type === Types.REMOVE) {
-      filter(def.field, value, input.add, input.rem);
-      filter(def.field, value, input.mod, input.rem);
-      d._data = d._data.filter(function(x) { return x[def.field] !== value; });
+      filter(fieldName, value, input.mod, input.rem);
+      filter(fieldName, value, input.add, rem);
+      filter(fieldName, value, d._data, rem);
     } else if (def.type === Types.TOGGLE) {
-      var add = [], rem = [];
-      filter(def.field, value, input.rem, add);
-      filter(def.field, value, input.add, rem);
-      filter(def.field, value, input.mod, rem);
-      if (!(add.length || rem.length)) add.push(Tuple.ingest(datum));
-
-      input.add.push.apply(input.add, add);
-      d._data.push.apply(d._data, add);
+      // If tuples are in mod, remove them.
+      filter(fieldName, value, input.mod, rem);
       input.rem.push.apply(input.rem, rem);
-      d._data = d._data.filter(function(x) { return rem.indexOf(x) === -1; });
+
+      // If tuples are in add, they've been added to backing data source,
+      // but no downstream operators will have seen it yet.
+      filter(fieldName, value, input.add, add);
+
+      if (add.length || rem.length) {
+        d._data = d._data.filter(function(x) {
+          return rem.indexOf(x) < 0 && add.indexOf(x) < 0;
+        });
+      } else {
+        // If the tuples aren't seen in the changeset, add a new tuple.
+        // Note, tuple might be in input.rem, but we ignore this and just
+        // re-add a new tuple for simplicity.
+        input.add.push(t=Tuple.ingest(datum));
+        d._data.push(t);
+      }
     } else if (def.type === Types.CLEAR) {
-      input.rem.push.apply(input.rem, input.add);
-      input.rem.push.apply(input.rem, input.mod);
-      input.add = [];
-      input.mod = [];
-      d._data  = [];
+      input.rem.push.apply(input.rem, input.mod.splice(0));
+      input.add.splice(0);
+      d._data.splice(0);
     }
 
-    input.fields[def.field] = 1;
+    if (fieldName) input.fields[fieldName] = 1;
     return input;
   };
 
@@ -65263,11 +65524,16 @@ function parseModify(model, def, ds) {
     node.dependency(Deps.SIGNALS, predicate.signals);
   }
 
+  if (exprTrigger) {
+    node.dependency(Deps.SIGNALS, exprTrigger.globals);
+    node.dependency(Deps.DATA,    exprTrigger.dataSources);
+  }
+
   return node;
 }
 
 module.exports = parseModify;
-},{"datalib":30,"vega-dataflow":205,"vega-logging":211}],267:[function(require,module,exports){
+},{"datalib":30,"vega-dataflow":205,"vega-logging":212}],267:[function(require,module,exports){
 var dl = require('datalib');
 
 function parsePadding(pad) {
@@ -65486,6 +65752,7 @@ function properties(model, mark, spec) {
   var config = model.config(),
       code = "",
       names = dl.keys(spec),
+      exprs = [], // parsed expressions injected in the generated code
       i, len, name, ref, vars = {},
       deps = {
         signals: {},
@@ -65497,7 +65764,7 @@ function properties(model, mark, spec) {
         reflow:  false
       };
 
-  code += "var o = trans ? {} : item, d=0, set=this.tpl.set, tmpl=signals||{}, t;\n" +
+  code += "var o = trans ? {} : item, d=0, exprs=this.exprs, set=this.tpl.set, tmpl=signals||{}, t;\n" +
           // Stash for dl.template
           "tmpl.datum  = item.datum;\n" +
           "tmpl.group  = group;\n" +
@@ -65520,12 +65787,15 @@ function properties(model, mark, spec) {
     ref = spec[name = names[i]];
     code += (i > 0) ? "\n  " : "  ";
     if (ref.rule) {
-      ref = rule(model, name, ref.rule);
+      // a production rule valueref
+      ref = rule(model, name, ref.rule, exprs);
       code += "\n  " + ref.code;
     } else if (dl.isArray(ref)) {
-      ref = rule(model, name, ref);
+      // a production rule valueref as an array
+      ref = rule(model, name, ref, exprs);
       code += "\n  " + ref.code;
     } else {
+      // a simple valueref
       ref = valueRef(config, name, ref);
       code += "d += set(o, "+dl.str(name)+", "+ref.val+");";
     }
@@ -65599,7 +65869,9 @@ function properties(model, mark, spec) {
     /* jshint evil:true */
     var encoder = Function('item', 'group', 'trans', 'db',
       'signals', 'predicates', code);
+
     encoder.tpl  = Tuple;
+    encoder.exprs = exprs;
     encoder.util = dl;
     encoder.d3   = d3; // For color spaces
     dl.extend(encoder, dl.template.context);
@@ -65641,50 +65913,64 @@ function hasPath(mark, vars) {
        vars.tension || vars.interpolate));
 }
 
-function rule(model, name, rules) {
+function rule(model, name, rules, exprs) {
   var config  = model.config(),
       deps = dependencies(),
-      inputs  = [], code = '';
+      inputs  = [],
+      code = '';
 
   (rules||[]).forEach(function(r, i) {
-    var def = r.predicate,
-        predName = def && (def.name || def),
-        pred = model.predicate(predName),
-        p = 'predicates['+dl.str(predName)+']',
-        input = [], args = name+'_arg'+i,
-        ref;
-
-    if (dl.isObject(def)) {
-      dl.keys(def).forEach(function(k) {
-        if (k === 'name') return;
-        var ref = valueRef(config, i, def[k]);
-        input.push(dl.str(k)+': '+ref.val);
-        dependencies(deps, ref);
-      });
-    }
-
-    ref = valueRef(config, name, r);
+    var ref = valueRef(config, name, r);
     dependencies(deps, ref);
 
-    if (predName) {
-      deps.signals.push.apply(deps.signals, pred.signals);
-      deps.data.push.apply(deps.data, pred.data);
-      inputs.push(args+" = {\n    "+input.join(",\n    ")+"\n  }");
-      code += "if ("+p+".call("+p+","+args+", db, signals, predicates)) {" +
-        "\n    d += set(o, "+dl.str(name)+", "+ref.val+");";
+    if (r.test) {
+      // rule uses an expression instead of a predicate.
+      var exprFn = model.expr(r.test);
+      deps.signals.push.apply(deps.signals, exprFn.globals);
+      deps.data.push.apply(deps.data, exprFn.dataSources);
+
+      code += "if (exprs[" + exprs.length + "](item.datum, null)) {" +
+          "\n    d += set(o, "+dl.str(name)+", " +ref.val+");";
       code += rules[i+1] ? "\n  } else " : "  }";
+
+      exprs.push(exprFn.fn);
     } else {
-      code += "{" +
-        "\n    d += set(o, "+dl.str(name)+", "+ref.val+");"+
-        "\n  }\n";
+      var def = r.predicate,
+          predName = def && (def.name || def),
+          pred = model.predicate(predName),
+          p = 'predicates['+dl.str(predName)+']',
+          input = [], args = name+'_arg'+i;
+
+      if (dl.isObject(def)) {
+        dl.keys(def).forEach(function(k) {
+          if (k === 'name') return;
+          var ref = valueRef(config, i, def[k], true);
+          input.push(dl.str(k)+': '+ref.val);
+          dependencies(deps, ref);
+        });
+      }
+
+      if (predName) {
+        // append the predicates dependencies to our dependencies
+        deps.signals.push.apply(deps.signals, pred.signals);
+        deps.data.push.apply(deps.data, pred.data);
+        inputs.push(args+" = {\n    "+input.join(",\n    ")+"\n  }");
+        code += "if ("+p+".call("+p+","+args+", db, signals, predicates)) {" +
+          "\n    d += set(o, "+dl.str(name)+", "+ref.val+");";
+        code += rules[i+1] ? "\n  } else " : "  }";
+      } else {
+        code += "{" +
+          "\n    d += set(o, "+dl.str(name)+", "+ref.val+");"+
+          "\n  }\n";
+      }
     }
   });
 
-  code = "var " + inputs.join(",\n      ") + ";\n  " + code;
+  if (inputs.length) code = "var " + inputs.join(",\n      ") + ";\n  " + code;
   return (deps.code = code, deps);
 }
 
-function valueRef(config, name, ref) {
+function valueRef(config, name, ref, predicateArg) {
   if (ref == null) return null;
 
   if (name==='fill' || name==='stroke') {
@@ -65748,10 +66034,10 @@ function valueRef(config, name, ref) {
 
     // run through scale function if val specified.
     // if no val, scale function is predicate arg.
-    if (val !== null || ref.band || ref.mult || ref.offset) {
+    if (val !== null || ref.band || ref.mult || ref.offset || !predicateArg) {
       val = scale + (ref.band ? '.rangeBand()' :
         '('+(val !== null ? val : 'item.datum.data')+')');
-    } else {
+    } else if (predicateArg) {
       val = scale;
     }
   }
@@ -65839,13 +66125,13 @@ function scaleRef(ref) {
 
 module.exports = properties;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"datalib":30,"vega-dataflow":205,"vega-logging":211}],270:[function(require,module,exports){
+},{"datalib":30,"vega-dataflow":205,"vega-logging":212}],270:[function(require,module,exports){
 var dl = require('datalib'),
-    SIGNALS = require('vega-dataflow').Dependencies.SIGNALS,
-    expr = require('./expr');
+    expr = require('./expr'),
+    SIGNALS = require('vega-dataflow').Dependencies.SIGNALS;
 
 var RESERVED = ['datum', 'event', 'signals', 'width', 'height', 'padding']
-  .concat(dl.keys(expr.codegen.functions));
+    .concat(dl.keys(expr.codegen.functions));
 
 function parseSignals(model, spec) {
   // process each signal definition
@@ -65859,12 +66145,12 @@ function parseSignals(model, spec) {
       .verbose(s.verbose);
 
     if (s.init && s.init.expr) {
-      s.init.expr = expr(s.init.expr);
+      s.init.expr = model.expr(s.init.expr);
       signal.value(exprVal(model, s.init));
     }
 
     if (s.expr) {
-      s.expr = expr(s.expr);
+      s.expr = model.expr(s.expr);
       signal.evaluate = function(input) {
         var val = exprVal(model, s),
             sg  = input.signals;
@@ -65885,9 +66171,8 @@ function parseSignals(model, spec) {
 }
 
 function exprVal(model, spec) {
-  var e = spec.expr,
-      val = e.fn(null, null, model.values(SIGNALS, e.globals));
-  return spec.scale ? parseSignals.scale(model, spec, val) : val;
+  var e = spec.expr, v = e.fn();
+  return spec.scale ? parseSignals.scale(model, spec, v) : v;
 }
 
 parseSignals.scale = function scale(model, spec, value, datum, evt) {
@@ -65899,30 +66184,20 @@ parseSignals.scale = function scale(model, spec, value, datum, evt) {
     if (scope.signal) {
       scope = model.signalRef(scope.signal);
     } else if (dl.isString(scope)) { // Scope is an expression
-      e = def._expr = (def._expr || expr(scope));
-      scope = e.fn(datum, evt, model.values(SIGNALS, e.globals));
+      e = def._expr = (def._expr || model.expr(scope));
+      scope = e.fn(datum, evt);
     }
   }
 
-  if (!scope || !scope.scale) {
-    scope = (scope && scope.mark) ? scope.mark.group : model.scene().items[0];
-  }
-
-  // Verify scope is valid
-  if (model.group(scope._id) !== scope) {
-    throw new Error('Scope for scale "'+name+'" is not a valid group item.');
-  }
-
-  var s = scope.scale(name);
-  return !s ? value : (def.invert ? s.invert(value) : s(value));
+  return expr.scale(model, def.invert, name, value, scope);
 };
 
 module.exports = parseSignals;
 },{"./expr":261,"datalib":30,"vega-dataflow":205}],271:[function(require,module,exports){
-var dl = require('datalib'),
+var dl  = require('datalib'),
     log = require('vega-logging'),
     Model = require('../core/Model'),
-    View = require('../core/View');
+    View  = require('../core/View');
 
 /**
  * Parse graph specification
@@ -65947,22 +66222,16 @@ var dl = require('datalib'),
     model.config(arguments[arglen - argidx]);
   }
 
-  function onDone(err, value) {
-    if (cb) {
-      if (cb.length > 1) cb(err, value);
-      else if (!err) cb(value);
-      cb = null;
-    }
-  }
-
-  function onError(err) {
-    log.error(err);
-    onDone(err);
-  }
-
-  function onCreate(err) {
-    if (err) onError(err);
-    else onDone(null, viewFactory(model));
+  if (dl.isObject(spec)) {
+    parse(spec);
+  } else if (dl.isString(spec)) {
+    var opts = dl.extend({url: spec}, model.config().load);
+    dl.json(opts, function(err, spec) {
+      if (err) done('SPECIFICATION LOAD FAILED: ' + err);
+      else parse(spec);
+    });
+  } else {
+    done('INVALID SPECIFICATION: Must be a valid JSON object or URL.');
   }
 
   function parse(spec) {
@@ -65975,10 +66244,11 @@ var dl = require('datalib'),
           height  = spec.height || 500,
           padding = parsers.padding(spec.padding);
 
-      // create signals for width, height and padding
+      // create signals for width, height, padding, and cursor
       model.signal('width', width);
       model.signal('height', height);
       model.signal('padding', padding);
+      cursor(spec);
 
       // initialize model
       model.defs({
@@ -65990,38 +66260,57 @@ var dl = require('datalib'),
         signals:    parsers.signals(model, spec.signals),
         predicates: parsers.predicates(model, spec.predicates),
         marks:      parsers.marks(model, spec, width, height),
-        data:       parsers.data(model, spec.data, onCreate)
+        data:       parsers.data(model, spec.data, done)
       });
-    } catch (err) { onError(err); }
+    } catch (err) { done(err); }
   }
 
-  if (dl.isObject(spec)) {
-    parse(spec);
-  } else if (dl.isString(spec)) {
-    var opts = dl.extend({url: spec}, model.config().load);
-    dl.json(opts, function(err, spec) {
-      if (err) onError('SPECIFICATION LOAD FAILED: ' + err);
-      else parse(spec);
+  function cursor(spec) {
+    var signals = spec.signals || (spec.signals=[]),  def;
+    signals.some(function(sg) {
+      return (sg.name === 'cursor') ? (def=sg, true) : false;
     });
-  } else {
-    onError('INVALID SPECIFICATION: Must be a valid JSON object or URL.');
+
+    if (!def) signals.push(def={name: 'cursor', streams: []});
+
+    // Add a stream def at the head, so that custom defs can override it.
+    def.init = def.init || {};
+    def.streams.unshift({
+      type: 'mousemove',
+      expr: 'eventItem().cursor === cursor.default ? cursor : {default: eventItem().cursor}'
+    });
+  }
+
+  function done(err) {
+    var view;
+    if (err) {
+      log.error(err);
+    } else {
+      view = viewFactory(model.buildIndexes());
+    }
+
+    if (cb) {
+      if (cb.length > 1) cb(err, view);
+      else if (!err) cb(view);
+      cb = null;
+    }
   }
 }
 
 module.exports = parseSpec;
-},{"../core/Model":253,"../core/View":254,"./":262,"datalib":30,"vega-logging":211}],272:[function(require,module,exports){
+},{"../core/Model":254,"../core/View":255,"./":262,"datalib":30,"vega-logging":212}],272:[function(require,module,exports){
 (function (global){
 var d3 = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null),
     dl = require('datalib'),
     df = require('vega-dataflow'),
-    SIGNALS = df.Dependencies.SIGNALS,
-    parseSignals = require('./signals'),
-    selector = require('./events'),
-    expr = require('./expr');
+    selector = require('vega-event-selector'),
+    parseSignals = require('./signals');
 
-var GATEKEEPER = '_vgGATEKEEPER';
+var GATEKEEPER = '_vgGATEKEEPER',
+    EVALUATOR  = '_vgEVALUATOR';
 
 var vgEvent = {
+  getItem: function() { return this.item; },
   getGroup: function(name) { return name ? this.name[name] : this.group; },
   getXY: function(item) {
       var p = {x: this.x, y: this.y};
@@ -66040,18 +66329,20 @@ var vgEvent = {
 
 function parseStreams(view) {
   var model = view.model(),
-      spec  = model.defs().signals,
+      trueFn  = model.expr('true'),
+      falseFn = model.expr('false'),
+      spec    = model.defs().signals,
       registry = {handlers: {}, nodes: {}},
       internal = dl.duplicate(registry),  // Internal event processing
       external = dl.duplicate(registry);  // External event processing
 
-  (spec || []).forEach(function(sig) {
+  dl.array(spec).forEach(function(sig) {
     var signal = model.signal(sig.name);
     if (sig.expr) return;  // Cannot have an expr and stream definition.
 
-    (sig.streams || []).forEach(function(stream) {
+    dl.array(sig.streams).forEach(function(stream) {
       var sel = selector.parse(stream.type),
-          exp = expr(stream.expr);
+          exp = model.expr(stream.expr);
       mergedStream(signal, sel, exp, stream);
     });
   });
@@ -66094,7 +66385,7 @@ function parseStreams(view) {
     dl.keys(external.handlers).forEach(function(type) {
       var h = external.handlers[type],
           t = type.split(':'),
-          elt = h.elements || [];
+          elt = dl.array(h.elements);
 
       for (var i=0; i<elt.length; ++i) {
         elt[i].removeEventListener(t[1], h.listener);
@@ -66139,7 +66430,7 @@ function parseStreams(view) {
         val, i, n, h;
 
     function invoke(f) {
-      return !f.fn(datum, evt, model.values(SIGNALS, f.globals));
+      return !f.fn(datum, evt);
     }
 
     for (i=0, n=handlers.length; i<n; ++i) {
@@ -66147,7 +66438,7 @@ function parseStreams(view) {
       filtered = h.filters.some(invoke);
       if (filtered) continue;
 
-      val = h.exp.fn(datum, evt, model.values(SIGNALS, h.exp.globals));
+      val = h.exp.fn(datum, evt);
       if (h.spec.scale) {
         val = parseSignals.scale(model, h.spec, val, datum, evt);
       }
@@ -66175,7 +66466,7 @@ function parseStreams(view) {
         name = selector.name,
         mark = selector.mark,
         target   = selector.target,
-        filters  = selector.filters || [],
+        filters  = dl.array(selector.filters),
         registry = target ? external : internal,
         type = target ? target+':'+evt : evt,
         node = registry.nodes[type] || (registry.nodes[type] = new df.Node(model)),
@@ -66191,39 +66482,37 @@ function parseStreams(view) {
       signal: sig,
       exp: exp,
       spec: spec,
-      filters: filters.map(function(f) { return expr(f); })
+      filters: filters.map(function(f) { return model.expr(f); })
     });
 
     node.addListener(sig);
   }
 
   function signal(sig, selector, exp, spec) {
-    var n = new df.Node(model);
-    n.evaluate = function(input) {
+    var n = sig.name(), s = model.signal(n+EVALUATOR, null);
+    s.evaluate = function(input) {
       if (!input.signals[selector.signal]) return model.doNotPropagate;
-      var val = exp.fn(null, null, model.values(SIGNALS, exp.globals));
+      var val = exp.fn();
       if (spec.scale) {
         val = parseSignals.scale(model, spec, val);
       }
 
       if (val !== sig.value() || sig.verbose()) {
         sig.value(val);
-        input.signals[sig.name()] = 1;
+        input.signals[n] = 1;
         input.reflow = true;
       }
 
       return input;
     };
-    n.dependency(df.Dependencies.SIGNALS, selector.signal);
-    n.addListener(sig);
-    model.signal(selector.signal).addListener(n);
+    s.dependency(df.Dependencies.SIGNALS, selector.signal);
+    s.addListener(sig);
+    model.signal(selector.signal).addListener(s);
   }
 
   function orderedStream(sig, selector, exp, spec) {
     var name = sig.name(),
         gk = name + GATEKEEPER,
-        trueFn  = expr('true'),
-        falseFn = expr('false'),
         middle  = selector.middle,
         filters = middle.filters || (middle.filters = []),
         gatekeeper = model.signal(gk) || model.signal(gk, false);
@@ -66241,13 +66530,17 @@ function parseStreams(view) {
 
 module.exports = parseStreams;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./events":260,"./expr":261,"./signals":270,"datalib":30,"vega-dataflow":205}],273:[function(require,module,exports){
+},{"./signals":270,"datalib":30,"vega-dataflow":205,"vega-event-selector":206}],273:[function(require,module,exports){
 var dl = require('datalib'),
     transforms = require('../transforms/index');
 
 function parseTransforms(model, def) {
-  var tx = new transforms[def.type](model);
+  var transform = transforms[def.type],
+      tx;
 
+  if (!transform) throw new Error('"' + def.type + '" is not a valid transformation');
+
+  tx = new transform(model);
   // We want to rename output fields before setting any other properties,
   // as subsequent properties may require output to be set (e.g. group by).
   if(def.output) tx.output(def.output);
@@ -66261,7 +66554,7 @@ function parseTransforms(model, def) {
 }
 
 module.exports = parseTransforms;
-},{"../transforms/index":309,"datalib":30}],274:[function(require,module,exports){
+},{"../transforms/index":310,"datalib":30}],274:[function(require,module,exports){
 var dl = require('datalib'),
     df = require('vega-dataflow'),
     scene = require('vega-scenegraph'),
@@ -66330,7 +66623,7 @@ proto.evaluate = function(input) {
 };
 
 module.exports = Bounder;
-},{"./Encoder":276,"datalib":30,"vega-dataflow":205,"vega-logging":211,"vega-scenegraph":212}],275:[function(require,module,exports){
+},{"./Encoder":276,"datalib":30,"vega-dataflow":205,"vega-logging":212,"vega-scenegraph":213}],275:[function(require,module,exports){
 var dl = require('datalib'),
     log = require('vega-logging'),
     Item = require('vega-scenegraph').Item,
@@ -66406,10 +66699,12 @@ proto.init = function(graph, def, mark, parent, parent_id, inheritFrom) {
 function inlineDs() {
   var from = this._def.from,
       geom = from.mark,
-      src, name, spec, sibling, output, input;
+      src, name, spec, sibling, output, input, node;
 
   if (geom) {
-    name = ['vg', this._parent_id, geom].join('_');
+    sibling = this.sibling(geom);
+    src  = sibling._isSuper ? sibling : sibling._bounder;
+    name = ['vg', this._parent_id, geom, src.listeners(true).length].join('_');
     spec = {
       name: name,
       transform: from.transform,
@@ -66417,6 +66712,7 @@ function inlineDs() {
     };
   } else {
     src = this._graph.data(this._from);
+    if (!src) throw Error('Data source "'+this._from+'" is not defined.');
     name = ['vg', this._from, this._def.type, src.listeners(true).length].join('_');
     spec = {
       name: name,
@@ -66428,21 +66724,21 @@ function inlineDs() {
 
   this._from = name;
   this._ds = parseData.datasource(this._graph, spec);
-  var node;
 
   if (geom) {
-    sibling = this.sibling(geom);
-
     // Bounder reflows, so we need an intermediary node to propagate
     // the output constructed by the Builder.
     node = new Node(this._graph).addListener(this._ds.listener());
-    node.evaluate = function() { return sibling._output; };
+    node.evaluate = function(input) {
+      var out  = ChangeSet.create(input),
+          sout = sibling._output;
 
-    if (sibling._isSuper) {
-      sibling.addListener(node);
-    } else {
-      sibling._bounder.addListener(node);
-    }
+      out.add = sout.add;
+      out.mod = sout.mod;
+      out.rem = sout.rem;
+      return out;
+    };
+    src.addListener(node);
   } else {
     // At this point, we have a new datasource but it is empty as
     // the propagation cycle has already crossed the datasources.
@@ -66635,7 +66931,7 @@ function keyFunction(key) {
 }
 
 module.exports = Builder;
-},{"../parse/data":259,"./Bounder":274,"./Encoder":276,"datalib":30,"vega-dataflow":205,"vega-logging":211,"vega-scenegraph":212}],276:[function(require,module,exports){
+},{"../parse/data":260,"./Bounder":274,"./Encoder":276,"datalib":30,"vega-dataflow":205,"vega-logging":212,"vega-scenegraph":213}],276:[function(require,module,exports){
 var dl = require('datalib'),
     log = require('vega-logging'),
     df = require('vega-dataflow'),
@@ -66822,11 +67118,12 @@ Encoder.update = function(graph, trans, request, items, dirty) {
 };
 
 module.exports = Encoder;
-},{"./Builder":275,"datalib":30,"vega-dataflow":205,"vega-logging":211,"vega-scenegraph":212}],277:[function(require,module,exports){
+},{"./Builder":275,"datalib":30,"vega-dataflow":205,"vega-logging":212,"vega-scenegraph":213}],277:[function(require,module,exports){
 var dl = require('datalib'),
     df = require('vega-dataflow'),
-    Node = df.Node, // jshint ignore:line
-    Deps = df.Dependencies,
+    Node  = df.Node, // jshint ignore:line
+    Deps  = df.Dependencies,
+    Tuple = df.Tuple,
     Collector = df.Collector,
     log = require('vega-logging'),
     Builder = require('./Builder'),
@@ -66887,7 +67184,20 @@ proto.init = function(graph, def) {
 proto.evaluate = function() {
   var output  = Builder.prototype.evaluate.apply(this, arguments),
       model   = this._graph,
-      builder = this;
+      builder = this,
+      scales = this._scales,
+      items  = this._mark.items;
+
+  // If scales need to be reevaluated, we need to send all group items forward.
+  if (output.mod.length < items.length) {
+    var fullUpdate = dl.keys(scales).some(function(s) {
+      return scales[s].reevaluate(output);
+    });
+
+    if (fullUpdate) {
+      output.mod = output.mod.concat(Tuple.idFilter(items, output.mod));
+    }
+  }
 
   output.add.forEach(function(group) { buildGroup.call(builder, output, group); });
   output.rem.forEach(function(group) { model.group(group._id, null); });
@@ -67097,7 +67407,7 @@ function buildLegends(input, group) {
 }
 
 module.exports = GroupBuilder;
-},{"../parse/axes":257,"../parse/legends":263,"./Builder":275,"./Scale":278,"datalib":30,"vega-dataflow":205,"vega-logging":211}],278:[function(require,module,exports){
+},{"../parse/axes":258,"../parse/legends":263,"./Builder":275,"./Scale":278,"datalib":30,"vega-dataflow":205,"vega-logging":212}],278:[function(require,module,exports){
 (function (global){
 var d3 = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null),
     dl = require('datalib'),
@@ -67235,8 +67545,8 @@ function ordinal(scale, rng, group) {
   // range
   if (!dl.equal(prev.range, rng)) {
     // width-defined range
-    if (def.bandWidth) {
-      var bw = signal.call(this, def.bandWidth),
+    if (def.bandSize) {
+      var bw = signal.call(this, def.bandSize),
           len = domain.length,
           space = def.points ? (pad*bw) : (pad*bw*(len-1) + 2*outer),
           start;
@@ -67247,6 +67557,8 @@ function ordinal(scale, rng, group) {
         start = rng[0] || 0;
         rng = [start, start + (bw * len + space)];
       }
+
+      if (def.reverse) rng = rng.reverse();
     }
 
     str = typeof rng[0] === 'string';
@@ -67606,7 +67918,7 @@ function range(group) {
 
 module.exports = Scale;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../transforms/Aggregate":283,"datalib":30,"vega-dataflow":205,"vega-logging":211}],279:[function(require,module,exports){
+},{"../transforms/Aggregate":283,"datalib":30,"vega-dataflow":205,"vega-logging":212}],279:[function(require,module,exports){
 (function (global){
 var d3 = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null),
     bound = require('vega-scenegraph').bound,
@@ -67712,18 +68024,14 @@ function step(elapsed) {
 
 module.exports = Transition;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./Builder":275,"vega-dataflow":205,"vega-scenegraph":212}],280:[function(require,module,exports){
+},{"./Builder":275,"vega-dataflow":205,"vega-scenegraph":213}],280:[function(require,module,exports){
 var dl = require('datalib'),
     Tuple = require('vega-dataflow').Tuple,
-    parseMark = require('../parse/mark');
+    parseMark = require('../parse/mark'),
+    util = require('../util');
 
 var axisBounds = new (require('vega-scenegraph').Bounds)();
-
-var TIME    = 'time',
-    UTC     = 'utc',
-    STRING  = 'string',
-    ORDINAL = 'ordinal',
-    NUMBER  = 'number';
+var ORDINAL = 'ordinal';
 
 function axs(model) {
   var scale,
@@ -67769,58 +68077,6 @@ function axs(model) {
     return {data: d};
   }
 
-  function getTickFormat() {
-    var formatType = tickFormatType || inferFormatType();
-    return getFormatter(formatType, tickFormatString);
-  }
-
-  function inferFormatType() {
-    switch (scale.type) {
-      case TIME:    return TIME;
-      case UTC:     return UTC;
-      case ORDINAL: return STRING;
-      default:      return NUMBER;
-    }
-  }
-
-  // Adapted from d3 log scale
-  // TODO customize? replace with range-size-aware filtering?
-  function logFilter(domain, count, f) {
-    if (count == null) return f;
-    var base = scale.base(),
-        k = Math.min(base, scale.ticks().length / count),
-        v = domain[0] > 0 ? (e = 1e-12, Math.ceil) : (e = -1e-12, Math.floor),
-        e;
-    function log(x) {
-      return (domain[0] < 0 ?
-        -Math.log(x > 0 ? 0 : -x) :
-        Math.log(x < 0 ? 0 : x)) / Math.log(base);
-    }
-    function pow(x) {
-      return domain[0] < 0 ? -Math.pow(base, -x) : Math.pow(base, x);
-    }
-    return function(d) {
-      return pow(v(log(d) + e)) / d >= k ? f(d) : '';
-    };
-  }
-
-  function getFormatter(formatType, str) {
-    var fmt = dl.format,
-        log = scale.type === 'log',
-        domain;
-
-    switch (formatType) {
-      case NUMBER:
-        domain = scale.domain();
-        return log ?
-          logFilter(domain, tickCount, fmt.auto.number(str || null)) :
-          fmt.auto.linear(domain, tickCount, str || null);
-      case TIME: return (str ? fmt : fmt.auto).time(str);
-      case UTC:  return (str ? fmt : fmt.auto).utc(str);
-      default:   return String;
-    }
-  }
-
   function getTicks(format) {
     var major = tickValues || (scale.ticks ? scale.ticks(tickCount) : scale.domain()),
         minor = axisSubdivide(scale, major, tickSubdivide).map(ingest);
@@ -67831,8 +68087,9 @@ function axs(model) {
   axis.def = function() {
     if (!axisDef.type) axis_def(scale);
 
-    var ticks = getTicks(getTickFormat());
-    var tdata = title ? [title].map(ingest) : [];
+    var format = util.getTickFormat(scale, tickCount, tickFormatType, tickFormatString),
+        ticks  = getTicks(format),
+        tdata  = title ? [title].map(ingest) : [];
 
     axisDef.marks[0].from = function() { return grid ? ticks[0] : []; };
     axisDef.marks[1].from = function() { return ticks[0]; };
@@ -67901,7 +68158,7 @@ function axs(model) {
     m.gridLines.properties.enter.strokeOpacity = {value: config.gridOpacity};
 
     // extend axis marks based on axis orientation
-    axisTicksExtend(orient, m.gridLines, oldScale, newScale, Infinity);
+    axisTicksExtend(orient, m.gridLines, oldScale, newScale, Infinity, offset);
     axisTicksExtend(orient, m.majorTicks, oldScale, newScale, tickMajorSize);
     axisTicksExtend(orient, m.minorTicks, oldScale, newScale, tickMinorSize);
     axisLabelExtend(orient, m.tickLabels, oldScale, newScale, tickMajorSize, tickPadding);
@@ -68168,14 +68425,14 @@ function axisLabelExtend(orient, labels, oldScale, newScale, size, pad) {
   }
 }
 
-function axisTicksExtend(orient, ticks, oldScale, newScale, size) {
+function axisTicksExtend(orient, ticks, oldScale, newScale, size, offset) {
   var sign = (orient === 'left' || orient === 'top') ? -1 : 1;
   if (size === Infinity) {
     size = (orient === 'top' || orient === 'bottom') ?
-      {field: {group: 'height', level: 2}, mult: -sign} :
-      {field: {group: 'width',  level: 2}, mult: -sign};
+      {field: {group: 'height', level: 2}, mult: -sign, offset: offset*-sign} :
+      {field: {group: 'width',  level: 2}, mult: -sign, offset: offset*-sign};
   } else {
-    size = {value: sign * size};
+    size = {value: sign * size, offset: offset};
   }
   if (orient === 'top' || orient === 'bottom') {
     dl.extend(ticks.properties.enter, {
@@ -68216,11 +68473,11 @@ function axisTitleExtend(orient, title, range, offset) {
   if (orient === 'bottom' || orient === 'top') {
     update.x = {value: mid};
     update.angle = {value: 0};
-    if (offset >= 0) update.y = sign * offset;
+    if (offset >= 0) update.y = {value: sign * offset};
   } else {
     update.y = {value: mid};
     update.angle = {value: orient === 'left' ? -90 : 90};
-    if (offset >= 0) update.x = sign * offset;
+    if (offset >= 0) update.x = {value: sign * offset};
   }
 }
 
@@ -68345,25 +68602,26 @@ function axisDomain(config) {
 }
 
 module.exports = axs;
-},{"../parse/mark":264,"datalib":30,"vega-dataflow":205,"vega-scenegraph":212}],281:[function(require,module,exports){
+},{"../parse/mark":264,"../util":313,"datalib":30,"vega-dataflow":205,"vega-scenegraph":213}],281:[function(require,module,exports){
 (function (global){
 var d3 = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null),
     dl = require('datalib'),
     Gradient = require('vega-scenegraph').Gradient,
     parseProperties = require('../parse/properties'),
-    parseMark = require('../parse/mark');
+    parseMark = require('../parse/mark'),
+    util = require('../util');
 
 function lgnd(model) {
-  var size = null,
+  var size  = null,
       shape = null,
-      fill = null,
-      stroke = null,
+      fill  = null,
+      stroke  = null,
       spacing = null,
-      values = null,
-      format = null,
+      values  = null,
       formatString = null,
+      formatType   = null,
+      title  = null,
       config = model.config().legend,
-      title,
       orient = config.orient,
       offset = config.offset,
       padding = config.padding,
@@ -68389,9 +68647,6 @@ function lgnd(model) {
   legend.def = function() {
     var scale = size || shape || fill || stroke;
 
-    format = !formatString ? null : ((scale.type === 'time') ?
-      dl.format.time(formatString) : dl.format.number(formatString));
-
     if (!legendDef.type) {
       legendDef = (scale===fill || scale===stroke) && !discrete(scale.type) ?
         quantDef(scale) : ordinalDef(scale);
@@ -68415,7 +68670,8 @@ function lgnd(model) {
     var data = (values == null ?
       (scale.ticks ? scale.ticks.apply(scale, tickArguments) : scale.domain()) :
       values).map(ingest);
-    var fmt = format==null ? (scale.tickFormat ? scale.tickFormat.apply(scale, tickArguments) : String) : format;
+
+    var fmt = util.getTickFormat(scale, data.length, formatType, formatString);
 
     // determine spacing between legend entries
     var fs, range, offset, pad=5, domain = d3.range(data.length);
@@ -68509,7 +68765,7 @@ function lgnd(model) {
         dom = scale.domain(),
         data  = (values == null ? dom : values).map(ingest),
         width = (gradientStyle.width && gradientStyle.width.value) || config.gradientWidth,
-        fmt = format==null ? (scale.tickFormat ? scale.tickFormat.apply(scale, tickArguments) : String) : format;
+        fmt = util.getTickFormat(scale, data.length, formatType, formatString);
 
     // build scale for label layout
     def.scales = def.scales || [{}];
@@ -68645,6 +68901,15 @@ function lgnd(model) {
     return legend;
   };
 
+  legend.formatType = function(x) {
+    if (!arguments.length) return formatType;
+    if (formatType !== x) {
+      formatType = x;
+      reset();
+    }
+    return legend;
+  };
+
   legend.spacing = function(x) {
     if (!arguments.length) return spacing;
     if (spacing !== +x) { spacing = +x; reset(); }
@@ -68707,16 +68972,17 @@ function lgnd(model) {
   return legend;
 }
 
-var LEGEND_ORIENT = {right: 1, left: 1};
+var LEGEND_ORIENT = {left: 'x1', right: 'x2'};
 
 function legendPosition(item, group, trans, db, signals, predicates) {
-  var o = trans ? {} : item, i, aw = 0,
-      def    = item.mark.def,
+  var o = trans ? {} : item, i,
+      def = item.mark.def,
       offset = def.offset,
       orient = def.orient,
-      pad    = def.padding * 2,
-      lw     = ~~item.bounds.width() + (item.width ? 0 : pad),
-      lh     = ~~item.bounds.height() + (item.height ? 0 : pad),
+      pad = def.padding * 2,
+      ao  = orient === 'left' ? 0 : group.width,
+      lw  = ~~item.bounds.width() + (item.width ? 0 : pad),
+      lh  = ~~item.bounds.height() + (item.height ? 0 : pad),
       pos = group._legendPositions ||
         (group._legendPositions = {right: 0.5, left: 0.5});
 
@@ -68725,16 +68991,20 @@ function legendPosition(item, group, trans, db, signals, predicates) {
   o.y = pos[orient];
   pos[orient] += (o.height = lh) + def.margin;
 
-  for (i=0; i<group.axes.length; ++i) {
-    if (group.axes[i].orient() === orient) {
-      aw = Math.max(aw, group.axisItems[i].bounds.width());
+  // Calculate axis offset. 
+  var axes  = group.axes, 
+      items = group.axisItems,
+      bound = LEGEND_ORIENT[orient];
+  for (i=0; i<axes.length; ++i) {
+    if (axes[i].orient() === orient) {
+      ao = Math.max(ao, Math.abs(items[i].bounds[bound]));
     }
   }
 
   if (orient === 'left') {
-    o.x -= aw + offset + lw;
+    o.x -= ao + offset + lw;
   } else {
-    o.x += group.width + aw + offset;
+    o.x += ao + offset;
   }
 
   if (trans) trans.interpolate(item, o);
@@ -68881,7 +69151,7 @@ function hLegendLabels(config) {
 
 module.exports = lgnd;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../parse/mark":264,"../parse/properties":269,"datalib":30,"vega-scenegraph":212}],282:[function(require,module,exports){
+},{"../parse/mark":264,"../parse/properties":269,"../util":313,"datalib":30,"vega-scenegraph":213}],282:[function(require,module,exports){
 module.exports = function visit(node, func) {
   var i, n, s, m, items;
   if (func(node)) return true;
@@ -69012,7 +69282,7 @@ prototype.aggr = function() {
 
   if (!fields.length) fields = {'*': 'values'};
 
-  // Instatiate our aggregator instance.
+  // Instantiate our aggregator instance.
   // Facetor is a special subclass that can facet into data pipelines.
   var aggr = this._aggr = new Facetor()
     .groupby(groupby)
@@ -69108,7 +69378,7 @@ prototype.transform = function(input, reset) {
 };
 
 module.exports = Aggregate;
-},{"./Facetor":289,"./Transform":304,"datalib":30,"vega-dataflow":205,"vega-logging":211}],284:[function(require,module,exports){
+},{"./Facetor":289,"./Transform":305,"datalib":30,"vega-dataflow":205,"vega-logging":212}],284:[function(require,module,exports){
 var Base = require('./Transform').prototype;
 
 function BatchTransform() {
@@ -69133,7 +69403,7 @@ prototype.batchTransform = function(/* input, data, reset */) {
 };
 
 module.exports = BatchTransform;
-},{"./Transform":304}],285:[function(require,module,exports){
+},{"./Transform":305}],285:[function(require,module,exports){
 var dl = require('datalib'),
     Tuple = require('vega-dataflow').Tuple,
     log = require('vega-logging'),
@@ -69218,7 +69488,7 @@ prototype.batchTransform = function(input, data) {
 };
 
 module.exports = Bin;
-},{"./BatchTransform":284,"./Transform":304,"datalib":30,"vega-dataflow":205,"vega-logging":211}],286:[function(require,module,exports){
+},{"./BatchTransform":284,"./Transform":305,"datalib":30,"vega-dataflow":205,"vega-logging":212}],286:[function(require,module,exports){
 var df = require('vega-dataflow'),
     Tuple = df.Tuple,
     log = require('vega-logging'),
@@ -69343,12 +69613,11 @@ prototype._rem = function(tuples, get) {
 };
 
 module.exports = CountPattern;
-},{"./Transform":304,"vega-dataflow":205,"vega-logging":211}],287:[function(require,module,exports){
+},{"./Transform":305,"vega-dataflow":205,"vega-logging":212}],287:[function(require,module,exports){
 var dl = require('datalib'),
     df = require('vega-dataflow'),
     ChangeSet = df.ChangeSet,
     Tuple = df.Tuple,
-    SIGNALS = df.Dependencies.SIGNALS,
     log = require('vega-logging'),
     Transform = require('./Transform'),
     BatchTransform = require('./BatchTransform');
@@ -69364,7 +69633,7 @@ function Cross(graph) {
   this._output = {'left': 'a', 'right': 'b'};
   this._lastWith = null; // Last time we crossed w/with-ds.
   this._cids  = {};
-  this._cache = {}; 
+  this._cache = {};
 
   return this.router(true).produces(true);
 }
@@ -69372,7 +69641,7 @@ function Cross(graph) {
 var prototype = (Cross.prototype = Object.create(BatchTransform.prototype));
 prototype.constructor = Cross;
 
-// Each cached incoming tuple also has a flag to determine whether 
+// Each cached incoming tuple also has a flag to determine whether
 // any tuples were filtered.
 function _cache(x, t) {
   var c = this._cache,
@@ -69388,7 +69657,7 @@ function add(output, left, data, diag, test, mids, x) {
   var as = this._output,
       cache = this._cache,
       cids  = this._cids,
-      oadd  = output.add, 
+      oadd  = output.add,
       fltrd = false,
       i = 0, len = data.length,
       t = {}, y, cid;
@@ -69403,7 +69672,7 @@ function add(output, left, data, diag, test, mids, x) {
     Tuple.set(t, as.right, left ? y : x);
 
     // Only ingest a tuple if we keep it around. Otherwise, flag the
-    // caches as filtered. 
+    // caches as filtered.
     if (!test || test(t)) {
       oadd.push(t=Tuple.ingest(t));
       _cache.call(this, x, t);
@@ -69432,7 +69701,7 @@ function mod(output, left, data, diag, test, mids, rids, x) {
       i, t, y, l, cid;
 
   // If we have cached values, iterate through them for lazy
-  // removal, and to re-run the filter. 
+  // removal, and to re-run the filter.
   if (tpls) {
     for (i=tpls.length-1; i>=0; --i) {
       t = tpls[i];
@@ -69462,14 +69731,14 @@ function mod(output, left, data, diag, test, mids, rids, x) {
 
   // If we have a filter param, call add to catch any tuples that may
   // have previously been filtered.
-  if (test && fltrd) add.call(this, output, left, data, diag, test, mids, x); 
+  if (test && fltrd) add.call(this, output, left, data, diag, test, mids, x);
 }
 
 function rem(output, left, rids, x) {
   var as = this._output,
       cross = this._cache[x._id],
       cids  = this._cids,
-      orem  = output.rem, 
+      orem  = output.rem,
       i, len, t, y, l;
   if (!cross) return;
 
@@ -69511,13 +69780,10 @@ function purge(output, rids) {
 prototype.batchTransform = function(input, data, reset) {
   log.debug(input, ['crossing']);
 
-  var g = this._graph,
-      w = this.param('with'),
-      f = this.param('filter'),
+  var w = this.param('with'),
       diag = this.param('diagonal'),
       as = this._output,
-      sg = g.values(SIGNALS, this.dependency(SIGNALS)),
-      test = f ? function(x) {return f(x, null, sg); } : null,
+      test = this.param('filter') || null,
       selfCross = (!w.name),
       woutput = selfCross ? input : w.source.last(),
       wdata   = selfCross ? data : w.source.values(),
@@ -69551,7 +69817,7 @@ prototype.batchTransform = function(input, data, reset) {
 };
 
 module.exports = Cross;
-},{"./BatchTransform":284,"./Transform":304,"datalib":30,"vega-dataflow":205,"vega-logging":211}],288:[function(require,module,exports){
+},{"./BatchTransform":284,"./Transform":305,"datalib":30,"vega-dataflow":205,"vega-logging":212}],288:[function(require,module,exports){
 var Transform = require('./Transform'),
     Aggregate = require('./Aggregate');
 
@@ -69598,7 +69864,7 @@ prototype.transform = function(input, reset) {
 };
 
 module.exports = Facet;
-},{"../parse/transforms":273,"./Aggregate":283,"./Transform":304}],289:[function(require,module,exports){
+},{"../parse/transforms":273,"./Aggregate":283,"./Transform":305}],289:[function(require,module,exports){
 var dl = require('datalib'),
     Aggregator = dl.Aggregator,
     Base = Aggregator.prototype,
@@ -69697,9 +69963,8 @@ prototype._on_keep = function(cell) {
 };
 
 module.exports = Facetor;
-},{"datalib":30,"vega-dataflow":205,"vega-logging":211}],290:[function(require,module,exports){
+},{"datalib":30,"vega-dataflow":205,"vega-logging":212}],290:[function(require,module,exports){
 var df = require('vega-dataflow'),
-    SIGNALS = df.Dependencies.SIGNALS,
     log = require('vega-logging'),
     Transform = require('./Transform');
 
@@ -69718,10 +69983,8 @@ prototype.transform = function(input) {
   log.debug(input, ['filtering']);
 
   var output = df.ChangeSet.create(input),
-      graph = this._graph,
       skip = this._skip,
-      test = this.param('test'),
-      signals = graph.values(SIGNALS, this.dependency(SIGNALS));
+      test = this.param('test');
 
   input.rem.forEach(function(x) {
     if (skip[x._id] !== 1) output.rem.push(x);
@@ -69729,12 +69992,12 @@ prototype.transform = function(input) {
   });
 
   input.add.forEach(function(x) {
-    if (test(x, null, signals)) output.add.push(x);
+    if (test(x)) output.add.push(x);
     else skip[x._id] = 1;
   });
 
   input.mod.forEach(function(x) {
-    var b = test(x, null, signals),
+    var b = test(x),
         s = (skip[x._id] === 1);
     if (b && s) {
       skip[x._id] = 0;
@@ -69753,7 +70016,7 @@ prototype.transform = function(input) {
 };
 
 module.exports = Filter;
-},{"./Transform":304,"vega-dataflow":205,"vega-logging":211}],291:[function(require,module,exports){
+},{"./Transform":305,"vega-dataflow":205,"vega-logging":212}],291:[function(require,module,exports){
 var df = require('vega-dataflow'),
     Tuple = df.Tuple,
     log = require('vega-logging'),
@@ -69825,7 +70088,7 @@ prototype.transform = function(input, reset) {
 };
 
 module.exports = Fold;
-},{"./Transform":304,"vega-dataflow":205,"vega-logging":211}],292:[function(require,module,exports){
+},{"./Transform":305,"vega-dataflow":205,"vega-logging":212}],292:[function(require,module,exports){
 (function (global){
 var d3 = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null),
     df = require('vega-dataflow'),
@@ -70034,10 +70297,9 @@ prototype.update = function(active) {
 
 module.exports = Force;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./Transform":304,"./screen":310,"vega-dataflow":205,"vega-logging":211}],293:[function(require,module,exports){
+},{"./Transform":305,"./screen":311,"vega-dataflow":205,"vega-logging":212}],293:[function(require,module,exports){
 var df = require('vega-dataflow'),
     Tuple = df.Tuple,
-    SIGNALS = df.Dependencies.SIGNALS,
     log = require('vega-logging'),
     Transform = require('./Transform');
 
@@ -70057,13 +70319,11 @@ prototype.constructor = Formula;
 prototype.transform = function(input) {
   log.debug(input, ['formulating']);
 
-  var g = this._graph,
-      field = this.param('field'),
-      expr = this.param('expr'),
-      signals = g.values(SIGNALS, this.dependency(SIGNALS));
+  var field = this.param('field'),
+      expr = this.param('expr');
 
   function set(x) {
-    Tuple.set(x, field, expr(x, null, signals));
+    Tuple.set(x, field, expr(x));
   }
 
   input.add.forEach(set);
@@ -70077,7 +70337,7 @@ prototype.transform = function(input) {
 };
 
 module.exports = Formula;
-},{"./Transform":304,"vega-dataflow":205,"vega-logging":211}],294:[function(require,module,exports){
+},{"./Transform":305,"vega-dataflow":205,"vega-logging":212}],294:[function(require,module,exports){
 (function (global){
 var d3 = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null),
     dl = require('datalib'),
@@ -70167,7 +70427,7 @@ prototype.transform = function(input) {
 
 module.exports = Geo;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./Transform":304,"./screen":310,"datalib":30,"vega-dataflow":205,"vega-logging":211}],295:[function(require,module,exports){
+},{"./Transform":305,"./screen":311,"datalib":30,"vega-dataflow":205,"vega-logging":212}],295:[function(require,module,exports){
 (function (global){
 var d3 = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null),
     dl = require('datalib'),
@@ -70216,7 +70476,7 @@ prototype.transform = function(input) {
 
 module.exports = GeoPath;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./Geo":294,"./Transform":304,"datalib":30,"vega-dataflow":205,"vega-logging":211}],296:[function(require,module,exports){
+},{"./Geo":294,"./Transform":305,"datalib":30,"vega-dataflow":205,"vega-logging":212}],296:[function(require,module,exports){
 (function (global){
 var d3 = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null),
     dl = require('datalib'),
@@ -70318,7 +70578,7 @@ prototype.batchTransform = function(input, data) {
 
 module.exports = Hierarchy;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./BatchTransform":284,"./Transform":304,"./screen":310,"datalib":30,"vega-dataflow":205,"vega-logging":211}],297:[function(require,module,exports){
+},{"./BatchTransform":284,"./Transform":305,"./screen":311,"datalib":30,"vega-dataflow":205,"vega-logging":212}],297:[function(require,module,exports){
 var dl = require('datalib'),
     log = require('vega-logging'),
     Tuple = require('vega-dataflow').Tuple,
@@ -70421,7 +70681,7 @@ function partition(data, groupby, orderby) {
 }
 
 module.exports = Impute;
-},{"./BatchTransform":284,"./Transform":304,"datalib":30,"vega-dataflow":205,"vega-logging":211}],298:[function(require,module,exports){
+},{"./BatchTransform":284,"./Transform":305,"datalib":30,"vega-dataflow":205,"vega-logging":212}],298:[function(require,module,exports){
 var Tuple = require('vega-dataflow').Tuple,
     log = require('vega-logging'),
     Transform = require('./Transform');
@@ -70548,7 +70808,7 @@ prototype.transform = function(input) {
 };
 
 module.exports = LinkPath;
-},{"./Transform":304,"vega-dataflow":205,"vega-logging":211}],299:[function(require,module,exports){
+},{"./Transform":305,"vega-dataflow":205,"vega-logging":212}],299:[function(require,module,exports){
 var Tuple = require('vega-dataflow').Tuple,
     log = require('vega-logging'),
     Transform = require('./Transform');
@@ -70620,10 +70880,9 @@ prototype.transform = function(input, reset) {
 };
 
 module.exports = Lookup;
-},{"./Transform":304,"vega-dataflow":205,"vega-logging":211}],300:[function(require,module,exports){
+},{"./Transform":305,"vega-dataflow":205,"vega-logging":212}],300:[function(require,module,exports){
 var dl = require('datalib'),
-    Deps = require('vega-dataflow').Dependencies,
-    expr = require('../parse/expr');
+    Deps = require('vega-dataflow').Dependencies;
 
 var arrayType = /array/i,
     dataType  = /data/i,
@@ -70694,6 +70953,7 @@ prototype.get = function() {
 
 prototype.set = function(value) {
   var p = this,
+      graph = p._transform._graph,
       isExpr = exprType.test(this._type),
       isData  = dataType.test(this._type),
       isField = fieldType.test(this._type);
@@ -70703,9 +70963,10 @@ prototype.set = function(value) {
     var e;
     if (dl.isString(v)) {
       if (isExpr) {
-        e = expr(v);
+        e = graph.expr(v);
         p._transform.dependency(Deps.FIELDS,  e.fields);
         p._transform.dependency(Deps.SIGNALS, e.globals);
+        p._transform.dependency(Deps.DATA,    e.dataSources);
         return e.fn;
       } else if (isField) {  // Backwards compatibility
         p._accessors[i] = dl.accessor(v);
@@ -70731,13 +70992,11 @@ prototype.set = function(value) {
       return v.signal;
     } else if (v.expr !== undefined) {
       p._resolution = true;
-      e = expr(v.expr);
+      e = graph.expr(v.expr);
       p._transform.dependency(Deps.SIGNALS, e.globals);
       p._signals.push({
         index: i,
-        value: function(graph) {
-          return e.fn(null, null, graph.values(Deps.SIGNALS, e.globals));
-        }
+        value: function() { return e.fn(); }
       });
       return v.expr;
     }
@@ -70749,7 +71008,7 @@ prototype.set = function(value) {
 };
 
 module.exports = Parameter;
-},{"../parse/expr":261,"datalib":30,"vega-dataflow":205}],301:[function(require,module,exports){
+},{"datalib":30,"vega-dataflow":205}],301:[function(require,module,exports){
 var dl = require('datalib'),
     Tuple = require('vega-dataflow').Tuple,
     log = require('vega-logging'),
@@ -70815,7 +71074,61 @@ prototype.batchTransform = function(input, data) {
 };
 
 module.exports = Pie;
-},{"./BatchTransform":284,"./Transform":304,"datalib":30,"vega-dataflow":205,"vega-logging":211}],302:[function(require,module,exports){
+},{"./BatchTransform":284,"./Transform":305,"datalib":30,"vega-dataflow":205,"vega-logging":212}],302:[function(require,module,exports){
+var Tuple = require('vega-dataflow').Tuple,
+    log = require('vega-logging'),
+    Transform = require('./Transform'),
+    BatchTransform = require('./BatchTransform');
+
+function Rank(graph) {
+  BatchTransform.prototype.init.call(this, graph);
+  Transform.addParameters(this, {
+    field: {type: 'field', default: null},
+    normalize: {type: 'value', default: false}
+  });
+
+  this._output = {
+    'rank': 'rank'
+  };
+
+  return this.mutates(true);
+}
+
+var prototype = (Rank.prototype = Object.create(BatchTransform.prototype));
+prototype.constructor = Rank;
+
+prototype.batchTransform = function(input, data) {
+  log.debug(input, ['rank']);
+
+  var rank  = this._output.rank,
+      norm  = this.param('normalize'),
+      field = this.param('field').accessor,
+      keys = {}, 
+      i, len = data.length, klen, d, f;
+
+  // If we have a field accessor, first compile distinct keys.
+  if (field) {
+    for (i=0, klen=0; i<len; ++i) {
+      d = data[i];
+      keys[f=field(d)] = keys[f] || (keys[f] = ++klen);
+    }
+  }
+
+  // Assign ranks to all tuples.
+  for (i=0; i<len && (d=data[i]); ++i) {
+    if (field && (f=field(d))) {
+      Tuple.set(d, rank, norm ? keys[f] / klen : keys[f]);
+    } else {
+      Tuple.set(d, rank, norm ? (i+1) / len : (i+1));
+    }
+  }
+
+  input.fields[rank] = 1;
+  return input;
+};
+
+module.exports = Rank;
+},{"./BatchTransform":284,"./Transform":305,"vega-dataflow":205,"vega-logging":212}],303:[function(require,module,exports){
 var dl = require('datalib'),
     log  = require('vega-logging'),
     Transform = require('./Transform');
@@ -70839,7 +71152,7 @@ prototype.transform = function(input) {
 };
 
 module.exports = Sort;
-},{"./Transform":304,"datalib":30,"vega-logging":211}],303:[function(require,module,exports){
+},{"./Transform":305,"datalib":30,"vega-logging":212}],304:[function(require,module,exports){
 var dl = require('datalib'),
     Tuple = require('vega-dataflow').Tuple,
     log = require('vega-logging'),
@@ -70937,7 +71250,7 @@ function partition(data, groupby, sortby, field) {
 }
 
 module.exports = Stack;
-},{"./BatchTransform":284,"./Transform":304,"datalib":30,"vega-dataflow":205,"vega-logging":211}],304:[function(require,module,exports){
+},{"./BatchTransform":284,"./Transform":305,"datalib":30,"vega-dataflow":205,"vega-logging":212}],305:[function(require,module,exports){
 var df = require('vega-dataflow'),
     Base = df.Node.prototype, // jshint ignore:line
     Deps = df.Dependencies,
@@ -70998,7 +71311,7 @@ prototype.output = function(map) {
 };
 
 module.exports = Transform;
-},{"./Parameter":300,"vega-dataflow":205}],305:[function(require,module,exports){
+},{"./Parameter":300,"vega-dataflow":205}],306:[function(require,module,exports){
 var dl = require('datalib'),
     Tuple = require('vega-dataflow').Tuple,
     log = require('vega-logging'),
@@ -71063,7 +71376,7 @@ prototype.batchTransform = function(input, data) {
 };
 
 module.exports = Treeify;
-},{"./BatchTransform":284,"./Transform":304,"datalib":30,"vega-dataflow":205,"vega-logging":211}],306:[function(require,module,exports){
+},{"./BatchTransform":284,"./Transform":305,"datalib":30,"vega-dataflow":205,"vega-logging":212}],307:[function(require,module,exports){
 (function (global){
 var d3 = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null),
     dl = require('datalib'),
@@ -71152,7 +71465,7 @@ prototype.batchTransform = function(input, data) {
 
 module.exports = Treemap;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./BatchTransform":284,"./Transform":304,"./screen":310,"datalib":30,"vega-dataflow":205,"vega-logging":211}],307:[function(require,module,exports){
+},{"./BatchTransform":284,"./Transform":305,"./screen":311,"datalib":30,"vega-dataflow":205,"vega-logging":212}],308:[function(require,module,exports){
 (function (global){
 var d3 = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null),
     Tuple = require('vega-dataflow/src/Tuple'),
@@ -71202,7 +71515,7 @@ prototype.batchTransform = function(input, data) {
 
 module.exports = Voronoi;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./BatchTransform":284,"./Transform":304,"./screen":310,"vega-dataflow/src/Tuple":204,"vega-logging":211}],308:[function(require,module,exports){
+},{"./BatchTransform":284,"./Transform":305,"./screen":311,"vega-dataflow/src/Tuple":204,"vega-logging":212}],309:[function(require,module,exports){
 (function (global){
 var dl = require('datalib'),
     d3 = (typeof window !== "undefined" ? window['d3'] : typeof global !== "undefined" ? global['d3'] : null),
@@ -71211,8 +71524,7 @@ var dl = require('datalib'),
     Tuple = require('vega-dataflow/src/Tuple'),
     log = require('vega-logging'),
     Transform = require('./Transform'),
-    BatchTransform = require('./BatchTransform'),
-    Parameter = require('./Parameter');
+    BatchTransform = require('./BatchTransform');
 
 function Wordcloud(graph) {
   BatchTransform.prototype.init.call(this, graph);
@@ -71315,7 +71627,7 @@ prototype.batchTransform = function(input, data) {
 
 module.exports = Wordcloud;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./BatchTransform":284,"./Parameter":300,"./Transform":304,"./screen":310,"datalib":30,"vega-dataflow/src/Tuple":204,"vega-logging":211,"vega-scenegraph":212}],309:[function(require,module,exports){
+},{"./BatchTransform":284,"./Transform":305,"./screen":311,"datalib":30,"vega-dataflow/src/Tuple":204,"vega-logging":212,"vega-scenegraph":213}],310:[function(require,module,exports){
 module.exports = {
   aggregate:    require('./Aggregate'),
   bin:          require('./Bin'),
@@ -71333,6 +71645,7 @@ module.exports = {
   impute:       require('./Impute'),
   lookup:       require('./Lookup'),
   pie:          require('./Pie'),
+  rank:         require('./Rank'),
   sort:         require('./Sort'),
   stack:        require('./Stack'),
   treeify:      require('./Treeify'),
@@ -71340,7 +71653,7 @@ module.exports = {
   voronoi:      require('./Voronoi'),
   wordcloud:    require('./Wordcloud')
 };
-},{"./Aggregate":283,"./Bin":285,"./CountPattern":286,"./Cross":287,"./Facet":288,"./Filter":290,"./Fold":291,"./Force":292,"./Formula":293,"./Geo":294,"./GeoPath":295,"./Hierarchy":296,"./Impute":297,"./LinkPath":298,"./Lookup":299,"./Pie":301,"./Sort":302,"./Stack":303,"./Treeify":305,"./Treemap":306,"./Voronoi":307,"./Wordcloud":308}],310:[function(require,module,exports){
+},{"./Aggregate":283,"./Bin":285,"./CountPattern":286,"./Cross":287,"./Facet":288,"./Filter":290,"./Fold":291,"./Force":292,"./Formula":293,"./Geo":294,"./GeoPath":295,"./Hierarchy":296,"./Impute":297,"./LinkPath":298,"./Lookup":299,"./Pie":301,"./Rank":302,"./Sort":303,"./Stack":304,"./Treeify":306,"./Treemap":307,"./Voronoi":308,"./Wordcloud":309}],311:[function(require,module,exports){
 module.exports = {
   size:   [{signal: 'width'}, {signal: 'height'}],
   mid:    [{expr: 'width/2'}, {expr: 'height/2'}],
@@ -71349,7 +71662,77 @@ module.exports = {
     {expr: '[width+padding.right, height+padding.bottom]'}
   ]
 };
-},{}],311:[function(require,module,exports){
+},{}],312:[function(require,module,exports){
+var dl = require('datalib');
+
+var TIME    = 'time',
+    UTC     = 'utc',
+    STRING  = 'string',
+    ORDINAL = 'ordinal',
+    NUMBER  = 'number';
+
+function getTickFormat(scale, tickCount, tickFormatType, tickFormatString) {
+  var formatType = tickFormatType || inferFormatType(scale);
+  return getFormatter(scale, tickCount, formatType, tickFormatString);
+}
+
+function inferFormatType(scale) {
+  switch (scale.type) {
+    case TIME:    return TIME;
+    case UTC:     return UTC;
+    case ORDINAL: return STRING;
+    default:      return NUMBER;
+  }
+}
+
+// Adapted from d3 log scale
+// TODO customize? replace with range-size-aware filtering?
+function logFilter(scale, domain, count, f) {
+  if (count == null) return f;
+  var base = scale.base(),
+      k = Math.min(base, scale.ticks().length / count),
+      v = domain[0] > 0 ? (e = 1e-12, Math.ceil) : (e = -1e-12, Math.floor),
+      e;
+  function log(x) {
+    return (domain[0] < 0 ?
+      -Math.log(x > 0 ? 0 : -x) :
+      Math.log(x < 0 ? 0 : x)) / Math.log(base);
+  }
+  function pow(x) {
+    return domain[0] < 0 ? -Math.pow(base, -x) : Math.pow(base, x);
+  }
+  return function(d) {
+    return pow(v(log(d) + e)) / d >= k ? f(d) : '';
+  };
+}
+
+function getFormatter(scale, tickCount, formatType, str) {
+  var fmt = dl.format,
+      log = scale.type === 'log',
+      domain;
+
+  switch (formatType) {
+    case NUMBER:
+      domain = scale.domain();
+      return log ?
+        logFilter(scale, domain, tickCount, fmt.auto.number(str || null)) :
+        fmt.auto.linear(domain, tickCount, str || null);
+    case TIME: return (str ? fmt : fmt.auto).time(str);
+    case UTC:  return (str ? fmt : fmt.auto).utc(str);
+    default:   return String;
+  }
+}
+
+module.exports = {
+  getTickFormat: getTickFormat
+};
+},{"datalib":30}],313:[function(require,module,exports){
+var dl = require('datalib'),
+    u  = {};
+
+dl.extend(u, require('./format'));
+module.exports = dl.extend(u, dl);
+},{"./format":312,"datalib":30}],314:[function(require,module,exports){
 module.exports = function (CodeMirror) {
   "use strict";
 
@@ -71508,7 +71891,7 @@ module.exports = function (CodeMirror) {
   };
 };
 
-},{}],312:[function(require,module,exports){
+},{}],315:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -71517,7 +71900,6 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 var $ = require('jquery');
 
 var _ = require('underscore');
-global._ = _; // debugging
 
 var React = require('react');
 var ReactDOM = require('react-dom');
@@ -71525,6 +71907,7 @@ var CodeMirror = require('codemirror');
 var CodeMirrorComponent = require('react-codemirror');
 var Folding = require('./folding')(CodeMirror);
 
+// TODO: eliminate once webppl-viz stabilizes
 var d3 = require('d3');
 if (typeof window !== "undefined") {
   window.d3 = d3;
@@ -71564,9 +71947,6 @@ var ResultError = React.createClass({
   handleClick: function (e) {
     this.setState({ showStack: !this.state.showStack });
   },
-  // shouldComponentUpdate: function() {
-  //   return false
-  // },
   render: function () {
     var stack = this.state.showStack ? "\n" + this.props.stack : "";
     return React.createElement(
@@ -71730,6 +72110,48 @@ var RunButton = React.createClass({
 var jobsQueue = [];
 var compileCache = {};
 
+var ResultList = React.createClass({
+  displayName: 'ResultList',
+
+  getInitialState: function () {
+    return {
+      minHeight: 0
+    };
+  },
+  render: function () {
+    var renderResult = function (d, k) {
+      if (d.type == 'text') {
+        return React.createElement(ResultText, _extends({ key: k }, d));
+      } else if (d.type == 'error') {
+        return React.createElement(ResultError, _extends({ key: k }, d));
+      } else if (d.type == 'barChart') {
+        return React.createElement(ResultBarChart, _extends({ key: k }, d));
+      } else if (d.type == 'DOM') {
+        return React.createElement(ResultDOM, _extends({ key: k }, d));
+      } else {
+        console.log('unrouted command: ', d);
+        return null;
+      }
+    };
+
+    // in general, numeric index keys aren't recommended
+    // but i think they work for our use case (append-only, essentially)
+    var list = this.props.list.map(function (r, i) {
+      return renderResult(r, i);
+    });
+
+    var style = {
+      minHeight: this.props.executionState == 'idle' ? 0 : this.state.minHeight
+    };
+
+    return React.createElement(
+      'div',
+      { style: style, className: this.props.newborn ? "result hide" : "result" },
+      list
+    );
+  }
+});
+
 var CodeEditor = React.createClass({
   displayName: 'CodeEditor',
 
@@ -71738,8 +72160,7 @@ var CodeEditor = React.createClass({
       code: this.props.code,
       results: [],
       newborn: true,
-      execution: "idle",
-      resultDivMinHeight: 0
+      execution: "idle"
     };
   },
   // side effects
@@ -71780,10 +72201,20 @@ var CodeEditor = React.createClass({
     this.endJob();
   },
   runCode: function () {
-    global.localStorage.setItem('code', this.state.code);
-    var $resultsDiv = $(ReactDOM.findDOMNode(this)).find(".result");
+    // TODO: detect resultDivStyle minHeight here
+
+    var resultList = this.refs.resultList;
+    var $resultsDiv = $(ReactDOM.findDOMNode(resultList));
+
+    resultList.setState(function (state, props) {
+      console.log('setting minheight to be ' + $resultsDiv.height());
+      return _.extend({}, state, { minHeight: $resultsDiv.height() });
+    });
+
+    // global.localStorage.setItem('code',this.state.code); // TODO: enable only in dev mode
 
     this.setState({ newborn: false, results: [] });
+
     var comp = this;
     var code = this.state.code;
     var language = this.props.language; // TODO: detect this from CodeMirror text
@@ -71799,9 +72230,9 @@ var CodeEditor = React.createClass({
     var cleanup = function () {
       window.onerror = null;
       comp.setState({ execution: 'idle' }, function () {
-        // set resultDivMinHeight with callback because we need to make sure the idle style is applied first
+        // set resultList minHeight with callback because we need to make sure the idle style is applied first
         // i.e., the css min-height attribute is set to 0 so we can actually measure the height of the div
-        comp.setState({ resultDivMinHeight: $resultsDiv.height() });
+        //comp.refs['resultList'].setState({minHeight: $resultsDiv.height()})
       });
 
       // remove completed job
@@ -71850,11 +72281,16 @@ var CodeEditor = React.createClass({
           // catch errors that try-catch can't because of trampoline pauses
           // there is some redundancy here but leave it for now
           window.onerror = function (message, url, lineNumber, colNumber, e) {
-            comp.addResult({ type: 'error', message: e.message, stack: e.stack });
+            if (e) {
+              comp.addResult({ type: 'error', message: e.message, stack: e.stack });
+            } else {
+              comp.addResult({ type: 'error', message: message });
+            }
             cleanup();
           };
 
           try {
+            // TODO: supply our own runner that is parameterized by error handler?
             var _code = eval.call({}, compileCache[code])(util.trampolineRunners.web);
             _code({}, endJob, '');
           } catch (e) {
@@ -71902,30 +72338,6 @@ var CodeEditor = React.createClass({
       }
     };
 
-    var renderResult = function (d, k) {
-      if (d.type == 'text') {
-        return React.createElement(ResultText, _extends({ key: k }, d));
-      } else if (d.type == 'error') {
-        return React.createElement(ResultError, _extends({ key: k }, d));
-      } else if (d.type == 'barChart') {
-        return React.createElement(ResultBarChart, _extends({ key: k }, d));
-      } else if (d.type == 'DOM') {
-        return React.createElement(ResultDOM, _extends({ key: k }, d));
-      } else {
-        console.log('unrouted command: ', d);
-      }
-    };
-
-    // TODO: in general, numeric index based keys aren't recommended
-    // but they might work for our use case (essentially append-only)
-    var results = this.state.results.map(function (r, i) {
-      return renderResult(r, i);
-    });
-
-    var resultDivStyle = {
-      minHeight: this.state.execution == 'idle' ? 0 : this.state.resultDivMinHeight
-    };
-
     // TODO: get rid of CodeMirrorComponent ref by running refresh in it's own componentDidMount?
     // see http://stackoverflow.com/a/25723635/351392 for another approach mimicking inheritance in react
     return React.createElement(
@@ -71935,14 +72347,10 @@ var CodeEditor = React.createClass({
       React.createElement(RunButton, { status: this.state.execution, clickHandler: this.runCode }),
       React.createElement(
         'button',
-        { className: _.contains(['running', 'queued'], this.state.execution) ? 'cancel' : 'cancel hide', onClick: this.cancelRun },
+        { className: _.contains(['running'], this.state.execution) ? 'cancel' : 'cancel hide', onClick: this.cancelRun },
         'cancel'
       ),
-      React.createElement(
-        'div',
-        { style: resultDivStyle, className: this.state.newborn ? "result hide" : "result" },
-        results
-      )
+      React.createElement(ResultList, { newborn: this.state.newborn, ref: 'resultList', executionState: this.state.execution, list: this.state.results })
     );
   }
 });
@@ -71978,33 +72386,66 @@ var setupCode = function (preEl, options) {
   });
 };
 
+var numTopStoreKeys = 0;
+
+var topStore = {};
 var globalExport = {
   setup: setupCode,
   makeResultContainer: function () {}, // this gets set by a CodeEditor instance
   MCMCProgress: function () {
-    var container = globalExport['makeResultContainer']();
-    $(container).addClass('progress');
+    var container = globalExport['makeResultContainer'](),
+        $container = $(container).addClass('progress'),
+        $fill = $('<div>').addClass('fill'),
+        $text = $('<div>').addClass('text');
+    $container.append($fill, $text);
+
     var completed = 0,
         total;
+
+    var renderProgressBar = _.throttle(function () {
+      var pct = 100 * completed / total;
+      $text.text(completed + ' / ' + total + ' samples');
+      $fill.css('width', pct + '%');
+    }, 100);
+
     return {
       setup: function (n) {
         total = n;
       },
       iteration: function (trace) {
         completed += 1;
-        var pct = Math.floor(100 * completed / total);
-        $(container).css('background', 'linear-gradient(to right, #99ccff 0%,#99ccff ' + pct + '%,#ffffff ' + pct + '%)').text(completed + ' / ' + total + ' samples');
+        renderProgressBar();
       }
     };
+  },
+  set: function (item, key) {
+    if (!key) {
+      numTopStoreKeys++;
+      key = 'r' + numTopStoreKeys;
+    }
+    topStore[key] = item;
+    var div = globalExport.makeResultContainer();
+    $(div).html('Stored item with key <span style="border: 1px solid gray; background-color: #dddddd; border-radius: 5px; padding: 0em 0.5em">' + key + '</b>').css({
+      "font-size": "12px",
+      "padding": "2px"
+    });
+  },
+  get: function (k) {
+    if (k) {
+      return topStore[k];
+    } else {
+      // when called with no argument, returns backing dictionary
+      return topStore;
+    }
   }
 };
 
 global.wpEditor = globalExport;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./folding":311,"codemirror":4,"codemirror/addon/comment/comment":2,"codemirror/addon/edit/matchbrackets":3,"codemirror/mode/javascript/javascript":5,"d3":8,"jquery":62,"react":193,"react-codemirror":63,"react-dom":64,"underscore":195,"vega":251}],313:[function(require,module,exports){
+},{"./folding":314,"codemirror":4,"codemirror/addon/comment/comment":2,"codemirror/addon/edit/matchbrackets":3,"codemirror/mode/javascript/javascript":5,"d3":8,"jquery":62,"react":193,"react-codemirror":63,"react-dom":64,"underscore":195,"vega":252}],316:[function(require,module,exports){
 
-},{}],314:[function(require,module,exports){
+},{}],317:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -72097,4 +72538,4 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}]},{},[312]);
+},{}]},{},[315]);

@@ -27,53 +27,55 @@ For a concrete example, consider the Restaurant Choice Problem. Suppose Bob does
 
 ### Formal model
 
-We first define a new class of decision probems (POMDPs) and then define an agent model for optimally solving these problems (following ADD REFERENCE kaelbling refp:kaelbling). A Partially Observable Markov Decision Process (POMDP) is a tuple $$(S,A(s),T(s,a),U(s,a),\Omega,O$$, where:
+We first define a new class of decision probems (POMDPs) and then define an agent model for optimally solving these problems (following ADD REFERENCE kaelbling refp:kaelbling). A Partially Observable Markov Decision Process (POMDP) is a tuple $$(S,A(s),T(s,a),U(s,a),\Omega,O)$$, where:
 
-- The components $$S$$ (state space), $$A$$ (action space), $$T$$ (transition function), $$U$$ (utility or reward function) form an MDP as defined in [chapter III.1](/chapters/3a-mdp.html), with $$U$$ assumed to be deterministic. 
+- $$S$$ (state space), $$A$$ (action space), $$T$$ (transition function), $$U$$ (utility or reward function) form an MDP as defined in [chapter III.1](/chapters/3a-mdp.html), with $$U$$ assumed to be deterministic. 
 
-- The component $$\Omega$$ is the finite space of observations the agent can receive.
+- $$\Omega$$ is the finite space of observations the agent can receive.
 
-- The component $$O$$ is a function  $$ O\colon S \times A \to \Delta \Omega $$. This is the *observation function*, which maps an action $$a$$ and the state $$s'$$ resulting from taking $$a$$ to an observation $$o \in \Omega$$ drawn from $$O(s',a')$$.
+- $$O$$ is a function  $$ O\colon S \times A \to \Delta \Omega $$. This is the *observation function*, which maps an action $$a$$ and the state $$s'$$ resulting from taking $$a$$ to an observation $$o \in \Omega$$ drawn from $$O(s',a')$$.
 
-So at each timestep, the agent transitions from state $$s$$ to state $$s'$$ (generally unknown to the agent) having performed action $$a$$ (and where $$s' \sim T(s,a)$$). On entering $$s'$$ the agent receives an observation $$o \sim O(s',a)$$ and a utility $$U(s,a)$$. [Might be good to include influence diagram from Braziunas page 3.]. 
+So at each timestep, the agent transitions from state $$s$$ to state $$s'$$ (where $$s$$ and $$s'$$ are generally unknown to the agent) having performed action $$a$$ (and where $$s' \sim T(s,a)$$). On entering $$s'$$ the agent receives an observation $$o \sim O(s',a)$$ and a utility $$U(s,a)$$. [Might be good to include influence diagram from Braziunas page 3.]. 
 
-To characterize the behavior of an expected-utility maximizing agent, we need to formalize the belief-updating process. Let the agent's belief about their current state $$s$$ be a probability function $$b$$ over $$S$$. Then the agent's belief function $$b'$$ over their successor state is the result of a Bayesian update on the observation $$o \sim O(s',a)$$ where $$a$$ is the agent's action in $$s$$.  That is:
+To characterize the behavior of an expected-utility maximizing agent, we need to formalize the belief-updating process. Let $$b$$, the current belief function, be a probability distribution over the agent's current state. Then the agent's succesor belief function $$b'$$ over their next state is the result of a Bayesian update on the observation $$o \sim O(s',a)$$ where $$a$$ is the agent's action in $$s$$.  That is:
 
 $$
 b'(s') \propto O(s',a,o)\sum_{s \in S}{T(s,a,s')b(s)}
 $$
 
-Intuitively, the probability that $$s'$$ is the new state depends on the marginal probability of transitioning to $$s'$$ (given $$b$$) and the probability of the observation $$o$$ coming in $$s'$$. 
+Intuitively, the probability that $$s'$$ is the new state depends on the marginal probability of transitioning to $$s'$$ (given $$b$$) and the probability of the observation $$o$$ occurring in $$s'$$. 
 
-In our previous agent model for MDPs, we defined the expected utility of an action $$a$$ in a state $$s$$ recursively in terms of the expected utility of the resulting pair of state $$s'$$ and action $$a'$$. This same recursive characterization of expected utility still holds. The important difference is that the agent's action $$a'$$ in $$s'$$ depends on their updated belief $$b'(s')$$ given the observation they receive in $$s'$$. So the expected utility of $$a$$ in $$s$$ depends on the agent's belief $$b$$ over the state $$s$$. We call the following the *Expected Utility of State Recursion*, which defines the function $$EUS$$. This is analogous to the characterization of the *value*, $$V$$, of a state (see p109 in Kaelbling et al).
+In our previous agent model for MDPs, we defined the expected utility of an action $$a$$ in a state $$s$$ recursively in terms of the expected utility of the resulting pair of state $$s'$$ and action $$a'$$. This same recursive characterization of expected utility still holds. The important difference is that the agent's action $$a'$$ in $$s'$$ depends on their updated belief $$b'(s')$$ given the observation they receive in $$s'$$. So the expected utility of $$a$$ in $$s$$ depends on the agent's belief $$b$$ over the state $$s$$. We call the following the *Expected Utility of State Recursion*, which defines the function $$EU_{b}$$. This is analogous to the characterization of the *value*, $$V_{b}$$, of a state relative to a belief (see p109 in Kaelbling et al).
 
 $$
-EUS_{b}[s,a] = U(s,a) + E_{s',o,a'}(EUS_{b'}[s',a'_{b'}])
+EU_{b}[s,a] = U(s,a) + E_{s',o,a'}(EU_{b'}[s',a'_{b'}])
 $$
 
 where:
-- $$s' \sim T(s,a)$$
-- $$o \sim O(s',a)$$
+
+- we have $$s' \sim T(s,a)$$ and $$o \sim O(s',a)$$
+
 - $$b'$$ is the updated belief function $$b$$ on $$o$$ (as defined above)
+
 - $$a'_{b'}$$ is the softmax action the agent takes given belief $$b'$$
 
-The agent cannot use the Expected Utility of State Recursion to directly compute the best action, since the agent doesn't know the state. Instead the agent takes an expectation over their belief distribution, picking the action $$a$$ that maximizes:
+The agent cannot use the Expected Utility of State Recursion to directly compute the best action, since the agent doesn't know the state. Instead the agent takes an expectation over their belief distribution, picking the action $$a$$ that maximizes the following:
 
 $$
-EU_[b,a] = E_{s \sim b}(EUS_{b}[s,a])
+EU[b,a] = E_{s \sim b}(EU_{b}[s,a])
 $$
 
-We can also represent the expected utility of action $$a$$ given belief $$b$$ in terms of a recursion on the successor belief state. We call this the *Expected Utility of Belief Recursion*. It's analogous to the Bellman update rule.
+We can also represent the expected utility of action $$a$$ given belief $$b$$ in terms of a recursion on the successor belief state. We call this the *Expected Utility of Belief Recursion*. It's analogous to the Bellman update rule [add reference].
 
 $$
-EU_[b,a] = E_{s \sim b}( U(s,a) + E_{s',o,a'}(EU_[b',a']) )
+EU[b,a] = E_{s \sim b}( U(s,a) + E_{s',o,a'}(EU[b',a']) )
 $$
 
 where $$s'$$, $$o$$, $$a'$$ and $$b'$$ are distributed as in the Expected Utility of State Recursion.
 
 
 ### Implementation of the Model
-As with the agent model for MDPs, we provide a direct translation of the equations above into an agent model for solving POMDPs. The variables `nextState`, `nextObservation`, `nextBelief`, and `nextAction` correspond to $$s'$$,  $$o$$, $$b'$$ and $$a'$$ respectively, and we use Expected Utility of Belief Recursion. The following codebox displays the core `act` and `expectedUtility` functions, without defining `updateBelief`, `transition`, `observe` or `utility`. 
+As with the agent model for MDPs, we provide a direct translation of the equations above into an agent model for solving POMDPs. The variables `nextState`, `nextObservation`, `nextBelief`, and `nextAction` correspond to $$s'$$,  $$o$$, $$b'$$ and $$a'$$ respectively, and we use Expected Utility of Belief Recursion. The following codebox defines the `act` and `expectedUtility` functions, without defining `updateBelief`, `transition`, `observe` or `utility`. 
 
 ~~~~
 var act = function(belief) {
@@ -125,9 +127,9 @@ var simulate = function(startState, priorBelief) {
 
 To illustrate the POMDP agent in action, we implement a simplified variant of the Multi-arm Bandit Problem. In this variant, there are just two arms. Pulling an arm produces a prize (deterministically). The agent does not know initially the mapping from arms to prizes but can learn by trying the arms. In our concrete example, the first arm is known to have the prize "chocolate" and the second arm either has "champagne" or has no prize at all ("nothing").  
 
-In our implementation of this problem, we label the two arms `[0,1]`, and use the same labels for the actions of pulling the arms. After taking action `0`, the agent transitions to a state with whatever prize is associated with `Arm0` (and gets to observe that prize). States contain properties for counting down the time (as before), as well as a `prize` property. States also contain the "latent" mapping from arms to prizes (called `armToPrize`) that determines how an agent transitions on pulling an arm.
+In our implementation of this problem, we label the two arms with numbers in `[0,1]`, and use the same labels for the actions of pulling the arms. After taking action `0`, the agent transitions to a state with whatever prize is associated with `Arm0` (and gets to observe that prize). States contain properties for counting down the time (as before), as well as a `prize` property. States also contain the "latent" mapping from arms to prizes (called `armToPrize`) that determines how an agent transitions on pulling an arm.
 
-If the agent only has one timestep in total (i.e. one bandit trial), then they will take the arm with highest expected utility (given their prior on `armToPrize`). If there are multiple trials, the agent might *explore* the lower expected utility arm (e.g. if it's maximum possible utility is higher). Try changing the number trials to see how it affects the agent's choice on the first trial. 
+If the agent only has one timestep in total (i.e. one bandit trial), then they will take the arm with highest expected utility (given their prior on `armToPrize`). If there are multiple trials, the agent might *explore* the lower expected utility arm (e.g. if it's maximum possible utility is higher). You should try changing the number trials to see how it affects the agent's choice on the first trial. 
 
 ~~~~
 
@@ -233,7 +235,19 @@ var simulate = function(startState, priorBelief) {
   return sampleSequence(startState, priorBelief, 'startAction');
 };
 
-simulate(startState, priorBelief);
+
+
+var displayTrajectory = function( trajectory ){
+  var out = map( function(state_action){
+    var previousPrize = state_action[0].prize;
+    var nextAction = state_action[1];
+    return [previousPrize, nextAction];
+  }, trajectory);  
+  var out = _.flatten(out);
+  return out.slice(1,out.length-1);
+};
+
+displayTrajectory(simulate(startState, priorBelief));
 ~~~~
 
 PLAN:

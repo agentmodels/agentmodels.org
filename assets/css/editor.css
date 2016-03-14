@@ -2,7 +2,24 @@
 
 .wpedit .progress {
     font-size: 11px;
-    transition: background 0.1s ease;
+    position: relative;
+    height: 12px;
+}
+
+.wpedit .progress .text {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.wpedit .progress .fill {
+    background-color: #99ccff;
+    transition: width 0.08s ease;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 100%;
 }
 
 .wpedit .CodeMirror {
