@@ -12,6 +12,17 @@ is_section: true
 -->
 
 ## Introduction [WORK IN PROGRESS]
+
+### PLAN
+- should we do everything in gridworld or also include irl bandits? main benefit or IRL bandits is speed. maybe we should do it for beliefAgent to speed up inference
+
+- should include a formal exposition of what we are doing. explain inference over a few different params. inferOffPolicy: give as data a series [(s,a)].
+
+p(U / siai) = p(U) PI( p(ai / si,U) )
+where p(ai / si,U) = C(ai ; si U)
+
+belief case. 
+
 Previous chapters exhibited models for planning in MDPs and POMDPs. This chapter shows how we can add a few lines of code to our agent models in order to infer the agent's beliefs and utilities from their observed behavior. 
 
 ## Conditioning on a single action

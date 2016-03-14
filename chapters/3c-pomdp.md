@@ -15,18 +15,19 @@ In contrast, we often face problems where our uncertainty can be *reduced* by ob
 To represent decision problems where the agent's uncertainty is altered by observations, we use Partially Observable Markov Decision Processes (POMDPs). We first introduce the formalism for POMDPs and then show how to extend our agent model for MDPs to an agent model that solves POMDPs. 
 
 
-## Extending our agent model for POMDPs
+## POMDP Agent Model
 
-### Informal description of POMDP agent model
-- the environment now includes an observation function from states to observations.
-- agent has prior uncertainty about some elements of the environment. these elements could influence observations, transitions or utilities. we focus on the case where they influence observations and transitions.
-- in our examples, apart from the observation function, the environment has the same essential structure as before (including the markov assumption). previously an agent was given a state as input and had to take an action (which caused a transition). now the agent is uncertain about which state they are in. they have a prob dist b over the current state. at every time step, they update this distribution, conditioning on the observation and also on the action the agent performed last. 
+### Informal overview
 
-- to give a concrete example, consider the example of Restaurant Choice where Bob doesn't know whether the Noodle shop is open or not. previously, the state simply consisted of Bob's location in the grid. now we think of the state as also storing whether the Noodle Shop is open (which determines whether Bob would transition to inside the Noodle Shop is he moved there from an adjacent location). If Bob knows his location (e.g. location [2,1]) but doesn't know if the Noodle Shop is open, then he has a distribution over the states [{myLocation:[2,1], Noodle Shop:'closed'}, {myLocation:[2,1], Noodle Shop:'open'}]. When Bob is close to the Noodle Shop, he will get an observation that varies depending on whether the Noodle Shop is open or closed, and so he'll rule out one of the these possible states. 
+The agent facing a POMDP has initial uncertainty about some element of the environment. This element will influence the transitions or utilities (otherwise it won't make a difference to the agent). So the agent can learn about these elements by doing inference given observations of transitions or utilities. We also augment the MDP setup by adding an *observation function*, which is a stochastic function on states and actions. This enables the agent to learn about the unknown elements in an environment without directly experiencing their influence via transitions or utilities. 
+
+In the POMDP examples we consider, the environment has the same essential MDP structure as before (save for adding the observation function). Previously the agent was given a state as input and had to take an action (which caused a transition). The agent now has a probability distribution over the current state. They update the distribution at every timestep, conditioning on the current observation and on their previous action. 
+
+For a concrete example, consider the Restaurant Choice Problem. Suppose Bob doesn't know whether or not the Noodle Shop is open. Previously, the agent's state consisted of Bob's *location* on the grid as well as the remaining time. In the POMDP case, the state also represents whether or not the Noodle Shop is open. This fact about the state determines whether Bob transitions to inside the Noodle Shop if he is adjacent. When Bob is close to the Noodle Shop, he gets to observe (via the observation function) whether or not it's open (without having to actually try it).
 
 ### Formal model
 
-We first define a class of decision probems (POMDPs) and then define an agent model for optimally solving these problems (following ADD kaelbling refp:kaelbling). A Partially Observable Markov Decision Process (POMDP) is a tuple $$(S,A(s),T(s,a),U(s,a),\Omega,O$$, where:
+We first define a new class of decision probems (POMDPs) and then define an agent model for optimally solving these problems (following ADD REFERENCE kaelbling refp:kaelbling). A Partially Observable Markov Decision Process (POMDP) is a tuple $$(S,A(s),T(s,a),U(s,a),\Omega,O$$, where:
 
 - The components $$S$$ (state space), $$A$$ (action space), $$T$$ (transition function), $$U$$ (utility or reward function) form an MDP as defined in [chapter III.1](/chapters/3a-mdp.html), with $$U$$ assumed to be deterministic. 
 
