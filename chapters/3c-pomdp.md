@@ -125,6 +125,9 @@ var simulate = function(startState, priorBelief) {
 };
 ~~~~
 
+## Applying the POMDP agent model
+
+### Two-arm deterministic bandits
 To illustrate the POMDP agent in action, we implement a simplified variant of the Multi-arm Bandit Problem. In this variant, there are just two arms. Pulling an arm produces a prize (deterministically). The agent does not know initially the mapping from arms to prizes but can learn by trying the arms. In our concrete example, the first arm is known to have the prize "chocolate" and the second arm either has "champagne" or has no prize at all ("nothing").  
 
 In our implementation of this problem, we label the two arms with numbers in `[0,1]`, and use the same labels for the actions of pulling the arms. After taking action `0`, the agent transitions to a state with whatever prize is associated with `Arm0` (and gets to observe that prize). States contain properties for counting down the time (as before), as well as a `prize` property. States also contain the "latent" mapping from arms to prizes (called `armToPrize`) that determines how an agent transitions on pulling an arm.
@@ -250,11 +253,20 @@ var displayTrajectory = function( trajectory ){
 displayTrajectory(simulate(startState, priorBelief));
 ~~~~
 
-PLAN:
-Stochastic bandits. In two arm case, as time increases the number of possible sequences of observations blows up exponentially, so the run time should also. (What's the prior over coin weights? Shouldn't matter too much. Do we need two arms to be noisy or just one?).  
+### Bandits with stochastic observations
+The bandit problem above is especially simple because pulling an arm *deterministically* results in a prize (which the agent directly observes). So there is a fixed, finite number of beliefs about the `armToPrize` mapping that the agent can have. This number depends on the number of arms but not on the number of trials. [TODO: exact complexity of the two-arm case? Show our code achieves it.]
 
-Gridworld POMDP: Same set up as before with POMDPgridworld library functions. Now we get different possible behaviors -- e.g. agent doesn't go to donut south because of ignorance or agent tries noodle and then goes on to veg. 
+We can generalize this bandit problem to the more standard *stochastic* multi-arm bandits. In this case, pulling an arm yields a distribution on prizes and the agent does not know the distribution. In the example below, we suppose that there are only two prizes "zero" and "one" which yield utilities 0 and 1. Each arm $$i$$ yields the prize "one" with probability $$p_i$$ and "zero" with probability $$1-p_i$$. This is known as *binary* or *Bernoulli* bandits and has been studied extensively (refp:kaelbling1996reinforcement). In this problem, the number of possible beliefs about $$p_i$$ will increase with the number of trials. More generally, this problem takes time exponential in the number of trials. [Show our code has this property -- maybe add some more detail or references.]
 
+[Codebox should just use a library function rather than defining the whole thing. Show a problem with three arms. Show some trajectories where the agent tries multiple arms at the start before switching to exploitation.]
+
+
+### Gridworld with observations
+As we discussed above, an agent in the Restaurant Choice problem is likely to be uncertain about some features of the environment. We consider a variant of the Restaurant Choice problem where the agent is uncertain about which restaurants are open. The agent can observe whether a restaurant is open by moving to a square on the grid adjacent to the restaurant. If the restaurant is open, the agent can enter it (and receive utility).
+
+In this POMDP version of Restaurant Choice, a rational agent can exhibit behavior that never occurs in the MDP version. First, suppose the agent has a prior belief that Donut South is likely to be closed and Donut North is likely to be open. Then the agent might go to Donut North despite Donut South being closer (see example below). Second, suppose the agent believes the Noodle Shop is likely open when it's actually closed. Then the agent might go to Noodle Shop, see it's closed and then take the long loop round to Vegetarian Cafe (which would not make sense if the Noodle Shop was known to be closed from the start). This is show in the second example below. 
+
+[Add these two examples using library functions]. 
 
 --------------
 
