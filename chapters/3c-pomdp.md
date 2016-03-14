@@ -6,7 +6,7 @@ description: Mathematical framework, implementation in WebPPL, Gridworld and res
 
 
  
-## Introduction: Agents with uncertainty and belief updating
+## Introduction: Learning about the world from observation
 
 The previous chapters included MDPs where the transition function is *stochastic*. This means the agent is *uncertain* about the result of taking an action in a given state. For example in Gridworld Hiking, Alice is uncertain whether she would fall down the hill if she takes the shortcut. In an MDP the agent's uncertainty cannot be altered by observation. Transitions occur according to a particular probability distribution that is fixed (with no learnable parameters). An MDP is like a fair lottery: observing the winning ticket one week does not change the distribution on tickets the following week.
 
