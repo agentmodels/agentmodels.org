@@ -27,7 +27,7 @@ For a concrete example, consider the Restaurant Choice Problem. Suppose Bob does
 
 ### Formal model
 
-We first define a new class of decision probems (POMDPs) and then define an agent model for optimally solving these problems (following ADD REFERENCE kaelbling refp:kaelbling). A Partially Observable Markov Decision Process (POMDP) is a tuple $$(S,A(s),T(s,a),U(s,a),\Omega,O)$$, where:
+We first define a new class of decision probems (POMDPs) and then define an agent model for optimally solving these problems. Our definitions are based on refp:kaelbling1998planning. A Partially Observable Markov Decision Process (POMDP) is a tuple $$(S,A(s),T(s,a),U(s,a),\Omega,O)$$, where:
 
 - $$S$$ (state space), $$A$$ (action space), $$T$$ (transition function), $$U$$ (utility or reward function) form an MDP as defined in [chapter III.1](/chapters/3a-mdp.html), with $$U$$ assumed to be deterministic. 
 
@@ -45,7 +45,7 @@ $$
 
 Intuitively, the probability that $$s'$$ is the new state depends on the marginal probability of transitioning to $$s'$$ (given $$b$$) and the probability of the observation $$o$$ occurring in $$s'$$. 
 
-In our previous agent model for MDPs, we defined the expected utility of an action $$a$$ in a state $$s$$ recursively in terms of the expected utility of the resulting pair of state $$s'$$ and action $$a'$$. This same recursive characterization of expected utility still holds. The important difference is that the agent's action $$a'$$ in $$s'$$ depends on their updated belief $$b'(s')$$ given the observation they receive in $$s'$$. So the expected utility of $$a$$ in $$s$$ depends on the agent's belief $$b$$ over the state $$s$$. We call the following the *Expected Utility of State Recursion*, which defines the function $$EU_{b}$$. This is analogous to the characterization of the *value*, $$V_{b}$$, of a state relative to a belief (see p109 in Kaelbling et al).
+In our previous agent model for MDPs, we defined the expected utility of an action $$a$$ in a state $$s$$ recursively in terms of the expected utility of the resulting pair of state $$s'$$ and action $$a'$$. This same recursive characterization of expected utility still holds. The important difference is that the agent's action $$a'$$ in $$s'$$ depends on their updated belief $$b'(s')$$ given the observation they receive in $$s'$$. So the expected utility of $$a$$ in $$s$$ depends on the agent's belief $$b$$ over the state $$s$$. We call the following the *Expected Utility of State Recursion*, which defines the function $$EU_{b}$$. This is analogous to the characterization of the *value*, $$V_{b}$$, of a state relative to a belief (see p.109 in refp:kaelbling1998planning). [TODO expectation should be math style].
 
 $$
 EU_{b}[s,a] = U(s,a) + E_{s',o,a'}(EU_{b'}[s',a'_{b'}])
