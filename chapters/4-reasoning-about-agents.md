@@ -56,7 +56,7 @@ var utilityTablePrior = function(){
     'donutNorth': 1,
     'veg': 1,
     'noodle': 1,
-    'timeCost': -0.1
+    'timeCost': -0.05
   };
   return uniformDraw( 
     update(baseUtilityTable, {donutNorth:2, donutSouth:2}), // prefers Donut
@@ -113,6 +113,9 @@ The expression for the joint posterior (above) shows that it is straightforward 
 For this example, we condition on the agent making a single step from [3,1] to [2,1] by moving left. For an agent with low noise, this provides almost as much evidence as the agent going all the way to Donut South. 
 
 [Codebox showing trajectory with only a single step]
+
+Our approach to inference is slightly different than in the example at the start of this chapter. The approach is a direct translation of the expression for the posterior above [todo: label equations]. For each observed state-action pair, we compute the likelihood of the agent (with given $$U$$) choosing that action in the state. (In contrast, the naive approach above will become intractable for long, noisy action sequences -- as it will need to loop over all possible sequences). 
+
 ~~~~
 var utilityTablePrior = function(){
   var baseUtilityTable = {
@@ -120,14 +123,15 @@ var utilityTablePrior = function(){
     'donutNorth': 1,
     'veg': 1,
     'noodle': 1,
-    'timeCost': -0.1
+    'timeCost': -0.05
   };
   return uniformDraw( 
     update(baseUtilityTable, {donutNorth:2, donutSouth:2}), // prefers Donut
     update(baseUtilityTable, {veg:2}), // prefers Veg
     update(baseUtilityTable, {noodle:2}) // prefers Noodle
   );
-};
+  };
+var alpha = 100;
 var observedStateActionSequence = []; // TODO add observed
 var world = makeDonutWorld2({big:true, start:[3,1], timeLeft:10});
 
@@ -135,7 +139,8 @@ var posterior = Enumerate( function(){
   var utilityTable = utilityTablePrior();
   var agent = makeMDPAgent(utilityTable, alpha, world);
   var act = agent.act;
-  
+
+  // For each observed state-action pair, compute likekihood of action
   map( function(stateAction){
     factor( act(stateAction.state).score( [], stateAction.action) );
   }, observedStateActionSequence )
@@ -146,20 +151,65 @@ var posterior = Enumerate( function(){
 print(posterior)
 ~~~~
 
+Note that utility functions where Vegetarian Cafe or Noodle Shop are most preferred have almost the same posterior probability. Since they had the same prior, this means that we haven't received evidence about which the agent prefers. Moreover, assuming the agent's `timeCost` really is negligible (and the agent always has enough total timesteps), then no matter where the agent is placed on the grid, they will choose Donut North or South. So we'd never get any information about whether they prefer the Vegetarian Cafe or Noodle Shop!
+
+Actually, this is not quite right. If we wait long enough, the agent's softmax noise would eventually reveal information about which was preferred. However, the general point remains that we won't be able to *efficiently* learn the agent's preferences by repeatedly watching them choose from a random start point. If there is no softmax noise, then we can make the strong claim that even in the limit, the agent's preferences are not *identified* by draws from this space of scenarios.
+
+This issue of *unidentifiability* is common when inferring an agent's beliefs or utilities from realistic datasets. First, an agent (even with some softmax noise) may reliably avoid inferior states (as in the present example); and so their actions may communicate little about the relative utilities *among* the inferior states. Second, richer models of agents (e.g. those with softmax noise and inaccurate beliefs) allow for more possible explanations of the same behavior. One solution to unidentifiability for IRL is *active learning* or *experimental design* (see refp: satinder singh paper). 
+
+
+### Example: Inference on timeCost and Softmax Noise
+The previous examples assumed that the agent's `timeCost` (the negative utility of each timestep before the agent reaches a restaurant) and the softmax $$\alpha$$ were known. We can modify the above example to include them in inference.
+
+~~~~
+var utilityTablePrior = function(){
+  var foodValues = [0,1,2,3];
+  var timeCostValues = [-0.1, -0.3, -0.6, -1];
+  var donut = uniformDraw(foodValues);
+
+  return {donutNorth: donut,
+          donutSouth: donut,
+          veg: uniformDraw(foodValues),
+          noodle: uniformDraw(foodValues),
+          timeCost: uniformDraw(timeCostValues)};
+};
+var alphaPrior = function(){return uniformDraw([.1,1,10,100]);
+
+var observedStateActionSequence = []; // TODO add observed
+var world = makeDonutWorld2({big:true, start:[3,1], timeLeft:10});
+
+var posterior = Enumerate( function(){
+  var utilityTable = utilityTablePrior();
+  var alpha = alphaPrior();
+  var agent = makeMDPAgent(utilityTable, alpha, world);
+  var act = agent.act;
+
+  // For each observed state-action pair, compute likekihood of action
+  map( function(stateAction){
+    factor( act(stateAction.state).score( [], stateAction.action) );
+  }, observedStateActionSequence )
+
+  return {utilityTable:utilityTable, alpha:alpha};
+});
+
+// Show example of inferring 
+
+print(posterior)
+~~~~
+
+The posterior shows that the agent's taking a step towards Donut South can now be explained in terms of a high `timeCost`. If the agent is has a low value for $$\alpha$$, then this step to the left is fairly likely even if the agent prefers the Noodle Store or Vegetarian Cafe. So including softmax noise in the inference serves to soften the inferences about everything else. However, once we observe three steps towards Donut South, the main explanations remaining are in terms of preferences rather than noise. 
+
+### Example: Inference from multiple trajectories
+- do a map over map, or could do factoring on an array (find score of multiple iid samples simultaneously). 
+
+### IRL Bandits
+introduce the story and give some examples of inferring beliefs and utilities jointly. 
 
 
 
 
-- Show inference from a single action (even if trajectory is longer)? 
-- Infer softmax noise from observing multiple trajectories (not really a realistic inference issue). 
-- 
 
-
-
-
-
-
-
+---------------------
 
 
 
