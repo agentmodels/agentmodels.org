@@ -95,13 +95,67 @@ $$
 P(U,\alpha | (s,a)_{0:t}) \propto P( (s,a)_{0:t} | U, \alpha)P(U, \alpha)
 $$
 
-Due to the Markov Assumption for MDPs, the probability of an agent's actions in a state is independent of the agent's previous or later actions (conditional on $$U$$ and $$\alpha$$). So this can be written as:
+The likelihood function $$P( (s,a)_{0:t} | U, \alpha)$$ is the MDP agent model (where we suppress information about the starting state, etc.). Due to the Markov Assumption for MDPs, the probability of an agent's action in a state is independent of the agent's previous or later actions (given $$U$$ and $$\alpha$$). So posterior can be written as:
 
 $$
 P(U,\alpha | (s,a)_{0:t}) \propto P(U, \alpha) \prod_{i=0}^t P( a_i | s_i, U, \alpha)
 $$
 
-The term $$P( a_i | s_i, U, \alpha)$$ can be rewritten as the softmax choice function (which corresponds to the function `act` in our MDP agent models). This equation holds only for the case where we observe a sequence of actions from timestep 0 to $$t<T$$ (with no gaps). This tutorial will mostly focus on this case. It is trivial to extend the equation to observing multiple independently drawn such sequences. However, if there are gaps in the sequence or if we observe only the agent's states (not the actions), then we need to marginalize over actions that were unobserved. 
+The term $$P( a_i | s_i, U, \alpha)$$ can be rewritten as the softmax choice function (which corresponds to the function `act` in our MDP agent models). This equation holds for the case where we observe a sequence of actions from timestep 0 to $$t<T$$ (with no gaps). This tutorial focuses mostly on this case. It is trivial to extend the equation to observing multiple independently drawn such sequences (as we show below). However, if there are gaps in the sequence or if we observe only the agent's states (not the actions), then we need to marginalize over actions that were unobserved.
+
+
+## Examples of learning about agents
+
+### Example: Inference from part of a sequence actions
+
+The expression for the joint posterior (above) shows that it is straightforward to do inference on a part of an agent's action sequence. For example, if we know an agent had a time horizon of 10, we can do inference from only the agent's first few actions.
+
+For this example, we condition on the agent making a single step from [3,1] to [2,1] by moving left. For an agent with low noise, this provides almost as much evidence as the agent going all the way to Donut South. 
+
+[Codebox showing trajectory with only a single step]
+~~~~
+var utilityTablePrior = function(){
+  var baseUtilityTable = {
+    'donutSouth': 1,
+    'donutNorth': 1,
+    'veg': 1,
+    'noodle': 1,
+    'timeCost': -0.1
+  };
+  return uniformDraw( 
+    update(baseUtilityTable, {donutNorth:2, donutSouth:2}), // prefers Donut
+    update(baseUtilityTable, {veg:2}), // prefers Veg
+    update(baseUtilityTable, {noodle:2}) // prefers Noodle
+  );
+};
+var observedStateActionSequence = []; // TODO add observed
+var world = makeDonutWorld2({big:true, start:[3,1], timeLeft:10});
+
+var posterior = Enumerate( function(){
+  var utilityTable = utilityTablePrior();
+  var agent = makeMDPAgent(utilityTable, alpha, world);
+  var act = agent.act;
+  
+  map( function(stateAction){
+    factor( act(stateAction.state).score( [], stateAction.action) );
+  }, observedStateActionSequence )
+
+  return utilityTable;
+});
+
+print(posterior)
+~~~~
+
+
+
+
+
+- Show inference from a single action (even if trajectory is longer)? 
+- Infer softmax noise from observing multiple trajectories (not really a realistic inference issue). 
+- 
+
+
+
 
 
 
