@@ -85,8 +85,10 @@ $$
 The likelihood function $$P( (s,a)_{0:n} | U, \alpha )$$ is the MDP agent model, suppressing information about the starting state (and so on). Due to the Markov Assumption for MDPs, the probability of an agent's action in a state is independent of the agent's previous or later actions (given $$U$$ and $$\alpha$$). So posterior can be written as:
 
 $$
-\verb!(1): ! P(U,\alpha | (s,a)_{0:n}) \propto P(U, \alpha) \prod_{i=0}^n P( a_i | s_i, U, \alpha)
+P(U,\alpha | (s,a)_{0:n}) \propto P(U, \alpha) \prod_{i=0}^n P( a_i | s_i, U, \alpha)
 $$
+
+<!-- \verb!(1): ! -->
 
 The term $$P( a_i | s_i, U, \alpha)$$ can be rewritten as the softmax choice function (which corresponds to the function `act` in our MDP agent models). This equation holds for the case where we observe a sequence of actions from timestep 0 to $$n \leq N$$ (with no gaps). This tutorial focuses mostly on this case. It is trivial to extend the equation to observing multiple independently drawn such sequences (as we show below). However, if there are gaps in the sequence or if we observe only the agent's states (not the actions), then we need to marginalize over actions that were unobserved.
 
