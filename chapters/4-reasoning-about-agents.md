@@ -30,11 +30,11 @@ Agent models are also used as generative models in Machine Learning, under the l
 This chapter provides an array of illustrative examples of learning about agents from their actions. We begin with a concrete example and then provide a general formalization of the inference problem. A virtue of using WebPPL is that doing inference over our existing agent models requires very little extra code. 
 
 
-## Inferring Utilities From Actions
+## Learning about an agent from their actions: first example
 
 Consider the MDP version of Bob's Restaurant Choice problem. Bob is choosing between restaurants and has full knowledge of which restaurants are open (i.e. all of them) and knows the street layout. Previously, we discussed how to compute optimal behavior *given* Bob's utility function over restaurants. Now we get to observe Bob's behavior and our task is to infer his utility function:
 
-[Could be Donut Big or Small. Trajectory is from the normal startState to Donut South.]
+[TODO Could be Donut Big or Small. Trajectory is from the normal startState to Donut South.]
 ~~~~
 var world = makeDonutWorld2({big:true});
 
@@ -44,10 +44,9 @@ GridWorld.draw(params,
 
 From Bob's actions, we infer that he probably prefers the Donut Store to the other restaurants. An alternative explanation is that Bob cares most about saving time. He might prefer the Vegetarian Cafe (all things being equal) but his preference is not strong enough to spend extra time getting there.
 
-In this first example of inference, Bob's preference for saving time are taken as given (with only a weak preference) and we infer (given the actions shown above) Bob's preference for the different restaurants. We model Bob using the MDP agent model from [Chapter III.1](/chapters/3-agents-as-programs.html). We place a uniform prior over three possible utility functions for Bob: one favoring the Donut Store, one favoring Vegetarian Cafe and one favoring Noodle Shop. We use `Enumerate` to compute a Bayesian posterior over these utility functions, given Bob's observed behavior. Since the world is deterministic (with softmax parameter $$\alpha$$ set high), we just compare Bob's predicted states under each utility function to the states actually observed. To predict Bob's states for each utility function, we use the function `simulate` from [Chapter III.1](/chapters/3-agents-as-programs.html). 
+In this first example of inference, Bob's preference for saving time are taken as given (with only a weak preference) and we infer (given the actions shown above) Bob's preference for the different restaurants. We model Bob using the MDP agent model from [Chapter III.1](/chapters/3a-mdp.html). We place a uniform prior over three possible utility functions for Bob: one favoring the Donut Store, one favoring Vegetarian Cafe and one favoring Noodle Shop. We use `Enumerate` to compute a Bayesian posterior over these utility functions, given Bob's observed behavior. Since the world is deterministic (with softmax parameter $$\alpha$$ set high), we just compare Bob's predicted states under each utility function to the states actually observed. To predict Bob's states for each utility function, we use the function `simulate` from [Chapter III.1](/chapters/3a-mdp.html). 
 
-[Need new version of MDP simulate that has similar form to beliefDelay: with timeLeft as part of state etc.
-
+[TODO: Need new version of MDP simulate that has similar form to beliefDelay: with timeLeft as part of state etc.]
 
 ~~~~
 
@@ -60,12 +59,12 @@ var utilityTablePrior = function(){
     'timeCost': -0.1
   };
   return uniformDraw( 
-    update(baseUtilityTable, {donutNorth:2, donutSouth:2}),
-    update(baseUtilityTable, {veg:2}),
-    update(baseUtilityTable, {noodle:2})
+    update(baseUtilityTable, {donutNorth:2, donutSouth:2}), // prefers Donut
+    update(baseUtilityTable, {veg:2}), // prefers Veg
+    update(baseUtilityTable, {noodle:2}) // prefers Noodle
   );
 };
-var observedStates = [];
+var observedStates = []; // TODO add observed states from above
 var world = makeDonutWorld2({big:true, start:[2,1], timeLeft:10});
 
 var posterior  = Enumerate( function(){
@@ -79,6 +78,37 @@ var posterior  = Enumerate( function(){
 print(posterior)
 
 ~~~~
+
+## Learning about an agent from their actions: formalization
+
+We will now formalize the kind of inference in the previous example. We begin by considering inference over the utilities and softmax noise parameter for an MDP agent. Later on we'll generalize to POMDP agents and to other agents.
+
+Following [Chapter III.1](/chapters/3a-mdp.html) the MDP agent is defined by a utility function $$U$$ and softmax parameter $$\alpha$$. In order to do inference, we need to know the agent's starting state $$s_0$$ (which might include both their *location* and their *time horizon* $$T$$). The data we condition on is a sequence of state-action pairs:
+
+$$
+(s_0,a_0), (s_1,a_1), \ldots, (s_t,a_t)
+$$
+
+where the final timestep $$t < T$$. We abbreviate this sequence as $$(s,a)_{0:t}$$. The joint posterior on the agent's utilities and noise given the observed state-action sequence is:
+
+$$
+P(U,\alpha | (s,a)_{0:t}) \propto P( (s,a)_{0:t} | U, \alpha)P(U, \alpha)
+$$
+
+Due to the Markov Assumption for MDPs, the probability of an agent's actions in a state is independent of the agent's previous or later actions (conditional on $$U$$ and $$\alpha$$). So this can be written as:
+
+$$
+P(U,\alpha | (s,a)_{0:t}) \propto P(U, \alpha) \prod_{i=0}^t P( a_i | s_i, U, \alpha)
+$$
+
+The term $$P( a_i | s_i, U, \alpha)$$ can be rewritten as the softmax choice function (which corresponds to the function `act` in our MDP agent models). This equation holds only for the case where we observe a sequence of actions from timestep 0 to $$t<T$$ (with no gaps). This tutorial will mostly focus on this case. It is trivial to extend the equation to observing multiple independently drawn such sequences. However, if there are gaps in the sequence or if we observe only the agent's states (not the actions), then we need to marginalize over actions that were unobserved. 
+
+
+
+
+
+
+
 
 
 
