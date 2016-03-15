@@ -73,10 +73,10 @@ We will now formalize the kind of inference in the previous example. We begin by
 Following [Chapter III.1](/chapters/3a-mdp.html) the MDP agent is defined by a utility function $$U$$ and softmax parameter $$\alpha$$. In order to do inference, we need to know the agent's starting state $$s_0$$ (which might include both their *location* and their *time horizon* $$N$$). The data we condition on is a sequence of state-action pairs: 
 
 $$
-(s_0,a_0), (s_1,a_1), \ldots, (s_n,a_n)
+(s_0, a_0), (s_1, a_1), \ldots, (s_n, a_n)
 $$
 
-where the final timestep $$n < N$$. We abbreviate this sequence as $$(s,a)_{0:n}$$. The joint posterior on the agent's utilities and noise given the observed state-action sequence is:
+The index for the final timestep is at most the time horzion:  $$n \leq N$$. We abbreviate this sequence as $$(s,a)_{0:n}$$. The joint posterior on the agent's utilities and noise given the observed state-action sequence is:
 
 $$
 P(U,\alpha | (s,a)_{0:n}) \propto P( (s,a)_{0:n} | U, \alpha)P(U, \alpha)
@@ -617,5 +617,26 @@ now you have learned.
 -->
 
 --------------
+Following [Chapter III.1](/chapters/3a-mdp.html) the MDP agent is defined by a utility function $U$ and softmax parameter $\alpha$. In order to do inference, we need to know the agent's starting state $s_0$ (which might include both their *location* and their *time horizon* $N$). The data we condition on is a sequence of state-action pairs: 
+
+$$
+(s_0, a_0), (s_1, a_1), \ldots, (s_n, a_n)
+$$
+
+where the final timestep $n < N$. We abbreviate this sequence as $(s,a)_{0:n}$. The joint posterior on the agent's utilities and noise given the observed state-action sequence is:
+
+$$
+P(U,\alpha | (s,a)_{0:n}) \propto P( (s,a)_{0:n} | U, \alpha)P(U, \alpha)
+$$
+
+
+The likelihood function $P( (s,a)_{0:n} | U, \alpha)$ is the MDP agent model (where we suppress information about the starting state, etc.). Due to the Markov Assumption for MDPs, the probability of an agent's action in a state is independent of the agent's previous or later actions (given $U$ and $\alpha$). So posterior can be written as:
+
+$$
+\verb!(1): ! P(U,\alpha | (s,a)_{0:n}) \propto P(U, \alpha) \prod_{i=0}^n P( a_i | s_i, U, \alpha)
+$$
+
+The term $P( a_i | s_i, U, \alpha)$ can be rewritten as the softmax choice function (which corresponds to the function `act` in our MDP agent models). This equation holds for the case where we observe a sequence of actions from timestep 0 to $n<N$ (with no gaps). This tutorial focuses mostly on this case. It is trivial to extend the equation to observing multiple independently drawn such sequences (as we show below). However, if there are gaps in the sequence or if we observe only the agent's states (not the actions), then we need to marginalize over actions that were unobserved.
+
 
 [Table of Contents](/)
