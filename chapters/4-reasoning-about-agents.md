@@ -79,7 +79,7 @@ $$
 The index for the final timestep is at most the time horzion:  $$n \leq N$$. We abbreviate this sequence as $$(s,a)_{0:n}$$. The joint posterior on the agent's utilities and noise given the observed state-action sequence is:
 
 $$
-P(U,\alpha | (s,a)_{0:n}) \propto P( (s,a)_{0:n} | U, \alpha) P(U, \alpha)
+P(U,\alpha | (s,a)_{0:n}) \propto P( {(s,a)}_{0:n} | U, \alpha) P(U, \alpha)
 $$
 
 The likelihood function $$P( (s,a)_{0:n} | U, \alpha )$$ is the MDP agent model, suppressing information about the starting state (and so on). Due to the Markov Assumption for MDPs, the probability of an agent's action in a state is independent of the agent's previous or later actions (given $$U$$ and $$\alpha$$). So posterior can be written as:
