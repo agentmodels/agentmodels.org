@@ -6,20 +6,6 @@ is_section: true
 ---
 
 
-## PLAN
-- Overview and concrete example in gridworld (single action case). Then formalize the general problem assuming we get to condition from (state,actions). Then show example of state action inference.
-
-inferOffPolicy: give as data series [(s,a)].
-
-p(U / siai) = p(U) PI( p(ai / si,U) )
-where p(ai / si,U) = C(ai ; si U)
-
-- Then show an example of inference from multiple trajectories in gridworld.
-
-- POMDP inference. Show simpel IRL bandits case, where we infer the agent's prior over one thing having a good prize. Maybe show naive or soph case. 
-
-Previous chapters exhibited models for planning in MDPs and POMDPs. This chapter shows how we can add a few lines of code to our agent models in order to infer the agent's beliefs and utilities from their observed behavior. 
-
 ## Introduction
 The previous chapters have shown how to compute optimal actions for agents in MDPs and POMDPs. In many practical applications, this is all we want to compute. For example, if we are controlling a robot, we would want the robot to act optimally given the utility function we have designed for it. If we want to come up with an optimal gambling strategy, we might use a POMDP agent model like that used for bandits in the [previous chapter](/chapters/3c-pomdp).
 
@@ -35,6 +21,7 @@ This chapter provides an array of illustrative examples of learning about agents
 Consider the MDP version of Bob's Restaurant Choice problem. Bob is choosing between restaurants and has full knowledge of which restaurants are open (i.e. all of them) and knows the street layout. Previously, we discussed how to compute optimal behavior *given* Bob's utility function over restaurants. Now we get to observe Bob's behavior and our task is to infer his utility function:
 
 [TODO Could be Donut Big or Small. Trajectory is from the normal startState to Donut South.]
+
 ~~~~
 var world = makeDonutWorld2({big:true});
 
@@ -83,7 +70,7 @@ print(posterior)
 
 We will now formalize the kind of inference in the previous example. We begin by considering inference over the utilities and softmax noise parameter for an MDP agent. Later on we'll generalize to POMDP agents and to other agents.
 
-Following [Chapter III.1](/chapters/3a-mdp.html) the MDP agent is defined by a utility function $$U$$ and softmax parameter $$\alpha$$. In order to do inference, we need to know the agent's starting state $$s_0$$ (which might include both their *location* and their *time horizon* $$T$$). The data we condition on is a sequence of state-action pairs:
+Following [Chapter III.1](/chapters/3a-mdp.html) the MDP agent is defined by a utility function $$U$$ and softmax parameter $$\alpha$$. In order to do inference, we need to know the agent's starting state $$s_0$$ (which might include both their *location* and their *time horizon* $$T$$). The data we condition on is a sequence of state-action pairs: [TODO change *T* to *N*]
 
 $$
 (s_0,a_0), (s_1,a_1), \ldots, (s_t,a_t)
@@ -94,6 +81,7 @@ where the final timestep $$t < T$$. We abbreviate this sequence as $$(s,a)_{0:t}
 $$
 P(U,\alpha | (s,a)_{0:t}) \propto P( (s,a)_{0:t} | U, \alpha)P(U, \alpha)
 $$
+
 
 The likelihood function $$P( (s,a)_{0:t} | U, \alpha)$$ is the MDP agent model (where we suppress information about the starting state, etc.). Due to the Markov Assumption for MDPs, the probability of an agent's action in a state is independent of the agent's previous or later actions (given $$U$$ and $$\alpha$$). So posterior can be written as:
 
