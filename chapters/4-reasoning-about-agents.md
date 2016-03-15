@@ -261,8 +261,9 @@ To produce a factorized form of this posterior analogous to Equation (1), we com
 $$
 b_i = b_{i-1} | s_i, o_i, a_{i-1}
 
-b_i(s_i) \propto O(s_i,a_{i-1},o_i)\sum_{s_i \in S}{T(s_{i-1),a_{i-1},s_i)b_{i-1}(s_{i-1})}
 $$
+
+<!-- b_i(s_i) \propto O(s_i,a_{i-1},o_i)\sum_{s_i \in S}{T(s_{i-1),a_{i-1},s_i)b_{i-1}(s_{i-1})} -->
 
 The posterior can thus be written:
 
