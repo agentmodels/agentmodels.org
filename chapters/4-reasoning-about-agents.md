@@ -70,26 +70,26 @@ print(posterior)
 
 We will now formalize the kind of inference in the previous example. We begin by considering inference over the utilities and softmax noise parameter for an MDP agent. Later on we'll generalize to POMDP agents and to other agents.
 
-Following [Chapter III.1](/chapters/3a-mdp.html) the MDP agent is defined by a utility function $$U$$ and softmax parameter $$\alpha$$. In order to do inference, we need to know the agent's starting state $$s_0$$ (which might include both their *location* and their *time horizon* $$T$$). The data we condition on is a sequence of state-action pairs: [TODO change *T* to *N*]
+Following [Chapter III.1](/chapters/3a-mdp.html) the MDP agent is defined by a utility function $$U$$ and softmax parameter $$\alpha$$. In order to do inference, we need to know the agent's starting state $$s_0$$ (which might include both their *location* and their *time horizon* $$N$$). The data we condition on is a sequence of state-action pairs: 
 
 $$
-(s_0,a_0), (s_1,a_1), \ldots, (s_t,a_t)
+(s_0,a_0), (s_1,a_1), \ldots, (s_n,a_n)
 $$
 
-where the final timestep $$t < T$$. We abbreviate this sequence as $$(s,a)_{0:t}$$. The joint posterior on the agent's utilities and noise given the observed state-action sequence is:
+where the final timestep $$n < N$$. We abbreviate this sequence as $$(s,a)_{0:n}$$. The joint posterior on the agent's utilities and noise given the observed state-action sequence is:
 
 $$
-P(U,\alpha | (s,a)_{0:t}) \propto P( (s,a)_{0:t} | U, \alpha)P(U, \alpha)
+P(U,\alpha | (s,a)_{0:n}) \propto P( (s,a)_{0:n} | U, \alpha)P(U, \alpha)
 $$
 
 
-The likelihood function $$P( (s,a)_{0:t} | U, \alpha)$$ is the MDP agent model (where we suppress information about the starting state, etc.). Due to the Markov Assumption for MDPs, the probability of an agent's action in a state is independent of the agent's previous or later actions (given $$U$$ and $$\alpha$$). So posterior can be written as:
+The likelihood function $$P( (s,a)_{0:n} | U, \alpha)$$ is the MDP agent model (where we suppress information about the starting state, etc.). Due to the Markov Assumption for MDPs, the probability of an agent's action in a state is independent of the agent's previous or later actions (given $$U$$ and $$\alpha$$). So posterior can be written as:
 
 $$
-P(U,\alpha | (s,a)_{0:t}) \propto P(U, \alpha) \prod_{i=0}^t P( a_i | s_i, U, \alpha)
+\verb!(1): ! P(U,\alpha | (s,a)_{0:n}) \propto P(U, \alpha) \prod_{i=0}^n P( a_i | s_i, U, \alpha)
 $$
 
-The term $$P( a_i | s_i, U, \alpha)$$ can be rewritten as the softmax choice function (which corresponds to the function `act` in our MDP agent models). This equation holds for the case where we observe a sequence of actions from timestep 0 to $$t<T$$ (with no gaps). This tutorial focuses mostly on this case. It is trivial to extend the equation to observing multiple independently drawn such sequences (as we show below). However, if there are gaps in the sequence or if we observe only the agent's states (not the actions), then we need to marginalize over actions that were unobserved.
+The term $$P( a_i | s_i, U, \alpha)$$ can be rewritten as the softmax choice function (which corresponds to the function `act` in our MDP agent models). This equation holds for the case where we observe a sequence of actions from timestep 0 to $$n<N$$ (with no gaps). This tutorial focuses mostly on this case. It is trivial to extend the equation to observing multiple independently drawn such sequences (as we show below). However, if there are gaps in the sequence or if we observe only the agent's states (not the actions), then we need to marginalize over actions that were unobserved.
 
 
 ## Examples of learning about agents in MDPs
@@ -102,7 +102,7 @@ For this example, we condition on the agent making a single step from [3,1] to [
 
 [Codebox showing trajectory with only a single step]
 
-Our approach to inference is slightly different than in the example at the start of this chapter. The approach is a direct translation of the expression for the posterior above [todo: label equations]. For each observed state-action pair, we compute the likelihood of the agent (with given $$U$$) choosing that action in the state. (In contrast, the naive approach above will become intractable for long, noisy action sequences -- as it will need to loop over all possible sequences). 
+Our approach to inference is slightly different than in the example at the start of this chapter. The approach is a direct translation of the expression for the posterior in Equation (1) above. For each observed state-action pair, we compute the likelihood of the agent (with given $$U$$) choosing that action in the state. (In contrast, the naive approach above will become intractable for long, noisy action sequences -- as it will need to loop over all possible sequences). 
 
 ~~~~
 var utilityTablePrior = function(){
@@ -237,8 +237,40 @@ var posterior = function(observedStateActionSequence){
 
 ## Learning about agents in POMDPs
 
-### 
-introduce the story and give some examples of inferring beliefs and utilities jointly. 
+### Formalization
+We can extend our approach to inference to deal with agents that solve POMDPs. One approach to inference is simply to generate full state-action sequences and compare them to the observed data. As we mentioned above, this approach becomes intractable in cases where noise (in transitions and actions) is high and sequences are long.
+
+Instead, we extend the approach in Equation (1) above. The first thing to notice is that Equation (1) has to be amended for POMDPs. In an MDP, actions are independent given $$U$$, $$\alpha$$ and the state; while in a POMDP, actions are only independent if we also condition on the *belief*. So Equation (1) can only be extended to the case where we know the agent's belief at each timestep. This will be realistic in some applications and not others. This depends on whether we observe the agent's observations (as well as their states and actions). If so, we can compute the agent's belief at each timestep (up to knowledge of their prior). If not, we have to marginalize over the possible observations, making for a more complex inference computation. 
+
+Here is the extension of Equation (1) to the POMDP case, where we assume access to the agent's observations. Our goal is to compute a posterior on the parameters of the agent. These include $$U$$ and $$\alpha$$ as before but also the agent's initial belief $$b_0$$. 
+
+We observe a sequence of state-observation-action triples:
+
+$$
+(s_0,o_0,a_0), (s_1,o_1,a_1), \ldots, (s_n,o_n,a_n)
+$$
+
+where the final timestep $$n < N$$. We are 
+
+The joint posterior on the agent's utilities and noise given the observed state-action sequence is:
+
+$$
+P(U,\alpha, b_0 | (s,o,a)_{0:n}) \propto P( (s,o,a)_{0:n} | U, \alpha, b_0)P(U, \alpha, b_0)
+$$
+
+To produce a factorized form of this posterior analogous to Equation (1), we need to compute the sequence of agent beliefs. This is given by the recursive Bayesian belief update described in [Chapter III.3](/chapters/3c-pomdp):
+
+$$
+b_i = b_{i-1} | o_i, s_i,a_{i-1}
+$$
+
+The posterior can thus be written:
+
+$$
+\verb!(2): ! P(U,\alpha,b_0 | (s,o,a)_{0:n}) \propto P(U, \alpha, b_0) \prod_{i=0}^n P( a_i | s_i, b_i, U, \alpha)
+$$
+
+
 
 
 
