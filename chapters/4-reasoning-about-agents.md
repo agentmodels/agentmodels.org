@@ -267,9 +267,9 @@ $$
 
 The posterior can thus be written:
 
-$$
+<!--
 \verb!(2): ! P(U,\alpha,b_0 | (s,o,a)_{0:n}) \propto P(U, \alpha, b_0) \prod_{i=0}^n P( a_i | s_i, b_i, U, \alpha)
-$$
+-->
 
 
 
