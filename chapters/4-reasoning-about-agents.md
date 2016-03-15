@@ -16,7 +16,7 @@ Agent models are also used as generative models in Machine Learning, under the l
 This chapter provides an array of illustrative examples of learning about agents from their actions. We begin with a concrete example and then provide a general formalization of the inference problem. A virtue of using WebPPL is that doing inference over our existing agent models requires very little extra code. 
 
 
-## Learning about an agent from their actions: first example
+## Learning about an agent from their actions: motivating example
 
 Consider the MDP version of Bob's Restaurant Choice problem. Bob is choosing between restaurants and has full knowledge of which restaurants are open (i.e. all of them) and knows the street layout. Previously, we discussed how to compute optimal behavior *given* Bob's utility function over restaurants. Now we get to observe Bob's behavior and our task is to infer his utility function:
 
@@ -92,9 +92,9 @@ $$
 The term $$P( a_i | s_i, U, \alpha)$$ can be rewritten as the softmax choice function (which corresponds to the function `act` in our MDP agent models). This equation holds for the case where we observe a sequence of actions from timestep 0 to $$t<T$$ (with no gaps). This tutorial focuses mostly on this case. It is trivial to extend the equation to observing multiple independently drawn such sequences (as we show below). However, if there are gaps in the sequence or if we observe only the agent's states (not the actions), then we need to marginalize over actions that were unobserved.
 
 
-## Examples of learning about agents
+## Examples of learning about agents in MDPs
 
-### Example: Inference from part of a sequence actions
+### Example: Inference from part of a sequence of actions
 
 The expression for the joint posterior (above) shows that it is straightforward to do inference on a part of an agent's action sequence. For example, if we know an agent had a time horizon of 10, we can do inference from only the agent's first few actions.
 
@@ -143,10 +143,10 @@ Note that utility functions where Vegetarian Cafe or Noodle Shop are most prefer
 
 Actually, this is not quite right. If we wait long enough, the agent's softmax noise would eventually reveal information about which was preferred. However, the general point remains that we won't be able to *efficiently* learn the agent's preferences by repeatedly watching them choose from a random start point. If there is no softmax noise, then we can make the strong claim that even in the limit, the agent's preferences are not *identified* by draws from this space of scenarios.
 
-This issue of *unidentifiability* is common when inferring an agent's beliefs or utilities from realistic datasets. First, an agent (even with some softmax noise) may reliably avoid inferior states (as in the present example); and so their actions may communicate little about the relative utilities *among* the inferior states. Second, richer models of agents (e.g. those with softmax noise and inaccurate beliefs) allow for more possible explanations of the same behavior. One solution to unidentifiability for IRL is *active learning* or *experimental design* (see refp: satinder singh paper). 
+This issue of *unidentifiability* is common when inferring an agent's beliefs or utilities from realistic datasets. First, an agent (even with some softmax noise) may reliably avoid inferior states (as in the present example); and so their actions may communicate little about the relative utilities *among* the inferior states. Second, richer models of agents (e.g. those with softmax noise and inaccurate beliefs) allow for more possible explanations of the same behavior. One solution to unidentifiability for IRL is *active learning* or *experimental design* (see refp:amin2016towards). 
 
 
-### Example: Inference on timeCost and Softmax Noise
+### Example: Inference on `timeCost` and Softmax Noise
 The previous examples assumed that the agent's `timeCost` (the negative utility of each timestep before the agent reaches a restaurant) and the softmax $$\alpha$$ were known. We can modify the above example to include them in inference.
 
 ~~~~
@@ -162,35 +162,82 @@ var utilityTablePrior = function(){
           timeCost: uniformDraw(timeCostValues)};
 };
 var alphaPrior = function(){return uniformDraw([.1,1,10,100]);
-
-var observedStateActionSequence = []; // TODO add observed
 var world = makeDonutWorld2({big:true, start:[3,1], timeLeft:10});
 
-var posterior = Enumerate( function(){
-  var utilityTable = utilityTablePrior();
-  var alpha = alphaPrior();
-  var agent = makeMDPAgent(utilityTable, alpha, world);
-  var act = agent.act;
+var posterior = function(observedStateActionSequence){
+    return Enumerate( 
+  function(){
+    var utilityTable = utilityTablePrior();
+    var alpha = alphaPrior();
+    var agent = makeMDPAgent(utilityTable, alpha, world);
+    var act = agent.act;
 
-  // For each observed state-action pair, compute likekihood of action
-  map( function(stateAction){
-    factor( act(stateAction.state).score( [], stateAction.action) );
-  }, observedStateActionSequence )
+    // For each observed state-action pair, compute likekihood of action
+    map( function(stateAction){
+      factor( act(stateAction.state).score( [], stateAction.action) );
+    }, observedStateActionSequence )
 
-  return {utilityTable:utilityTable, alpha:alpha};
-});
+    return {utilityTable:utilityTable, alpha:alpha};
+  });
 
-// Show example of inferring 
 
-print(posterior)
+var observedStateActionSequence = []; // TODO add observed
+posterior(observedStateActionSequence.slice(0,1))
+posterior(observedStateActionSequence.slice(0,2))
+posterior(observedStateActionSequence.slice(0,3))
+
+
 ~~~~
 
-The posterior shows that the agent's taking a step towards Donut South can now be explained in terms of a high `timeCost`. If the agent is has a low value for $$\alpha$$, then this step to the left is fairly likely even if the agent prefers the Noodle Store or Vegetarian Cafe. So including softmax noise in the inference serves to soften the inferences about everything else. However, once we observe three steps towards Donut South, the main explanations remaining are in terms of preferences rather than noise. 
+The posterior shows that taking a step towards Donut South can now be explained in terms of a high `timeCost`. If the agent has a low value for $$\alpha$$, then this step to the left is fairly likely even if the agent prefers the Noodle Store or Vegetarian Cafe. So including softmax noise in the inference makes inferences about other parameters closer to the prior. However, once we observe three steps towards Donut South, the inferences about preferences become fairly strong. 
 
-### Example: Inference from multiple trajectories
-- do a map over map, or could do factoring on an array (find score of multiple iid samples simultaneously). 
+As noted above, it is simple to extend our approach to inference to conditioning on multiple sequences of actions. Consider the two sequences below: [first one goes to DSouth from start. Second one goes to DNorth.]
 
-### IRL Bandits
+~~~~
+
+var utilityTablePrior = function(){
+  var foodValues = [0,1,2,3];
+  var timeCostValues = [-0.1, -0.3, -0.6, -1];
+  var donut = uniformDraw(foodValues);
+
+  return {donutNorth: donut,
+          donutSouth: donut,
+          veg: uniformDraw(foodValues),
+          noodle: uniformDraw(foodValues),
+          timeCost: uniformDraw(timeCostValues)};
+};
+var alphaPrior = function(){return uniformDraw([.1,1,10,100]);
+var world = makeDonutWorld2({big:true, start:[3,1], timeLeft:10});
+
+var posterior = function(observedStateActionSequence){
+  return Enumerate( 
+    function(){
+      var utilityTable = utilityTablePrior();
+      var alpha = alphaPrior();
+      var agent = makeMDPAgent(utilityTable, alpha, world);
+      var act = agent.act;
+      
+      map( function(stateAction){
+        factor( act(stateAction.state).score( [], stateAction.action) );
+      }, observedStateActionSequence )
+      
+      return {utilityTable:utilityTable, alpha:alpha};
+    });
+
+
+  var observedSequence1 = [];
+  var observedSequence2 = [];
+  posterior(observedSequence1.concat(observedSequence2))
+  // TODO: alternatively: can we run *score* on an array for more efficient computation of likelihoods
+  // e.g. score([],[x1,x2]), where the function computes sufficient statistics of the input 
+  
+~~~~
+
+
+
+## Learning about agents in POMDPs
+
+### 
 introduce the story and give some examples of inferring beliefs and utilities jointly. 
 
 
