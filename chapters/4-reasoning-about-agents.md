@@ -86,7 +86,7 @@ The likelihood function is the MDP agent model, suppressing information about th
 
 $$P( {(s,a)}_{0:n} | U, \alpha )$$
 
-Due to the Markov Assumption for MDPs, the probability of an agent's action in a state is independent of the agent's previous or later actions (given $$U$$ and $$\alpha$$). This allows us to rewrite the posterior as *Equation (1)*:
+Due to the Markov Assumption for MDPs, the probability of an agent's action in a state is independent of the agent's previous or later actions (given $$U$$ and $$\alpha$$). This allows us to rewrite the posterior as **Equation (1)**:
 
 $$
 P(U,\alpha | (s,a)_{0:n}) \propto P(U, \alpha) \prod_{i=0}^n P( a_i | s_i, U, \alpha)
@@ -275,7 +275,7 @@ O(s_i,a_{i-1},o_i)
 \sum_{s_i \in S} { T(s_{i-1}, a_{i-1}, s_i) b_{i-1}(s_{i-1})}
 $$
 
-The posterior can thus be written as *Equation 2*:
+The posterior can thus be written as **Equation 2**:
 
 $$
 P(U, \alpha, b_0 | (s,o,a)_{0:n}) \propto P(U, \alpha, b_0) \prod_{i=0}^n P( a_i | s_i, b_i, U, \alpha)
