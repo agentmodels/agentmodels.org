@@ -154,7 +154,7 @@ Actually, this is not quite right. If we wait long enough, the agent's softmax n
 This issue of *unidentifiability* is common when inferring an agent's beliefs or utilities from realistic datasets. First, an agent (even with some softmax noise) may reliably avoid inferior states (as in the present example); and so their actions may communicate little about the relative utilities *among* the inferior states. Second, richer models of agents (e.g. those with softmax noise and inaccurate beliefs) allow for more possible explanations of the same behavior. One solution to unidentifiability for IRL is *active learning* or *experimental design* (see refp:amin2016towards). 
 
 
-### Example: Inference on `timeCost` and Softmax Noise
+### Example: Inferring The Cost of Time and Softmax Noise
 The previous examples assumed that the agent's `timeCost` (the negative utility of each timestep before the agent reaches a restaurant) and the softmax $$\alpha$$ were known. We can modify the above example to include them in inference.
 
 ~~~~
@@ -275,7 +275,7 @@ O(s_i,a_{i-1},o_i)
 \sum_{s_i \in S} { T(s_{i-1}, a_{i-1}, s_i) b_{i-1}(s_{i-1})}
 $$
 
-The posterior can thus be written as **Equation 2**:
+The posterior can thus be written as **Equation (2)**:
 
 $$
 P(U, \alpha, b_0 | (s,o,a)_{0:n}) \propto P(U, \alpha, b_0) \prod_{i=0}^n P( a_i | s_i, b_i, U, \alpha)
