@@ -5,25 +5,91 @@ description: Overview of inverse planning / IRL. WebPPL examples of inferring ut
 is_section: true
 ---
 
-<!--## TODOs:
-* what's up with the visualisation?
-* fill in words
-* visualisation of trajectories doesn't show final action: how to fix this?
--->
 
-## Introduction [WORK IN PROGRESS]
+## PLAN
+- Overview and concrete example in gridworld (single action case). Then formalize the general problem assuming we get to condition from (state,actions). Then show example of state action inference.
 
-### PLAN
-- should we do everything in gridworld or also include irl bandits? main benefit or IRL bandits is speed. maybe we should do it for beliefAgent to speed up inference
-
-- should include a formal exposition of what we are doing. explain inference over a few different params. inferOffPolicy: give as data a series [(s,a)].
+inferOffPolicy: give as data series [(s,a)].
 
 p(U / siai) = p(U) PI( p(ai / si,U) )
 where p(ai / si,U) = C(ai ; si U)
 
-belief case. 
+- Then show an example of inference from multiple trajectories in gridworld.
+
+- POMDP inference. Show simpel IRL bandits case, where we infer the agent's prior over one thing having a good prize. Maybe show naive or soph case. 
 
 Previous chapters exhibited models for planning in MDPs and POMDPs. This chapter shows how we can add a few lines of code to our agent models in order to infer the agent's beliefs and utilities from their observed behavior. 
+
+## Introduction
+The previous chapters have shown how to compute optimal actions for agents in MDPs and POMDPs. In many practical applications, this is all we want to compute. For example, if we are controlling a robot, we would want the robot to act optimally given the utility function we have designed for it. If we want to come up with an optimal gambling strategy, we might use a POMDP agent model like that used for bandits in the [previous chapter](/chapters/3c-pomdp).
+
+In other settings, however, our goal is to learn or reason about an agent based on their behavior. For example, in social science or psychology, researchers would like to learn about people's preferences (e.g. for spending vs. saving money, for one environmental policy vs. another) and people's beliefs. The relevant *data* is usually observations of human choices, sometimes under experimental settings. In this setting, models of optimal action are *generative models* or ("forward" models) of human behavior. The human's beliefs or utilities can be inferred from their actions by *inverting* the model using an array of statistical inference techniques. For concrete examples from economics and artificial intelligence, see refp:aguirregabiria2010dynamic, refp:darden2010smoking, and refp:ermon2014learning. 
+
+Agent models are also used as generative models in Machine Learning, under the label "Inverse Reinforcement Learning" (IRL). One motivation for learning human preferences and beliefs is to give humans helpful recommendations (e.g. for products they are likely to enjoy). A different motivation for IRL on humans is as a technique for mimicking human expert performance on a specific task (refp:abbeel2004apprenticeship).
+
+This chapter provides an array of illustrative examples of learning about agents from their actions. We begin with a concrete example and then provide a general formalization of the inference problem. A virtue of using WebPPL is that doing inference over our existing agent models requires very little extra code. 
+
+
+## Inferring Utilities From Actions
+
+Consider the MDP version of Bob's Restaurant Choice problem. Bob is choosing between restaurants and has full knowledge of which restaurants are open (i.e. all of them) and knows the street layout. Previously, we discussed how to compute optimal behavior *given* Bob's utility function over restaurants. Now we get to observe Bob's behavior and our task is to infer his utility function:
+
+[Could be Donut Big or Small. Trajectory is from the normal startState to Donut South.]
+~~~~
+var world = makeDonutWorld2({big:true});
+
+GridWorld.draw(params, 
+     trajectory: [ [[2,1],'l'], [[1,1],'l'] ] });
+~~~~
+
+From Bob's actions, we infer that he probably prefers the Donut Store to the other restaurants. An alternative explanation is that Bob cares most about saving time. He might prefer the Vegetarian Cafe (all things being equal) but his preference is not strong enough to spend extra time getting there.
+
+In this first example of inference, Bob's preference for saving time are taken as given (with only a weak preference) and we infer (given the actions shown above) Bob's preference for the different restaurants. We model Bob using the MDP agent model from [Chapter III.1](/chapters/3-agents-as-programs.html). We place a uniform prior over three possible utility functions for Bob: one favoring the Donut Store, one favoring Vegetarian Cafe and one favoring Noodle Shop. We use `Enumerate` to compute a Bayesian posterior over these utility functions, given Bob's observed behavior. Since the world is deterministic (with softmax parameter $$\alpha$$ set high), we just compare Bob's predicted states under each utility function to the states actually observed. To predict Bob's states for each utility function, we use the function `simulate` from [Chapter III.1](/chapters/3-agents-as-programs.html). 
+
+[Need new version of MDP simulate that has similar form to beliefDelay: with timeLeft as part of state etc.
+
+
+~~~~
+
+var utilityTablePrior = function(){
+  var baseUtilityTable = {
+    'donutSouth': 1,
+    'donutNorth': 1,
+    'veg': 1,
+    'noodle': 1,
+    'timeCost': -0.1
+  };
+  return uniformDraw( 
+    update(baseUtilityTable, {donutNorth:2, donutSouth:2}),
+    update(baseUtilityTable, {veg:2}),
+    update(baseUtilityTable, {noodle:2})
+  );
+};
+var observedStates = [];
+var world = makeDonutWorld2({big:true, start:[2,1], timeLeft:10});
+
+var posterior  = Enumerate( function(){
+  var utilityTable = utilityTablePrior();
+  var agent  = makeMDPAgent(utilityTable, world);
+  var predictedStates = simulateMDP(world, agent, 'states');
+  condition( _.isEqual( observedStates, predictedStates ) );
+  return utilityTable;
+});
+
+print(posterior)
+
+~~~~
+
+
+
+
+
+
+
+
+
+
+
 
 ## Conditioning on a single action
 
