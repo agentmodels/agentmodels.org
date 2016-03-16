@@ -290,13 +290,13 @@ In the bandit problems we considered, there is an unknown mapping from arms to p
 
 Often the agent's choices admit of multiple explanations. Recall the deterministic example in the previous chapter when (according to the agent's belief) `arm0` had the prize "chocolate" and `arm1` either had either "champagne" or "nothing". Suppose we observe the agent chosing `arm0` on the first of five trials. If we don't know the agent's utilities or beliefs, then this choice could be explained by either:
 
-(a) the agent's preference for chocolate over champagne,
+(a) the agent's preference for chocolate over champagne, or
 
-(b) or the agent's belief that `arm1` is very likely (e.g. 95%) to deterministically yield the "nothing" prize
+(b) the agent's belief that `arm1` is very likely (e.g. 95%) to deterministically yield the "nothing" prize
 
 Given this choice by the agent, we won't be able to identify which of (a) and (b) is true (since exploration becomes less valuable every trial).
 
-The codebox below implements this example. The translation of Equation (2) is in the function `factorSequence`. This function iterates through the observed state-observation-action triples, updating the agent's belief at each timestep. Thus it interleaves conditioning on an action (via `factor`) with computing the sequence of belief functions $${b_i}$$. The variable names correspond as follows:
+The codebox below implements this example. The translation of Equation (2) is in the function `factorSequence`. This function iterates through the observed state-observation-action triples, updating the agent's belief at each timestep. Thus it interleaves conditioning on an action (via `factor`) with computing the sequence of belief functions $$b_i$$. The variable names correspond as follows:
 
 - $$b_0$$ is `initialBelief` (an argument to `factorSequence`)
 
@@ -316,11 +316,11 @@ We include an inference function which is based on `factorOffPolicy` in irlBandi
 
 
 // world params
-  var armToPrize = {0:'chocolate', 1:'nothing'};
-  var totalTime = 5;
-  var worldAndStart = makeIRLBanditWorldAndStart(2, armToPrize, totalTime);
+var armToPrize = {0:'chocolate', 1:'nothing'};
+var totalTime = 5;
+var worldAndStart = makeIRLBanditWorldAndStart(2, armToPrize, totalTime);
   
-  // agent params
+// agent params
 
   // Prior on agent's prizeToUtility
   var truePrizeToUtility = {chocolate:10, champagne:20, nothing:1};
