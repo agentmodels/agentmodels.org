@@ -19,7 +19,7 @@ To represent decision problems where the agent's uncertainty is altered by obser
 
 ### Informal overview
 
-The agent facing a POMDP has initial uncertainty about features of the environment. These could features could be external to the agent (e.g. whether a restaurant is open) or could concern the agent (e.g. the agent's position on a grid). These features influence the environement's transitions or utilities and hence are relevant to the agent's choices.
+The agent facing a POMDP has initial uncertainty about features of the environment. These could features could be external to the agent (e.g. whether a restaurant is open) or could concern the agent (e.g. the agent's position on a grid). These features influence the environment's transitions or utilities and hence are relevant to the agent's choices.
 
 The agent does not directly observe transitions or utilities. Instead the agent learns about the unknown features of the environment *indirectly* via observations. When the agent visits a state, they receive an observation that depends on the state and their previous action (according to a fixed *observation function*). Observations can inform the agent of local, transient facts (e.g. the agent's current grid position) and of persistent features of the environment (e.g. whether a wall exists in a particular location).
 
