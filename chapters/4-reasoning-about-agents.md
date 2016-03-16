@@ -232,7 +232,7 @@ var posterior = function(observedStateActionSequence){
       return {utilityTable:utilityTable, alpha:alpha};
     });
 
-
+    // TODO fill these observations in
   var observedSequence1 = [];
   var observedSequence2 = [];
   posterior(observedSequence1.concat(observedSequence2))
@@ -282,7 +282,108 @@ P(U, \alpha, b_0 | (s,o,a)_{0:n}) \propto P(U, \alpha, b_0) \prod_{i=0}^n P( a_i
 $$
 
 
+### Application: IRL Bandits
 
+To learn the preferences and beliefs of a POMDP agent we translate Equation (2) into WebPPL. In later chapters, we apply this to the Restaurant Choice problem. Here we focus on the Bandit problems introduced in the [previous chapter](/chapters/3c-pomdp).
+
+In the bandit problems we considered, there is an unknown mapping from arms to prizes (or distributions on prizes) and the agent has preferences over these prizes. The agent will try out arms to discover the mapping and then exploit the arm that seems best. In the inverse problem ("IRL bandits"), we already know the mapping from arms to prizes and we need to infer the agent's preferences over prizes and their initial belief about the mapping.
+
+Often the agent's choices admit of multiple explanations. Recall the deterministic example in the previous chapter when (according to the agent's belief) `arm0` had the prize "chocolate" and `arm1` either had either "champagne" or "nothing". Suppose we observe the agent chosing `arm0` on the first of five trials. If we don't know the agent's utilities or beliefs, then this choice could be explained by either:
+
+(a) the agent's preference for chocolate over champagne,
+
+(b) or the agent's belief that `arm1` is very likely (e.g. 95%) to deterministically yield the "nothing" prize
+
+Given this choice by the agent, we won't be able to identify which of (a) and (b) is true (since exploration becomes less valuable every trial).
+
+The codebox below implements this example. The translation of Equation (2) is in the function `factorSequence`. This function iterates through the observed state-observation-action triples, updating the agent's belief at each timestep. Thus it interleaves conditioning on an action (via `factor`) with computing the sequence of belief functions $${b_i}$$. The variable names correspond as follows:
+
+- $$b_0$$ is `initialBelief` (an argument to `factorSequence`)
+
+- $$s_i$$ is `state`
+
+- $$b_i$$ is `nextBelief`
+
+- $$a_i$$ is `observedAction`
+
+[The example here is "EXAMPLE 3" in tests/beliefDelayIRLBandits.wppl. But using the chocolate/champagne/nothing prizes instead of a,b,c. Also, need to add the observations to what we condition on and to only condition on the first choice the agent makes. We could have a case with a longer time horizon to show that if we hold prior fixed, the explanations in terms of chocolate having higher utility will become more compelling.]
+
+We include an inference function which is based on `factorOffPolicy` in irlBandits.wppl. We specialize this to the beliefAgent and add observations to the `observedStateAction`. The function is currently in irlBandits.wppl as *agentModelsIRLBAnditInfer*].
+
+~~~~
+
+// TODO: fix up this code
+
+
+// world params
+  var armToPrize = {0:'chocolate', 1:'nothing'};
+  var totalTime = 5;
+  var worldAndStart = makeIRLBanditWorldAndStart(2, armToPrize, totalTime);
+  
+  // agent params
+
+  // Prior on agent's prizeToUtility
+  var truePrizeToUtility = {chocolate:10, champagne:20, nothing:1};
+  var priorPrizeToUtility = Enumerate(function(){
+    return {choc: uniformDraw([0,3,10]), cham:20, nothing:1};
+  });
+  
+  // Prior on agent's prior
+  var trueAgentPrior = getPriorBelief(perceivedTotalTime, function(){
+    return {0:'chocolate', 1: categorical([.05, .95], ['champagne','nothing']) };
+  }, 'belief');
+  var falseAgentPrior = getPriorBelief(perceivedTotalTime, function(){
+    return {0:'chocolate', 1: categorical([.5, .5], ['champagne','nothing']) };
+  }, 'belief');
+
+  var priorAgentPrior = Enumerate(function(){
+    return flip() ? trueAgentPrior : falseAgentPrior;
+  });
+  
+  var prior = {priorPrizeToUtility: priorPrizeToUtility, priorAgentPrior: priorAgentPrior};
+
+  var latentState = armToPrize;
+
+    // add timeleft etc to observed sequence
+  var observedSequence = [{state:'start', action:0, observation:'noObservation'}];
+  var fullObservedStateAction = stateActionPairsToFullStates(observedStateAction, latentState);
+
+
+  var getPosterior = function(baseAgentParams, priorPrizeToUtility, priorInitialBelief, observedSequence){
+
+  return Enumerate(function(){
+    var prizeToUtility = sample(priorPrizeToUtility);
+    var initialBelief = sample(priorInitial);
+    
+    var agent = makeIRLBanditAgent(prizeToUtility, update(baseAgentParams, {priorBelief:initialBelief}), worldAndStart, 'belief');
+    var act = agent.act;
+    var updateBelief = agent.updateBelief;
+    
+    var factorSequence = function(currentBelief, previousAction, timeIndex){
+      if (timeIndex < observedSequence.length) { 
+        var state = observedSequence[timeIndex].state;
+        var observation = observedSequence[timeIndex].observation;
+        
+        var nextBelief = updateBelief(currentBelief, observation, previousAction);           
+        var nextActionERP = act(nextBelief);
+        var observedAction = observedSequence[timeIndex].action;
+        
+        factor(nextActionERP.score([], observedAction));
+        
+        factorSequence(nextBelief, observedAction, timeIndex + 1);
+      }
+    };
+    factorSequence(initialBelief,'noAction', 0);
+    
+    return {prizeToUtility: prizeToUtility, priorBelief:initialBelief};
+  });
+  };
+
+   // TODO compute and display posterior
+~~~~
+
+
+This example of inferring an agent's utilities from a bandit problem may seem contrived. However, there are more practical problems that have a similar structure. Consider a domain where $$k$$ *sources* (arms) produce a stream of content, with each piece of content having a *category* (prizes). At each timestep, a human is observed choosing a source. The human has uncertainty about the stochastic mapping from sources to categories. Our goal is to infer the human's beliefs about the sources and their preferences over categories. The sources could be blogs or feeds that tag posts/tweets using the same set of tags. Alternatively, the sources could be channels for TV shows or songs. In this kind of application, the same issue of identifiability arises. An agent may choose a source either because they know it produces content in the best categories or because they have a strong prior belief that it does.
 
 
 
@@ -291,9 +392,11 @@ $$
 
 
 
+----------------
 
+## OLD MATERIAL (IGNORE)
 
-
+---------
 
 
 
