@@ -36,7 +36,17 @@ Discounting in these examples is *exponential*. An exponential discounting agent
 
 Any smooth discount function other than an exponential will result in preferences that reverse over time [cite]. So it's not so suprising that untutored humans should be subject to such reversals. (Without computational aids, human representations of numbers are systematically inaccurate. See refp:dehaene). Various functional forms for human discounting have been explored in the literature. We will describe the *hyperbolic discounting* model refp:ainslie2001breakdown because it is simple and well-studied. Any other functional form can easily be substituted into our models. 
 
-The difference between hyperbolic and exponential discounting is illustrated in Figure 1. 
+The difference between hyperbolic and exponential discounting is illustrated in Figure 1. We plot the discount factor $$D$$ as a function of time $$t$$ in days. The exponential is $$D=\frac{1}{2^t}$$; the hyperbola is $$D=\frac{1}{1+2t}$$. These are not realistic discount rates. The important difference is that the hyperbola is initially steep and then becomes shallow (as the derivative rapidly decreases), while the exponetial is everywhere equally steep. 
+
+![Figure 1](/assets/img/hyperbolic_no_label.jpg). 
+
+Consider the example above but with different numbers. You are offered $100 after 4 days or $110 after 5 days. The discount factors for 4 and 5 days from the present are labeled in Figure 2. The change in $$D$$ from day 4 to 5 is small for the hyperbola (so waiting for $110 is preferred) and big for the exponential. When Day 4 arrives, you can get $100 immediately or $110 after 1 day. The difference between the curves is labeled on the left. The hyperbola is now steep and leads to you taking the $100 -- reversing your earlier preference.
+
+**Exercise**: Calculate the discounted utilities for the two options ($100 vs. $110) for both hyperbolic and exponential discounting. First compute them when the $100 is 4 days from the present, then when it's 3 days from the present and so on (up to when it's 0 days from the present). 
+
+![Figure 2](/assets/img/hyperbolic_label.jpg). 
+
+
 
 
 
