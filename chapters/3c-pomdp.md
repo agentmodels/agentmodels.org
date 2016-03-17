@@ -87,7 +87,7 @@ var act = function(belief) {
     factor(alpha * eu);
     return action;
   });
-});
+};
 
 var expectedUtility = function(belief, action) {
   return expectation(
@@ -104,7 +104,7 @@ var expectedUtility = function(belief, action) {
 	    return u + expectedUtility(nextBelief, nextAction);
 	    }
     }));
-});
+};
 
 // *startState* is agent's actual startState (unknown to agent)
 // *priorBelief* is agent's initial belief function
