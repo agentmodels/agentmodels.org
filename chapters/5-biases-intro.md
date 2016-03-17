@@ -24,15 +24,19 @@ Humans deviate from optimal behavior in sequential problems in myriad ways. Our 
 
 A first class of deviation is cognitive or computational *bounds* (in the sense of *bounded rationality* or *bounded optimality*). Humans (and AI agents) will perform suboptimally on some MDPs and POMDPs due to basic computational constraints. For example, consider a POMDP where the agent learns about the locations of restaurants on a grid representing a large city and then navigates between them. The ideal POMDP agent will never forget a location once it has been observed. Yet a human would not recall the exact location of hundreds of restaurants from a single walk through a city. Moreover this forgetting will produce behavior that differs systematically from the optimal agent. 
 
-Even simple POMDPs are intractable as they scale up in size [cite]. So for any finite agent there will be POMDPs that they cannot solve exactly. It's plausible that humans often encounter POMDPs of this kind. For example, in lab experiments humans make systematic errors in computationally trivial bandit problems [yu, michael lee papers]. Thus it's likely that humans will make errors on more complex POMDPs. (Consider the example of designing scientific experiments. This problem has a long time horizon (e.g. a lab could perform hundreds of experiment in a year). The inference from a single experiment is challenging and combining experimental results is hard.)
+Even simple POMDPs are intractable as they scale up in size [cite]. So for any finite agent there will be POMDPs that they cannot solve exactly. It's plausible that humans often encounter POMDPs of this kind. For example, in lab experiments humans make systematic errors in computationally trivial bandit problems [yu, michael lee papers --- see also the paper by finale and zoubin on humans in tiger and other basic POMDPs]. Thus it's likely that humans will make errors on more complex POMDPs. (Consider the example of designing scientific experiments. This problem has a long time horizon (e.g. a lab could perform hundreds of experiment in a year). The inference from a single experiment is challenging and combining experimental results is hard.) In a chapter in this section [link], we implement the kind of computational bound (or bias) that has been used to model actual human performance in bandit problems. 
 
 
 ### Human deviations from optimal action - Cognitive Biases
-Cognitive bounds will apply to any finite agent. Humans also have cognitive *biases* that may be more idiosyncratic (and less likely to apply to artifical agents).
+Cognitive bounds will apply to any finite agent. Humans also have cognitive *biases* that may be more idiosyncratic (and less likely to apply to artifical agents). There is a large literature on cognitive biases in psychology and behavioral economics [cite reviews]. One particularly relevant example are the biases summarized by "Prospect Theory" (including Loss Aversion and Framing Effects). These are biases in decisions between simple one-shot lotteries over money or other prizes. We'd expect them to lead to systematics errors in real-life scenarios modeled as (PO)MDPs (assuming people don't use computers for all their expected value calculations). Another important bias is *time inconsistency*. This bias has been used to explain addiction, procrastination, impulsive behavior and the use of pre-commitment. We describe the bias and implement time-inconsistent planning in the next chapter. 
 
-Prospect Theory and Hyperbolic discounting. Work shown that can't be explained by preferences (KT originals and rabin paper on shape of risk aversion)
 
-### Plan for section
+### Learning preferences from bounded and biased agents
+We've argued that humans have biases and bounds that are systematic (and so can't be captured by the softmax noise model) and relevant to their actions in (PO)MDPs. In order to infer human beliefs and preferences when these biases are present, we can extend our (PO)MDP agent generative in order to capture these biases. The next two chapters describe and implement models for time-inconsistent and myopic (near-sighted) planning. The final chapter in this section implements inference for agents with these biases. Here we show that these biases make a significant difference in terms of inferring preferences correctly. We also show that we can do inference over a large space of agents, by combining unbiased agents with various flavors of biased agent. 
+
+
+
+### Plan for rest of section
 - Describe time inconsistency. 
 - Show model for time inconsistent agent. Show gridworld examples.
 - Describe myopia and bound VOI. Show bandit problems and maybe one of the gridworld examples.
