@@ -99,7 +99,7 @@ $$
 
 - $$s' \sim T(s,a)$$ exactly as in the non-discounting case.
 
-- $$a' \sim C(s'; \phi(d))$$ where $$\phi(d)=0$$ for Sophisticated and $$\phi(d)=d+1$$ for Naive.
+- $$a' \sim C(s'; d_P)$$ where $$d_P=0$$ for Sophisticated and $$d_P=d+1$$ for Naive.
 
 
 The function $$C \colon S \times N \to A$$ is again the *act* function. For $$C(s'; d+1)$$ we take a softmax over the expected value of each action $$a$$, namely, $$EU_[s',a,d+1]$$. The act function now takes a delay argument. We interpret $$C(s';d+1)$$ as "the softmax action the agent would take in state $$s'$$ given that their rewards occur with a delay $$d+1$$".
@@ -108,10 +108,17 @@ The Naive agent simulates his future actions by computing $$C(s';d+1)$$; the Sop
 
 
 ### Implementing the hyperbolic discounter
+As with the MDP and POMDP agents, our WebPPL implementation directly translates the mathematical formulation of Naive and Sophisticated hyperbolic discounting. The variable names correspond as follows:
+
+- The function $$\delta$$ is named `discountFunction`
+
+- The "perceived delay", which is the delay from which the agent's simulate future self evaluates rewards, is $$d_P$$ in the math and `perceivedDelay` below. 
+
+- $$s'$$, $$a'$$, $$d+1$$ correspond to `nextState`, `nextAction` and `delay+1` respectively. 
 
 
 
- [code from scratch/agentModelsHyperbolic.wppl]
+<!--code from scratch/agentModelsHyperbolic.wppl]-->
 ~~~~
 
 
@@ -211,19 +218,19 @@ var baseAgentParams = {
   discount : 1
 };
 
+// Construct Sophisticated and Naive agents
 var sophisticatedAgent = makeAgent(
   update(baseAgentParams, {sophisticatedOrNaive: 'sophisticated'}), 
   world
 );
-
-console.log('Sophisticated trajectory', 
-            simulate(startState, world, sophisticatedAgent));
 
 var naiveAgent = makeAgent( 
   update(baseAgentParams, {sophisticatedOrNaive: 'naive'}), 
   world
 );
 
+// TODO: draw these trajectories. 
+console.log('Soph traj', simulate(startState, world, sophisticatedAgent));
 console.log('Naive trajectory', 
             simulate(startState, world, naiveAgent));
 ~~~~
