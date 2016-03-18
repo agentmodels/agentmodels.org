@@ -24,7 +24,7 @@ Similar examples abound. People pay upfront for gym subscriptions they rarely us
 
 Time inconsistency has been used to explain not just quotidian laziness but also addiction, procrastination, impulsive behavior as well an array of "pre-commitment" behaviors refp:ainslie2001breakdown. Lab experiments of time inconsistency often use simple quantitative questions such as:
 
-<blockquote>**Question (1)**: Would you prefer to get $100 after 30 days or $110 after 31 days?
+<blockquote><b>Question (1)</b>: Would you prefer to get $100 after 30 days or $110 after 31 days?
 </blockquote>
 
 Most people answer "yes" to Question (1). But their preference reverses once the 30th day comes around and they contemplate getting $100 immediately. The next section describes a formal models that predicts this reversal. This model is then incorporated into our model for MDP planning and implemented in WebPPL. 
@@ -87,13 +87,12 @@ The Sophisticated agent, when considering its actions from the starting point, c
 In this simple example, the Naive and Sophisticated agents each take paths that optimal time-consistent MDP agents never take. While a time-consistent agent with high softmax noise would take the Naive agent's path with low probability, the Sophisticated path has massively lower probability for such an agent. So this is an example where a bias leads to a *systematic* deviation from optimality and behavior that is not predicted by an optimal model. In a later chapter we explore inference over time inconsistent agents.
 
 ### Formal Model of Naive and Sophisticated Hyperbolic Discounters
-- describe a formal model of planning in MDPs for a HD agents that are Naive or Sophisticated.
 
-- Key idea is to add an additional variable for measuring time, which we call the *delay*, which is distinct from the object time index (called `timeLeft` in the code). In a finite horizon (PO)MDP, the agent must take the objective time remaining into account when planning. Since the world is Markov and stationary, this objective time index is relevant only because it limits how much the agent can achieve before death.
+Key idea is to add an additional variable for measuring time, which we call the *delay*, which is distinct from the object time index (called `timeLeft` in the code). In a finite horizon (PO)MDP, the agent must take the objective time remaining into account when planning. Since the world is Markov and stationary, this objective time index is relevant only because it limits how much the agent can achieve before death.
 
 Discounting agents have time preference. So when evaluating future rewards, they need to keep track of how far ahead in time that reward occurs, i.e. keep track of the time-delay in getting the reward. Naive and Sophisticated agents evaluate future rewards in the same way. They differ in how they simulate their future actions.
 
-The Naive agent at objective time $$t$$ assumes his future self at objective time $$t+c$$ (where $$c>0$$) shares his time preference. So he simulates the $$t+c$$-agent as evaluating a reward at time $$t+c$$ with delay $$d=c$$ (so hyperbolic discount $$\frac{1}{1+kc}$$) rather than the true delay $$d=0$$. The Sophisticated agent correctly models his $$t+c$$-agent future self as evaluating an immediate reward with delay $$d=0$$ and hence a zero discount factor. 
+The Naive agent at objective time $$t$$ assumes his future self at objective time $$t+c$$ (where $$c>0$$) shares his time preference. So he simulates the $$(t+c)$$-agent as evaluating a reward at time $$t+c$$ with delay $$d=c$$ (so hyperbolic discount $$\frac{1}{1+kc}$$) rather than the true delay $$d=0$$. The Sophisticated agent correctly models his $$(t+c)$$-agent future self as evaluating an immediate reward with delay $$d=0$$ and hence a zero discount factor. 
 
 Adding delays to our model is straightforward. In defining the MDP agent, we introduce Bellman-style recursions for the expected utility of state-action pairs. Discounting agents evaluate states and actions differently depending on their *delay* from the present. So we now define expected utilities of state-action-delay triples:
 
