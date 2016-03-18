@@ -5,17 +5,6 @@ description: Hyperbolic discounting, "donut temptation" example, procrastination
 
 ---
 
-## PLAN
-
-- Intuitive examples. Setting alarm clock. Procrastinating on giving comments on paper. 
-
-- General phenomenon (explored by experiments). Example from paper / slide. Show two curves. Graphic from Frank presentation. Hyperbola special? No, any thing non-exponential time inconsistent. Various functional forms explored in literature with different analytic and computational properties. Could easily plug other forms into our models.
-
-- Naive vs. Sophisticated. For sequential planning, issue of whether agent takes bias into account (can't directly control future actions but can take actions now that preclude states in which bad actions would occur). 
-
-- Formal model: Add delays to MDP model (and similarly for POMDP model). Depending on delay you put into simulated call to act(), get Naive or Sophisticated. Delays used to implement other time inconsistent agents. 
-
-- Implementation. Gridworld examples
 
 ### Introduction
 Time inconsistency is part of everyday human experience. The night before you wish to rise early; in the morning you prefer to sleep in. There is an inconsistency between what you prefer your future self to do and what your future self prefers to do. Forseeing this inconsistency, you take actions the night before to bind your future self to getting up. These range from setting an alarm clock to arranging for someone to drag you out of bed.
@@ -84,27 +73,160 @@ The Naive agent goes to Donut North, even though Donut South (which has identica
 
 The Sophisticated agent, when considering its actions from the starting point, can accurately model what it *would* do if it ended up adjacent to Donut North. So it avoids temptation by taking the long, inefficient route to Veg. 
 
-In this simple example, the Naive and Sophisticated agents each take paths that optimal time-consistent MDP agents never take. While a time-consistent agent with high softmax noise would take the Naive agent's path with low probability, the Sophisticated path has massively lower probability for such an agent. So this is an example where a bias leads to a *systematic* deviation from optimality and behavior that is not predicted by an optimal model. In a later chapter we explore inference over time inconsistent agents.
+In this simple example, the Naive and Sophisticated agents each take paths that optimal time-consistent MDP agents never take. While a time-consistent agent with high softmax noise would take the Naive agent's path with low probability, the Sophisticated path has massively lower probability for such an agent. So this is an example where a bias leads to a *systematic* deviation from optimality and behavior that is not predicted by an optimal model. In a later chapter we explore inference of inferences for time inconsistent agents.
 
 ### Formal Model of Naive and Sophisticated Hyperbolic Discounters
 
-Key idea is to add an additional variable for measuring time, which we call the *delay*, which is distinct from the object time index (called `timeLeft` in the code). In a finite horizon (PO)MDP, the agent must take the objective time remaining into account when planning. Since the world is Markov and stationary, this objective time index is relevant only because it limits how much the agent can achieve before death.
+To formalize Naive and Sophisticated hyperbolic discounting, we make a small modificiation to the MDP agent model. The key idea is to add an additional variable for measuring time, the *delay*, which is distinct from the objective time index (called `timeLeft` our implementation). Although the environment is stationary, the objective time remaining is important in planning for finite-horizon MDPs because it determines how far the agent can travel or explore before time is up. The delays are *subjective*: they are used by the agent in *evaluating* possible future rewards but they are not an independent feature of the decision problem.
 
-Discounting agents have time preference. So when evaluating future rewards, they need to keep track of how far ahead in time that reward occurs, i.e. keep track of the time-delay in getting the reward. Naive and Sophisticated agents evaluate future rewards in the same way. They differ in how they simulate their future actions.
+We use delays because discounting agents have time preference. When evaluating future rewards, they need to keep track of how far ahead in time that reward occurs, i.e. keep track of the time-delay in getting the reward. Naive and Sophisticated agents evaluate future rewards in the same way. They differ in how they simulate their future actions.
 
-The Naive agent at objective time $$t$$ assumes his future self at objective time $$t+c$$ (where $$c>0$$) shares his time preference. So he simulates the $$(t+c)$$-agent as evaluating a reward at time $$t+c$$ with delay $$d=c$$ (so hyperbolic discount $$\frac{1}{1+kc}$$) rather than the true delay $$d=0$$. The Sophisticated agent correctly models his $$(t+c)$$-agent future self as evaluating an immediate reward with delay $$d=0$$ and hence a zero discount factor. 
+The Naive agent at objective time $$t$$ assumes his future self at objective time $$t+c$$ (where $$c>0$$) shares his time preference. So he simulates the $$(t+c)$$-agent as evaluating a reward at time $$t+c$$ with delay $$d=c$$ (hence discount factor $$\frac{1}{1+kc}$$) rather than the true delay $$d=0$$. The Sophisticated agent correctly models his $$(t+c)$$-agent future self as evaluating an immediate reward with delay $$d=0$$ and hence a zero discount factor. 
 
-Adding delays to our model is straightforward. In defining the MDP agent, we introduce Bellman-style recursions for the expected utility of state-action pairs. Discounting agents evaluate states and actions differently depending on their *delay* from the present. So we now define expected utilities of state-action-delay triples:
+Adding delays to our model is straightforward. In defining the MDP agent, we presented Bellman-style recursions for the expected utility of state-action pairs. Discounting agents evaluate states and actions differently depending on their *delay* from the present. So we now define expected utilities of state-action-delay triples:
 
 $$
-EU_{s}[a,d] = \delta(d)U(s, a) + E_{s', a'}(EU_{s'}[a',d+1])
+EU_[s,a,d] = \delta(d)U(s, a) + E_{s', a'}(EU_[s', a',d+1])
 $$
 
 where:
-- 
+
+- $$\delta  \colon N \to R$$ is the discount function from the delay to the discount factor. In our examples we have (where $$k>0$$ is the discount constant):
+
+$$
+\delta(d) = \frac{1}{1+kd}
+$$
+
+- $$s' \sim T(s,a)$$ exactly as in the non-discounting case.
+
+- $$a' \sim C(s'; \phi(d))$$ where $$\phi(d)=0$$ for Sophisticated and $$\phi(d)=d+1$$ for Naive.
 
 
- 
+The function $$C \colon S \times N \to A$$ is again the *act* function. For $$C(s'; d+1)$$ we take a softmax over the expected value of each action $$a$$, namely, $$EU_[s',a,d+1]$$. The act function now takes a delay argument. We interpret $$C(s';d+1)$$ as "the softmax action the agent would take in state $$s'$$ given that their rewards occur with a delay $$d+1$$".
+
+The Naive agent simulates his future actions by computing $$C(s';d+1)$$; the Sophisticated agent computes the action that will *actually* occur, which is $$C(s';0)$$. So if we want to simulate an environment including a hyperbolic discounter, we can compute the agent's action with $$C(s;0)$$ for every state $$s$$. 
+
+
+### Implementing the hyperbolic discounter
+
+
+
+ [code from scratch/agentModelsHyperbolic.wppl]
+~~~~
+
+
+var makeAgent = function (params, world) {
+  var stateToActions = world.stateToActions;
+  var transition = world.transition;
+  var utility = params.utility;
+
+  var discountFunction = function(delay){
+    return 1/(1 + params.discount*delay);
+  };
+
+  var isNaive = params.sophisticatedOrNaive=='naive';
+    
+  var act = dp.cache( 
+    function(state, delay){
+      return Enumerate(function(){
+        var action = uniformDraw(stateToActions(state));
+        var eu = expectedUtility(state, action, delay);    
+        factor(params.alpha * eu);
+        return action;
+      });      
+    });
+  
+  var expectedUtility = dp.cache(
+    function(state, action, delay){
+      var u = discountFunction(delay) * utility(state, action);
+      if (state.terminateAfterAction){
+        return u; 
+      } else {                     
+        return u + expectation( Enumerate(function(){
+          var nextState = transition(state, action); 
+          var perceivedDelay = isNaive ? delay + 1 : 0;
+          var nextAction = sample(act(nextState, perceivedDelay));
+          return expectedUtility(nextState, nextAction, delay+1);  
+        }));
+      }                      
+    });
+  
+  return {
+    params : params,
+    expectedUtility : expectedUtility,
+    act: act
+  };
+};
+
+var simulate = function(startState, world, agent) {
+  var act = agent.act;
+  var expectedUtility = agent.expectedUtility;
+  var transition = world.transition;
+
+  var sampleSequence = function (state) {
+    var delay = 0;
+    var action = sample(act(state, delay));
+    var nextState = transition(state, action); 
+    var out = [state,action]
+    return state.terminateAfterAction ?
+      [out] : [out].concat(sampleSequence(nextState));
+  };
+  return sampleSequence(startState);
+};
+
+
+var makeRestaurantUtilityFunction = function (world, rewards) { 
+  return function(state, action) {
+    var getFeature = world.feature;
+    var feature = getFeature(state);
+
+    if (feature.name) { return rewards[feature.name][state.timeAtRestaurant]; }
+    return -0.01;
+  };
+};
+
+
+// Construct MDP, i.e. world
+var startState = { 
+  loc : [3,0],
+  terminateAfterAction : false,
+  timeLeft : 13
+};
+
+var world = makeDonutWorld2({ big : true, maxTimeAtRestaurant : 2});
+
+
+// Construct hyperbolic discounting agent
+
+var restaurantUtility = makeRestaurantUtilityFunction(world, {
+    'Donut N' : [10, -10],
+    'Donut S' : [10, -10],
+    'Veg'   : [-10, 20],
+    'Noodle': [0, 0]
+});
+
+var baseAgentParams = {
+  utility : restaurantUtility,
+  alpha : 500, 
+  discount : 1
+};
+
+var sophisticatedAgent = makeAgent(
+  update(baseAgentParams, {sophisticatedOrNaive: 'sophisticated'}), 
+  world
+);
+
+console.log('Sophisticated trajectory', 
+            simulate(startState, world, sophisticatedAgent));
+
+var naiveAgent = makeAgent( 
+  update(baseAgentParams, {sophisticatedOrNaive: 'naive'}), 
+  world
+);
+
+console.log('Naive trajectory', 
+            simulate(startState, world, naiveAgent));
+~~~~
 
 
 
