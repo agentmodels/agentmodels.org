@@ -24,10 +24,10 @@ Similar examples abound. People pay upfront for gym subscriptions they rarely us
 
 Time inconsistency has been used to explain not just quotidian laziness but also addiction, procrastination, impulsive behavior as well an array of "pre-commitment" behaviors refp:ainslie2001breakdown. Lab experiments of time inconsistency often use simple quantitative questions such as:
 
-<blockquote>Would you prefer to get $100 after 30 days or $110 after 31 days?
+<blockquote>**Question (1)**: Would you prefer to get $100 after 30 days or $110 after 31 days?
 </blockquote>
 
-Most people answer "yes" to this question. But their preference reverses once the 30th day comes around and they contemplate getting $100 immediately. The next section describes a formal models that predicts this reversal. This model is then incorporated into our model for MDP planning and implemented in WebPPL. 
+Most people answer "yes" to Question (1). But their preference reverses once the 30th day comes around and they contemplate getting $100 immediately. The next section describes a formal models that predicts this reversal. This model is then incorporated into our model for MDP planning and implemented in WebPPL. 
 
 ### Time inconsistency due to hyperbolic discounting
 Rational, utility-maximizing agents are often modeled as *discounting* future utilities/rewards relative to present rewards. AI researchers construct systems for MDPs/RL with infinite time horizon that discount future rewards. Economists model humans or firms as discounting future rewards. Justifications for discounting include (a) avoiding problems with expected utilities diverging and (b) capturing human preference for the near-term (e.g. due to interest rates, vague deadlines, the chance of not being around in the future to realize gains).
@@ -36,7 +36,7 @@ Discounting in these examples is *exponential*. An exponential discounting agent
 
 Any smooth discount function other than an exponential will result in preferences that reverse over time [cite]. So it's not so suprising that untutored humans should be subject to such reversals. (Without computational aids, human representations of numbers are systematically inaccurate. See refp:dehaene). Various functional forms for human discounting have been explored in the literature. We will describe the *hyperbolic discounting* model refp:ainslie2001breakdown because it is simple and well-studied. Any other functional form can easily be substituted into our models. 
 
-The difference between hyperbolic and exponential discounting is illustrated in Figure 1. We plot the discount factor $$D$$ as a function of time $$t$$ in days. The exponential is $$D=\frac{1}{2^t}$$; the hyperbola is $$D=\frac{1}{1+2t}$$. These are not realistic discount rates. The important difference is that the hyperbola is initially steep and then becomes almost flat, while the exponential continues to be steep. 
+Hyperbolic and exponential discounting curves are illustrated in Figure 1. We plot the discount factor $$D$$ as a function of time $$t$$ in days. The exponential is $$D=\frac{1}{2^t}$$; the hyperbola is $$D=\frac{1}{1+2t}$$. These are not realistic discount rates. The important difference is that the hyperbola is initially steep and then becomes almost flat, while the exponential continues to be steep. 
 
 ![Figure 1](/assets/img/hyperbolic_no_label.jpg). 
 
@@ -48,9 +48,38 @@ Consider the example above but with different numbers. You are offered $100 afte
 
 
 ### Time inconsistency and sequential decision problems
+We have shown that hyperbolic discounters have different preferences over the $100 and $110 depending on when they make the evaluation. This conflict in preferences leads to complexities in planning that don't occur in the optimal, non-discounting (PO)MDP agents from previous chapters (or in exponential discounters in infinite horizon problems).
+
+Imagine you are in the situation of Question (1) and have the time inconsistent preferences. You get to write down your preference but after 30 days you'll be free to change your mind. If you know your future self will choose the $100 immediately, you will pay a small cost now to pre-commit your future self. (Maybe you re-schedule an important meeting to 30 from now so you can't go and get the money). However, if you believe your future self will share your preferences, you won't pay this cost (and so you'll end up taking the $100). This illustrates a key distinction between time inconsistent agents solving sequential problems:
+
+- **Naive agent**: assumes his future self shares his current time preference exactly. So a Naive hyperbolic discounter assumes his far future self has a nearly flat discount curve (when in reality his future self has "steep then flat" discount curve). 
+
+- **Sophisticated agent**: has the correct model of his future self's time preference. So a Sophisticated hyperbolic discounter has a nearly flat discount curve for the far future but is aware that his future self does not share this discount curve. 
+
+The Naive agent chooses actions based on the false assumption that his future selves share his time preference. POMDP agents are *uncertain* about some features of the environment but this uncertainty can be corrected. Naive have a fundamentally wrong model of the environment (due to an inaccurate model of themselves) that they don't correct by observation.
+
+Sophisticated agents have an accurate model of their future selves. This enables a Sophisticated agent, acting at time $$t_0$$, to pre-commit his future self at times $$t>t_0$$, to actions that the $$t_0$$-agent prefers. So if pre-commitment actions are available at time $$t_0$$, we expect the $$t_0$$-agent to do better (by its own $$t_0$$ lights) if it's Sophisticated rather than Naive -- since if Sophisticated it has identical preferences and more knowledge of the world. This means that being Naive at $$t_0$$ is better for the preferences of the $$t>t_0$$ agents.
 
 
- - planning under time inconsistency. two natural versions. sophisticated pays a small fee to lock in waiting to $110 (but if such a precommitment not available then cant help). 
+### Naive and Sophisticated Agents: Gridworld Example
+Before describing our formal model and implementation of Naive and Sophisticated hyperbolic discounters, we illustrate their contrasting behavior using the Restaurant Choice example. We use the MDP version, where the agent has full knowledge of the locations of restaurants and of which restaurants are open. Recall the problem setup: 
+
+<blockquote>
+Bob is looking for a place to eat. His decision problem is to take a sequence of actions such that (a) he eats at a restaurant he likes and (b) he does not spend too much time walking. The restaurant options are: the Donut Store, the Vegetarian Salad Bar, and the Noodle Shop. The Donut Store is a chain with two local branches. We assume each branch has identical utility for Bob. We abbreviate the restaurant names as "Donut South", "Donut North", "Veg" and "Noodle".
+</blockquote>
+
+The only difference from previous versions of Restaurant Choice is that we model the restaurants as providing *two* utilities. The agent first receives the *immediate reward* (e.g. how good the food tastes) and then (at some fixed time delay) receives the *delayed reward* (e.g. how good the person feels after eating it). Here is the code that uses the Gridworld library to construct the MDP.
+
+**Exercise:** Before scrolling down, predict how Naive and Sophisticated hyperbolic discounters with identical preferences could differ in their actions on this problem.
+
+[codebox: bigGridworld. draw with agent starting in 3,1.]
+
+We now consider two hyperbolic discounting agents with the same preferences and discounting function but where one is Naive and the other Sophisticated.
+
+[codeboxes with both Naive and Soph. Or one codebox with both and some parameter to control Naive/Soph easily.]
+
+**Exercise:** Your goal is to do your own preference inference from the observed actions in the codebox above. The discount function is the hyperbola $$D=\frac{1}{1+kt}$$, where $$t$$ is the time from the present, $$D$$ is the discount factor (multiplied by the utility) and $$k$$ is a positive constant. Work out a full set of parameters for the agent that predict the observed behavior. This includes utilities for the restaurants (both *immediate* and *delayed*) and for the `timeCost`, as well as the discount constant $$k$$. (Assume there is no softmax noise). 
+
 
 
 
