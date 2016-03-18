@@ -7,7 +7,7 @@ description: Hyperbolic discounting, "donut temptation" example, procrastination
 
 
 ### Introduction
-Time inconsistency is part of everyday human experience. The night before you wish to rise early; in the morning you prefer to sleep in. There is an inconsistency between what you prefer your future self to do and what your future self prefers to do. Forseeing this inconsistency, you take actions the night before to bind your future self to getting up. These range from setting an alarm clock to arranging for someone to drag you out of bed.
+Time inconsistency is part of everyday human experience. In the night you wish to rise early; in the morning you prefer to sleep in. There is an inconsistency between what you prefer your future self to do and what your future self prefers to do. Forseeing this inconsistency, you take actions the night before to bind your future self to getting up. These range from setting an alarm clock to arranging for someone to drag you out of bed.
 
 Similar examples abound. People pay upfront for gym subscriptions they rarely use. People procrastinate on writing papers: they plan to start the paper early but then delay until the last minute. The practical consequences of time inconsistency are substantial in different domains [ref: highbrow gathering dust, stanford-cornell mooc paper with procommitment intervention, arizona?/NM birth control intervention]. 
 
@@ -81,17 +81,17 @@ To formalize Naive and Sophisticated hyperbolic discounting, we make a small mod
 
 We use delays because discounting agents have time preference. When evaluating future rewards, they need to keep track of how far ahead in time that reward occurs, i.e. keep track of the time-delay in getting the reward. Naive and Sophisticated agents evaluate future rewards in the same way. They differ in how they simulate their future actions.
 
-The Naive agent at objective time $$t$$ assumes his future self at objective time $$t+c$$ (where $$c>0$$) shares his time preference. So he simulates the $$(t+c)$$-agent as evaluating a reward at time $$t+c$$ with delay $$d=c$$ (hence discount factor $$\frac{1}{1+kc}$$) rather than the true delay $$d=0$$. The Sophisticated agent correctly models his $$(t+c)$$-agent future self as evaluating an immediate reward with delay $$d=0$$ and hence a zero discount factor. 
+The Naive agent at objective time $$t$$ assumes his future self at objective time $$t+c$$ (where $$c>0$$) shares his time preference. So he simulates the $$(t+c)$$-agent as evaluating a reward at time $$t+c$$ with delay $$d=c$$ (hence discount factor $$\frac{1}{1+kc}$$) rather than the true delay $$d=0$$. The Sophisticated agent correctly models his $$(t+c)$$-agent future self as evaluating an immediate reward with delay $$d=0$$ and hence a discount factor of one (i.e. no discounting). 
 
 Adding delays to our model is straightforward. In defining the MDP agent, we presented Bellman-style recursions for the expected utility of state-action pairs. Discounting agents evaluate states and actions differently depending on their *delay* from the present. So we now define expected utilities of state-action-delay triples:
 
 $$
-EU_[s,a,d] = \delta(d)U(s, a) + E_{s', a'}(EU_[s', a',d+1])
+EU[s,a,d] = \delta(d)U(s, a) + E_{s', a'}(EU[s', a',d+1])
 $$
 
 where:
 
-- $$\delta  \colon N \to R$$ is the discount function from the delay to the discount factor. In our examples we have (where $$k>0$$ is the discount constant):
+- $$\delta  \colon \mathbb{N} \to \mathbb{R}$$ is the discount function from the delay to the discount factor. In our examples we have (where $$k>0$$ is the discount constant):
 
 $$
 \delta(d) = \frac{1}{1+kd}
