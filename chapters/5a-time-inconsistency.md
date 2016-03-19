@@ -200,13 +200,14 @@ var simulate = function(startState, world, agent) {
 };
 
 
+// TODO - move this to a library?
 var makeRestaurantUtilityFunction = function (world, rewards) { 
   return function(state, action) {
     var getFeature = world.feature;
     var feature = getFeature(state);
 
     if (feature.name) { return rewards[feature.name][state.timeAtRestaurant]; }
-    return -0.01;
+    return rewards.timeCost;
   };
 };
 
@@ -223,11 +224,16 @@ var world = makeDonutWorld2({ big : true, maxTimeAtRestaurant : 2});
 
 // Construct hyperbolic discounting agent
 
+
+// Utilities for restaurants: [immediate reward, delayed reward]
+// Also *timeCost*, cost of taking a single action.
+
 var restaurantUtility = makeRestaurantUtilityFunction(world, {
     'Donut N' : [10, -10],
     'Donut S' : [10, -10],
     'Veg'   : [-10, 20],
-    'Noodle': [0, 0]
+    'Noodle': [0, 0],
+    'timeCost': -.01
 });
 
 var baseAgentParams = {
