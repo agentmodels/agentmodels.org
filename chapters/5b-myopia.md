@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: Myopic planning
-description: Agents with faster but sub-optimal planning algorithms: myopia about rewards and myopia about exploration. 
+description: Agents with faster but sub-optimal planning algorithms-- myopia about rewards and myopia about exploration. 
 
 ---
 
