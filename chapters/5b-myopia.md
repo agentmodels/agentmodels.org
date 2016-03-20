@@ -38,19 +38,19 @@ $$
 EU_{b}[s,a,d] = U(s,a) + E_{s',o,a'}(EU_{b'}[s',a'_{b'},d+1])
 $$
 
-where (as before):
+where:
 
 - $$s' \sim T(s,a)$$ and $$o \sim O(s',a)$$
 
-- $$a'_{b'}$$ is the softmax action the agent takes given belief $$b'$$
+- $$a'_{b'}$$ is the softmax action the agent takes given new belief $$b'$$
 
-- If $$d<C$$ the new belief state $$b'$$ is defined (as before):
+If $$d<C$$ the new belief state $$b'$$ is defined (as previously):
 
 $$
 b'(s') \propto O(s',a,o)\sum_{s \in S}{T(s,a,s')b(s)}
 $$
 
-- Otherwise, $$b'$$ is defined as:
+On the other hand, if $$d /gte C$$, then:
 
 $$
 b'(s') \propto \sum_{s \in S}{T(s,a,s')b(s)}
