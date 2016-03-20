@@ -17,7 +17,7 @@ As we discussed in Chapter IV, the identifiability of preferences is a ubiquitou
 We formalize joint inference over beliefs, preferences and biases by extending the approach developing in Chapter IV. In Equation (2) of that chapter, an agent was characterized by parameters $$(U, \alpha, b_0)$$. To include the possibility of time-inconsistent and Myopic agents, agents are now characterized by a tuple:
 
 $$
-\theta \vcentcolon= \left\langle U, \alpha, b_0, k, \nu, C \right\rangle
+\theta = \left\langle U, \alpha, b_0, k, \nu, C \right\rangle
 $$
 
 where:
