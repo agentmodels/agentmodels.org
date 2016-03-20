@@ -78,13 +78,21 @@ The implementation of the Myopic agent in WebPPL is a direct translation of the 
 **Exercise:** Modify the code for the POMDP agent [todo link to codebox] to represent a Myopic agent.
 
 
-### Myopic Exploration for Bandits
+### Myopic Exploration for Bandits and Gridworld
 
 We show the performance of the Myopic agent on Multi-Arm bandits.
 
 For 2-arms, Myopic with D=1 is optimal. Verify this and compare runtime.
 
 For >2 arms, I believe Myopic D=1 is not optimal. Verify this. It should be much faster as the number of arms grows. (One easy way to speed it up is to have a special *updateBelief* in *beliefDelayAgent* for stochastic bandits. the only difference is that once delay>=C, you should just directly update the timeLeft, assuming you have belief in *ERPOverLatentState*. This will avoid the Enumerate for *nextBelief*.)
+
+TODO
+We make a Gridworld version of the "Restaurant Search" problem. The agent is uncertain of the quality of all of the restaurants and has an independent uniform prior on each one, in particular `uniformDraw( _.range(1,11) )'. By moving adjacent to a restaurant, the agent observes the quality (e.g. by seeing how full the restaurant is or how good it looks from the menu). An image of the grid, which includes the true latent restaurant utilities and disiderata for where the agent should end up is in: /assets/img/5b-myopia-gridworld.pdf
+
+![myopia gridworld](/assets/img/5b-myopia-gridworld.pdf)
+
+Assuming we want to stick with "no uncertainty over utilities" and "utilities depend only on state", we would have to implement this by having extra states associated with the utility values in range(1,11). The latent state is the table {restaurantA:utilityRestaurantA}. The transition function is the normal gridworld transition, with an extra condition s.t. when the agent goes to a restaurant they get sent to state corresponding to the restaurant's utility. (Whatever solution is used need not be general. We don't need to show the code, we just need to make the example work).
+
 
 
 
