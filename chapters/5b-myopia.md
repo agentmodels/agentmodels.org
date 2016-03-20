@@ -50,24 +50,8 @@ $$
 b'(s') \propto I_C(s',a,o,d)\sum_{s \in S}{T(s,a,s')b(s)}
 $$
 
-where $$I_C(s',a,o,d) =  O(s',a,o)$$ if $$d$$ < $$C$$ 
-<br>
-and $$I_C(s',a,o,d) = 1$$ otherwise.
-
-
-<!--
-If $$d<C$$ the new belief state $$b'$$ is defined (as previously):
-
-$$
-b'(s') \propto O(s',a,o)\sum_{s \in S}{T(s,a,s')b(s)}
-$$
-
-On the other hand, if $$d \gte C$$, then:
-
-$$
-b'(s') \propto \sum_{s \in S}{T(s,a,s')b(s)}
-$$
--->
+<!-- problem with < sign in latex math-->
+where $$I_C(s',a,o,d) = O(s',a,o)$$ if $$d$$ < $$C$$ and $$I_C(s',a,o,d) = 1$$ otherwise.
 
 The key part is the definition of $$b'$$. The Myopic agent assumes his future self updates only on his last action $$a$$ and not on observation $$o$$. So the future self will know about state changes that follow a priori from his actions. (In a deterministic Gridworld, the future self would know his new location and that the time remaining had been counted down).
 
@@ -85,9 +69,9 @@ For 2-arms, Myopic with D=1 is optimal. Verify this and compare runtime.
 For >2 arms, I believe Myopic D=1 is not optimal. Verify this. It should be much faster as the number of arms grows. (One easy way to speed it up is to have a special *updateBelief* in *beliefDelayAgent* for stochastic bandits. the only difference is that once delay>=C, you should just directly update the timeLeft, assuming you have belief in *ERPOverLatentState*. This will avoid the Enumerate for *nextBelief*.)
 
 TODO
-We make a Gridworld version of the "Restaurant Search" problem. The agent is uncertain of the quality of all of the restaurants and has an independent uniform prior on each one, in particular `uniformDraw( _.range(1,11) )'. By moving adjacent to a restaurant, the agent observes the quality (e.g. by seeing how full the restaurant is or how good it looks from the menu). An image of the grid, which includes the true latent restaurant utilities and disiderata for where the agent should end up is in: /assets/img/5b-myopia-gridworld.pdf.
+We make a Gridworld version of the "Restaurant Search" problem. The agent is uncertain of the quality of all of the restaurants and has an independent uniform prior on each one, in particular `uniformDraw( _.range(1,11) )'. By moving adjacent to a restaurant, the agent observes the quality (e.g. by seeing how full the restaurant is or how good it looks from the menu). An image of the grid, which includes the true latent restaurant utilities and disiderata for where the agent should end up is in: /assets/img/5b-myopia-gridworld.png.
 
-![myopia gridworld](/assets/img/5b-myopia-gridworld.pdf)
+![myopia gridworld](/assets/img/5b-myopia-gridworld.png)
 
 [TODO images cant be pdf?]
 
