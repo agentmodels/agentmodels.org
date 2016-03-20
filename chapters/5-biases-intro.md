@@ -28,13 +28,6 @@ Cognitive bounds will apply to any finite agent. Humans also have cognitive *bia
 
 
 ### Learning preferences from bounded and biased agents
-We've argued that humans have biases and bounds that are systematic (and so can't be captured by the softmax noise model) and relevant to their actions in (PO)MDPs. In order to infer human beliefs and preferences when these biases are present, we can extend our (PO)MDP agent generative in order to capture these biases. The next two chapters describe and implement models for time-inconsistent and myopic (near-sighted) planning. The final chapter in this section implements inference for agents with these biases. Here we show that these biases make a significant difference in terms of inferring preferences correctly. We also show that we can do inference over a large space of agents, by combining unbiased agents with various flavors of biased agent. 
+We've argued that humans have biases and bounds that are systematic (and so can't be captured by the softmax noise model) and relevant to their actions in (PO)MDPs. In order to infer human beliefs and preferences when these biases are present, we can extend our (PO)MDP agent generative in order to capture these biases. The next two chapters describe and implement models for time-inconsistent and myopic (near-sighted) planning. The final chapter in this section implements inference for agents with these biases. Here we show that these biases make a significant difference in terms of inferring preferences correctly. We also show that we can do inference over a large space of agents, by combining unbiased agents with various flavors of biased agent.
 
-
-
-### Plan for rest of section
-- Describe time inconsistency. 
-- Show model for time inconsistent agent. Show gridworld examples.
-- Describe myopia and bound VOI. Show bandit problems and maybe one of the gridworld examples.
-- Then show inference about these agents. Multimodal inference using everything that's happened before with nice graphs!
 
