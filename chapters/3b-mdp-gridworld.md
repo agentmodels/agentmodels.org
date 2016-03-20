@@ -1,6 +1,6 @@
 ---
 layout: chapter
-title: "More MDPs- Gridworld, Stochastic MDPs, Q-values"
+title: "MDPs and Gridworld in WebPPL"
 description: We extend the previous setup to stochastic actions (softmax) and transitions, and introduce policies and expected action values.
 ---
 
