@@ -44,6 +44,15 @@ where:
 
 - $$a'_{b'}$$ is the softmax action the agent takes given new belief $$b'$$
 
+- the new belief state $$b'$$ is defined as:
+
+$$
+b'(s') \propto I_C(s',a,o,d)\sum_{s \in S}{T(s,a,s')b(s)}
+$$
+
+where $$I_C(s',a,o,d) = O(s',a,o)$$ if $$d<C$$ and is $$=1$$ (unity) otherwise.
+
+<!--
 If $$d<C$$ the new belief state $$b'$$ is defined (as previously):
 
 $$
@@ -55,6 +64,7 @@ On the other hand, if $$d \gte C$$, then:
 $$
 b'(s') \propto \sum_{s \in S}{T(s,a,s')b(s)}
 $$
+-->
 
 The key part is the definition of $$b'$$ when $$d \gte C$$. The Myopic agent assumes his future self updates only on his last action $$a$$ and not on observation $$o$$. So the future self will know about state changes that follow a priori from his actions. (In a deterministic Gridworld, the future self would know his new location and that the time remaining had been counted down).
 
