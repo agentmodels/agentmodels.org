@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: Joint inference of biases, beliefs, and utilities
-description: Discuss identifiability.
+description: Assuming the agent performs optimally can lead to mistakes in inference. Show that we can do joint inference over large space of agents. 
 
 ---
 
@@ -26,6 +26,7 @@ In Naive, we consider false belief about Donut South being closed, preference fo
 
 For Soph, we compare false belief the Noodle is open, a positive timeCost (which is has a low prior probability), and the Soph explanation. We could mention the experiment showing that when belief / preference explanations were possible, people tended to prefer them over HD explanations (though they did generate HD explanations spontaneously).
 
+- Big inference example (maybe in later chapter): use HMC and do inference oiver cts params. 
 
 ### Procrastination Example
 HD causes big deviation in behavior. This is like smoker who smokes every day but wishes to quit.  Can you how inference gets stronger with passing days (online inference).
