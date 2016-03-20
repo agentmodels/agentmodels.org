@@ -73,8 +73,6 @@ We make a Gridworld version of the "Restaurant Search" problem. The agent is unc
 
 ![myopia gridworld](/assets/img/5b-myopia-gridworld.png)
 
-[TODO images cant be pdf?]
-
 Assuming we want to stick with "no uncertainty over utilities" and "utilities depend only on state", we would have to implement this by having extra states associated with the utility values in range(1,11). The latent state is the table {restaurantA:utilityRestaurantA}. The transition function is the normal gridworld transition, with an extra condition s.t. when the agent goes to a restaurant they get sent to state corresponding to the restaurant's utility. (Whatever solution is used need not be general. We don't need to show the code, we just need to make the example work).
 
 

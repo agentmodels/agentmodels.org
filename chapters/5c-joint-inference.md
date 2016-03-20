@@ -1,15 +1,53 @@
 ---
 layout: chapter
-title: Joint inference of biases, beliefs, and utilities
+title: Joint inference of biases, beliefs, and preferences
 description: Assuming the agent performs optimally can lead to mistakes in inference. Show that we can do joint inference over large space of agents. 
 
 ---
 
-### PLAN
+### Introduction
+In the opening [chapter](/chapters/5-biases-intro) of this section, we argued that human behavior in sequential decision problems won't always conform to optimal solving of (PO)MDPs. So if our goal is learning about human beliefs and preferences from their actions (i.e. Inverse Reinforcement Learning), then we might do better with more realistic generative models for human behavior. This chapter explores how adding time inconsistency and myopic planning to agent models affects inference of preferences.
 
-- we motivated modeling biases and bounds by saying we want better generative models for IRL. we now look at how adding biases/bounds to the model changes inference. 
+If human behavior in some decision problem always conforms exactly to a particular sub-optimal planning model, then it would be surprising if using the true generative model for inference did not help with accurate recovery of preferences. Biases will only affect some of the humans some of the time. In a narrow domain, experts can learn to avoid biases and they can use specialized approximation algorithms that achieve near-optimal performance in the domain. So our approach is to do *joint inference* over preferences, beliefs and biases and cognitive bounds. If the agent's behavior is consistent with optimal (PO)MDP solving, we will infer this fact and infer preferences accordingly. On the other hand, if there's evidence of biases, this will alter inferences about preferences. We test our approach by comparing to a model that has a fixed assumption of optimality. 
 
-- ideal: show that with big model we (1) can still make good predictions when human performs optimally. (2) we infer better when agent is not optimal. (3) we are fairly efficient.
+As we discussed in Chapter IV, the identifiability of preferences is a ubiquitous issue in IRL. Our approach, which does inference over a broader space of agents (with different combinations of biases), makes identification from a particular decision problem less likely in general. Yet the lack of identifiability of preferences is not something that undermines our approach. For some decision problems, the best an inference system can do is rule out preferences that are inconsistent with the behavior and accurately maintain posterior uncertainty over those that are consistent. Some of the examples below provide behavior that is ambiguous about preferences in this way. Yet we also show simple examples in which biases and bounds *can* be identified. 
+
+
+### Formalization of Joint Inference
+We formalize joint inference over beliefs, preferences and biases by extending the approach developing in Chapter IV. In Equation (2) of that chapter, an agent was characterized by parameters $$(U, \alpha, b_0)$$. To include the possibility of time-inconsistent and Myopic agents, agents are now characterized by a tuple:
+
+$$
+\theta = \colon \left\langle U, \alpha, b_0, k, \nu, C \rangle\right
+$$
+
+where:
+
+- $$U$$ is the utilty function
+
+- $$\alpha$$ is the softmax noise parameter
+
+- $$b_0$$ is the agent's belief (or prior) over the initial state
+
+- $$k \gte 0$$ is the constant for hyperbolic discounting function $$1/(1+kd)$$
+
+- $$\nu$$ is an indicator for Naive or Sophisticated hyperbolic discounting
+
+- $$C \in [1,\infty]$$ is the integer cutoff point for Myopic Exploration. 
+
+As in Equation (2), we condition on state-action-observation triples:
+
+$$
+P(\theta | (s,o,a)_{0:n}) \propto P( (s,o,a)_{0:n} | \theta)P(\theta)
+$$
+
+We obtain a factorized form in exactly the same way as in Equation (2), i.e. we generate the sequence $${b_i}_{0:n}$$ of agent beliefs:
+
+$$
+P(\theta | (s,o,a)_{0:n}) \propto 
+P(\theta) \prod_{i=0}^n P( a_i | s_i, b_i, U, \alpha, k, \nu, C )
+$$
+
+The likelihood term on the RHS of this equation is simply the softmax probability of the agent with the given parameters choosing action $$a_i$$ in state $$s_i$$. Note that the delay indices used by time-inconsistent and Myopic agents figure only in their internal simulations. To simulate the agent's actions we don't need to include a *delay* variable. 
 
 
 ##Examples
