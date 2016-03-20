@@ -28,7 +28,7 @@ where:
 
 - $$b_0$$ is the agent's belief (or prior) over the initial state
 
-- $$k \gte 0$$ is the constant for hyperbolic discounting function $$1/(1+kd)$$
+- $$k \in \mathbb{R}^+$$ is the constant for hyperbolic discounting function $$1/(1+kd)$$
 
 - $$\nu$$ is an indicator for Naive or Sophisticated hyperbolic discounting
 
