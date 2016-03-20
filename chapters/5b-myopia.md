@@ -50,7 +50,8 @@ $$
 b'(s') \propto I_C(s',a,o,d)\sum_{s \in S}{T(s,a,s')b(s)}
 $$
 
-where $$I_C(s',a,o,d) = O(s',a,o)$$ if $$d<C$$ and is $$=1$$ (unity) otherwise.
+$$
+I_C(s',a,o,d) = O(s',a,o)$$ \mbox{if } d<C and $$=1$$ (unity) otherwise.
 
 <!--
 If $$d<C$$ the new belief state $$b'$$ is defined (as previously):
