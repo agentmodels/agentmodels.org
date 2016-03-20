@@ -50,7 +50,7 @@ $$
 b'(s') \propto O(s',a,o)\sum_{s \in S}{T(s,a,s')b(s)}
 $$
 
-On the other hand, if $$d /gte C$$, then:
+On the other hand, if $$d \gte C$$, then:
 
 $$
 b'(s') \propto \sum_{s \in S}{T(s,a,s')b(s)}
