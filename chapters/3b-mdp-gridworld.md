@@ -1,6 +1,6 @@
 ---
 layout: chapter
-title: "Sequential decision problems, part II"
+title: "More MDPs- Gridworld, Stochastic MDPs, Q-values"
 description: We extend the previous setup to stochastic actions (softmax) and transitions, and introduce policies and expected action values.
 ---
 

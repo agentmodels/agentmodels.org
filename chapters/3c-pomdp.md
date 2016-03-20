@@ -1,6 +1,6 @@
 ---
 layout: chapter
-title: "Partial observability"
+title: "POMDPs and Agents Who Learn From Observation"
 description: Mathematical framework, implementation in WebPPL, Gridworld and restaurants example, bandit problems.
 ---
 
