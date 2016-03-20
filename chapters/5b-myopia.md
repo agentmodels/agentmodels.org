@@ -50,9 +50,9 @@ $$
 b'(s') \propto I_C(s',a,o,d)\sum_{s \in S}{T(s,a,s')b(s)}
 $$
 
-where $$I_C(s',a,o,d) = 1$$ if $$ d \gte C$$
+where $$I_C(s',a,o,d) =  O(s',a,o)$$ if $$d$$ < $$C$$ 
 <br>
-and $$I_C(s',a,o,d) = O(s',a,o)$$ otherwise.
+and $$I_C(s',a,o,d) = 1$$ otherwise.
 
 
 <!--
