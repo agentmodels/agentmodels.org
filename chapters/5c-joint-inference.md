@@ -17,7 +17,7 @@ As we discussed in Chapter IV, the identifiability of preferences is a ubiquitou
 We formalize joint inference over beliefs, preferences and biases by extending the approach developing in Chapter IV. In Equation (2) of that chapter, an agent was characterized by parameters $$(U, \alpha, b_0)$$. To include the possibility of time-inconsistent and Myopic agents, agents are now characterized by a tuple:
 
 $$
-\theta = \colon \left\langle U, \alpha, b_0, k, \nu, C \rangle\right
+\theta \vcentcolon= \left\langle U, \alpha, b_0, k, \nu, C \right\rangle
 $$
 
 where:
@@ -50,7 +50,7 @@ $$
 The likelihood term on the RHS of this equation is simply the softmax probability of the agent with the given parameters choosing action $$a_i$$ in state $$s_i$$. Note that the delay indices used by time-inconsistent and Myopic agents figure only in their internal simulations. To simulate the agent's actions we don't need to include a *delay* variable. 
 
 
-##Examples
+## Examples
 
 ### Naive/Soph/Neutral examples for Restaurant Choice Gridworld
 
