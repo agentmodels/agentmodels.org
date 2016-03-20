@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: "Agents as probabilistic programs"
-description: "We show how to represent agents in WebPPL, starting from a simple agent program that makes a single one-off decision." 
+description: "0. WebPPL Agents for solving simple, one-shot decision problems" 
 is_section: true
 ---
 
