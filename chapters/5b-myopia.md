@@ -32,11 +32,68 @@ Myopic Exploration is not only useful for solving Bandit problems efficiently, b
 ### Myopic Exploration: applications and limitations
 As noted above, Myopic Exploration has been studied in Machine Learning refp:gonzalez2015glasses and Operations Research refp:ryzhov2012knowledge as part of algorithms for generalized Bandit problems. In most cases, the cutoff point $$C$$ after which the agent assumes himself to exploit is set to $$C=1$$. This results in a scalable, analytically tractable optimization problem: pull the arm that maximizes the expected value of future exploitation given you pulled that arm. This "future exploitation" means that you pick the arm that is best in expectation for the rest of time. The Myopic Agent with $$C=1$$ has also been successfully used a model of human play in Bandit problems refp:zhang2013forgetful. 
 
-The Bandit Problems we exhibit have a finite number of arms, discrete rewards and rewards uncorrelated across arms. Myopic Exploration works well in this setting but also works for genearlized Bandit Problems: e.g. when rewards are correlated, when rewards are continuous, and in the "Bayesian Optimization" setting where instead of a fixed number of arms the goal is to optimize high-dimensional real-valued function refp:ryzhov2012knowledge. 
+We've presented Bandit problems with a finite number of arms, and with discrete rewards that are uncorrelated across arms. Myopic Exploration works well in this setting but also works for generalized Bandit Problems: e.g. when rewards are correlated, when rewards are continuous, and in the "Bayesian Optimization" setting where instead of a fixed number of arms the goal is to optimize high-dimensional real-valued function refp:ryzhov2012knowledge. 
 
 Myopic Exploration will not work well for POMDPs in general. Suppose I'm looking for a good restaurant in a foreign city. A good strategy is to walk to a busy street and then find the restaurant with the longest line. If reaching the busy street takes longer than the myopic cutoff $$C$$, then a Myopic agent would not model himself as learning which restaurant has the longest line -- and hence would not recognize this as a good strategy. The Myopic agent would only carry out this strategy if it could observe the restaurants before the cutoff $$C$$. (This kind of POMDP could easily be represented in our Gridworld framework.). This highlights a way in which Bandit problems are distinctive from general POMDPs. In a Bandit problem, you can always explore every arm: you never need to first move to an appropriate state. So even the Myopic Agent with $$C=1$$ compares the information value of every possible observation that the POMDP can yield.
 
-The Myopic agent has an incorrect model of his future self, assuming his future self stops updating after cutoff point $$C$$. This incorrect "self-model" is similar to popular model-free RL agents. For example, a Q-learner's estimation of expected utilities for states ignores the fact that the Q-learner will randomly explore with some probability. SARSA does take its random exploration into account when computing this estimate. But it doesn't model the way in which its future exploration behavior will make certain actions useful in the present (as in the example of finding a restaurant in an foreign city).
+The Myopic agent has an incorrect model of his future self, assuming his future self stops updating after cutoff point $$C$$. This incorrect "self-modeling" is also a property of well-known model-free RL agents. For example, a Q-learner's estimation of expected utilities for states ignores the fact that the Q-learner will randomly explore with some probability. SARSA, on the other hand, does take its random exploration into account when computing this estimate. But it doesn't model the way in which its future exploration behavior will make certain actions useful in the present (as in the example of finding a restaurant in a foreign city).
+
+### Myopic Exploration: formal model
+Myopic Exploration only makes sense in the context of an agent that is capable of learning from observations (i.e. in the POMDP rather than MDP setting). So our goal is to generalize our agent model for solving POMDPs to a Myopic Exploration with $$C \in [1,\Infinity]$$.
+
+**Exercise:** Before reading on, modify the equations defining the [POMDP agent](/chapters/3c-pomdp) in order to generalize the agent model to include Myopic Exploration. The optimal POMDP agent will be the special case when $$C=\Infinity$$.
+
+------------
+
+To extend the POMDP agent to the Myopic agent, we use the idea of *delays* from the previous chapter. These delays are not used to evaluate future rewards (as any discounting agent would use them). They are used to determine how future actions are simulated. If the future action occurs with delay $$d$$ past the cutoff point $$C$$, i.e. $$d \gte C$$, then the simulated future self does not do a belief update before taking the action. (This makes the Myopic agent analogous to the Naive agent: both simulate the future action by projecting the wrong delay value onto their future self). 
+
+We retain the notation from the definition of the POMDP agent and skip directly to the equation for the expected utility of a state, which we modify for the Myopic agent with cutoff point $$C \in [1,\Infinity]$$:
+
+$$
+EU_{b}[s,a,d] = U(s,a) + E_{s',o,a'}(EU_{b'}[s',a'_{b'},d+1])
+$$
+
+where (as before):
+
+- $$s' \sim T(s,a)$$ and $$o \sim O(s',a)$$
+
+- $$a'_{b'}$$ is the softmax action the agent takes given belief $$b'$$
+
+- If $$d<C$$ the new belief state $$b'$$ is defined (as before):
+
+$$
+b'(s') \propto O(s',a,o)\sum_{s \in S}{T(s,a,s')b(s)}
+$$
+
+- Otherwise, $$b'$$ is defined as:
+
+$$
+b'(s') \propto \sum_{s \in S}{T(s,a,s')b(s)}
+$$
+
+The key part is the definition of $$b'$$ when $$d \gte C$$. The Myopic agent assumes his future self updates only on his last action $$a$$ and not on observation $$o$$. So the future self will know about state changes that follow a priori from his actions. (In a deterministic Gridworld, the future self would know his new location and that the time remaining had been counted down).
+
+The implementation of the Myopic agent in WebPPL is a direct translation of the definition provided above.
+
+**Exercise:** Modify the code for the POMDP agent [todo link to codebox] to represent a Myopic agent.
+
+
+### Myopic Exploration for Bandits
+
+We show the performance of the Myopic agent on Multi-Arm bandits.
+
+For 2-arms, Myopic with D=1 is optimal. Verify this and compare runtime.
+
+For >2 arms, I believe Myopic D=1 is not optimal. Verify this. It should be much faster as the number of arms grows. (One easy way to speed it up is to have a special *updateBelief* in *beliefDelayAgent* for stochastic bandits. the only difference is that once delay>=C, you should just directly update the timeLeft, assuming you have belief in *ERPOverLatentState*. This will avoid the Enumerate for *nextBelief*.)
+
+
+
+
+
+
+
+
+
 
 
 
