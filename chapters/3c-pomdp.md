@@ -262,6 +262,205 @@ We can generalize this bandit problem to the more standard *stochastic* multi-ar
 
 [Codebox should just use a library function rather than defining the whole thing. Show a problem with three arms. Show some trajectories where the agent tries multiple arms at the start before switching to exploitation.]
 
+~~~~
+var world = makeStochasticBanditWorld(2);
+
+var probablyChampagneERP = categoricalERP([0.2, 0.8], ['nothing', 'champagne']);
+
+var probablyNothingERP = categoricalERP([0.8, 0.2], ['nothing', 'champagne']);
+
+var startState = {manifestState: {loc: 'start',
+				                  timeLeft: 10,
+								  terminateAfterAction: false},
+	              latentState: {0: deltaERP('chocolate'),
+				                1: probablyChampagneERP}};
+
+var prior = Enumerate(function(){
+  var manifestState = startState.manifestState;
+  var latentState = {0: deltaERP('chocolate'),
+		             1: uniformDraw([probablyNothingERP,
+				                     probablyChampagneERP])};
+  return buildState(manifestState, latentState);
+});
+
+var prizeToUtility = {start: 0,
+	                  nothing: 0,
+					  chocolate: 1,
+					  champagne: 1.5};
+
+var utility = function(state,action){
+  var loc = state.manifestState.loc;
+  return prizeToUtility[loc];
+};
+
+var agentParams = {utility: utility,
+		           alpha: 10000,
+		           priorBelief: prior,
+		           fastUpdateBelief: false};
+
+var agent = makeBeliefAgent(agentParams, world);
+
+var displayTrajectory = function(trajectory) {
+  var getLocAction = function(stateAction) {
+    var state = stateAction[0];
+    var action = stateAction[1];
+    return [state.manifestState.loc, action];
+  };
+
+  var locsActions = map(getLocAction, trajectory);
+  var flatLocsActions = _.flatten(locsActions);
+  return flatLocsActions.slice(1, flatLocsActions.length - 1);
+};
+
+var trajectory = simulateBeliefAgent(startState, world, agent, 'stateAction');
+
+displayTrajectory(trajectory);
+
+~~~~
+
+Scaling:
+
+~~~~
+
+// test to show the scaling properties of stochastic bandits
+
+var varyTime = function(n) {
+
+  var world = makeStochasticBanditWorld(2);
+
+  var probablyChampagneERP = categoricalERP([0.2, 0.8], ['nothing', 'champagne']);
+
+  var probablyNothingERP = categoricalERP([0.8, 0.2], ['nothing', 'champagne']);
+
+  var startState = {manifestState: {loc: 'start',
+				                    timeLeft: n,
+									terminateAfterAction: false},
+		            latentState: {0: deltaERP('chocolate'),
+				                  1: probablyChampagneERP}};
+
+  var prior = Enumerate(function(){
+    var manifestState = startState.manifestState;
+    var latentState = {0: deltaERP('chocolate'),
+		               1: uniformDraw([probablyNothingERP,
+				                       probablyChampagneERP])};
+    return buildState(manifestState, latentState);
+  });
+
+  var prizeToUtility = {start: 0,
+			            nothing: 0,
+						chocolate: 1,
+						champagne: 1.5};
+
+  var utility = function(state,action){
+    var loc = state.manifestState.loc;
+    return prizeToUtility[loc];
+  };
+
+  var agentParams = {utility: utility,
+	                 alpha: 100,
+		             priorBelief: prior,
+		             fastUpdateBelief: false};
+
+  var agent = makeBeliefAgent(agentParams, world);
+
+  var displayTrajectory = function(trajectory) {
+    var getLocAction = function(stateAction) {
+      var state = stateAction[0];
+      var action = stateAction[1];
+      return [state.manifestState.loc, action];
+    };
+
+    var locsActions = map(getLocAction, trajectory);
+    var flatLocsActions = _.flatten(locsActions);
+    return flatLocsActions.slice(1, flatLocsActions.length - 1);
+  };
+
+  var f = function() {
+    var trajectory = simulateBeliefAgent(startState, world, agent, 'stateAction');
+    return displayTrajectory(trajectory);
+  };
+
+  return [n, timeit(f).runtimeInMilliseconds];
+};
+
+var varyArms = function(n) {
+
+  var world = makeStochasticBanditWorld(n);
+
+  var probablyChampagneERP = categoricalERP([0.2, 0.8], ['nothing', 'champagne']);
+
+  var probablyNothingERP = categoricalERP([0.8, 0.2], ['nothing', 'champagne']);
+  
+  var makeLatentState = function(numArms) {
+    return map(function(x){return probablyChampagneERP;}, _.range(numArms));
+  };
+
+  var startState = {manifestState: {loc: 'start',
+				                    timeLeft: 5,
+									terminateAfterAction: false},
+		            latentState: makeLatentState(n)};
+
+  var latentSampler = function(numArms) {
+    return map(function(x){return uniformDraw([probablyNothingERP,
+					                           probablyChampagneERP]);},
+	           _.range(numArms));
+  };
+
+  var prior = Enumerate(function(){
+    var manifestState = startState.manifestState;
+    var latentState = latentSampler(n);
+    return buildState(manifestState, latentState);
+  });
+
+  var prizeToUtility = {start: 0,
+			            nothing: 0,
+						chocolate: 1,
+						champagne: 1.5};
+
+  var utility = function(state,action){
+    var loc = state.manifestState.loc;
+    return prizeToUtility[loc];
+  };
+
+  var agentParams = {utility: utility,
+		             alpha: 100,
+		             priorBelief: prior,
+		             fastUpdateBelief: false};
+
+  var agent = makeBeliefAgent(agentParams, world);
+  
+  var displayTrajectory = function(trajectory) {
+    var getLocAction = function(stateAction) {
+      var state = stateAction[0];
+      var action = stateAction[1];
+      return [state.manifestState.loc, action];
+    };
+
+    var locsActions = map(getLocAction, trajectory);
+    var flatLocsActions = _.flatten(locsActions);
+    return flatLocsActions.slice(1, flatLocsActions.length - 1);
+  };
+
+  var f = function() {
+    var trajectory = simulateBeliefAgent(startState, world, agent, 'stateAction');
+    return displayTrajectory(trajectory);
+  };
+
+  return [n, timeit(f).runtimeInMilliseconds];
+
+};
+
+
+// Varying the lifetime of the agent (output of form [lifetime, runtime in milliseconds])
+// map(varyTime, _.range(19).slice(2);
+
+// Varying the number of arms (output of form [num arms, runtime in milliseconds])
+map(varyArms, [1,2,3])
+// note the increase in order of magnitude. If we called this for 4 arms, the
+// increase would continue, meaning that it would take ages.
+
+~~~~
+
 
 ### Gridworld with observations
 As we discussed above, an agent in the Restaurant Choice problem is likely to be uncertain about some features of the environment. We consider a variant of the Restaurant Choice problem where the agent is uncertain about which restaurants are open. The agent can observe whether a restaurant is open by moving to a square on the grid adjacent to the restaurant. If the restaurant is open, the agent can enter it (and receive utility).
