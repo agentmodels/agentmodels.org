@@ -14,7 +14,7 @@ As we discussed in Chapter IV, the identifiability of preferences is a ubiquitou
 
 
 ### Formalization of Joint Inference
-We formalize joint inference over beliefs, preferences and biases by extending the approach developing in Chapter IV. In Equation (2) of that chapter, an agent was characterized by parameters $$(U, \alpha, b_0)$$. To include the possibility of time-inconsistent and Myopic agents, agents are now characterized by a tuple:
+We formalize joint inference over beliefs, preferences and biases by extending the approach developing in Chapter IV. In Equation (2) of that chapter, an agent was characterized by parameters $$  \left\langle U, \alpha, b_0 \right\rangle$$. To include the possibility of time-inconsistent and Myopic agents, agents are now characterized by a tuple:
 
 $$
 \theta = \left\langle U, \alpha, b_0, k, \nu, C \right\rangle
@@ -40,14 +40,14 @@ $$
 P(\theta | (s,o,a)_{0:n}) \propto P( (s,o,a)_{0:n} | \theta)P(\theta)
 $$
 
-We obtain a factorized form in exactly the same way as in Equation (2), i.e. we generate the sequence $${b_i}_{0:n}$$ of agent beliefs:
+We obtain a factorized form in exactly the same way as in Equation (2), i.e. we generate the sequence $$\{b_i\}_{0:n}$$ of agent beliefs:
 
 $$
 P(\theta | (s,o,a)_{0:n}) \propto 
 P(\theta) \prod_{i=0}^n P( a_i | s_i, b_i, U, \alpha, k, \nu, C )
 $$
 
-The likelihood term on the RHS of this equation is simply the softmax probability of the agent with the given parameters choosing action $$a_i$$ in state $$s_i$$. Note that the delay indices used by time-inconsistent and Myopic agents figure only in their internal simulations. To simulate the agent's actions we don't need to include a *delay* variable. 
+The likelihood term on the RHS of this equation is simply the softmax probability that the agent with given parameters chooses $$a_i$$ in state $$s_i$$. This equation for inference does not make use of the *delay* indices used by time-inconsistent and Myopic agents. This is because the delays figure only in their internal simulations. In order to compute the likelihood the agent takes an action, we don't need to keep track of delay values. 
 
 
 ## Examples
