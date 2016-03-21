@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: "Agents as probabilistic programs"
-description: "0. WebPPL Agents for solving simple, one-shot decision problems" 
+description: "WebPPL Agents for solving simple, one-shot decision problems" 
 is_section: true
 ---
 
@@ -220,7 +220,7 @@ Since rational agents will *always* take the best action, why consider softmax a
 
 ### Moving to complex decision problems
 
-This chapter has introduced some of the core concepts that we will need for this tutorial, including *expected utility*, *(stochastic) transition functions*, *soft conditioning* and *softmax decision making*. These concepts would also appear in standard treatments of rational planning and reinforcement learning refp:russell1995modern. The actual decision problems in this chapter are so trivial that our notation and programs are overkill. The next [chapter](/chapters/3a-mdp.md) introduces *sequential* decisions problems. These problems are more complex and interesting, and will require the machinery we have introduced here. 
+This chapter has introduced some of the core concepts that we will need for this tutorial, including *expected utility*, *(stochastic) transition functions*, *soft conditioning* and *softmax decision making*. These concepts would also appear in standard treatments of rational planning and reinforcement learning refp:russell1995modern. The actual decision problems in this chapter are so trivial that our notation and programs are overkill. The next [chapter](/chapters/3a-mdp.html) introduces *sequential* decisions problems. These problems are more complex and interesting, and will require the machinery we have introduced here. 
 
 --------------
 
