@@ -261,58 +261,72 @@ We extend the agent model above by adding `isTerminal` to halt simulations when 
 
 ~~~~
 // We use the WebPPL-gridworld library
-var params = makeDonutInfer(true, {'donutSouth': 1, 'donutNorth': 1, 'veg': 3,
-                                   'noodle': 2, 'timeCost': -0.1}, 100, 0);
-var transition = params.transition;
-var utility = params.utility;
-var actions = params.actions;
-var isTerminal = function(state){
-  return state[0] === 'dead';
+var world = makeDonutWorld2({big: true});
+var transition = world.transition;
+var gridLocationToRestaurant = world.feature;
+var utilityTable = {'Donut S': 1, 'Donut N': 1, 'Veg': 3,
+                    'Noodle': 2, 'timeCost': -0.1};
+var tableToUtilityFunction = function(table, feature) {  
+  return function(state, action) {
+    var stateFeatureName = feature(state).name;
+    if (stateFeatureName) {
+      return table[stateFeatureName];
+    } else {
+      return table.timeCost;
+    }
+  };
 };
+var utility = tableToUtilityFunction(utilityTable, gridLocationToRestaurant);
+var stateToActions = world.stateToActions;
+var alpha = 100;
 
-var agent = dp.cache(function(state, timeLeft){
+var act = dp.cache(function(state){
   return Enumerate(function(){
-    var action = uniformDraw(actions);
-    var eu = expectedUtility(state, action, timeLeft);
-    factor(params.alpha * eu);
+    var action = uniformDraw(stateToActions(state));
+    var eu = expectedUtility(state, action);
+    factor(alpha * eu);
     return action;
   });
 });
 
-var expectedUtility = dp.cache(function(state, action, timeLeft){
+var expectedUtility = dp.cache(function(state, action){
   var u = utility(state, action);
-  var newTimeLeft = timeLeft - 1;
   
-  if (newTimeLeft === 0 || isTerminal(state)){
+  if (state.terminateAfterAction){
     return u; 
   } else {                     
     return u + expectation(Enumerate(function(){
-      var nextState = transition(state, action); 
-      var nextAction = sample(agent(nextState, newTimeLeft));
-      return expectedUtility(nextState, nextAction, newTimeLeft);  
+      var nextState = transition(state, action);
+      var nextAction = sample(act(nextState));
+      return expectedUtility(nextState, nextAction);  
     }));
   }
 });
 
-var simulate = function(startState, totalTime){
+var simulate = function(startState){
   
-  var sampleSequence = function(state, timeLeft){
-    if (timeLeft === 0 || isTerminal(state)){
-      return [];
+  var sampleSequence = function(state){
+    if (state.terminateAfterAction){
+      var action = sample(act(state));
+      return [[state.loc, action]];
     } else {
-      var action = sample(agent(state, timeLeft));
+      var action = sample(act(state));
       var nextState = transition(state,action); 
-      return [[state, action]].concat(sampleSequence(nextState, timeLeft - 1))
+      return [[state.loc, action]].concat(sampleSequence(nextState));
     }
   };
-  return sampleSequence(startState, totalTime);
+  return sampleSequence(startState);
 };
 
-var startState = [2, 0];
-var totalTime = 9;
-var stateActionPairs = simulate(startState, totalTime);
+var startState = {loc: [3,1],
+                  terminateAfterAction: false,
+                  timeLeft: 9,
+                  timeAtRestaurant: 1};
+var locActionPairs = simulate(startState);
 
-GridWorld.draw(params, {trajectory : stateActionPairs});
+locActionPairs;
+
+// GridWorld.draw(world, {trajectory : locActionPairs});
 ~~~~
 
 ### Noisy agents, stochastic environments
