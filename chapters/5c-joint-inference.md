@@ -55,7 +55,7 @@ The likelihood term on the RHS of this equation is simply the softmax probabilit
 
 ### Restaurant Choice: Temptation or False Beliefs?
 
-We return to the Restaurant Choice example. As we discussed in Chapter 5a, time-inconsistent agents can produce trajectories on the MDP (full knowledge) version of this scenario that never occur for an optimal agent without noise. In our first inference example, we do joint inference over preferences, softmax noise and the discounting behavior of the agent. (We assume for this example that the agent has full knowledge and is not Myopic). We compare the preference inferences to the earlier inference approach that assumes optimality. 
+We return to the Restaurant Choice example. As we discussed in Chapter V.1, time-inconsistent agents can produce trajectories on the MDP (full knowledge) version of this scenario that never occur for an optimal agent without noise. In our first inference example, we do joint inference over preferences, softmax noise and the discounting behavior of the agent. (We assume for this example that the agent has full knowledge and is not Myopic). We compare the preference inferences to the earlier inference approach that assumes optimality. 
 
 
 
