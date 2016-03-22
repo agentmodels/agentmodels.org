@@ -13,9 +13,9 @@ As a simple illustration of a sequential decision problem, suppose that an agent
 ~~~~
 // We use functions from the WebPPL-gridworld library, 
 // which we will explain later
-var params = makeDonutInfer(true, {'donutSouth': 1, 'donutNorth': 1, 'veg': 1,
-                                   'noodle': 1, 'timeCost': -0.1}, 100, 0);
-GridWorld.draw(params, {labels: params.labels, trajectory: [[[2, 0]]]});
+var world = makeDonutWorld2();
+
+GridWorld.draw(world);
 ~~~~
 
 

@@ -393,8 +393,23 @@ var varyTime = function(n) {
     return displayTrajectory(trajectory);
   };
 
-  return [n, timeit(f).runtimeInMilliseconds];
+  return timeit(f).runtimeInMilliseconds.toPrecision(3);
 };
+
+// Varying the lifetime of the agent
+var lifetimes = _.range(16).slice(2);
+var runtimes = map(varyTime, lifetimes);
+
+print('Runtime in ms for lifetimes ' + lifetimes + '\n' + runtimes);
+
+viz.bar(lifetimes, runtimes);
+
+// note: this takes approximately 30 seconds to run
+~~~~
+
+~~~~
+
+// test to show the scaling properties of stochastic bandits
 
 var varyArms = function(n) {
 
@@ -459,18 +474,21 @@ var varyArms = function(n) {
     return displayTrajectory(trajectory);
   };
 
-  return [n, timeit(f).runtimeInMilliseconds];
+  return timeit(f).runtimeInMilliseconds.toPrecision(3);
 
 };
 
+// varying the number of arms
 
-// Varying the lifetime of the agent (output of form [lifetime, runtime in milliseconds])
-// map(varyTime, _.range(19).slice(2);
+var arms = [1,2,3];
+var runtimes = map(varyArms, arms);
 
-// Varying the number of arms (output of form [num arms, runtime in milliseconds])
-map(varyArms, [1,2,3])
+print('Runtime in ms for arms ' + arms + '\n' + runtimes);
+
+viz.bar(arms, runtimes);
+
 // note the increase in order of magnitude. If we called this for 4 arms, the
-// increase would continue, meaning that it would take ages.
+// increase would continue, meaning that it would take impractically long.
 
 ~~~~
 
