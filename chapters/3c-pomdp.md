@@ -23,13 +23,13 @@ The agent facing a POMDP has initial uncertainty about features of the environme
 
 The agent does not directly observe transitions or utilities. Instead the agent learns about the unknown features of the environment *indirectly* via observations. When the agent visits a state, they receive an observation that depends on the state and their previous action (according to a fixed *observation function*). Observations can inform the agent of local, transient facts (e.g. the agent's current grid position) and of persistent features of the environment (e.g. whether a wall exists in a particular location).
 
-In the POMDP examples we consider, the environment has the same essential MDP structure as before (save for the addition of the observation function). In an MDP, the agent is given a state and chooses an action (which causes a state transition). In a POMDP, the agent has a probability distribution over the current state. At every timestep, they (1) update this distribution on the current observation, and (2) choose an action (based on their updated distribution over states). This action causes a state transition exactly as in a POMDP. 
+In the POMDP examples we consider, the environment has the same essential MDP structure as before (save for the addition of the observation function). In an MDP, the agent is given a state and chooses an action (which causes a state transition). In a POMDP, the agent has a probability distribution over the current state. At every timestep, they (1) update this distribution on the current observation, and (2) choose an action (based on their updated distribution over states). This action causes a state transition exactly as in an MDP. 
 
 For a concrete example, consider the Restaurant Choice Problem. Suppose Bob doesn't know whether the Noodle Shop is open. Previously, the agent's state consisted of Bob's *location* on the grid as well as the remaining time. In the POMDP case, the state also represents whether or not the Noodle Shop is open. This fact about the state determines whether Bob transitions to inside the Noodle Shop if he is adjacent. When Bob is close to the Noodle Shop, he gets to observe (via the observation function) whether or not it's open (without having to actually try it).
 
 ### Formal model
 
-We first define a new class of decision probems (POMDPs) and then define an agent model for optimally solving these problems. Our definitions are based on refp:kaelbling1998planning. A Partially Observable Markov Decision Process (POMDP) is a tuple [TODO: use the bigger, sharper parens for this tuple] $$(S,A(s),T(s,a),U(s,a),\Omega,O)$$, where:
+We first define a new class of decision probems (POMDPs) and then define an agent model for optimally solving these problems. Our definitions are based on refp:kaelbling1998planning. A Partially Observable Markov Decision Process (POMDP) is a tuple $$ \left\langle S,A(s),T(s,a),U(s,a),\Omega,O \right\rangle $$, where:
 
 - $$S$$ (state space), $$A$$ (action space), $$T$$ (transition function), $$U$$ (utility or reward function) form an MDP as defined in [chapter III.1](/chapters/3a-mdp.html), with $$U$$ assumed to be deterministic. 
 

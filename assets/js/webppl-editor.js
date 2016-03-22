@@ -1118,6 +1118,7 @@
 
   function postUpdateDisplay(cm, update) {
     var viewport = update.viewport;
+
     for (var first = true;; first = false) {
       if (!first || !cm.options.lineWrapping || update.oldDisplayWidth == displayWidth(cm)) {
         // Clip forced viewport to actual scrollable area.
@@ -1136,6 +1137,9 @@
       setDocumentHeight(cm, barMeasure);
       updateScrollbars(cm, barMeasure);
     }
+
+    if (parseInt(cm.display.gutters.style.height) > cm.display.scroller.clientHeight)
+      cm.display.gutters.style.height = cm.display.scroller.clientHeight + "px"
 
     update.signal(cm, "update", cm);
     if (cm.display.viewFrom != cm.display.reportedViewFrom || cm.display.viewTo != cm.display.reportedViewTo) {
@@ -2629,13 +2633,15 @@
 
         if (oldPos) {
           var near = m.find(dir < 0 ? 1 : -1), diff;
-          if (dir < 0 ? m.inclusiveRight : m.inclusiveLeft) near = movePos(doc, near, -dir, line);
+          if (dir < 0 ? m.inclusiveRight : m.inclusiveLeft)
+            near = movePos(doc, near, -dir, near && near.line == pos.line ? line : null);
           if (near && near.line == pos.line && (diff = cmp(near, oldPos)) && (dir < 0 ? diff < 0 : diff > 0))
             return skipAtomicInner(doc, near, pos, dir, mayClear);
         }
 
         var far = m.find(dir < 0 ? -1 : 1);
-        if (dir < 0 ? m.inclusiveLeft : m.inclusiveRight) far = movePos(doc, far, dir, line);
+        if (dir < 0 ? m.inclusiveLeft : m.inclusiveRight)
+          far = movePos(doc, far, dir, far.line == pos.line ? line : null);
         return far ? skipAtomicInner(doc, far, pos, dir, mayClear) : null;
       }
     }
@@ -2682,6 +2688,7 @@
     for (var i = 0; i < doc.sel.ranges.length; i++) {
       if (primary === false && i == doc.sel.primIndex) continue;
       var range = doc.sel.ranges[i];
+      if (range.from().line >= cm.display.viewTo || range.to().line < cm.display.viewFrom) continue;
       var collapsed = range.empty();
       if (collapsed || cm.options.showCursorWhenSelecting)
         drawSelectionCursor(cm, range.head, curFragment);
@@ -3863,7 +3870,7 @@
       over: function(e) {if (!signalDOMEvent(cm, e)) { onDragOver(cm, e); e_stop(e); }},
       start: function(e){onDragStart(cm, e);},
       drop: operation(cm, onDrop),
-      leave: function() {clearDragCursor(cm);}
+      leave: function(e) {if (!signalDOMEvent(cm, e)) { clearDragCursor(cm); }}
     };
 
     var inp = d.input.getField();
@@ -7993,9 +8000,9 @@
         var spans = line.markedSpans;
         if (spans) for (var i = 0; i < spans.length; i++) {
           var span = spans[i];
-          if (!(lineNo == from.line && from.ch > span.to ||
-                span.from == null && lineNo != from.line||
-                lineNo == to.line && span.from > to.ch) &&
+          if (!(span.to != null && lineNo == from.line && from.ch > span.to ||
+                span.from == null && lineNo != from.line ||
+                span.from != null && lineNo == to.line && span.from > to.ch) &&
               (!filter || filter(span.marker)))
             found.push(span.marker.parent || span.marker);
         }
@@ -9257,7 +9264,7 @@
 
   // THE END
 
-  CodeMirror.version = "5.12.0";
+  CodeMirror.version = "5.13.0";
 
   return CodeMirror;
 });
@@ -25932,7 +25939,7 @@ module.exports = warning;
 }).call(this,require('_process'))
 },{"./emptyFunction":42,"_process":317}],62:[function(require,module,exports){
 /*!
- * jQuery JavaScript Library v2.2.1
+ * jQuery JavaScript Library v2.2.2
  * http://jquery.com/
  *
  * Includes Sizzle.js
@@ -25942,7 +25949,7 @@ module.exports = warning;
  * Released under the MIT license
  * http://jquery.org/license
  *
- * Date: 2016-02-22T19:11Z
+ * Date: 2016-03-17T17:51Z
  */
 
 (function( global, factory ) {
@@ -25998,7 +26005,7 @@ var support = {};
 
 
 var
-	version = "2.2.1",
+	version = "2.2.2",
 
 	// Define a local copy of jQuery
 	jQuery = function( selector, context ) {
@@ -26209,6 +26216,7 @@ jQuery.extend( {
 	},
 
 	isPlainObject: function( obj ) {
+		var key;
 
 		// Not plain objects:
 		// - Any object or value whose internal [[Class]] property is not "[object Object]"
@@ -26218,14 +26226,18 @@ jQuery.extend( {
 			return false;
 		}
 
+		// Not own constructor property must be Object
 		if ( obj.constructor &&
-				!hasOwn.call( obj.constructor.prototype, "isPrototypeOf" ) ) {
+				!hasOwn.call( obj, "constructor" ) &&
+				!hasOwn.call( obj.constructor.prototype || {}, "isPrototypeOf" ) ) {
 			return false;
 		}
 
-		// If the function hasn't returned already, we're confident that
-		// |obj| is a plain object, created by {} or constructed with new Object
-		return true;
+		// Own properties are enumerated firstly, so to speed up,
+		// if last one is own, then all properties are own
+		for ( key in obj ) {}
+
+		return key === undefined || hasOwn.call( obj, key );
 	},
 
 	isEmptyObject: function( obj ) {
@@ -33258,6 +33270,12 @@ jQuery.extend( {
 	}
 } );
 
+// Support: IE <=11 only
+// Accessing the selectedIndex property
+// forces the browser to respect setting selected
+// on the option
+// The getter ensures a default option is selected
+// when in an optgroup
 if ( !support.optSelected ) {
 	jQuery.propHooks.selected = {
 		get: function( elem ) {
@@ -33266,6 +33284,16 @@ if ( !support.optSelected ) {
 				parent.parentNode.selectedIndex;
 			}
 			return null;
+		},
+		set: function( elem ) {
+			var parent = elem.parentNode;
+			if ( parent ) {
+				parent.selectedIndex;
+
+				if ( parent.parentNode ) {
+					parent.parentNode.selectedIndex;
+				}
+			}
 		}
 	};
 }
@@ -33460,7 +33488,8 @@ jQuery.fn.extend( {
 
 
 
-var rreturn = /\r/g;
+var rreturn = /\r/g,
+	rspaces = /[\x20\t\r\n\f]+/g;
 
 jQuery.fn.extend( {
 	val: function( value ) {
@@ -33536,9 +33565,15 @@ jQuery.extend( {
 		option: {
 			get: function( elem ) {
 
-				// Support: IE<11
-				// option.value not trimmed (#14858)
-				return jQuery.trim( elem.value );
+				var val = jQuery.find.attr( elem, "value" );
+				return val != null ?
+					val :
+
+					// Support: IE10-11+
+					// option.text throws exceptions (#14686, #14858)
+					// Strip and collapse whitespace
+					// https://html.spec.whatwg.org/#strip-and-collapse-whitespace
+					jQuery.trim( jQuery.text( elem ) ).replace( rspaces, " " );
 			}
 		},
 		select: {
@@ -33591,7 +33626,7 @@ jQuery.extend( {
 				while ( i-- ) {
 					option = options[ i ];
 					if ( option.selected =
-							jQuery.inArray( jQuery.valHooks.option.get( option ), values ) > -1
+						jQuery.inArray( jQuery.valHooks.option.get( option ), values ) > -1
 					) {
 						optionSet = true;
 					}
@@ -35286,18 +35321,6 @@ jQuery.ajaxPrefilter( "json jsonp", function( s, originalSettings, jqXHR ) {
 
 
 
-// Support: Safari 8+
-// In Safari 8 documents created via document.implementation.createHTMLDocument
-// collapse sibling forms: the second one becomes a child of the first one.
-// Because of that, this security measure has to be disabled in Safari 8.
-// https://bugs.webkit.org/show_bug.cgi?id=137337
-support.createHTMLDocument = ( function() {
-	var body = document.implementation.createHTMLDocument( "" ).body;
-	body.innerHTML = "<form></form><form></form>";
-	return body.childNodes.length === 2;
-} )();
-
-
 // Argument "data" should be string of html
 // context (optional): If specified, the fragment will be created in this context,
 // defaults to document
@@ -35310,12 +35333,7 @@ jQuery.parseHTML = function( data, context, keepScripts ) {
 		keepScripts = context;
 		context = false;
 	}
-
-	// Stop scripts or inline event handlers from being executed immediately
-	// by using document.implementation
-	context = context || ( support.createHTMLDocument ?
-		document.implementation.createHTMLDocument( "" ) :
-		document );
+	context = context || document;
 
 	var parsed = rsingleTag.exec( data ),
 		scripts = !keepScripts && [];
@@ -64075,7 +64093,7 @@ module.exports = {
 
 },{}],252:[function(require,module,exports){
 module.exports = {
-  version: '2.5.1',
+  version: '2.5.2',
   dataflow: require('vega-dataflow'),
   parse: require('./src/parse/'),
   scene: {
@@ -65413,22 +65431,20 @@ var dl = require('datalib'),
 var Types = {
   INSERT: "insert",
   REMOVE: "remove",
+  UPSERT: "upsert",
   TOGGLE: "toggle",
   CLEAR:  "clear"
 };
 
 var EMPTY = [];
 
-var filter = function(fields, value, src, dest) {
-  if ((fields = dl.array(fields)) && !fields.length) {
-    fields = dl.isObject(value) ? dl.keys(value) : ['data'];
-  }
-
+function filter(fields, value, src, dest) {
   var splice = true, len = fields.length, i, j, f, v;
   for (i = src.length - 1; i >= 0; --i) {
     for (j=0; j<len; ++j) {
-      v = value[f=fields[j]] || value;
-      if (src[i][f] !== v) {
+      f = fields[j];
+      v = value && f(value) || value;
+      if (f(src[i]) !== v) {
         splice = false;
         break;
       }
@@ -65437,16 +65453,24 @@ var filter = function(fields, value, src, dest) {
     if (splice) dest.push.apply(dest, src.splice(i, 1));
     splice = true;
   }
-};
+}
+
+function insert(input, datum, source) {
+  var t = Tuple.ingest(datum);
+  input.add.push(t);
+  source._data.push(t);
+}
 
 function parseModify(model, def, ds) {
   var signal = def.signal ? dl.field(def.signal) : null,
-      signalName = signal ? signal[0] : null,
-      predicate = def.predicate ? model.predicate(def.predicate.name || def.predicate) : null,
+      signalName  = signal ? signal[0] : null,
+      predicate   = def.predicate ? model.predicate(def.predicate.name || def.predicate) : null,
       exprTrigger = def.test ? model.expr(def.test) : null,
       reeval  = (predicate === null && exprTrigger === null),
       isClear = def.type === Types.CLEAR,
-      fieldName = def.field,
+      fields  = dl.array(def.field || 'data'),
+      getters = fields.map(dl.accessor),
+      setters = fields.map(dl.mutator),
       node = new Node(model).router(isClear);
 
   node.evaluate = function(input) {
@@ -65468,33 +65492,47 @@ function parseModify(model, def, ds) {
 
     var value = signal ? model.signalRef(def.signal) : null,
         d = model.data(ds.name),
-        t = null, add = [], rem = [], datum;
+        t = null, add = [], rem = [], up = 0, datum;
 
     if (dl.isObject(value)) {
       datum = value;
+      if (!def.field) {
+        fields = dl.keys(datum);
+        getters = fields.map(dl.accessor);
+        setters = fields.map(dl.mutator);
+      }
     } else {
       datum = {};
-      datum[fieldName || 'data'] = value;
+      setters.forEach(function(f) { f(datum, value); });
     }
 
     // We have to modify ds._data so that subsequent pulses contain
     // our dynamic data. W/o modifying ds._data, only the output
     // collector will contain dynamic tuples.
     if (def.type === Types.INSERT) {
-      input.add.push(t=Tuple.ingest(datum));
-      d._data.push(t);
+      insert(input, datum, d);
     } else if (def.type === Types.REMOVE) {
-      filter(fieldName, value, input.mod, input.rem);
-      filter(fieldName, value, input.add, rem);
-      filter(fieldName, value, d._data, rem);
+      filter(getters, value, input.mod, input.rem);
+      filter(getters, value, input.add, rem);
+      filter(getters, value, d._data, rem);
+    } else if (def.type === Types.UPSERT) {
+      input.mod.forEach(function(x) {
+        var every = getters.every(function(f) {
+          return f(x) === f(datum);
+        });
+
+        if (every) up = (dl.extend(x, datum), up+1);
+      });
+
+      if (up === 0) insert(input, datum, d);
     } else if (def.type === Types.TOGGLE) {
       // If tuples are in mod, remove them.
-      filter(fieldName, value, input.mod, rem);
+      filter(getters, value, input.mod, rem);
       input.rem.push.apply(input.rem, rem);
 
       // If tuples are in add, they've been added to backing data source,
       // but no downstream operators will have seen it yet.
-      filter(fieldName, value, input.add, add);
+      filter(getters, value, input.add, add);
 
       if (add.length || rem.length) {
         d._data = d._data.filter(function(x) {
@@ -65513,7 +65551,7 @@ function parseModify(model, def, ds) {
       d._data.splice(0);
     }
 
-    if (fieldName) input.fields[fieldName] = 1;
+    fields.forEach(function(f) { input.fields[f] = 1; });
     return input;
   };
 
@@ -66457,7 +66495,12 @@ function parseStreams(view) {
       if (s.event)       domEvent(sig, s, exp, spec);
       else if (s.signal) signal(sig, s, exp, spec);
       else if (s.start)  orderedStream(sig, s, exp, spec);
-      else if (s.stream) mergedStream(sig, s.stream, exp, spec);
+      else if (s.stream) {
+        if (s.filters) s.stream.forEach(function(ms) {
+          ms.filters = dl.array(ms.filters).concat(s.filters);
+        });
+        mergedStream(sig, s.stream, exp, spec);
+      }
     });
   }
 
