@@ -306,14 +306,11 @@ var expectedUtility = dp.cache(function(state, action){
 var simulate = function(startState){
   
   var sampleSequence = function(state){
-    if (state.terminateAfterAction){
-      var action = sample(act(state));
-      return [[state.loc, action]];
-    } else {
-      var action = sample(act(state));
-      var nextState = transition(state,action); 
-      return [[state.loc, action]].concat(sampleSequence(nextState));
-    }
+    var action = sample(act(state));
+    var nextState = transition(state, action);
+	var out = [state.loc, action];
+    return state.terminateAfterAction ? [out]
+	  : [out].concat(sampleSequence(nextState));
   };
   return sampleSequence(startState);
 };

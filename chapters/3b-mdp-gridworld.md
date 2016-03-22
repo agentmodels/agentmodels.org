@@ -30,79 +30,102 @@ GridWorld.draw(params, {labels: params.labels, trajectory: [[startState]]});
 We start with a *deterministic* transition function. In this case, Alice's risk of falling down the steep hill is solely due to softmax noise in her action choice (which is minimal in this case). The agent model is the same as the one at the end of [Chapter III.1](/chapters/3a-mdp.html'). We wrap the functions `agent`, `expectedUtility` and `simulate` in a function `mdpSimulateGridworld`. The following code box defines this function and we use it later on without defining it (since it is also included in the WebPPL Gridworld library). 
 
 ~~~~
-var mdpSimulateGridworld = function(startState, totalTime, 
-                                     params, numRejectionSamples){
+var makeMDPAgent = function(params, world) {
+  map(function(s){assert.ok(params.hasOwnProperty(s),'makeMDPAgent args');}, 
+      ['utility','alpha']);
   
-  var transition = params.transition;
+  var stateToActions = world.stateToActions;
+  var transition = world.transition;
   var utility = params.utility;
-  var actions = params.actions;
-  var isTerminal = function(state){
-    return state[0] === 'dead';
-  };
+  var alpha = params.alpha;
 
-  var agent = dp.cache(function(state, timeLeft){
-    return Enumerate(function(){
-      var action = uniformDraw(actions);
-      var eu = expectedUtility(state, action, timeLeft);    
-      factor(params.alpha * eu);
-      return action;
-    });      
-  });
+  var act = dp.cache( 
+    function(state){
+      return Enumerate(function(){
+        var action = uniformDraw(stateToActions(state));
+        var eu = expectedUtility(state, action);
+        factor(alpha * eu);
+        return action;
+      });      
+    });
   
-  var expectedUtility = dp.cache(function(state, action, timeLeft){
-    var u = utility(state,action);
-    var newTimeLeft = timeLeft - 1;
-
-    if (newTimeLeft === 0 || isTerminal(state)){
-      return u; 
-    } else {                     
-      return u + expectation(Enumerate(function(){
-        var nextState = transition(state, action); 
-        var nextAction = sample(agent(nextState, newTimeLeft));
-        return expectedUtility(nextState, nextAction, newTimeLeft);  
-      }));
-    }                      
-  });
-
-  var simulate = function(startState, totalTime){
-
-    var sampleSequence = function(state, timeLeft){
-      if (timeLeft === 0 || isTerminal(state)){
-        return [];
-      } else {
-        var action = sample(agent(state, timeLeft));
-        var nextState = transition(state, action); 
-        return [[state, action]].concat(
-          sampleSequence(nextState, timeLeft - 1));
-      }
-    };
-    
-    // Repeatedly sample trajectories for the agent and return ERP
-    return Rejection(function(){
-      return sampleSequence(startState, totalTime);
-    }, numRejectionSamples);
+  var expectedUtility = dp.cache(
+    function(state, action){
+      var u = utility(state, action);
+      if (state.terminateAfterAction){
+        return u; 
+      } else {                     
+        return u + expectation( Enumerate(function(){
+          var nextState = transition(state, action); 
+          var nextAction = sample(act(nextState));
+          return expectedUtility(nextState, nextAction);  
+        }));
+      }                      
+    });
+  
+  return {
+    params : params,
+    expectedUtility : expectedUtility,
+    act: act
   };
-
-  return simulate(startState, totalTime);
 };
 
-// Parameters for building Hiking MDP
-var utilityTable = { east: 10, west: 1, hill: -10, timeCost: -.1 };
-var startState = [0, 1];
+var simulateMDP = function(startState, world, agent) {
+  var act = agent.act;
+  var expectedUtility = agent.expectedUtility;
+  var transition = world.transition;
 
-// Parameters for noisy agent (but no transition noise)
-var alpha = 100;
+  var sampleSequence = function(state) {
+    var action = sample(act(state));
+    var nextState = transition(state, action);
+    var out = [state, action];
+    return state.terminateAfterAction ? [out]
+      : [out].concat(sampleSequence(nextState));
+  };
+  return sampleSequence(startState);
+};
+
+var mdpTableToUtilityFunction = function(table, feature) {
+  return function(state, action) {
+    var stateFeatureName = feature(state).name;
+    
+    return stateFeatureName ? table[stateFeatureName] : table.timeCost;
+  };
+};
+
+// parameters for world
 var transitionNoiseProb = 0;
-var params = makeHike(transitionNoiseProb, alpha, utilityTable);
 
-var totalTime = 12;
-var numRejectionSamples = 1;
-var out = sample(mdpSimulateGridworld(startState, totalTime, params, 
-                                      numRejectionSamples));
-GridWorld.draw(params, { labels: params.labels, trajectory: out });
+var world = makeHike(transitionNoiseProb);
+var feature = world.feature;
+
+var startState = {loc: [0,1],
+		          timeLeft: 10,
+				  terminateAfterAction: false,
+				  timeAtRestaurant: 1};
+
+// parameters for agent
+var utilityTable = {East: 10, West: 1, Hill: -10, timeCost: -.1};
+var utility = mdpTableToUtilityFunction(utilityTable, feature);
+var alpha = 100;
+var agent = makeMDPAgent({utility: utility, alpha: alpha}, world);
+
+var trajectory = simulateMDP(startState, world, agent);
+
+var displayTrajectory = function(trajectory) {
+  var stateActionToLocAction = function(stateAction) {
+    return [stateAction[0].loc, stateAction[1]];
+  };
+  return map(stateActionToLocAction, trajectory);
+};
+
+displayTrajectory(trajectory);
+
 ~~~~
 
 ## Hiking under the influence 
+
+TODO: change this example?
 
 If we set the softmax noise parameter `alpha=10`, the agent will often make sub-optimal decisions. While not realistic in Alice's situation, this might describe a confused or intoxicated agent. Since the agent is noisy, we sample many trajectories to approximate the agent's distribution on trajectories using the built-in function `Rejection`. The main use for `Rejection` is inference by rejection sampling. However, here we use `Rejection` without any `condition` or `factor` statement simply to summarize the agent's noisy behavior. We do this by computing the *length* of the agent's trajectories, since suboptimal actions will lead to less efficient routes to the East peak. (Note that, if the agent is left of a wall and takes the action "left", then the agent doesn't move anywhere. If the time cost isn't high, the noisy agent will often move towards the walls).
 
@@ -153,16 +176,32 @@ Keeping `transitionNoiseProb=0.1`, find settings for the arguments to `makeHike`
 
 ~~~~
 // Parameters for building Hiking MDP
-var utilityTable = { east: 10, west: 1, hill: -10, timeCost: -.1 };
-var startState = [0, 1];
-
-var alpha = 100;
 var transitionNoiseProb = 0.1;
-var totalTime = 12;
-var numRejectionSamples = 1;
-var params = makeHike(transitionNoiseProb, alpha, utilityTable);
-var trajectory = sample(mdpSimulateGridworld(startState, totalTime, params, numRejectionSamples));
-GridWorld.draw(params, { labels: params.labels, trajectory: trajectory });
+var world = makeHike(transitionNoiseProb);
+var feature = world.feature;
+
+var utilityTable = { East: 10, West: 1, Hill: -10, timeCost: -.1 };
+var utility = mdpTableToUtilityFunction(utilityTable, feature);
+var alpha = 100;
+var agent = makeMDPAgent({utility: utility, alpha: alpha}, world)
+
+var startState = {loc: [0,1],
+                  timeLeft: 12,
+				  terminateAfterAction: false,
+				  timeAtRestaurant: 1};
+
+var trajectory = simulateMDP(startState, world, agent);
+// draw trajectory
+
+
+var displayTrajectory = function(trajectory) {
+  var stateActionToLocAction = function(stateAction) {
+    return [stateAction[0].loc, stateAction[1]];
+  };
+  return map(stateActionToLocAction, trajectory);
+};
+
+displayTrajectory(trajectory)
 ~~~~
 
 In a world with stochastic transitions, the agent sometimes finds itself in a state it did not intend to reach. The functions `agent` and `expectedUtility` (inside `mdpSimulateGridworld`) implicitly compute the expected utility of actions for every possible future state, including states that the agent will try to avoid. In the MDP literature, this function from states and remaining time to actions (or distributions on actions) is called a *policy*. (For infinite-horizon MDPs, policies are simply functions from states to actions.)
@@ -171,18 +210,33 @@ The example above shows that the agent chooses the long route, steering clear of
 
 ~~~~
 // Parameters for building Hiking MDP
-var utilityTable = { east: 10, west: 1, hill: -10, timeCost: -.1 };
+var transitionNoiseProb = 0.1;
+var world = makeHike(transitionNoiseProb);
+var feature = world.feature;
+
+var utilityTable = { East: 10, West: 1, Hill: -10, timeCost: -.1 };
+var utility = mdpTableToUtilityFunction(utilityTable, feature);
+var alpha = 100;
+var agent = makeMDPAgent({utility: utility, alpha: alpha}, world);
 
 // Change start state from [1,0] to [1,1] and reduce time
-var startState = [1, 1];
-var totalTime = 12 - 1;
-var numRejectionSamples = 1;
+var startState = {loc: [1,1],
+                  timeLeft : 11,
+				  terminateAfterAction: false,
+				  timeAtRestaurant: 1};
 
-var alpha = 100;
-var transitionNoiseProb = 0.1;
-var params = makeHike(transitionNoiseProb, alpha, utilityTable);
-var out = sample(mdpSimulateGridworld(startState, totalTime, params, numRejectionSamples));
-GridWorld.draw(params, { labels: params.labels, trajectory: out });
+var trajectory = simulateMDP(startState, world, agent);
+
+// draw trajectory
+
+var displayTrajectory = function(trajectory) {
+  var stateActionToLocAction = function(stateAction) {
+    return [stateAction[0].loc, stateAction[1]];
+  };
+  return map(stateActionToLocAction, trajectory);
+};
+
+displayTrajectory(trajectory)
 ~~~~
 
 Extending this idea, we can return and visualize the expected values of actions that the agent *could have taken* during their trajectory. For each state in a trajectory, we compute the expected value of each possible action (given the state and remaining time). The resulting numbers are analogous to Q-values in infinite-horizon MDPs. 
@@ -190,86 +244,20 @@ Extending this idea, we can return and visualize the expected values of actions 
 The expected values we seek to display are already being computed: we add a function addition to `mdpSimulateGridworld` in order to return them.
 
 ~~~~
-var mdpSimulateGridworld = function(startState, totalTime, 
-                                     params, numRejectionSamples){
-  var alpha = params.alpha;
-  var transition = params.transition;
-  var utility = params.utility;
-  var actions = params.actions;
-  var isTerminal = function(state){
-    return state[0] === 'dead';
+// trajectory must consist only of states. This can be done by calling
+// *simulateMDP* with an additional final argument 'states'.
+var getExpectedUtilitiesMDP = function(stateTrajectory, agent, world) {
+  var eu = agent.expectedUtility;
+  var stateToActions = world.stateToActions;
+  var getAllExpectedUtilities = function(state) {
+    var availableActions = stateToActions(state);
+    return [state, map(function(action){return eu(state, action);},
+		       availableActions)];
   };
-
-  var agent = dp.cache(function(state, timeLeft){
-    return Enumerate(function(){
-      var action = uniformDraw(actions);
-      var eu = expectedUtility(state, action, timeLeft);    
-      factor(alpha * eu);
-      return action;
-    });      
-  });
-  
-  
-  var expectedUtility = dp.cache(function(state, action, timeLeft){
-    var u = utility(state,action);
-    var newTimeLeft = timeLeft - 1;
-    if (newTimeLeft === 0 || isTerminal(state)){
-      return u; 
-    } else {                     
-      return u + expectation(Enumerate(function(){
-        var nextState = transition(state, action); 
-        var nextAction = sample(agent(nextState, newTimeLeft));
-        return expectedUtility(nextState, nextAction, newTimeLeft);  
-      }));
-    }                      
-  });
-
-  var simulate = function(startState, totalTime){
-
-    var sampleSequence = function(state, timeLeft){
-      if (timeLeft === 0 || isTerminal(state)){
-        return [];
-      } else {
-        var action = sample(agent(state, timeLeft));
-        var nextState = transition(state,action); 
-        return [[state,action]].concat(sampleSequence(nextState, timeLeft - 1));
-      }
-    };
-    return Rejection(function(){
-      return sampleSequence(startState, totalTime);
-    }, numRejectionSamples);
-  };
-
-
-  // Additions for outputting expected values
-  var downToOne = function(n){
-    return (n === 0) ? [] : [n].concat(downToOne(n - 1));
-  };
-
-  // TODO: we're currently just taking the MAP of a single sample from rejection
-  var getExpUtility = function(){
-    var erp = simulate(startState, totalTime);
-    var states = map(first, erp.MAP().val); // go from [[state,action]] to [state]
-    var timeStates = zip(downToOne(states.length), states); // [ [timeLeft, state] ] for states in trajectory
-
-    // compute expectedUtility for each pair of form [timeLeft,state]
-    return map( function(timeState){
-      var timeLeft = timeState[0];
-      var state = timeState[1];
-      return [state, map(function(action){
-        return expectedUtility(state, action, timeLeft);
-      }, params.actions)];
-    }, timeStates);
-  };
-
-  // mdpSimulateGridworld now returns both an ERP over trajectories and
-  // the expectedUtility values for MAP trajectory
-  return {erp: simulate(startState, totalTime),
-          stateToExpUtilityLRUD:  getExpUtility()};
-
+  return map(getAllExpectedUtilities, stateTrajectory);
 };
 
-
+// TODO: make these examples work
 
 // long route better and takes long route
 var noiseProb = .03;
