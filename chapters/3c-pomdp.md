@@ -29,7 +29,7 @@ For a concrete example, consider the Restaurant Choice Problem. Suppose Bob does
 
 ### Formal model
 
-We first define a new class of decision probems (POMDPs) and then define an agent model for optimally solving these problems. Our definitions are based on refp:kaelbling1998planning. A Partially Observable Markov Decision Process (POMDP) is a tuple $$ \left\langle S,A(s),T(s,a),U(s,a),\Omega,O \right\rangle $$, where:
+We first define a new class of decision probems (POMDPs) and then define an agent model for optimally solving these problems. Our definitions are based on refp:kaelbling1998planning. A Partially Observable Markov Decision Process (POMDP) is a tuple $$ \left\langle S,A(s),T(s,a),U(s,a),\Omega,O \right\rangle$$, where:
 
 - $$S$$ (state space), $$A$$ (action space), $$T$$ (transition function), $$U$$ (utility or reward function) form an MDP as defined in [chapter III.1](/chapters/3a-mdp.html), with $$U$$ assumed to be deterministic. 
 
@@ -78,6 +78,8 @@ where $$s'$$, $$o$$, $$a'$$ and $$b'$$ are distributed as in the Expected Utilit
 
 ### Implementation of the Model
 As with the agent model for MDPs, we provide a direct translation of the equations above into an agent model for solving POMDPs. The variables `nextState`, `nextObservation`, `nextBelief`, and `nextAction` correspond to $$s'$$,  $$o$$, $$b'$$ and $$a'$$ respectively, and we use the Expected Utility of Belief Recursion. The following codebox defines the `act` and `expectedUtility` functions, without defining `updateBelief`, `transition`, `observe` or `utility`. 
+
+[TODO: can we remove the Run button. Alternative, we should do ```javascript or whatever markdown is for syntax highlighted code printing]
 
 ~~~~
 var act = function(belief) {
@@ -260,7 +262,18 @@ The bandit problem above is especially simple because pulling an arm *determinis
 
 We can generalize this bandit problem to the more standard *stochastic* multi-arm bandits. In this case, pulling an arm yields a distribution on prizes and the agent does not know the distribution. In the example below, we suppose that there are only two prizes "zero" and "one" which yield utilities 0 and 1. Each arm $$i$$ yields the prize "one" with probability $$p_i$$ and "zero" with probability $$1-p_i$$. This is known as *binary* or *Bernoulli* bandits and has been studied extensively (refp:kaelbling1996reinforcement -- kaelbling, littman, moore 1996 reinforcement learning). In this problem, the number of possible beliefs about $$p_i$$ will increase with the number of trials. More generally, this problem takes time exponential in the number of trials. [Show our code has this property -- maybe add some more detail or references.]
 
-[Codebox should just use a library function rather than defining the whole thing. Show a problem with three arms. Show some trajectories where the agent tries multiple arms at the start before switching to exploitation.]
+[TODO:
+- For this codebox and the ones for scaling, I'd like the code to be short and simple -- basically just for viewing the results and varying the input parameters. So the code should construct the bandit world, the agent prior and then do the output / graph visualization. So you should try to move every helper function with *manifestState* or *loc* in it to stochasticBandits.wppl. For instance, you can have a `buildStartState(timeLeft,armToERP)`, `getStochasticBanditPrior(startState, armToPrior)`, `getUtilityFunction`, `displayBanditTrajectory`. The names should be specific to stochastic bandits -- so pick whatever seems sensible.
+
+We could also put these helper functions above the 'fold', following DIPPL:
+http://dippl.org/chapters/05-particlefilter.html
+
+- Part of the slowness is presumably that we don't have fastUpdate for stochastic bandits. But we could write a special version.
+
+- For the first codebox, have `displayTrajectory` print out each result of pulling an arm on a newline. Something like: '\n Arm: ' + arm + ' Reward: ' + state', or mb something more like a table with columbs (where you just separate the arm and the reward with some space or a '|' character).
+
+
+- For displaying runtime, it'd be good to convert to seconds. 
 
 ~~~~
 var world = makeStochasticBanditWorld(2);
