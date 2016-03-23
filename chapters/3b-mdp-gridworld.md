@@ -257,8 +257,6 @@ var getExpectedUtilitiesMDP = function(stateTrajectory, world, agent) {
   return map(getAllExpectedUtilities, stateTrajectory);
 };
 
-// TODO: make these examples work
-
 // long route better and takes long route
 
 var noiseProb = 0.03;

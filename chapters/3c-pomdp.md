@@ -277,59 +277,75 @@ http://dippl.org/chapters/05-particlefilter.html
 - For displaying runtime, it'd be good to convert to seconds. 
 
 ~~~~
-var world = makeStochasticBanditWorld(2);
-
-var probablyChampagneERP = categoricalERP([0.2, 0.8], ['nothing', 'champagne']);
-
-var probablyNothingERP = categoricalERP([0.8, 0.2], ['nothing', 'champagne']);
-
-var startState = {manifestState: {loc: 'start',
-				                  timeLeft: 10,
-								  terminateAfterAction: false},
-	              latentState: {0: deltaERP('chocolate'),
-				                1: probablyChampagneERP}};
-
-var prior = Enumerate(function(){
-  var manifestState = startState.manifestState;
-  var latentState = {0: deltaERP('chocolate'),
-		             1: uniformDraw([probablyNothingERP,
-				                     probablyChampagneERP])};
-  return buildState(manifestState, latentState);
-});
-
-var prizeToUtility = {start: 0,
-	                  nothing: 0,
-					  chocolate: 1,
-					  champagne: 1.5};
-
-var utility = function(state,action){
-  var loc = state.manifestState.loc;
-  return prizeToUtility[loc];
+// helper functions defined here:
+///fold:
+// part of the webppl language. takes a timeLeft and a latent state, returns a
+// start state for a stochastic bandit POMDP.
+var buildStochasticBanditStartState = function(timeLeft, latent) {
+  return {manifestState: {loc: 'start',
+			  timeLeft: timeLeft,
+			  terminateAfterAction: false},
+	  latentState: latent};
 };
 
-var agentParams = {utility: utility,
-		           alpha: 10000,
-		           priorBelief: prior,
-		           fastUpdateBelief: false};
+// part of the webppl language. takes a table of the form {start: 0,
+// chocolate: 10, wine: -20} and returns a utility function
+var makeStochasticBanditUtility = function(table) {
+  return function(state, action) {
+    var prize = state.manifestState.loc;
+    return table[prize];
+  };
+};
 
-var agent = makeBeliefAgent(agentParams, world);
-
-var displayTrajectory = function(trajectory) {
-  var getLocAction = function(stateAction) {
+// takes a trajectory containing states and actions and returns one containing
+// locs and actions, getting rid of 'start' and the final meaningless action.
+// unlike the other two, this is not part of the webppl language
+var displayStochasticBanditTrajectory = function(trajectory) {
+  var getPrizeAction = function(stateAction) {
     var state = stateAction[0];
     var action = stateAction[1];
     return [state.manifestState.loc, action];
   };
 
-  var locsActions = map(getLocAction, trajectory);
-  var flatLocsActions = _.flatten(locsActions);
-  return flatLocsActions.slice(1, flatLocsActions.length - 1);
+  var prizesActions = map(getPrizeAction, trajectory);
+  var flatPrizesActions = _.flatten(prizesActions);
+  var actionsPrizes = flatPrizesActions.slice(1, flatPrizesActions.length - 1);
+
+  var printOut = function(n) {
+    print('\n Arm: ' + actionsPrizes[2*n] + ' -- Prize: '
+	  + actionsPrizes[2*n + 1]);
+  };
+  return map(printOut, range((actionsPrizes.length)*0.5));
 };
+///
+var world = makeStochasticBanditWorld(2);
+
+var probablyChampagneERP = categoricalERP([0.2, 0.8], ['nothing', 'champagne']);
+var probablyNothingERP = categoricalERP([0.8, 0.2], ['nothing', 'champagne']);
+
+var trueLatent = {0: deltaERP('chocolate'),
+		          1: probablyChampagneERP};
+var falseLatent = update(trueLatent, {1: probablyNothingERP});
+var timeLeft = 10;
+
+var startState = buildStochasticBanditStartState(timeLeft, trueLatent);
+
+var prior = Enumerate(function(){
+  var latent = uniformDraw([trueLatent, falseLatent]);
+  return buildStochasticBanditStartState(timeLeft, latent);
+});
+
+var prizeToUtility = {start: 0, nothing: 0, chocolate: 1, champagne: 1.5};
+var utility = makeStochasticBanditUtility(prizeToUtility);
+
+var agentParams = {utility: utility,
+		           alpha: 100,
+		           priorBelief: prior,
+		           fastUpdateBelief: false};
+var agent = makeBeliefAgent(agentParams, world);
 
 var trajectory = simulateBeliefAgent(startState, world, agent, 'stateAction');
-
-displayTrajectory(trajectory);
-
+displayStochasticBanditTrajectory(trajectory);
 ~~~~
 
 Scaling:
