@@ -79,9 +79,8 @@ where $$s'$$, $$o$$, $$a'$$ and $$b'$$ are distributed as in the Expected Utilit
 ### Implementation of the Model
 As with the agent model for MDPs, we provide a direct translation of the equations above into an agent model for solving POMDPs. The variables `nextState`, `nextObservation`, `nextBelief`, and `nextAction` correspond to $$s'$$,  $$o$$, $$b'$$ and $$a'$$ respectively, and we use the Expected Utility of Belief Recursion. The following codebox defines the `act` and `expectedUtility` functions, without defining `updateBelief`, `transition`, `observe` or `utility`. 
 
-[TODO: can we remove the Run button. Alternative, we should do ```javascript or whatever markdown is for syntax highlighted code printing]
 
-~~~~
+```javascript
 var act = function(belief) {
   return Enumerate(function(){
     var action = uniformDraw(actions);
@@ -127,7 +126,7 @@ var simulate = function(startState, priorBelief) {
     };
   return sampleSequence(startState, priorBelief, 'startAction');
 };
-~~~~
+```
 
 ## Applying the POMDP agent model
 
@@ -268,7 +267,9 @@ We can generalize this bandit problem to the more standard *stochastic* multi-ar
 We could also put these helper functions above the 'fold', following DIPPL:
 http://dippl.org/chapters/05-particlefilter.html
 
-- Part of the slowness is presumably that we don't have fastUpdate for stochastic bandits. But we could write a special version.
+- Compare scaling to exponential or poly function that upper bounds it. 
+
+- Part of the slowness is presumably that we don't have fastUpdate for stochastic bandits. But we could write a special version. We would get some saving by separating out the manifest state (i.e. which prize agent is at) from the latent state. Probably the saving is fairly small.    
 
 - For the first codebox, have `displayTrajectory` print out each result of pulling an arm on a newline. Something like: '\n Arm: ' + arm + ' Reward: ' + state', or mb something more like a table with columbs (where you just separate the arm and the reward with some space or a '|' character).
 
