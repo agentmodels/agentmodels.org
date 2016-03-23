@@ -246,7 +246,7 @@ The expected values we seek to display are already being computed: we add a func
 ~~~~
 // trajectory must consist only of states. This can be done by calling
 // *simulateMDP* with an additional final argument 'states'.
-var getExpectedUtilitiesMDP = function(stateTrajectory, agent, world) {
+var getExpectedUtilitiesMDP = function(stateTrajectory, world, agent) {
   var eu = agent.expectedUtility;
   var stateToActions = world.stateToActions;
   var getAllExpectedUtilities = function(state) {
@@ -260,42 +260,59 @@ var getExpectedUtilitiesMDP = function(stateTrajectory, agent, world) {
 // TODO: make these examples work
 
 // long route better and takes long route
-var noiseProb = .03;
-var alpha = 200;
-var utilityTable = { east: 10, west: 7, hill: -40, timeCost: -.4 };
 
-var params = makeHikeBig(noiseProb, alpha, utilityTable);
+var noiseProb = 0.03;
+var world = makeHike(noiseProb, {big: true});
+var feature = world.feature;
 
-var totalTime = 12;
-var startState = [1,1];
-var out = mdpSimulateGridworld(startState, totalTime, params, 1);
-var trajectoryExpUtilities = out.stateToExpUtilityLRUD;
-GridWorld.draw(params, { 
-  labels: params.labels,
-  trajectory: trajectoryExpUtilities, 
-  expUtilities: trajectoryExpUtilities
-});
+var alpha = 100;
+var utilityTable = {East: 10, West: 7, Hill : -40, timeCost: -0.4};
+var utility = mdpTableToUtilityFunction(utilityTable, feature);
+var agent = makeMDPAgent({utility: utility, alpha: alpha}, world);
+
+var startState = {loc: [1,1],
+		  timeLeft: 12,
+		  terminateAfterAction: false,
+		  timeAtRestaurant: 1};
+
+var trajectory = simulateMDP(startState, world, agent, 'states');
+var locs1 = map(function(state){return state.loc;}, trajectory);
+var eus = getExpectedUtilitiesMDP(trajectory, world, agent);
+// figure out nice way to display locations and expected utilities
+
+
+// GridWorld.draw(params, { 
+//   labels: params.labels,
+//   trajectory: trajectoryExpUtilities, 
+//   expUtilities: trajectoryExpUtilities
+// });
 
 
 // TODO FIX: stochastic expUtilities and doesnt take highest EU
-// action despite low noise. 
+// action despite low noise.
+
+// note that this problem persists with the new gridworld mdp functions
+
 var noiseProb = .04;
+var world = makeHike(noiseProb, {big: true});
+var feature = world.feature;
+
 var alpha = 100;
-var utilityTable = { east: 15, west: 7, hill: -40, timeCost: -.8 };
+var utilityTable = { East: 15, West: 7, Hill: -40, timeCost: -.8 };
+var utility = mdpTableToUtilityFunction(utilityTable, feature);
+var agent = makeMDPAgent({utility: utility, alpha: alpha}, world);
 
-var params = makeHikeBig(noiseProb, alpha, utilityTable);
+var startState = {loc: [1,1],
+		          timeLeft: 14,
+				  terminateAfterAction: false,
+				  timeAtRestaurant: 1};
 
-var totalTime = 14;
-var startState = [1, 1];
-var out = mdpSimulateGridworld(startState, totalTime, params, 1);
-var trajectoryExpUtilities = out.stateToExpUtilityLRUD;
-print(sample(out.erp));
-print('exp   ' + trajectoryExpUtilities);
-GridWorld.draw(params, {
-  labels: params.labels,
-  trajectory: trajectoryExpUtilities, 
-  expUtilities: trajectoryExpUtilities
-});
+var trajectory = simulateMDP(startState, world, agent, 'states');
+var eus = getExpectedUtilitiesMDP(trajectory, world, agent);
+
+var locs2 = map(function(state){return state.loc;}, trajectory);
+// locs1;
+locs2;
 ~~~~
 
 
