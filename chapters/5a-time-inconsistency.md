@@ -134,7 +134,7 @@ As with the MDP and POMDP agents, our WebPPL implementation directly translates 
 
 - $$s'$$, $$a'$$, $$d+1$$ correspond to `nextState`, `nextAction` and `delay+1` respectively. 
 
-
+[TODO: add John's changing expected utilities, with an explanation of them]
 
 <!--code from scratch/agentModelsHyperbolic.wppl]-->
 ~~~~

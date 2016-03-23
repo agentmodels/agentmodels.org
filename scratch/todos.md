@@ -1,42 +1,26 @@
-# Todos
+## Changes and remaining tasks for library
+
+### Changes
+- `updateBelief` and `simulate` have constructor functions in beliefAgent.wppl. These constructors are used by both beliefAgent and beliefDelay. There are also a number of helper functions using within `makeBeliefAgent` and `makeBeliefDelayAgent` which are at the top of `makeBeliefAgent.wppl`. Note that `beliefDelayAgent.wppl` depends on `beliefAgent.wppl` as well as on the POMDPUtils.wppl. 
+
+- The `makeAgent` and `simulate` functions take arguments of the same form (but `beliefDelay` requires boundVOI and myopia params etc.). So most tests that only depend on belief (not delays) can be written to work with both functions. You would use `getSimulateFunction('belief')` for the `beliefAgent` simulate function and `getMakeAgentFunction` for the makeAgent function. Note that the function `getPriorBelief` in POMDPutils.wppl is useful for building priors.
 
 
-## Visuals
-- Would be good to be able to have a button that runs code repeatedly (in cases where outcome is stochastic). For instance, you hit the button and you see repeated samples of the gridworld trajectory for the same agent. 
+### Todo
 
+- In AgentModels, many of the codeboxes need completing. You can use 'git grep TODO' in the agentmodels repo to find these.
 
-## Existing chapters
+- time inconsitency - add expected utilities visualization
 
-### III.1- MDP 1
-- Replace the Gridworld examples with newGridworld
-- agent -> act, and we should probably get rid of timeLeft and put that into the state (for consistency with later versions). get rid of totalTime (just use timeLeft). Have 'terminateAfterAction' as part of the state. 
+- myopia exploration - add new gridworld restaurant example and stochastic bandit examples
 
+- joint inference: number of examples to add. possibly add procrastination example from NIPS paper.
 
-### III.2 - MDP 2
-- Use newGridworld for hike example.
-- Update agent mode here to be consistent with later on. (Same changes as above). 
-- Need to make expectedUtilities work.
+- Fix citations and internal links (Owain)
 
+- Either: (a) store examples in .wppl scripts and then auto-add them to the webbook or (b) run a script that grabs all codeboxes from webbook and stores them as runnable wppl scripts.
 
-### III.3 POMDP
-Use math formalism of the paper and from Kaelbling et al paper. Introduce simplified version of beliefAgent.wppl. Bring updateBelief into scope of agent. Simplify *simulate*. Might be worth discussing recursing on state vs. belief but not clear. 
+- Document the library functions (esp. those used in webbook). The agent models will be explained in detail in the text. But we need to document the "makeGridWorld" functions and give them informative names.
 
-Should we introduce bandit example here? Yes, because we'll want to talk about it for myopic and boundVOI agents and it's good to have multiple examples. If so, showing stochastic bandits also would be ideal -- otherwise we have no stochasticity in the environment for the next few chapters. This also is a good way to introduce the intractability of POMDPs. 
-
-
-### IV.1 Reasoning about Agents (Inference)
-Start with MDP agents in gridworld:
-- Condition on single action
-- Condition on trajectory (using simulate technique and more tractable 'offPolicy' technique)
-- Condition on multiple trajectories (in same world or different world)
-
- 
-### IV.2 Reasoning about Agents II
-Inference for POMDP agent. Both for IRL bandits and gridworld. Show the Naive and Sophisticated examples. Can be relatively short. Main thing is that putting priors over agent priors and utilities can get confusing and it's good to start with simple examples. 
-
-### V. 
-- General introduction to biases. 
-- Focused discussion of time-inconsistency / hyperbolic discounting. Show the generative model. Show Naive and Sophisticated examples. Show inference that includes these. 
-- Discussion of myopia and boundVOI with links to relevant literature. Examples from IRL bandits and gridworld. 
-- Inference examples that combine these things. 
+- fix bug with updateBeliefLatent (should be observation.observation == 'noObservation'). Change name of .observation attribute. Change default of using getFullObservation and getBeliefToAction. these assume POMDPs written in terms of manifestStates. for general library use, beliefAgent should not assume POMDPs in this form. 
 
