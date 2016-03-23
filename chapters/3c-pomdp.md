@@ -271,9 +271,6 @@ http://dippl.org/chapters/05-particlefilter.html
 
 - Part of the slowness is presumably that we don't have fastUpdate for stochastic bandits. But we could write a special version. We would get some saving by separating out the manifest state (i.e. which prize agent is at) from the latent state. Probably the saving is fairly small.    
 
-- For the first codebox, have `displayTrajectory` print out each result of pulling an arm on a newline. Something like: '\n Arm: ' + arm + ' Reward: ' + state', or mb something more like a table with columbs (where you just separate the arm and the reward with some space or a '|' character).
-
-
 - For displaying runtime, it'd be good to convert to seconds. 
 
 ~~~~
@@ -283,9 +280,9 @@ http://dippl.org/chapters/05-particlefilter.html
 // start state for a stochastic bandit POMDP.
 var buildStochasticBanditStartState = function(timeLeft, latent) {
   return {manifestState: {loc: 'start',
-			  timeLeft: timeLeft,
-			  terminateAfterAction: false},
-	  latentState: latent};
+			              timeLeft: timeLeft,
+						  terminateAfterAction: false},
+	      latentState: latent};
 };
 
 // part of the webppl language. takes a table of the form {start: 0,
@@ -355,69 +352,43 @@ Scaling:
 // test to show the scaling properties of stochastic bandits
 
 var varyTime = function(n) {
-
   var world = makeStochasticBanditWorld(2);
 
   var probablyChampagneERP = categoricalERP([0.2, 0.8], ['nothing', 'champagne']);
-
   var probablyNothingERP = categoricalERP([0.8, 0.2], ['nothing', 'champagne']);
 
-  var startState = {manifestState: {loc: 'start',
-				                    timeLeft: n,
-									terminateAfterAction: false},
-		            latentState: {0: deltaERP('chocolate'),
-				                  1: probablyChampagneERP}};
+  var trueLatent = {0: deltaERP('chocolate'),
+  		            1: probablyChampagneERP};
+  var falseLatent = update(trueLatent, {1: probablyNothingERP});
+
+  var startState = buildStochasticBanditStartState(n, trueLatent);
 
   var prior = Enumerate(function(){
-    var manifestState = startState.manifestState;
-    var latentState = {0: deltaERP('chocolate'),
-		               1: uniformDraw([probablyNothingERP,
-				                       probablyChampagneERP])};
-    return buildState(manifestState, latentState);
+    var latent = uniformDraw([trueLatent, falseLatent]);
+    return buildStochasticBanditStartState(n, latent);
   });
 
-  var prizeToUtility = {start: 0,
-			            nothing: 0,
-						chocolate: 1,
-						champagne: 1.5};
-
-  var utility = function(state,action){
-    var loc = state.manifestState.loc;
-    return prizeToUtility[loc];
-  };
+  var prizeToUtility = {start: 0, nothing: 0, chocolate: 1, champagne: 1.5};
+  var utility = makeStochasticBanditUtility(prizeToUtility);
 
   var agentParams = {utility: utility,
 	                 alpha: 100,
 		             priorBelief: prior,
 		             fastUpdateBelief: false};
-
   var agent = makeBeliefAgent(agentParams, world);
 
-  var displayTrajectory = function(trajectory) {
-    var getLocAction = function(stateAction) {
-      var state = stateAction[0];
-      var action = stateAction[1];
-      return [state.manifestState.loc, action];
-    };
-
-    var locsActions = map(getLocAction, trajectory);
-    var flatLocsActions = _.flatten(locsActions);
-    return flatLocsActions.slice(1, flatLocsActions.length - 1);
-  };
-
   var f = function() {
-    var trajectory = simulateBeliefAgent(startState, world, agent, 'stateAction');
-    return displayTrajectory(trajectory);
+    return simulateBeliefAgent(startState, world, agent, 'stateAction');
   };
 
-  return timeit(f).runtimeInMilliseconds.toPrecision(3);
+  return timeit(f).runtimeInMilliseconds.toPrecision(3) * 0.001;
 };
 
 // Varying the lifetime of the agent
 var lifetimes = _.range(16).slice(2);
 var runtimes = map(varyTime, lifetimes);
 
-print('Runtime in ms for lifetimes ' + lifetimes + '\n' + runtimes);
+print('Runtime in sec for lifetimes ' + lifetimes + '\n' + runtimes);
 
 viz.bar(lifetimes, runtimes);
 
