@@ -13,9 +13,10 @@ As a simple illustration of a sequential decision problem, suppose that an agent
 ~~~~
 // We use functions from the WebPPL-gridworld library, 
 // which we will explain later
-var world = makeDonutWorld2();
 
-GridWorld.draw(world);
+var world = makeDonutWorld2({big:true});
+
+GridWorld.draw(world, {trajectory:[ {loc:[3,1]} ]} );
 ~~~~
 
 
