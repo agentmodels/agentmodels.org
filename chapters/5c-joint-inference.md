@@ -41,7 +41,7 @@ $$
 P(\theta | (s,o,a)_{0:n}) \propto P( (s,o,a)_{0:n} | \theta)P(\theta)
 $$
 
-We obtain a factorized form in exactly the same way as in Equation (2), i.e. we generate the sequence $$\{b_i\}_{0:n}$$ of agent beliefs:
+We obtain a factorized form in exactly the same way as in Equation (2), i.e. we generate the sequence $$b_i$$ from $$i=0$$ to $$i=n$$ of agent beliefs:
 
 $$
 P(\theta | (s,o,a)_{0:n}) \propto 
@@ -56,6 +56,7 @@ The likelihood term on the RHS of this equation is simply the softmax probabilit
 ### Restaurant Choice: Temptation or False Beliefs?
 
 We return to the Restaurant Choice example. As we discussed in Chapter V.1, time-inconsistent agents can produce trajectories on the MDP (full knowledge) version of this scenario that never occur for an optimal agent without noise. In our first inference example, we do joint inference over preferences, softmax noise and the discounting behavior of the agent. (We assume for this example that the agent has full knowledge and is not Myopic). We compare the preference inferences to the earlier inference approach that assumes optimality. 
+
 
 
 
