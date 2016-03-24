@@ -269,9 +269,7 @@ http://dippl.org/chapters/05-particlefilter.html
 
 - Compare scaling to exponential or poly function that upper bounds it. 
 
-- Part of the slowness is presumably that we don't have fastUpdate for stochastic bandits. But we could write a special version. We would get some saving by separating out the manifest state (i.e. which prize agent is at) from the latent state. Probably the saving is fairly small.    
-
-- For displaying runtime, it'd be good to convert to seconds. 
+- Part of the slowness is presumably that we don't have fastUpdate for stochastic bandits. But we could write a special version. We would get some saving by separating out the manifest state (i.e. which prize agent is at) from the latent state. Probably the saving is fairly small.
 
 ~~~~
 // helper functions defined here:
@@ -404,65 +402,39 @@ var varyArms = function(n) {
   var world = makeStochasticBanditWorld(n);
 
   var probablyChampagneERP = categoricalERP([0.2, 0.8], ['nothing', 'champagne']);
-
   var probablyNothingERP = categoricalERP([0.8, 0.2], ['nothing', 'champagne']);
   
   var makeLatentState = function(numArms) {
     return map(function(x){return probablyChampagneERP;}, _.range(numArms));
   };
 
-  var startState = {manifestState: {loc: 'start',
-				                    timeLeft: 5,
-									terminateAfterAction: false},
-		            latentState: makeLatentState(n)};
+  var startState = buildStochasticBanditStartState(5, makeLatentState(n))
 
   var latentSampler = function(numArms) {
     return map(function(x){return uniformDraw([probablyNothingERP,
 					                           probablyChampagneERP]);},
 	           _.range(numArms));
   };
-
   var prior = Enumerate(function(){
-    var manifestState = startState.manifestState;
     var latentState = latentSampler(n);
-    return buildState(manifestState, latentState);
+    return buildStochasticBanditStartState(5, latentState);
   });
 
-  var prizeToUtility = {start: 0,
-			            nothing: 0,
-						chocolate: 1,
-						champagne: 1.5};
+  var prizeToUtility = {start: 0, nothing: 0, chocolate: 1, champagne: 1.5};
 
-  var utility = function(state,action){
-    var loc = state.manifestState.loc;
-    return prizeToUtility[loc];
-  };
-
+  var utility = makeStochasticBanditUtility(prizeToUtility);
   var agentParams = {utility: utility,
 		             alpha: 100,
 		             priorBelief: prior,
 		             fastUpdateBelief: false};
-
   var agent = makeBeliefAgent(agentParams, world);
-  
-  var displayTrajectory = function(trajectory) {
-    var getLocAction = function(stateAction) {
-      var state = stateAction[0];
-      var action = stateAction[1];
-      return [state.manifestState.loc, action];
-    };
-
-    var locsActions = map(getLocAction, trajectory);
-    var flatLocsActions = _.flatten(locsActions);
-    return flatLocsActions.slice(1, flatLocsActions.length - 1);
-  };
 
   var f = function() {
     var trajectory = simulateBeliefAgent(startState, world, agent, 'stateAction');
-    return displayTrajectory(trajectory);
+    return trajectory;
   };
 
-  return timeit(f).runtimeInMilliseconds.toPrecision(3);
+  return timeit(f).runtimeInMilliseconds.toPrecision(3) * 0.001;
 
 };
 
@@ -471,7 +443,7 @@ var varyArms = function(n) {
 var arms = [1,2,3];
 var runtimes = map(varyArms, arms);
 
-print('Runtime in ms for arms ' + arms + '\n' + runtimes);
+print('Runtime in sec for arms ' + arms + '\n' + runtimes);
 
 viz.bar(arms, runtimes);
 
