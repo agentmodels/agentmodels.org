@@ -408,7 +408,7 @@ var varyArms = function(n) {
     return map(function(x){return probablyChampagneERP;}, _.range(numArms));
   };
 
-  var startState = buildStochasticBanditStartState(5, makeLatentState(n))
+  var startState = buildStochasticBanditStartState(5, makeLatentState(n));
 
   var latentSampler = function(numArms) {
     return map(function(x){return uniformDraw([probablyNothingERP,
