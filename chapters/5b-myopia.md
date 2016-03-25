@@ -70,8 +70,12 @@ For 2-arms, Myopic with D=1 is optimal. Verify this and compare runtime.
 
 For >2 arms, I believe Myopic D=1 is not optimal. Verify this. It should be much faster as the number of arms grows. (One easy way to speed it up is to have a special *updateBelief* in *beliefDelayAgent* for stochastic bandits. the only difference is that once delay>=C, you should just directly update the timeLeft, assuming you have belief in *ERPOverLatentState*. This will avoid the Enumerate for *nextBelief*.)
 
+Probably: we should have an example of the agent that's myopic in utilities. We'd like examples that distinguish it from both the optimal agent and the boundVOI agent. 
+
 TODO
 We make a Gridworld version of the "Restaurant Search" problem. The agent is uncertain of the quality of all of the restaurants and has an independent uniform prior on each one, in particular `uniformDraw( _.range(1,11) )'. By moving adjacent to a restaurant, the agent observes the quality (e.g. by seeing how full the restaurant is or how good it looks from the menu). An image of the grid, which includes the true latent restaurant utilities and disiderata for where the agent should end up is in: /assets/img/5b-myopia-gridworld.png.
+
+Cell references are spreadsheet-style: [A, B, C, ... ] for columns and [1,2,3 ...] for rows. 
 
 ![myopia gridworld](/assets/img/5b-myopia-gridworld.png)
 
