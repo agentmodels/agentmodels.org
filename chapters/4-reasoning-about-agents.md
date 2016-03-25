@@ -196,7 +196,7 @@ var posterior = function(observedStateActionSequence){
   });
 
 
-var observedStateActionSequence = []; // TODO add observed
+var observedStateActionSequence = restaurantNameToPath.donutSouth
 posterior(observedStateActionSequence.slice(0,1))
 posterior(observedStateActionSequence.slice(0,2))
 posterior(observedStateActionSequence.slice(0,3))
@@ -224,7 +224,7 @@ var utilityTablePrior = function(){
           timeCost: uniformDraw(timeCostValues)};
 };
 var alphaPrior = function(){return uniformDraw([.1,1,10,100]);
-var world = makeDonutWorld2({big:true, start:[3,1], timeLeft:10});
+var world = makeDonutWorld2({big:true, start:[3,1], timeLeft:10}); // TODO restaurantChoiceMDP
 
 var posterior = function(observedStateActionSequence){
   return Enumerate( 
@@ -315,7 +315,7 @@ The codebox below implements this example. The translation of Equation (2) is in
 
 - $$a_i$$ is `observedAction`
 
-[The example here is "EXAMPLE 3" in tests/beliefDelayIRLBandits.wppl. But using the chocolate/champagne/nothing prizes instead of a,b,c. Also, need to add the observations to what we condition on and to only condition on the first choice the agent makes. We could have a case with a longer time horizon to show that if we hold prior fixed, the explanations in terms of chocolate having higher utility will become more compelling.]
+[TODO The example here is "EXAMPLE 3" in tests/beliefDelayIRLBandits.wppl. But using the chocolate/champagne/nothing prizes instead of a,b,c. Also, need to add the observations to what we condition on and to only condition on the first choice the agent makes. We could have a case with a longer time horizon to show that if we hold prior fixed, the explanations in terms of chocolate having higher utility will become more compelling.]
 
 We include an inference function which is based on `factorOffPolicy` in irlBandits.wppl. We specialize this to the beliefAgent and add observations to the `observedStateAction`. The function is currently in irlBandits.wppl as *agentModelsIRLBAnditInfer*].
 
