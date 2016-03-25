@@ -1134,12 +1134,9 @@
       updateHeightsInViewport(cm);
       var barMeasure = measureForScrollbars(cm);
       updateSelection(cm);
-      setDocumentHeight(cm, barMeasure);
       updateScrollbars(cm, barMeasure);
+      setDocumentHeight(cm, barMeasure);
     }
-
-    if (parseInt(cm.display.gutters.style.height) > cm.display.scroller.clientHeight)
-      cm.display.gutters.style.height = cm.display.scroller.clientHeight + "px"
 
     update.signal(cm, "update", cm);
     if (cm.display.viewFrom != cm.display.reportedViewFrom || cm.display.viewTo != cm.display.reportedViewTo) {
@@ -1155,8 +1152,8 @@
       postUpdateDisplay(cm, update);
       var barMeasure = measureForScrollbars(cm);
       updateSelection(cm);
-      setDocumentHeight(cm, barMeasure);
       updateScrollbars(cm, barMeasure);
+      setDocumentHeight(cm, barMeasure);
       update.finish();
     }
   }
@@ -1164,8 +1161,7 @@
   function setDocumentHeight(cm, measure) {
     cm.display.sizer.style.minHeight = measure.docHeight + "px";
     cm.display.heightForcer.style.top = measure.docHeight + "px";
-    cm.display.gutters.style.height = Math.max(measure.docHeight + cm.display.barHeight + scrollGap(cm),
-                                               measure.clientHeight) + "px";
+    cm.display.gutters.style.height = (measure.docHeight + cm.display.barHeight + scrollGap(cm)) + "px";
   }
 
   // Read the actual heights of the rendered lines, and update their
@@ -3490,10 +3486,10 @@
 
     if (op.preparedSelection)
       cm.display.input.showSelection(op.preparedSelection);
-    if (op.updatedDisplay)
-      setDocumentHeight(cm, op.barMeasure);
     if (op.updatedDisplay || op.startHeight != cm.doc.height)
       updateScrollbars(cm, op.barMeasure);
+    if (op.updatedDisplay)
+      setDocumentHeight(cm, op.barMeasure);
 
     if (op.selectionChanged) restartBlink(cm);
 
@@ -9264,7 +9260,7 @@
 
   // THE END
 
-  CodeMirror.version = "5.13.0";
+  CodeMirror.version = "5.13.2";
 
   return CodeMirror;
 });
@@ -72212,8 +72208,14 @@ var CodeEditor = React.createClass({
   // TODO: remove hist and barChart once webppl-viz stabilizes
   // ------------------------------------------------------------
   print: function (s, k, a, x) {
-    this.addResult({ type: 'text', message: x });
-    return k(s);
+    // if x has a custom printer, use it
+    if (x.__print__) {
+      return k(s, x.__print__(x));
+    } else {
+      this.addResult({ type: 'text',
+        message: typeof x == 'object' ? JSON.stringify(x) : x });
+      return k(s);
+    }
   },
   hist: function (s, k, a, samples) {
     var frequencyDict = _(samples).countBy(function (x) {
@@ -72461,7 +72463,14 @@ var globalExport = {
       }
     };
   },
-  set: function (item, key) {
+  put: function () {
+    var item, key;
+    if (arguments.length == 1) {
+      item = arguments[0];
+    } else {
+      key = arguments[0];
+      item = arguments[1];
+    }
     if (!key) {
       numTopStoreKeys++;
       key = 'r' + numTopStoreKeys;
