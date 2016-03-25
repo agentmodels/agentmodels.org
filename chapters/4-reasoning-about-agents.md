@@ -24,9 +24,12 @@ Consider the MDP version of Bob's Restaurant Choice problem. Bob is choosing bet
 
 ~~~~
 var world = makeDonutWorld2({big:true});
+// should be: (wherese these objects live in newGridworld.wppl)
+//var world = restaurantChoiceMDP; // which is big world
+// var observedPath = restaurantNameToPath.donutSouth
 
-GridWorld.draw(params, 
-     trajectory: [ [[2,1],'l'], [[1,1],'l'] ] });
+GridWorld.draw(world, 
+     trajectory: observedPath);
 ~~~~
 
 From Bob's actions, we infer that he probably prefers the Donut Store to the other restaurants. An alternative explanation is that Bob cares most about saving time. He might prefer the Vegetarian Cafe (all things being equal) but his preference is not strong enough to spend extra time getting there.
