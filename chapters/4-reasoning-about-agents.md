@@ -36,7 +36,7 @@ From Bob's actions, we infer that he probably prefers the Donut Store to the oth
 
 In this first example of inference, Bob's preference for saving time are taken as given (with only a weak preference) and we infer (given the actions shown above) Bob's preference for the different restaurants. We model Bob using the MDP agent model from [Chapter III.1](/chapters/3a-mdp.html). We place a uniform prior over three possible utility functions for Bob: one favoring the Donut Store, one favoring Vegetarian Cafe and one favoring Noodle Shop. We use `Enumerate` to compute a Bayesian posterior over these utility functions, given Bob's observed behavior. Since the world is practically deterministic (with softmax parameter $$\alpha$$ set high), we just compare Bob's predicted states under each utility function to the states actually observed. To predict Bob's states for each utility function, we use the function `simulate` from [Chapter III.1](/chapters/3a-mdp.html). 
 
-[TODO: use new version of mdpSimulate]
+[TODO: use functions from new *mdpAgent.wppl*. make representation of the prior a bit simpler. 
 
 ~~~~
 
@@ -54,8 +54,12 @@ var utilityTablePrior = function(){
     update(baseUtilityTable, {noodle:2}) // prefers Noodle
   );
 };
-var observedStates = []; // TODO add observed states from above
-var world = makeDonutWorld2({big:true, start:[2,1], timeLeft:10});
+var observedStates = []; //  restaurantNameToPath.donutSouth
+var world = makeDonutWorld2({big:true, start:[2,1], timeLeft:10}); // =restaurantChoiceMDP
+
+// TODO we can speed this up a lot by using:
+// Rejection( function(){return simulateMDP(world, agent, states);}, 1).MAP().val
+// instead of simulateMDP.
 
 var posterior  = Enumerate( function(){
   var utilityTable = utilityTablePrior();
@@ -202,7 +206,9 @@ posterior(observedStateActionSequence.slice(0,3))
 
 The posterior shows that taking a step towards Donut South can now be explained in terms of a high `timeCost`. If the agent has a low value for $$\alpha$$, then this step to the left is fairly likely even if the agent prefers the Noodle Store or Vegetarian Cafe. So including softmax noise in the inference makes inferences about other parameters closer to the prior. However, once we observe three steps towards Donut South, the inferences about preferences become fairly strong. 
 
-As noted above, it is simple to extend our approach to inference to conditioning on multiple sequences of actions. Consider the two sequences below: [first one goes to DSouth from start. Second one goes to DNorth.]
+As noted above, it is simple to extend our approach to inference to conditioning on multiple sequences of actions. Consider the two sequences below:
+
+[TODO display two sequences. first goes to DonutSouth, second goes directly to donut north]
 
 ~~~~
 
@@ -235,9 +241,9 @@ var posterior = function(observedStateActionSequence){
       return {utilityTable:utilityTable, alpha:alpha};
     });
 
-    // TODO fill these observations in
-  var observedSequence1 = [];
-  var observedSequence2 = [];
+    
+  var observedSequence1 =  restaurantNameToPath.donutSouth
+  var observedSequence2 =  restaurantNameToPath.naive // which we could remain 'donutNorth'
   posterior(observedSequence1.concat(observedSequence2))
   // TODO: alternatively: can we run *score* on an array for more efficient computation of likelihoods
   // e.g. score([],[x1,x2]), where the function computes sufficient statistics of the input 
