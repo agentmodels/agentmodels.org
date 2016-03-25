@@ -5,6 +5,8 @@ description: Agents with faster but sub-optimal planning algorithms-- myopia abo
 
 ---
 
+### TODO:
+add discussion of myopia/greediness for utilities ("myopia" in the gridworld library). 
 
 ### Introduction
 In the previous chapter, we extended our earlier agent model for solving MDPs optimally to a model of planning for hyperbolic discounters. The goal was to better capture human behavior by incorporating one of the most prominent and well studied human *biases*. As we discussed [earlier](/chapters/5-biases-intro), any bounded agent will be unable to solve certain computational problems optimally. So when modeling human behavior (e.g. for Inverse Reinforcement Learning), we might produce better generative models by incorporating planning algorithms that are sub-optimal but which perform well given human computational bounds (i.e. they are "resource rational" in the sense of CITE). This chapter describes an efficient planning algorithm which sometimes performs close to optimally. The goal is to illustrate how our existing agent models can be extended to capture boundedly rational behavior by adding only a few lines of code. 
