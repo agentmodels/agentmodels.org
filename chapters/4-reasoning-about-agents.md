@@ -314,11 +314,20 @@ The codebox below implements this example. The translation of Equation (2) is in
 
 - $$a_i$$ is `observedAction`
 
-[TODO The example here is "EXAMPLE 3" in tests/beliefDelayIRLBandits.wppl. But using the chocolate/champagne/nothing prizes instead of a,b,c. Also, need to add the observations to what we condition on and to only condition on the first choice the agent makes. We could have a case with a longer time horizon to show that if we hold prior fixed, the explanations in terms of chocolate having higher utility will become more compelling.]
+[TODO:
+
+- Need to generate the state-observation-action triples for this example. They should have structure {state:, observation:, action:} as indicated in the code. 
+
+- Start with an easier example than the one mentioned in the main text. The agent decides to explore (takes arm1), gets champagne and then takes arm1 thereafter. So we know the agent must prefer champagne to chocolate. Do this just with a prior on agent's utilities and a delta on his beliefs. 
+
+- Then do example mentioned above where we condition on the agent taking arm0 for the first action. In this example, if the agent doesn't explore first time, then they won't explore at all. So additional observations wouldn't make a difference. 
+
+- If we increase the total time and leave everything else fixed, then we'll get a stronger inference about the preference for chocolate over champagne. (Because if agent prefers champagne, then even a low prior on arm1 yielding chocolate will make exploration worth it as the total time gets long enough). Show a graph of how the preference increases with timeLeft. 
+]
 
 We include an inference function which is based on `factorOffPolicy` in irlBandits.wppl. We specialize this to the beliefAgent and add observations to the `observedStateAction`. The function is currently in irlBandits.wppl as *agentModelsIRLBAnditInfer*].
 
-[TODO fix the code here]
+
 
 ~~~~
 
@@ -352,10 +361,8 @@ var worldAndStart = makeIRLBanditWorldAndStart(2, armToPrize, totalTime);
 
   var latentState = armToPrize;
 
-    // add timeleft etc to observed sequence
-  var observedSequence = [{state:'start', action:0, observation:'noObservation'}];
-  var fullObservedStateAction = stateActionPairsToFullStates(observedStateAction, latentState);
-
+// TODO get appropriate observed sequence. 
+  var observedSequence = [] 
 
   var getPosterior = function(baseAgentParams, priorPrizeToUtility, priorInitialBelief, observedSequence){
 
