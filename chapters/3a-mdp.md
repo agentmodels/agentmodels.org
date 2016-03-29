@@ -15,8 +15,9 @@ As a simple illustration of a sequential decision problem, suppose that an agent
 // which we will explain later
 
 var world = makeDonutWorld2({big:true});
+var startState = { loc : [3, 1] }
 
-GridWorld.draw(world, {trajectory:[ {loc:[3,1]} ]} );
+GridWorld.draw(world, { trajectory : [stateState] });
 ~~~~
 
 
@@ -43,7 +44,7 @@ The intuition to keep in mind for MDPs is that the expected utility will propaga
 
 ## Markov Decision Processes: Implementation
 
-The recursive decision rule for MDP agents (Equation 1) can be directly translated into WebPPL. The resulting agent model is also a natural extension of the `softmaxAgent` from the previous [chapter](/chapters/3-agents-as-programs.html). The `agent` function takes the agent's state, evaluates the expectation of actions in the state, and returns a softmax distribution over actions. The expected utility of an action is computed by a separate function `expectedUtility`. Since an action's expected utility depends on the agent's future actions, `expectedUtility` calls `agent` in a mutual recursion, bottoming out when a terminal state is reached or when time runs out. 
+The recursive decision rule for MDP agents (Equation 1) can be directly translated into WebPPL. The resulting agent model is also a natural extension of the `softmaxAgent` from the previous [chapter](/chapters/3-agents-as-programs.html). The `act` function of the agent takes the agent's state, evaluates the expectation of actions in the state, and returns a softmax distribution over actions. The expected utility of an action is computed by a separate function `expectedUtility`. Since an action's expected utility depends on the agent's future actions, `expectedUtility` calls `act` in a mutual recursion, bottoming out when a terminal state is reached or when time runs out. 
 
 We illustrate this agent model with a trival example of an MDP and return to Bob's choice of restaurant later on. The trivial MDP is implemented in WebPPL by functions `transition` and `utility`, and by the agent's available actions `[-1, 0, 1]`. The MDP is as follows:
 
@@ -66,35 +67,43 @@ var utility = function(state){
   return (state === 3) ? 1 : 0;
 };
 
-var agent = function(state, timeLeft){
-  return Enumerate(function(){
-    var action = uniformDraw([-1, 0, 1]);
-    var eu = expectedUtility(state, action, timeLeft);    
-    factor(100 * eu);
-    return action;
-  });      
-};
+var makeAgent = function() { 
+  var act = function(state, timeLeft){
+    return Enumerate(function(){
+      var action = uniformDraw([-1, 0, 1]);
+      var eu = expectedUtility(state, action, timeLeft);    
+      factor(100 * eu);
+      return action;
+    });      
+  };
 
-var expectedUtility = function(state, action, timeLeft){
-  var u = utility(state,action);
-  var newTimeLeft = timeLeft - 1;
+  var expectedUtility = function(state, action, timeLeft){
+    var u = utility(state,action);
+    var newTimeLeft = timeLeft - 1;
 
-  if (newTimeLeft == 0){
-    return u; 
-  } else {                     
-    return u + expectation(Enumerate(function(){
-      var nextState = transition(state, action); 
-      var nextAction = sample(agent(nextState, newTimeLeft));
-      return expectedUtility(nextState, nextAction, newTimeLeft);  
-    }));
-  }
-};
+    if (newTimeLeft == 0){
+      return u; 
+    } else {                     
+      return u + expectation(Enumerate(function(){
+        var nextState = transition(state, action); 
+        var nextAction = sample(act(nextState, newTimeLeft));
+        return expectedUtility(nextState, nextAction, newTimeLeft);  
+      }));
+    }
+  };
+
+  return { 
+    act : act
+  };
+}
+
+var act = makeAgent().act;
 
 var startState = 0;
 var totalTime = 4;
 
 // Agent's move '-1' means 'left', '0' means 'stay', '1' means 'right'
-sample(agent(startState, totalTime));
+sample(act(startState, totalTime));
 ~~~~
 
 This code computes the agent's initial action, given that the agent will get to take four actions in total. To simulate the agent's entire trajectory, we add a third function `simulate`, which updates and stores the world state in response to the agent's actions: 
