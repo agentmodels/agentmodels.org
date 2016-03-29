@@ -51,9 +51,7 @@ $$
 The likelihood term on the RHS of this equation is simply the softmax probability that the agent with given parameters chooses $$a_i$$ in state $$s_i$$. This equation for inference does not make use of the *delay* indices used by time-inconsistent and Myopic agents. This is because the delays figure only in their internal simulations. In order to compute the likelihood the agent takes an action, we don't need to keep track of delay values. 
 
 
-## Examples
-
-### Restaurant Choice Inference
+## Restaurant Choice Inference
 
 We return to the Restaurant Choice example and consider inference for the MDP and POMDP versions:
 
@@ -65,15 +63,95 @@ As we discussed in Chapter V.1, time-inconsistent agents can produce trajectorie
 
 In our first inference example, we do joint inference over preferences, softmax noise and the discounting behavior of the agent. (We assume for this example that the agent has full knowledge and is not Myopic). We compare the preference inferences to the earlier inference approach that assumes optimality.
 
-#### Example 1: Time-inconsistent vs. optimal MDP agents
+### Example 1: Time-inconsistent vs. optimal MDP agents
 This example compares a model that assumes an optimal agent (and just infers their preferences and softmax noise) to a model that also allows for sub-optimal time-inconsistent agents. Before making a direct comparison, we demonstrate that we can infer the preferences of time-inconsistent agents from observations of their behavior.
 
-For our first codebox we condition on behavior that is distinctive to a Naive time inconsistent agent. Our generative models assumes that the agent discounts, that the `timeCost` variable is fixed and negative, and that the softmax noise is low. We infer the agent's preferences and whether they are Naive or Sophisticated.
-
-
+#### Assuming discounting, infer "Naive" or "Sophisticated"
+First we condition on the agent moving to Donut North, which is distinctive to the Naive hyperbolic discounter. Here is the observed path.
 
 ~~~~
+var world = restaurantChoiceMDP;
+var start = restaurantChoiceStart;
+GridWorld.draw(world, {trajectory:[start]})
+~~~~
 
+For inference, we specialize the approach above for (possibly time-inconsistent) agents in MDPs. So we infer $$\nu$$ and $$k$$ but not $$b_0$$. The function `exampleGetPosterior` is a slightly simplified version of the library function we use below.
+
+~~~~
+var exampleGetPosterior = function(world, priorUtilityTable, priorDiscounting, priorAlpha, observedStateAction){
+return Enumerate(function () {
+
+    // Sample parameters from prior
+    var utilityTable = priorUtilityTable();
+    var sophisticatedOrNaive = priorDiscounting().sophisticatedOrNaive;
+
+    // Create agent with those parameters
+    var agent = makeHyperbolicDiscounter(
+      { utility   : makeRestaurantUtilityMDP(world, utilityTable),
+        alpha     : priorAlpha(), 
+        discount  : priorDiscounting().discount,
+        sophisticatedOrNaive : sophisticatedOrNaive
+      }, world);
+    
+    var agentAction = agent.act;
+
+    // Condition on observed actions
+    map(function (stateAction) {
+      var state   = stateAction[0];
+      var action  = stateAction[1];
+      factor(agentAction(state, 0).score([], action)) ; 
+    }, observedStateAction);
+
+    // return parameters
+    var vegMinusDonut = sum(utilityTable['Veg']) - sum(utilityTable['Donut N']);
+    return {
+      utility: utilityTable, 
+      sophisticatedOrNaive: discounting.sophisticatedOrNaive,
+      vegMinusDonut: vegMinusDonut,
+    };
+  });
+};
+~~~~
+
+This inference function allows for inference over the softmax `alpha` parameter and the discount constant `discount`. For this example, we fix these values so that the agent has low noise and `discount==1`. We also fix the `timeCost` utility to be small and negative. So we infer only the agent's preferences and whether they are Naive or Sophisticated.
+
+~~~~
+ var runInference = function(observationName){
+  var restaurantHyperbolic = getRestaurantHyperbolicInfer();
+  var getObservations = restaurantHyperbolicInfer.getObservations;
+  var getPosterior = restaurantHyperbolicInfer.getPosterior;
+  
+  var observedStateActionSequence = getObservations(world, start, observationName);
+  return getPosterior(world, priorUtilityTable, priorDiscounting, priorAlpha, 
+                      observedStateActionSequence);
+};
+
+var priorUtilityTable = function(){
+  var utilityValues = [-10,0,10,20];
+  var getUtilityPair = function(){return [uniformDraw(utilityValues), uniformDraw(utilityValues)];};
+  var donut = getUtilityPair();
+  var veg = getUtilityPair();
+  return {
+    'Donut N' : donut,
+    'Donut S' : donut,
+    'Veg'     : veg,
+    'Noodle'  : [-10, -10],
+    'timeCost': -.05
+  };
+};
+
+var priorDiscounting = function(){
+  return {
+    discount: 1,
+    sophisticatedOrNaive: uniformDraw(['sophisticated', 'naive']),
+  };
+};
+
+var priorAlpha = function(){return 1000;};
+
+var observationName = 'naive';
+runInference(observationName);
+~~~~
 
 
 
