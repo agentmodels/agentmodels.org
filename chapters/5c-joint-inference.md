@@ -53,9 +53,29 @@ The likelihood term on the RHS of this equation is simply the softmax probabilit
 
 ## Examples
 
-### Restaurant Choice: Temptation or False Beliefs?
+### Restaurant Choice Inference
 
-We return to the Restaurant Choice example. As we discussed in Chapter V.1, time-inconsistent agents can produce trajectories on the MDP (full knowledge) version of this scenario that never occur for an optimal agent without noise. In our first inference example, we do joint inference over preferences, softmax noise and the discounting behavior of the agent. (We assume for this example that the agent has full knowledge and is not Myopic). We compare the preference inferences to the earlier inference approach that assumes optimality. 
+We return to the Restaurant Choice example and consider inference for the MDP and POMDP versions:
+
+1. In the MDP setting (where the agent has full knowledge), we compare a model that assumes an optimal, non-discounting MDP agent to a model that allows for time-inconsistency (but also includes a non-discounting optimal agent in the hypothesis space).
+
+2. In the POMDP setting (where the restaurants may be open or closed and the agent can learn this from observation), we do joint inference over preferences, beliefs and discounting behavior. We show that our inference approach can produce multiple explanations for the same behavior and that explanations in terms of beliefs and preferences are more plausible than those involving time-inconsistency. 
+
+As we discussed in Chapter V.1, time-inconsistent agents can produce trajectories on the MDP (full knowledge) version of this scenario that never occur for an optimal agent without noise. 
+
+In our first inference example, we do joint inference over preferences, softmax noise and the discounting behavior of the agent. (We assume for this example that the agent has full knowledge and is not Myopic). We compare the preference inferences to the earlier inference approach that assumes optimality.
+
+#### Example 1: Time-inconsistent vs. optimal MDP agents
+This example compares a model that assumes an optimal agent (and just infers their preferences and softmax noise) to a model that also allows for sub-optimal time-inconsistent agents. Before making a direct comparison, we demonstrate that we can infer the preferences of time-inconsistent agents from observations of their behavior.
+
+For our first codebox we condition on behavior that is distinctive to a Naive time inconsistent agent. Our generative models assumes that the agent discounts, that the `timeCost` variable is fixed and negative, and that the softmax noise is low. We infer the agent's preferences and whether they are Naive or Sophisticated.
+
+
+
+~~~~
+
+
+
 
 
 
