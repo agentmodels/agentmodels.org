@@ -67,19 +67,22 @@ In our first inference example, we do joint inference over preferences, softmax 
 This example compares a model that assumes an optimal agent (and just infers their preferences and softmax noise) to a model that also allows for sub-optimal time-inconsistent agents. Before making a direct comparison, we demonstrate that we can infer the preferences of time-inconsistent agents from observations of their behavior.
 
 #### Assuming discounting, infer "Naive" or "Sophisticated"
-First we condition on the agent moving to Donut North, which is distinctive to the Naive hyperbolic discounter. Here is the observed path.
+First we condition on the agent moving to Donut North, which is distinctive to the Naive hyperbolic discounter:
 
 ~~~~
 var world = restaurantChoiceMDP;
 var start = restaurantChoiceStart;
-GridWorld.draw(world, {trajectory:[start]})
+var path = map(function(location){return {loc: location};},
+               restaurantNameToPath.naive);           
+GridWorld.draw(world, {trajectory:path});
 ~~~~
 
-For inference, we specialize the approach above for (possibly time-inconsistent) agents in MDPs. So we infer $$\nu$$ and $$k$$ but not $$b_0$$. The function `exampleGetPosterior` is a slightly simplified version of the library function we use below.
+For inference, we specialize the approach above for (possibly time-inconsistent) agents in MDPs. So we infer $$\nu$$ and $$k$$ (the hyperbolic discounting parameters) but not the initial belief state $$b_0$$. The function `exampleGetPosterior` is a slightly simplified version of the library function we use below.
 
 ~~~~
-var exampleGetPosterior = function(world, priorUtilityTable, priorDiscounting, priorAlpha, observedStateAction){
-return Enumerate(function () {
+var exampleGetPosterior = function(world, priorUtilityTable, priorDiscounting,
+    priorAlpha, observedStateAction){
+  return Enumerate(function () {
 
     // Sample parameters from prior
     var utilityTable = priorUtilityTable();
@@ -111,24 +114,34 @@ return Enumerate(function () {
     };
   });
 };
+null;  
 ~~~~
 
 This inference function allows for inference over the softmax `alpha` parameter and the discount constant `discount`. For this example, we fix these values so that the agent has low noise and `discount==1`. We also fix the `timeCost` utility to be small and negative. So we infer only the agent's preferences and whether they are Naive or Sophisticated.
 
 ~~~~
- var runInference = function(observationName){
-  var restaurantHyperbolic = getRestaurantHyperbolicInfer();
+var runInference = function(observationName){
+// library function for getting observations and computing posterior for Restaurant Choice MDP
+  var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
   var getObservations = restaurantHyperbolicInfer.getObservations;
   var getPosterior = restaurantHyperbolicInfer.getPosterior;
-  
+
+// From world and start, get a sequence of observations (which we later condition on)
   var observedStateActionSequence = getObservations(world, start, observationName);
   return getPosterior(world, priorUtilityTable, priorDiscounting, priorAlpha, 
                       observedStateActionSequence);
 };
 
+
+// Define world (as above)
+var world = restaurantChoiceMDP;
+var start = restaurantChoiceStart;
+
+// Prior on agent's utility function
 var priorUtilityTable = function(){
   var utilityValues = [-10,0,10,20];
-  var getUtilityPair = function(){return [uniformDraw(utilityValues), uniformDraw(utilityValues)];};
+  var getUtilityPair = function(){
+    return [uniformDraw(utilityValues), uniformDraw(utilityValues)];};
   var donut = getUtilityPair();
   var veg = getUtilityPair();
   return {
@@ -140,6 +153,8 @@ var priorUtilityTable = function(){
   };
 };
 
+// Prior on discount constant is fixed on 1, but we do attempt to learn whether
+// agent is Sophisticated or Naive. 
 var priorDiscounting = function(){
   return {
     discount: 1,
@@ -150,7 +165,11 @@ var priorDiscounting = function(){
 var priorAlpha = function(){return 1000;};
 
 var observationName = 'naive';
-runInference(observationName);
+var erp = runInference(observationName);
+var vegMinusDonutERP = Enumerate(function(){return sample(erp).vegMinusDonut;});
+var typeERP = Enumerate(function(){return sample(erp).sophisticatedOrNaive;});
+viz.vegaPrint(vegMinusDonutERP);
+viz.vegaPrint(typeERP);
 ~~~~
 
 
