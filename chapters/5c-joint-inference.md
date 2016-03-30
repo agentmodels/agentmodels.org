@@ -114,10 +114,10 @@ var exampleGetPosterior = function(world, priorUtilityTable, priorDiscounting,
     };
   });
 };
-null;  
+exampleGetPosterior;  
 ~~~~
 
-This inference function allows for inference over the softmax `alpha` parameter and the discount constant `discount`. For this example, we fix these values so that the agent has low noise and `discount==1`. We also fix the `timeCost` utility to be small and negative. So we infer only the agent's preferences and whether they are Naive or Sophisticated.
+This inference function allows for inference over the softmax `alpha` parameter and the discount constant `discount`. For this example, we fix these values so that the agent has low noise and `discount==1`. We also fix the `timeCost` utility to be small and negative, as well as the utility of Noodle to be negative. So we infer only the agent's preferences and whether they are Naive or Sophisticated.
 
 ~~~~
 var runInference = function(observationName){
@@ -132,16 +132,14 @@ var runInference = function(observationName){
                       observedStateActionSequence);
 };
 
-
-// Define world (as above)
 var world = restaurantChoiceMDP;
 var start = restaurantChoiceStart;
 
 // Prior on agent's utility function
 var priorUtilityTable = function(){
   var utilityValues = [-10,0,10,20];
-  var getUtilityPair = function(){
-    return [uniformDraw(utilityValues), uniformDraw(utilityValues)];};
+  var getUtilityPair = function(){return [uniformDraw(utilityValues), 
+                                          uniformDraw(utilityValues)];};
   var donut = getUtilityPair();
   var veg = getUtilityPair();
   return {
@@ -162,19 +160,99 @@ var priorDiscounting = function(){
   };
 };
 
+var getMarginalObject = function(erp,key){
+  return Enumerate(function(){
+    var s = sample(erp);
+    var keys = _.keys(s);
+    var omitKeys = filter(function(el){
+      return el !== key;}, keys);
+    return _.omit(s,omitKeys);
+  });
+};
+
 var priorAlpha = function(){return 1000;};
+
+var displayResults = function(erp){
+  print('MAP utilities: ' + JSON.stringify(erp.MAP().val.utility));
+  viz.vegaPrint(getMarginalObject(erp,'vegMinusDonut'));
+  viz.vegaPrint(getMarginalObject(erp,'sophisticatedOrNaive'))
+};  
 
 var observationName = 'naive';
 var erp = runInference(observationName);
-var vegMinusDonutERP = Enumerate(function(){return sample(erp).vegMinusDonut;});
-var typeERP = Enumerate(function(){return sample(erp).sophisticatedOrNaive;});
-viz.vegaPrint(vegMinusDonutERP);
-viz.vegaPrint(typeERP);
+displayResults(erp);
 ~~~~
 
 
+Blah
 
+~~~~
+// Definition of world, prior and inference function is same as above codebox
 
+///fold:
+var runInference = function(observationName){
+// library function for getting observations and computing posterior for Restaurant Choice MDP
+  var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
+  var getObservations = restaurantHyperbolicInfer.getObservations;
+  var getPosterior = restaurantHyperbolicInfer.getPosterior;
+
+// From world and start, get a sequence of observations (which we later condition on)
+  var observedStateActionSequence = getObservations(world, start, observationName);
+  return getPosterior(world, priorUtilityTable, priorDiscounting, priorAlpha, 
+                      observedStateActionSequence);
+};
+
+var world = restaurantChoiceMDP;
+var start = restaurantChoiceStart;
+
+// Prior on agent's utility function
+var priorUtilityTable = function(){
+  var utilityValues = [-10,0,10,20];
+  var getUtilityPair = function(){return [uniformDraw(utilityValues), 
+                                          uniformDraw(utilityValues)];};
+  var donut = getUtilityPair();
+  var veg = getUtilityPair();
+  return {
+    'Donut N' : donut,
+    'Donut S' : donut,
+    'Veg'     : veg,
+    'Noodle'  : [-10, -10],
+    'timeCost': -.05
+  };
+};
+
+// Prior on discount constant is fixed on 1, but we do attempt to learn whether
+// agent is Sophisticated or Naive. 
+var priorDiscounting = function(){
+  return {
+    discount: 1,
+    sophisticatedOrNaive: uniformDraw(['sophisticated', 'naive']),
+  };
+};
+
+var getMarginalObject = function(erp,key){
+  return Enumerate(function(){
+    var s = sample(erp);
+    var keys = _.keys(s);
+    var omitKeys = filter(function(el){
+      return el !== key;}, keys);
+    return _.omit(s,omitKeys);
+  });
+};
+
+var priorAlpha = function(){return 1000;};
+
+var displayResults = function(erp){
+  print('MAP utilities: ' + JSON.stringify(erp.MAP().val.utility));
+  viz.vegaPrint(getMarginalObject(erp,'vegMinusDonut'));
+  viz.vegaPrint(getMarginalObject(erp,'sophisticatedOrNaive'))
+};  
+///
+
+var observationName = 'sophisticated';
+var erp = runInference(observationName);
+displayResults(erp);
+~~~~
 
 
 
