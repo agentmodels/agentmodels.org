@@ -88,11 +88,7 @@ $$
 P(U,\alpha | (s,a)_{0:n}) \propto P( {(s,a)}_{0:n} | U, \alpha) P(U, \alpha)
 $$
 
-The likelihood function is the MDP agent model, suppressing information about the starting state (and so on):
-
-$$P( {(s,a)}_{0:n} | U, \alpha )$$
-
-Due to the Markov Assumption for MDPs, the probability of an agent's action in a state is independent of the agent's previous or later actions (given $$U$$ and $$\alpha$$). This allows us to rewrite the posterior as **Equation (1)**:
+where the likelihood function $$P( {(s,a)}_{0:n} \vert U, \alpha )$$ is the MDP agent model (for simplicity we omit information about the starting state). Due to the Markov Assumption for MDPs, the probability of an agent's action in a state is independent of the agent's previous or later actions (given $$U$$ and $$\alpha$$). This allows us to rewrite the posterior as **Equation (1)**:
 
 $$
 P(U,\alpha | (s,a)_{0:n}) \propto P(U, \alpha) \prod_{i=0}^n P( a_i | s_i, U, \alpha)

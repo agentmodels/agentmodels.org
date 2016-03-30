@@ -29,7 +29,7 @@ where:
 - $$b_0$$ is the agent's belief (or prior) over the initial state
 
 
-- $$k \gte 0$$ is the constant for hyperbolic discounting function $$1/(1+kd)$$
+- $$k \geq 0$$ is the constant for hyperbolic discounting function $$1/(1+kd)$$
 
 - $$\nu$$ is an indicator for Naive or Sophisticated hyperbolic discounting
 
@@ -38,14 +38,14 @@ where:
 As in Equation (2), we condition on state-action-observation triples:
 
 $$
-P(\theta | (s,o,a)_{0:n}) \propto P( (s,o,a)_{0:n} | \theta)P(\theta)
+P(\theta \vert (s,o,a)_{0:n}) \propto P( (s,o,a)_{0:n} \vert \theta)P(\theta)
 $$
 
 We obtain a factorized form in exactly the same way as in Equation (2), i.e. we generate the sequence $$b_i$$ from $$i=0$$ to $$i=n$$ of agent beliefs:
 
 $$
-P(\theta | (s,o,a)_{0:n}) \propto 
-P(\theta) \prod_{i=0}^n P( a_i | s_i, b_i, U, \alpha, k, \nu, C )
+P(\theta \vert (s,o,a)_{0:n}) \propto 
+P(\theta) \prod_{i=0}^n P( a_i \vert s_i, b_i, U, \alpha, k, \nu, C )
 $$
 
 The likelihood term on the RHS of this equation is simply the softmax probability that the agent with given parameters chooses $$a_i$$ in state $$s_i$$. This equation for inference does not make use of the *delay* indices used by time-inconsistent and Myopic agents. This is because the delays figure only in their internal simulations. In order to compute the likelihood the agent takes an action, we don't need to keep track of delay values. 
