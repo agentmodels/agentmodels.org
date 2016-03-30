@@ -257,6 +257,7 @@ We observe a sequence of state-observation-action triples:
 $$
 (s_0,o_0,a_0), (s_1,o_1,a_1), \ldots, (s_n,o_n,a_n)
 $$
+
 The index for the final timestep is at most the time horzion:  $$n \leq N$$. The joint posterior on the agent's utilities and noise given the observed sequence is:
 
 $$
@@ -266,7 +267,7 @@ $$
 To produce a factorized form of this posterior analogous to Equation (1), we compute the sequence of agent beliefs. This is given by the recursive Bayesian belief update described in [Chapter III.3](/chapters/3c-pomdp):
 
 $$
-b_i = b_{i-1} | s_i, o_i, a_{i-1}
+b_i = b_{i-1} \vert s_i, o_i, a_{i-1}
 $$
 
 $$
