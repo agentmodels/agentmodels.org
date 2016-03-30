@@ -66,7 +66,7 @@ In our first inference example, we do joint inference over preferences, softmax 
 ### Example 1: Time-inconsistent vs. optimal MDP agents
 This example compares a model that assumes an optimal agent (and just infers their preferences and softmax noise) to a model that also allows for sub-optimal time-inconsistent agents. Before making a direct comparison, we demonstrate that we can infer the preferences of time-inconsistent agents from observations of their behavior.
 
-#### Assuming discounting, infer "Naive" or "Sophisticated"
+#### Assume discounting, infer "Naive" or "Sophisticated"
 First we condition on the agent moving to Donut North, which is distinctive to the Naive hyperbolic discounter:
 
 ~~~~
@@ -247,7 +247,6 @@ displayResults(erp);
 
 If the agent goes directly to Veg, then they don't provide information about whether they are Naive or Sophisticated. Using the same prior again, we do inference on this path:
 
-
 ~~~~
 var world = restaurantChoiceMDP;
 var start = restaurantChoiceStart;
@@ -315,6 +314,69 @@ var observationName = 'vegDirect';
 var erp = runInference(observationName);
 displayResults(erp);
 ~~~~
+
+#### Assume non-discounting, infer preferences and softmax
+We want to compare a model that assumes an optimal MDP agent with one that allows for time-inconsistency. We first show the inferences by the model that assumes optimality. This model has to explain the paths distinctive of Naive and Sophisticated agents in terms of softmax noise.
+
+~~~~
+///fold:
+var runInference = function(observationName){
+  // library function for getting observations and computing posterior for Restaurant Choice MDP
+  var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
+  var getObservations = restaurantHyperbolicInfer.getObservations;
+  var getPosterior = restaurantHyperbolicInfer.getPosterior;
+
+  // From world and start, get a sequence of observations (which we later condition on)
+  var observedStateActionSequence = getObservations(world, start, observationName);
+  return getPosterior(world, priorUtilityTable, priorDiscounting, priorAlpha, 
+                      observedStateActionSequence);
+};
+
+var displayResults = function(erp){
+  print('MAP utilities: ' + JSON.stringify(erp.MAP().val.utility));
+  viz.vegaPrint(getMarginalObject(erp,'vegMinusDonut'));
+  print(JSON.stringify( getMarginalObject(erp,'alpha') ) )
+  viz.vegaPrint(getMarginalObject(erp,'alpha'));
+};
+
+var world = restaurantChoiceMDP;
+var start = restaurantChoiceStart;
+///
+
+// Prior as above but we set the delayed utilities to zero
+var priorUtilityTable = function(){
+  var utilityValues = [-10,0,10,20,30,40];
+  var getUtilityPair = function(){return [uniformDraw(utilityValues), 0];};
+  var donut = getUtilityPair();
+  var veg = getUtilityPair();
+  return {
+    'Donut N' : donut,
+    'Donut S' : donut,
+    'Veg'     : veg,
+    'Noodle'  : [-5, -5],
+    'timeCost': -.01
+  };
+};
+
+// We assume no discounting (so *sophisticated* has no effect here)
+var priorDiscounting = function(){
+  return {
+    discount: 0,
+    sophisticatedOrNaive: 'sophisticated'
+  };
+};
+
+var priorAlpha = function(){return uniformDraw([0.1, 10, 100, 1000]);};
+
+//TODO graph of alpha not working
+var erp = runInference('naive'); 
+//var erp = runInference('sophisticated'); 
+displayResults(erp);
+
+~~~~
+
+
+
 
 
 
