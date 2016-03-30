@@ -29,7 +29,7 @@ where:
 - $$b_0$$ is the agent's belief (or prior) over the initial state
 
 
-- $$k$$ >= $$0$$ is the constant for hyperbolic discounting function $$1/(1+kd)$$
+- $$k \gte 0$$ is the constant for hyperbolic discounting function $$1/(1+kd)$$
 
 - $$\nu$$ is an indicator for Naive or Sophisticated hyperbolic discounting
 
@@ -137,7 +137,7 @@ var start = restaurantChoiceStart;
 
 // Prior on agent's utility function
 var priorUtilityTable = function(){
-  var utilityValues = [-10,0,10,20];
+  var utilityValues = [-10,0,10,20]; // TODO make all positive
   var getUtilityPair = function(){return [uniformDraw(utilityValues), 
                                           uniformDraw(utilityValues)];};
   var donut = getUtilityPair();
@@ -160,16 +160,6 @@ var priorDiscounting = function(){
   };
 };
 
-var getMarginalObject = function(erp,key){
-  return Enumerate(function(){
-    var s = sample(erp);
-    var keys = _.keys(s);
-    var omitKeys = filter(function(el){
-      return el !== key;}, keys);
-    return _.omit(s,omitKeys);
-  });
-};
-
 var priorAlpha = function(){return 1000;};
 
 var displayResults = function(erp){
@@ -183,8 +173,19 @@ var erp = runInference(observationName);
 displayResults(erp);
 ~~~~
 
+The graphs display the posterior after conditioning on the behavior depicted above. The variable `vegMinusDonut` is the difference in total utility between Veg and Donut. Inference rules out cases where the total utility is equal, since the agent would simply go to Donut South in that case. As expected, we infer that the agent is Naive.
 
-Blah
+Using the same prior, we condition on the path distinctive to the Sophisticated agent:
+
+~~~~
+var world = restaurantChoiceMDP;
+var start = restaurantChoiceStart;
+var path = map(function(location){return {loc: location};},
+               restaurantNameToPath.sophisticated);           
+GridWorld.draw(world, {trajectory:path});
+~~~~
+
+Here are the results of inference: 
 
 ~~~~
 // Definition of world, prior and inference function is same as above codebox
@@ -230,16 +231,6 @@ var priorDiscounting = function(){
   };
 };
 
-var getMarginalObject = function(erp,key){
-  return Enumerate(function(){
-    var s = sample(erp);
-    var keys = _.keys(s);
-    var omitKeys = filter(function(el){
-      return el !== key;}, keys);
-    return _.omit(s,omitKeys);
-  });
-};
-
 var priorAlpha = function(){return 1000;};
 
 var displayResults = function(erp){
@@ -254,6 +245,76 @@ var erp = runInference(observationName);
 displayResults(erp);
 ~~~~
 
+If the agent goes directly to Veg, then they don't provide information about whether they are Naive or Sophisticated. Using the same prior again, we do inference on this path:
+
+
+~~~~
+var world = restaurantChoiceMDP;
+var start = restaurantChoiceStart;
+var path = map(function(location){return {loc: location};},
+               restaurantNameToPath.vegDirect);           
+GridWorld.draw(world, {trajectory:path});
+~~~~
+
+Here are the results of inference: 
+
+~~~~
+// Definition of world, prior and inference function is same as above codebox
+
+///fold:
+var runInference = function(observationName){
+// library function for getting observations and computing posterior for Restaurant Choice MDP
+  var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
+  var getObservations = restaurantHyperbolicInfer.getObservations;
+  var getPosterior = restaurantHyperbolicInfer.getPosterior;
+
+// From world and start, get a sequence of observations (which we later condition on)
+  var observedStateActionSequence = getObservations(world, start, observationName);
+  return getPosterior(world, priorUtilityTable, priorDiscounting, priorAlpha, 
+                      observedStateActionSequence);
+};
+
+var world = restaurantChoiceMDP;
+var start = restaurantChoiceStart;
+
+// Prior on agent's utility function
+var priorUtilityTable = function(){
+  var utilityValues = [-10,0,10,20];
+  var getUtilityPair = function(){return [uniformDraw(utilityValues), 
+                                          uniformDraw(utilityValues)];};
+  var donut = getUtilityPair();
+  var veg = getUtilityPair();
+  return {
+    'Donut N' : donut,
+    'Donut S' : donut,
+    'Veg'     : veg,
+    'Noodle'  : [-10, -10],
+    'timeCost': -.05
+  };
+};
+
+// Prior on discount constant is fixed on 1, but we do attempt to learn whether
+// agent is Sophisticated or Naive. 
+var priorDiscounting = function(){
+  return {
+    discount: 1,
+    sophisticatedOrNaive: uniformDraw(['sophisticated', 'naive']),
+  };
+};
+
+var priorAlpha = function(){return 1000;};
+
+var displayResults = function(erp){
+  print('MAP utilities: ' + JSON.stringify(erp.MAP().val.utility));
+  viz.vegaPrint(getMarginalObject(erp,'vegMinusDonut'));
+  viz.vegaPrint(getMarginalObject(erp,'sophisticatedOrNaive'))
+};  
+///
+
+var observationName = 'vegDirect';
+var erp = runInference(observationName);
+displayResults(erp);
+~~~~
 
 
 
