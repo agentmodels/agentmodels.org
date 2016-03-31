@@ -458,7 +458,72 @@ As we discussed above, an agent in the Restaurant Choice problem is likely to be
 
 In this POMDP version of Restaurant Choice, a rational agent can exhibit behavior that never occurs in the MDP version. First, suppose the agent has a prior belief that Donut South is likely to be closed and Donut North is likely to be open. Then the agent might go to Donut North despite Donut South being closer (see example below). Second, suppose the agent believes the Noodle Shop is likely open when it's actually closed. Then the agent might go to Noodle Shop, see it's closed and then take the long loop round to Vegetarian Cafe (which would not make sense if the Noodle Shop was known to be closed from the start). This is shown in the second example below. 
 
-[Add these two examples using library functions]. 
+[Add these two examples using library functions].
+
+donut example:
+
+~~~~
+var world = getRestaurantChoicePOMDP();
+var feature = world.feature;
+var utilityTable = {'Donut N': 5,
+		            'Donut S': 5,
+					'Veg': 1,
+					'Noodle': 1,
+					timeCost: -0.1};
+var utility = tableToUtilityFunction(utilityTable, feature);
+var startState = allOpenRestaurantChoiceStart;
+
+var latentSampler = function() {
+  return categorical([0.8, 0.2], [update(startState.latentState,
+					                     {'Donut S': false}),
+				                  startState.latentState]);
+};
+
+var prior = getPriorBeliefGridworld(startState.manifestState, latentSampler);
+var agent = makeBeliefAgent({utility: utility,
+			                 alpha: 100,
+							 priorBelief: prior}, world);
+var trajectory = simulateBeliefAgent(startState, world, agent, 'states');
+
+trajectoryToLocations(trajectory);
+~~~~
+
+noodle example:
+
+~~~~
+var world = getRestaurantChoicePOMDP();
+var feature = world.feature;
+var utilityTable = {'Donut N': 1,
+		            'Donut S': 1,
+					'Veg': 3,
+					'Noodle': 5,
+					timeCost: -0.1};
+var utility = tableToUtilityFunction(utilityTable, feature);
+var startState = {
+  manifestState: { loc: [3,1],
+		           terminateAfterAction: false,
+		           timeLeft: 11},
+  latentState: {'Donut N': true,
+		        'Donut S': true,
+				Veg: true,
+				Noodle: false}
+};
+
+var latentSampler = function() {
+  return categorical([0.8, 0.2], [update(startState.latentState,
+				                     	 {Noodle: true}),
+				                  startState.latentState]);
+};
+
+var prior = getPriorBeliefGridworld(startState.manifestState, latentSampler);
+var agent = makeBeliefAgent({utility: utility,
+			                 alpha: 100,
+			                 priorBelief: prior}, world);
+var trajectory = simulateBeliefAgent(startState, world, agent, 'states');
+
+trajectoryToLocations(trajectory);
+~~~~
+
 
 ### Possible additions
 - Doing belief update online vs belief doing a batch update every time. Latter is good if belief updates are rare and if we are doing approximate inference (otherwise the errors in approximations will compound in some way). Maintaining observations is also good if your ability to do good approximate inference changes over time. (Or least maintaining compressed observations or some kind of compressed summary statistic of the observation -- e.g. .jpg or mp3 form). This is related to UDT vs CDT and possibly to the episodic vs. declarative memory in human psychology. [Add a different *updateBelief* function to illustrate.]
