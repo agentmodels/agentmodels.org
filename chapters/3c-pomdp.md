@@ -388,7 +388,7 @@ var runtimes = map(varyTime, lifetimes);
 
 print('Runtime in sec for lifetimes ' + lifetimes + '\n' + runtimes);
 
-viz.bar(lifetimes, runtimes);
+viz.line(lifetimes, runtimes);
 
 // note: this takes approximately 30 seconds to run
 ~~~~
