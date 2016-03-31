@@ -27,11 +27,13 @@ cd ../vega-lite
 npm install
 cd ../webppl
 npm install
-grunt compile:../webppl-timeit:../webppl-dp:../webppl-viz:../webppl-gridworld
-cp compiled/webppl.min.js ../../assets/js/webppl.min.js
+grunt bundle:../webppl-timeit:../webppl-dp:../webppl-viz:../webppl-gridworld
+cp bundle/webppl.min.js ../../assets/js/webppl.min.js
 cd ../..
 ~~~~
+
 If you get the error "cd: no such file or directory: vega" update npm.
+
 ~~~~
 npm -g install npm
 ~~~~
