@@ -11,13 +11,11 @@ The previous [chapter](/chapters/3-agents-as-programs.html) introduced agent mod
 As a simple illustration of a sequential decision problem, suppose that an agent, Bob, is looking for a place to eat. Bob gets out of work in a particular location (indicated below by the blue circle). He knows the streets and the restaurants nearby. His decision problem is to take a sequence of actions such that (a) he eats at a restaurant he likes and (b) he does not spend too much time walking. Here is a visualization of the street layout. The labels refer to different types of restaurants: a chain selling Donuts, a Vegetarian Salad Bar and a Noodle Shop. 
 
 ~~~~
-// We use functions from the WebPPL-gridworld library, 
-// which we will explain later
+// We use the Webppl-gridworld library
+var world = restaurantChoiceMDP;
+var startState = restaurantChoiceStart;
 
-var world = makeDonutWorld2({big:true});
-var startState = { loc : [3, 1] }
-
-GridWorld.draw(world, { trajectory : [stateState] });
+GridWorld.draw(world, { trajectory : [ startState ] });
 ~~~~
 
 
