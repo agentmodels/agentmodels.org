@@ -360,6 +360,7 @@ var priorPrizeToUtility = categoricalERP([0.5, 0.5], [likesChampagne,
 var posterior = agentModelsIRLBanditInfer(baseParams, priorPrizeToUtility,
 					                      priorInitialBelief, worldAndStart,
 										  observedSequence);
+// NB: need a better way of displaying this
 viz.vegaPrint(posterior);
 ~~~~
 
