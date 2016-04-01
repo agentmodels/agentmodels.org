@@ -400,9 +400,9 @@ HD causes big deviation in behavior. This is like smoker who smokes every day bu
 
 ### Bandits
 
-- Heavy discount rate (which looks like myopia in the NIPS paper) and is confused with an agent who has high prior that exploring is not worth it.
+- Hyperbolic discounter and myopic-for-utility agent will explore less than optimal agent on both deterministic and stochastic bandits. We assume arm0 has a prize known to the agent and arm0 is uncertain to the agent (and we know the agent's prior). So the inference task is just to learn the utility the agent assigns to the prize from arm0. (We could assume that we know the utilities of the two possible prizes resulting from arm1). If the agent is discounting/myopic, they might take arm0, even if they don't have a very strong preference for the arm0 prize. As the time horizon gets longer, the difference in inference between the model that assumes optimality and the one that allows for discounting or myopia will get bigger. (With stochastic bandits you could have arms which are known to have high variance and with uncertain expectation. In this case you might get less exploration even if the myopia bound is higher or discounting is weaker. It'd be nice to include such an example but it's not neccesary). 
 
-- Could try synthetic example of IRL bandits. Lots of arms to drive up difference between Myopic agent and optimal. Sample behavior of 1-step Myopic agent (which is presumably somewhat less exploratory). Then compare model that doesn't include it to one that does.
+
 
 ### Restaurant in Foreign City example
 Model without myopia assumes a preference for the restaurants that are close (i.e. a prior that prefers them). If we add more restaurants, or make the variance higher and timecost lower, we can accentuate this effect. We can also make the game repeated (problem of tractability). 
