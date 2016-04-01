@@ -311,11 +311,174 @@ The codebox below implements this example. The translation of Equation (2) is in
 
 - Need to generate the state-observation-action triples for this example. They should have structure {state:, observation:, action:} as indicated in the code. 
 
-- Start with an easier example than the one mentioned in the main text. The agent decides to explore (takes arm1), gets champagne and then takes arm1 thereafter. So we know the agent must prefer champagne to chocolate. Do this just with a prior on agent's utilities and a delta on his beliefs. 
+- Start with an easier example than the one mentioned in the main text. The agent decides to explore (takes arm1), gets champagne and then takes arm1 thereafter. So we know the agent must prefer champagne to chocolate. Do this just with a prior on agent's utilities and a delta on his beliefs.
 
-- Then do example mentioned above where we condition on the agent taking arm0 for the first action. In this example, if the agent doesn't explore first time, then they won't explore at all. So additional observations wouldn't make a difference. 
+~~~~
+var armToPrize = {0: 'chocolate',
+		          1: 'champagne'};
+var worldAndStart = makeIRLBanditWorldAndStart(2, armToPrize, 5);
+var observe = worldAndStart.world.observe;
+var fullObserve = getFullObserve(observe);
+var transition = worldAndStart.world.transition;
 
-- If we increase the total time and leave everything else fixed, then we'll get a stronger inference about the preference for chocolate over champagne. (Because if agent prefers champagne, then even a low prior on arm1 yielding chocolate will make exploration worth it as the total time gets long enough). Show a graph of how the preference increases with timeLeft. 
+var makeTrajectory = function(state) {
+  var observation = fullObserve(state);
+  var action = 1; // agent always pulls arm 1
+  var nextState = transition(state, action);
+  var out = {state: state,
+	         observation: observation,
+	         action: action};
+  if (state.manifestState.terminateAfterAction) {
+    return out;
+  } else {
+    return cons(out, makeTrajectory(nextState));
+  }
+};
+
+var observedSequence = makeTrajectory(worldAndStart.startState);
+
+var baseParams = {
+  alpha: 100
+};
+
+var agentPrior = Enumerate(function(){
+  var latent = flip(0.5) ? armToPrize : update(armToPrize, {1: 'nothing'});
+  return buildState(worldAndStart.startState.manifestState, latent);
+});
+var priorInitialBelief = deltaERP(agentPrior);
+
+var likesChampagne = {nothing: 0,
+		              champagne: 5,
+					  chocolate: 3};
+var likesChocolate = {nothing: 0,
+		              champagne: 3,
+					  chocolate: 5};
+
+var priorPrizeToUtility = categoricalERP([0.5, 0.5], [likesChampagne,
+						                              likesChocolate]);
+
+var posterior = agentModelsIRLBanditInfer(baseParams, priorPrizeToUtility,
+					                      priorInitialBelief, worldAndStart,
+										  observedSequence);
+viz.vegaPrint(posterior);
+~~~~
+
+- Then do example mentioned above where we condition on the agent taking arm0 for the first action. In this example, if the agent doesn't explore first time, then they won't explore at all. So additional observations wouldn't make a difference.
+
+~~~~
+var armToPrize = {0: 'chocolate',
+		          1: 'champagne'};
+var worldAndStart = makeIRLBanditWorldAndStart(2, armToPrize, 5);
+var observe = worldAndStart.world.observe;
+var fullObserve = getFullObserve(observe);
+var transition = worldAndStart.world.transition;
+
+var makeTrajectory = function(state) {
+  var observation = fullObserve(state);
+  var action = 0; // agent always pulls arm 0
+  var nextState = transition(state, action);
+  return [{state: state,
+	       observation: observation,
+	       action: action}];
+};
+
+var observedSequence = makeTrajectory(worldAndStart.startState);
+
+var baseParams = {
+  alpha: 100
+};
+
+var noChampagnePrior = Enumerate(function(){
+  var latent = flip(0.05) ? armToPrize : update(armToPrize, {1: 'nothing'});
+  return buildState(worldAndStart.startState.manifestState, latent);
+});
+var informedPrior = deltaERP(worldAndStart.startState);
+var priorInitialBelief = categoricalERP([0.5, 0.5], [noChampagnePrior,
+						                             informedPrior]);
+
+var likesChampagne = {nothing: 0,
+		              champagne: 5,
+					  chocolate: 3};
+var likesChocolate = {nothing: 0,
+		              champagne: 3,
+					  chocolate: 5};
+
+var priorPrizeToUtility = categoricalERP([0.5, 0.5], [likesChampagne,
+						                              likesChocolate]);
+
+var posterior = agentModelsIRLBanditInfer(baseParams, priorPrizeToUtility,
+					                      priorInitialBelief, worldAndStart,
+										  observedSequence);
+
+viz.vegaPrint(posterior);
+~~~~
+
+- If we increase the total time and leave everything else fixed, then we'll get a stronger inference about the preference for chocolate over champagne. (Because if agent prefers champagne, then even a low prior on arm1 yielding chocolate will make exploration worth it as the total time gets long enough). Show a graph of how the preference increases with timeLeft.
+
+~~~~
+var probLikesChocolate = function(timeLeft){
+  var armToPrize = {0: 'chocolate',
+		    1: 'champagne'};
+  var worldAndStart = makeIRLBanditWorldAndStart(2, armToPrize, timeLeft);
+  var observe = worldAndStart.world.observe;
+  var fullObserve = getFullObserve(observe);
+  var transition = worldAndStart.world.transition;
+
+  var makeTrajectory = function(state) {
+    var observation = fullObserve(state);
+    var action = 0; // agent always pulls arm 0
+    var nextState = transition(state, action);
+    return [{state: state,
+	     observation: observation,
+	     action: action}];
+  };
+
+  var observedSequence = makeTrajectory(worldAndStart.startState);
+
+  var baseParams = {
+    alpha: 100
+  };
+
+  var noChampagnePrior = Enumerate(function(){
+    var latent = flip(0.2) ? armToPrize : update(armToPrize, {1: 'nothing'});
+    return buildState(worldAndStart.startState.manifestState, latent);
+  });
+  var informedPrior = deltaERP(worldAndStart.startState);
+  var priorInitialBelief = categoricalERP([0.5, 0.5], [noChampagnePrior,
+						       informedPrior]);
+
+  var likesChampagne = {nothing: 0,
+			champagne: 5,
+			chocolate: 3};
+  var likesChocolate = {nothing: 0,
+			champagne: 3,
+			chocolate: 5};
+
+  var priorPrizeToUtility = categoricalERP([0.5, 0.5], [likesChampagne,
+							likesChocolate]);
+
+  var posterior = agentModelsIRLBanditInfer(baseParams, priorPrizeToUtility,
+					    priorInitialBelief, worldAndStart,
+					    observedSequence);
+
+  var likesChocInformed = {prizeToUtility: likesChocolate,
+			   priorBelief: informedPrior};
+  var probLikesChocInformed = Math.exp(posterior.score([], likesChocInformed));
+  var likesChocNoChampagne = {prizeToUtility: likesChocolate,
+			      priorBelief: noChampagnePrior};
+  var probLikesChocNoChampagne = Math.exp(posterior.score([], likesChocNoChampagne));
+  return probLikesChocInformed + probLikesChocNoChampagne;
+};
+
+var lifetimes = [5,6,7,8];
+var probsLikesChoc = map(probLikesChocolate, lifetimes);
+
+print('Probability of liking chocolate for lifetimes ' + lifetimes + '\n'
+      + probsLikesChoc);
+
+viz.bar(lifetimes, probsLikesChoc)
+~~~~
+
 ]
 
 We include an inference function which is based on `factorOffPolicy` in irlBandits.wppl. We specialize this to the beliefAgent and add observations to the `observedStateAction`. The function is currently in irlBandits.wppl as *agentModelsIRLBAnditInfer*].
