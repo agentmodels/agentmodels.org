@@ -70,10 +70,8 @@ This example compares a model that assumes an optimal agent (and just infers the
 First we condition on the agent moving to Donut North, which is distinctive to the Naive hyperbolic discounter:
 
 ~~~~
-var world = restaurantChoiceMDP;
-var start = restaurantChoiceStart;
-var path = map(function(location){return {loc: location};},
-               restaurantNameToPath.naive);           
+var world = makeRestaurantChoiceMDP();
+var path = map(first,restaurantNameToObservationTime11['naive']);         
 GridWorld.draw(world, {trajectory:path});
 ~~~~
 
@@ -120,57 +118,48 @@ exampleGetPosterior;
 This inference function allows for inference over the softmax `alpha` parameter and the discount constant `discount`. For this example, we fix these values so that the agent has low noise and `discount==1`. We also fix the `timeCost` utility to be small and negative, as well as the utility of Noodle to be negative. So we infer only the agent's preferences and whether they are Naive or Sophisticated.
 
 ~~~~
-var runInference = function(observationName){
-// library function for getting observations and computing posterior for Restaurant Choice MDP
-  var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
-  var getObservations = restaurantHyperbolicInfer.getObservations;
-  var getPosterior = restaurantHyperbolicInfer.getPosterior;
+// Call to hyperbolic library function and helper display function
+///fold:
+var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
+var getPosterior = restaurantHyperbolicInfer.getPosterior;
 
-// From world and start, get a sequence of observations (which we later condition on)
-  var observedStateActionSequence = getObservations(world, start, observationName);
-  return getPosterior(world, priorUtilityTable, priorDiscounting, priorAlpha, 
-                      observedStateActionSequence);
+var displayResults = function(erp){
+  var utility = erp.MAP().val.utility;
+  print('MAP utility for Veg: ' + utility['Veg']);
+  print('... and for Donut: ' + utility['Donut N'] + ' \n')
+  viz.vegaPrint(getMarginalObject(erp,'vegMinusDonut'));
+  viz.vegaPrint(getMarginalObject(erp,'sophisticatedOrNaive'));
 };
-
-var world = restaurantChoiceMDP;
-var start = restaurantChoiceStart;
+///
 
 // Prior on agent's utility function
 var priorUtilityTable = function(){
-  var utilityValues = [-10,0,10,20]; // TODO make all positive
-  var getUtilityPair = function(){return [uniformDraw(utilityValues), 
-                                          uniformDraw(utilityValues)];};
-  var donut = getUtilityPair();
-  var veg = getUtilityPair();
+  var utilityValues =  [-10, 0, 10, 20];
+  var donut = [uniformDraw(utilityValues), uniformDraw(utilityValues)];
+  var veg = [uniformDraw(utilityValues), uniformDraw(utilityValues)];
   return {
     'Donut N' : donut,
     'Donut S' : donut,
     'Veg'     : veg,
     'Noodle'  : [-10, -10],
-    'timeCost': -.05
+    'timeCost': -.01
   };
 };
 
-// Prior on discount constant is fixed on 1, but we do attempt to learn whether
-// agent is Sophisticated or Naive. 
-var priorDiscounting = function(){
+var priorDiscounting = function(){ 
   return {
     discount: 1,
-    sophisticatedOrNaive: uniformDraw(['sophisticated', 'naive']),
+    sophisticatedOrNaive: uniformDraw(['naive','sophisticated'])
   };
 };
-
 var priorAlpha = function(){return 1000;};
+var prior = {utilityTable:priorUtilityTable, discounting:priorDiscounting, alpha:priorAlpha};
 
-var displayResults = function(erp){
-  print('MAP utilities: ' + JSON.stringify(erp.MAP().val.utility));
-  viz.vegaPrint(getMarginalObject(erp,'vegMinusDonut'));
-  viz.vegaPrint(getMarginalObject(erp,'sophisticatedOrNaive'))
-};  
-
-var observationName = 'naive';
-var erp = runInference(observationName);
-displayResults(erp);
+// Get world and observations
+var world = makeRestaurantChoiceMDP();
+var observedStateAction = restaurantNameToObservationTime11['naive'];
+var posterior = getPosterior(world, prior, observedStateAction);
+displayResults(posterior);
 ~~~~
 
 The graphs display the posterior after conditioning on the behavior depicted above. The variable `vegMinusDonut` is the difference in total utility between Veg and Donut. Inference rules out cases where the total utility is equal, since the agent would simply go to Donut South in that case. As expected, we infer that the agent is Naive.
@@ -178,10 +167,8 @@ The graphs display the posterior after conditioning on the behavior depicted abo
 Using the same prior, we condition on the path distinctive to the Sophisticated agent:
 
 ~~~~
-var world = restaurantChoiceMDP;
-var start = restaurantChoiceStart;
-var path = map(function(location){return {loc: location};},
-               restaurantNameToPath.sophisticated);           
+var world = makeRestaurantChoiceMDP();
+var path = map(first, restaurantNameToObservationTime11['sophisticated']);         
 GridWorld.draw(world, {trajectory:path});
 ~~~~
 
@@ -191,67 +178,53 @@ Here are the results of inference:
 // Definition of world, prior and inference function is same as above codebox
 
 ///fold:
-var runInference = function(observationName){
-// library function for getting observations and computing posterior for Restaurant Choice MDP
-  var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
-  var getObservations = restaurantHyperbolicInfer.getObservations;
-  var getPosterior = restaurantHyperbolicInfer.getPosterior;
+var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
+var getPosterior = restaurantHyperbolicInfer.getPosterior;
 
-// From world and start, get a sequence of observations (which we later condition on)
-  var observedStateActionSequence = getObservations(world, start, observationName);
-  return getPosterior(world, priorUtilityTable, priorDiscounting, priorAlpha, 
-                      observedStateActionSequence);
+var displayResults = function(erp){
+  var utility = erp.MAP().val.utility;
+  print('MAP utility for Veg: ' + utility['Veg']);
+  print('... and for Donut: ' + utility['Donut N'] + ' \n')
+  viz.vegaPrint(getMarginalObject(erp,'vegMinusDonut'));
+  viz.vegaPrint(getMarginalObject(erp,'sophisticatedOrNaive'));
 };
-
-var world = restaurantChoiceMDP;
-var start = restaurantChoiceStart;
 
 // Prior on agent's utility function
 var priorUtilityTable = function(){
-  var utilityValues = [-10,0,10,20];
-  var getUtilityPair = function(){return [uniformDraw(utilityValues), 
-                                          uniformDraw(utilityValues)];};
-  var donut = getUtilityPair();
-  var veg = getUtilityPair();
+  var utilityValues =  [-10, 0, 10, 20];
+  var donut = [uniformDraw(utilityValues), uniformDraw(utilityValues)];
+  var veg = [uniformDraw(utilityValues), uniformDraw(utilityValues)];
   return {
     'Donut N' : donut,
     'Donut S' : donut,
     'Veg'     : veg,
     'Noodle'  : [-10, -10],
-    'timeCost': -.05
+    'timeCost': -.01
   };
 };
 
-// Prior on discount constant is fixed on 1, but we do attempt to learn whether
-// agent is Sophisticated or Naive. 
-var priorDiscounting = function(){
+var priorDiscounting = function(){ 
   return {
     discount: 1,
-    sophisticatedOrNaive: uniformDraw(['sophisticated', 'naive']),
+    sophisticatedOrNaive: uniformDraw(['naive','sophisticated'])
   };
 };
-
 var priorAlpha = function(){return 1000;};
-
-var displayResults = function(erp){
-  print('MAP utilities: ' + JSON.stringify(erp.MAP().val.utility));
-  viz.vegaPrint(getMarginalObject(erp,'vegMinusDonut'));
-  viz.vegaPrint(getMarginalObject(erp,'sophisticatedOrNaive'))
-};  
+var prior = {utilityTable:priorUtilityTable, discounting:priorDiscounting, alpha:priorAlpha};
 ///
 
-var observationName = 'sophisticated';
-var erp = runInference(observationName);
-displayResults(erp);
+// Get world and observations
+var world = makeRestaurantChoiceMDP();
+var observedStateAction = restaurantNameToObservationTime11['sophisticated'];
+var posterior = getPosterior(world, prior, observedStateAction);
+displayResults(posterior);
 ~~~~
 
 If the agent goes directly to Veg, then they don't provide information about whether they are Naive or Sophisticated. Using the same prior again, we do inference on this path:
 
 ~~~~
-var world = restaurantChoiceMDP;
-var start = restaurantChoiceStart;
-var path = map(function(location){return {loc: location};},
-               restaurantNameToPath.vegDirect);           
+var world = makeRestaurantChoiceMDP();
+var path = map(first, restaurantNameToObservationTime11['vegDirect']);         
 GridWorld.draw(world, {trajectory:path});
 ~~~~
 
@@ -261,99 +234,77 @@ Here are the results of inference:
 // Definition of world, prior and inference function is same as above codebox
 
 ///fold:
-var runInference = function(observationName){
-// library function for getting observations and computing posterior for Restaurant Choice MDP
-  var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
-  var getObservations = restaurantHyperbolicInfer.getObservations;
-  var getPosterior = restaurantHyperbolicInfer.getPosterior;
+var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
+var getPosterior = restaurantHyperbolicInfer.getPosterior;
 
-// From world and start, get a sequence of observations (which we later condition on)
-  var observedStateActionSequence = getObservations(world, start, observationName);
-  return getPosterior(world, priorUtilityTable, priorDiscounting, priorAlpha, 
-                      observedStateActionSequence);
+var displayResults = function(erp){
+  var utility = erp.MAP().val.utility;
+  print('MAP utility for Veg: ' + utility['Veg']);
+  print('... and for Donut: ' + utility['Donut N'] + ' \n')
+  viz.vegaPrint(getMarginalObject(erp,'vegMinusDonut'));
+  viz.vegaPrint(getMarginalObject(erp,'sophisticatedOrNaive'));
 };
-
-var world = restaurantChoiceMDP;
-var start = restaurantChoiceStart;
 
 // Prior on agent's utility function
 var priorUtilityTable = function(){
-  var utilityValues = [-10,0,10,20];
-  var getUtilityPair = function(){return [uniformDraw(utilityValues), 
-                                          uniformDraw(utilityValues)];};
-  var donut = getUtilityPair();
-  var veg = getUtilityPair();
+  var utilityValues =  [-10, 0, 10, 20];
+  var donut = [uniformDraw(utilityValues), uniformDraw(utilityValues)];
+  var veg = [uniformDraw(utilityValues), uniformDraw(utilityValues)];
   return {
     'Donut N' : donut,
     'Donut S' : donut,
     'Veg'     : veg,
     'Noodle'  : [-10, -10],
-    'timeCost': -.05
+    'timeCost': -.01
   };
 };
 
-// Prior on discount constant is fixed on 1, but we do attempt to learn whether
-// agent is Sophisticated or Naive. 
-var priorDiscounting = function(){
+var priorDiscounting = function(){ 
   return {
     discount: 1,
-    sophisticatedOrNaive: uniformDraw(['sophisticated', 'naive']),
+    sophisticatedOrNaive: uniformDraw(['naive','sophisticated'])
   };
 };
-
 var priorAlpha = function(){return 1000;};
-
-var displayResults = function(erp){
-  print('MAP utilities: ' + JSON.stringify(erp.MAP().val.utility));
-  viz.vegaPrint(getMarginalObject(erp,'vegMinusDonut'));
-  viz.vegaPrint(getMarginalObject(erp,'sophisticatedOrNaive'))
-};  
+var prior = {utilityTable:priorUtilityTable, discounting:priorDiscounting, alpha:priorAlpha};
 ///
 
-var observationName = 'vegDirect';
-var erp = runInference(observationName);
-displayResults(erp);
+// Get world and observations
+var world = makeRestaurantChoiceMDP();
+var observedStateAction = restaurantNameToObservationTime11['vegDirect'];
+var posterior = getPosterior(world, prior, observedStateAction);
+displayResults(posterior);
 ~~~~
 
 #### Assume non-discounting, infer preferences and softmax
 We want to compare a model that assumes an optimal MDP agent with one that allows for time-inconsistency. We first show the inferences by the model that assumes optimality. This model has to explain the paths distinctive of Naive and Sophisticated agents in terms of softmax noise.
 
 ~~~~
+// Same helper functions as above
 ///fold:
-var runInference = function(observationName){
-  // library function for getting observations and computing posterior for Restaurant Choice MDP
-  var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
-  var getObservations = restaurantHyperbolicInfer.getObservations;
-  var getPosterior = restaurantHyperbolicInfer.getPosterior;
-
-  // From world and start, get a sequence of observations (which we later condition on)
-  var observedStateActionSequence = getObservations(world, start, observationName);
-  return getPosterior(world, priorUtilityTable, priorDiscounting, priorAlpha, 
-                      observedStateActionSequence);
-};
+var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
+var getPosterior = restaurantHyperbolicInfer.getPosterior;
 
 var displayResults = function(erp){
-  print('MAP utilities: ' + JSON.stringify(erp.MAP().val.utility));
+  var utility = erp.MAP().val.utility;
+  print('MAP utility for Veg: ' + utility['Veg']);
+  print('... and for Donut: ' + utility['Donut N'] + ' \n')
   viz.vegaPrint(getMarginalObject(erp,'vegMinusDonut'));
-  print(JSON.stringify( getMarginalObject(erp,'alpha') ) )
+  viz.vegaPrint(getMarginalObject(erp,'sophisticatedOrNaive'));
   viz.vegaPrint(getMarginalObject(erp,'alpha'));
 };
-
-var world = restaurantChoiceMDP;
-var start = restaurantChoiceStart;
 ///
 
-// Prior as above but we set the delayed utilities to zero
+// Prior on agent's utility function
 var priorUtilityTable = function(){
   var utilityValues = [-10,0,10,20,30,40];
-  var getUtilityPair = function(){return [uniformDraw(utilityValues), 0];};
-  var donut = getUtilityPair();
-  var veg = getUtilityPair();
+  var donut = [uniformDraw(utilityValues), 0];
+  var veg = [uniformDraw(utilityValues), 0];
   return {
     'Donut N' : donut,
     'Donut S' : donut,
     'Veg'     : veg,
-    'Noodle'  : [-5, -5],
+    'Noodle'  : [-10, -10],
     'timeCost': -.01
   };
 };
@@ -367,12 +318,13 @@ var priorDiscounting = function(){
 };
 
 var priorAlpha = function(){return uniformDraw([0.1, 10, 100, 1000]);};
+var prior = {utilityTable:priorUtilityTable, discounting:priorDiscounting, alpha:priorAlpha};
 
-//TODO graph of alpha not working
-var erp = runInference('naive'); 
-//var erp = runInference('sophisticated'); 
-displayResults(erp);
-
+// Get world and observations
+var world = makeRestaurantChoiceMDP({noReverse:false});
+var observedStateAction = restaurantNameToObservationTime11['naive'];
+var posterior = getPosterior(world, prior, observedStateAction);
+displayResults(posterior);
 ~~~~
 
 
