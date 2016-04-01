@@ -307,7 +307,42 @@ The codebox below implements this example. The translation of Equation (2) is in
 
 - $$a_i$$ is `observedAction`
 
-[TODO:
+~~~~
+var agentModelsIRLBanditInfer = function(baseAgentParams, priorPrizeToUtility,
+                                         priorInitialBelief, worldAndStart,
+										 observedSequence){
+
+  return Enumerate(function(){
+    var prizeToUtility = sample(priorPrizeToUtility);
+    var initialBelief = sample(priorInitialBelief);
+    
+    var agent = makeIRLBanditAgent(prizeToUtility,
+	                               update(baseAgentParams,
+								          {priorBelief:initialBelief}),
+								   worldAndStart, 'belief');
+    var agentAct = agent.act;
+    var agentUpdateBelief = agent.updateBelief;
+    
+    var factorSequence = function(currentBelief, previousAction, timeIndex){
+      if (timeIndex < observedSequence.length) { 
+        var state = observedSequence[timeIndex].state;
+        var observation = observedSequence[timeIndex].observation;
+        var nextBelief = agentUpdateBelief(currentBelief, observation,
+		                                   previousAction);
+        var nextActionERP = agentAct(nextBelief);
+        var observedAction = observedSequence[timeIndex].action;
+        
+        factor(nextActionERP.score([], observedAction));
+        
+        factorSequence(nextBelief, observedAction, timeIndex + 1);
+      }
+    };
+    factorSequence(initialBelief,'noAction', 0);
+    
+    return {prizeToUtility: prizeToUtility, priorBelief:initialBelief};
+  });
+};
+~~~~
 
 - Need to generate the state-observation-action triples for this example. They should have structure {state:, observation:, action:} as indicated in the code. 
 
@@ -360,8 +395,14 @@ var priorPrizeToUtility = categoricalERP([0.5, 0.5], [likesChampagne,
 var posterior = agentModelsIRLBanditInfer(baseParams, priorPrizeToUtility,
 					                      priorInitialBelief, worldAndStart,
 										  observedSequence);
-// NB: need a better way of displaying this
-viz.vegaPrint(posterior);
+
+var chocolateUtilityPosterior = Enumerate(function(){
+  var utilityBelief = sample(posterior);
+  var likesChocolate = utilityBelief.prizeToUtility.chocolate > 3;
+  return {likesChocolate: likesChocolate};
+});
+  
+viz.vegaPrint(chocolateUtilityPosterior);
 ~~~~
 
 - Then do example mentioned above where we condition on the agent taking arm0 for the first action. In this example, if the agent doesn't explore first time, then they won't explore at all. So additional observations wouldn't make a difference.
@@ -410,8 +451,15 @@ var priorPrizeToUtility = categoricalERP([0.5, 0.5], [likesChampagne,
 var posterior = agentModelsIRLBanditInfer(baseParams, priorPrizeToUtility,
 					                      priorInitialBelief, worldAndStart,
 										  observedSequence);
-
-viz.vegaPrint(posterior);
+var utilityBeliefPosterior = Enumerate(function(){
+  var utilityBelief = sample(posterior);
+  var chocolateUtility = utilityBelief.prizeToUtility.chocolate;
+  var likesChocolate = chocolateUtility > 3;
+  var isInformed = isDeltaERP(utilityBelief.priorBelief);
+  return {likesChocolate: likesChocolate,
+	      isInformed: isInformed};
+});
+viz.vegaPrint(utilityBeliefPosterior);
 ~~~~
 
 - If we increase the total time and leave everything else fixed, then we'll get a stronger inference about the preference for chocolate over champagne. (Because if agent prefers champagne, then even a low prior on arm1 yielding chocolate will make exploration worth it as the total time gets long enough). Show a graph of how the preference increases with timeLeft.
@@ -419,7 +467,7 @@ viz.vegaPrint(posterior);
 ~~~~
 var probLikesChocolate = function(timeLeft){
   var armToPrize = {0: 'chocolate',
-		    1: 'champagne'};
+		            1: 'champagne'};
   var worldAndStart = makeIRLBanditWorldAndStart(2, armToPrize, timeLeft);
   var observe = worldAndStart.world.observe;
   var fullObserve = getFullObserve(observe);
@@ -430,8 +478,8 @@ var probLikesChocolate = function(timeLeft){
     var action = 0; // agent always pulls arm 0
     var nextState = transition(state, action);
     return [{state: state,
-	     observation: observation,
-	     action: action}];
+	         observation: observation,
+	         action: action}];
   };
 
   var observedSequence = makeTrajectory(worldAndStart.startState);
@@ -446,32 +494,32 @@ var probLikesChocolate = function(timeLeft){
   });
   var informedPrior = deltaERP(worldAndStart.startState);
   var priorInitialBelief = categoricalERP([0.5, 0.5], [noChampagnePrior,
-						       informedPrior]);
+						                               informedPrior]);
 
   var likesChampagne = {nothing: 0,
-			champagne: 5,
-			chocolate: 3};
+			            champagne: 5,
+						chocolate: 3};
   var likesChocolate = {nothing: 0,
-			champagne: 3,
-			chocolate: 5};
+			            champagne: 3,
+						chocolate: 5};
 
   var priorPrizeToUtility = categoricalERP([0.5, 0.5], [likesChampagne,
-							likesChocolate]);
+							                            likesChocolate]);
 
   var posterior = agentModelsIRLBanditInfer(baseParams, priorPrizeToUtility,
-					    priorInitialBelief, worldAndStart,
-					    observedSequence);
+					                        priorInitialBelief, worldAndStart,
+											observedSequence);
 
   var likesChocInformed = {prizeToUtility: likesChocolate,
-			   priorBelief: informedPrior};
+			               priorBelief: informedPrior};
   var probLikesChocInformed = Math.exp(posterior.score([], likesChocInformed));
   var likesChocNoChampagne = {prizeToUtility: likesChocolate,
-			      priorBelief: noChampagnePrior};
+			                  priorBelief: noChampagnePrior};
   var probLikesChocNoChampagne = Math.exp(posterior.score([], likesChocNoChampagne));
   return probLikesChocInformed + probLikesChocNoChampagne;
 };
 
-var lifetimes = [5,6,7,8];
+var lifetimes = [5,6,7,8,9];
 var probsLikesChoc = map(probLikesChocolate, lifetimes);
 
 print('Probability of liking chocolate for lifetimes ' + lifetimes + '\n'
@@ -482,77 +530,7 @@ viz.bar(lifetimes, probsLikesChoc)
 
 ]
 
-We include an inference function which is based on `factorOffPolicy` in irlBandits.wppl. We specialize this to the beliefAgent and add observations to the `observedStateAction`. The function is currently in irlBandits.wppl as *agentModelsIRLBAnditInfer*].
-
-
-
-~~~~
-
-
-// world params
-var armToPrize = {0:'chocolate', 1:'nothing'};
-var totalTime = 5;
-var worldAndStart = makeIRLBanditWorldAndStart(2, armToPrize, totalTime);
-  
-// agent params
-
-  // Prior on agent's prizeToUtility
-  var truePrizeToUtility = {chocolate:10, champagne:20, nothing:1};
-  var priorPrizeToUtility = Enumerate(function(){
-    return {choc: uniformDraw([0,3,10]), cham:20, nothing:1};
-  });
-  
-  // Prior on agent's prior
-  var trueAgentPrior = getPriorBelief(perceivedTotalTime, function(){
-    return {0:'chocolate', 1: categorical([.05, .95], ['champagne','nothing']) };
-  }, 'belief');
-  var falseAgentPrior = getPriorBelief(perceivedTotalTime, function(){
-    return {0:'chocolate', 1: categorical([.5, .5], ['champagne','nothing']) };
-  }, 'belief');
-
-  var priorAgentPrior = Enumerate(function(){
-    return flip() ? trueAgentPrior : falseAgentPrior;
-  });
-  
-  var prior = {priorPrizeToUtility: priorPrizeToUtility, priorAgentPrior: priorAgentPrior};
-
-  var latentState = armToPrize;
-
-// TODO get appropriate observed sequence. 
-  var observedSequence = [] 
-
-  var getPosterior = function(baseAgentParams, priorPrizeToUtility, priorInitialBelief, observedSequence){
-
-  return Enumerate(function(){
-    var prizeToUtility = sample(priorPrizeToUtility);
-    var initialBelief = sample(priorInitial);
-    
-    var agent = makeIRLBanditAgent(prizeToUtility, update(baseAgentParams, {priorBelief:initialBelief}), worldAndStart, 'belief');
-    var act = agent.act;
-    var updateBelief = agent.updateBelief;
-    
-    var factorSequence = function(currentBelief, previousAction, timeIndex){
-      if (timeIndex < observedSequence.length) { 
-        var state = observedSequence[timeIndex].state;
-        var observation = observedSequence[timeIndex].observation;
-        
-        var nextBelief = updateBelief(currentBelief, observation, previousAction);           
-        var nextActionERP = act(nextBelief);
-        var observedAction = observedSequence[timeIndex].action;
-        
-        factor(nextActionERP.score([], observedAction));
-        
-        factorSequence(nextBelief, observedAction, timeIndex + 1);
-      }
-    };
-    factorSequence(initialBelief,'noAction', 0);
-    
-    return {prizeToUtility: prizeToUtility, priorBelief:initialBelief};
-  });
-  };
-
-   // TODO compute and display posterior
-~~~~
+We include an inference function which is based on `factorOffPolicy` in irlBandits.wppl. We specialize this to the beliefAgent and add observations to the `observedStateAction`. The function is currently in irlBandits.wppl as *agentModelsIRLBanditInfer*].
 
 
 This example of inferring an agent's utilities from a bandit problem may seem contrived. However, there are more practical problems that have a similar structure. Consider a domain where $$k$$ *sources* (arms) produce a stream of content, with each piece of content having a *category* (prizes). At each timestep, a human is observed choosing a source. The human has uncertainty about the stochastic mapping from sources to categories. Our goal is to infer the human's beliefs about the sources and their preferences over categories. The sources could be blogs or feeds that tag posts/tweets using the same set of tags. Alternatively, the sources could be channels for TV shows or songs. In this kind of application, the same issue of identifiability arises. An agent may choose a source either because they know it produces content in the best categories or because they have a strong prior belief that it does.
