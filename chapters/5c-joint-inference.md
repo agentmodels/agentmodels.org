@@ -383,7 +383,63 @@ var posterior = getPosterior(world, prior, observedStateAction); // getPosterior
 displayResults(posterior);
 ~~~~
 
+#### Preferences for two donut stores can vary
+Another explanation of the Naive path is that the agent has a preference for "Donut N" over "Donut S". If we add this to our set of possible preferences, inference changes significantly. We assume the agent is Naive. We know there are three relevant explanations (plus combinations of these which would over-determine the result): softmax noise, being Naive, and preferring Donut North to South. 
 
+~~~~
+///fold:
+var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
+var getPosterior = restaurantHyperbolicInfer.getPosterior;
+
+var displayResults = function(erp){
+  var utility = erp.MAP().val.utility;
+  print('MAP utility for Veg: ' + utility['Veg'] 
+        +'.  Donut N: ' + utility['Donut N'] +
+        +'\n .  Donut S: ' + utility['Donut S']);
+
+  var utilityERP = getMarginalObject(erp,'utility');
+  var marginal = Enumerate(function(){
+    var u = sample(utilityERP);
+    return {'Donut N': u['Donut N'], 'Donut S': u['Donut S']};
+  });
+  
+  viz.vegaPrint(getMarginalObject(erp,'discount'));
+  var alphaPrint = Enumerate(function(){
+    return {alpha: JSON.stringify(sample(erp).alpha) };
+  });                          
+  viz.vegaPrint(alphaPrint);
+};
+///
+
+// Prior on agent's utility function
+var priorUtilityTable = function(){
+  var utilityValues =  [-10, 0, 10, 20, 30];
+  var donutN = [uniformDraw(utilityValues), -10]
+  var veg = [uniformDraw(utilityValues), 20];
+  return {
+    'Donut N' : donutN,
+    'Donut S' : [donutN[0] + uniformDraw([-3,0,3]), donutN[1]],
+    'Veg'     : veg,
+    'Noodle'  : [-5, -5],
+    'timeCost': -.01
+  };
+};
+
+var priorDiscounting = function(){ 
+  return {
+    discount: uniformDraw([0,1]),
+    sophisticatedOrNaive: 'naive'
+  };
+};
+var priorAlpha = function(){return uniformDraw([.1, 100, 1000]);};
+var prior = {utilityTable:priorUtilityTable, discounting:priorDiscounting, alpha:priorAlpha};
+
+// Get world and observations
+var world = makeRestaurantChoiceMDP({noReverse:true});
+var observedStateAction = restaurantNameToObservationTime11['naive'];
+var posterior = getPosterior(world, prior, observedStateAction);
+displayResults(posterior);
+~~~~
 
 
 ### Naive/Soph/Neutral examples for Restaurant Choice Gridworld
