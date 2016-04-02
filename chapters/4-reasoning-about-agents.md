@@ -59,7 +59,7 @@ var utilityTablePrior = function(){
   );
 };
 
-var favouritePosterior  = Enumerate( function(){
+var posterior = Enumerate( function(){
   var utilityTableAndFavourite = utilityTablePrior();
   var utilityTable = utilityTableAndFavourite.table;
   var favourite = utilityTableAndFavourite.favourite;
@@ -75,7 +75,7 @@ var favouritePosterior  = Enumerate( function(){
   return {favourite: favourite};
 });
 
-viz.vegaPrint(favouritePosterior);
+viz.vegaPrint(posterior);
 ~~~~
 
 ## Learning about an agent from their actions: formalization
@@ -129,38 +129,50 @@ GridWorld.draw(world,{trajectory: singleStepTrajectory});
 Our approach to inference is slightly different than in the example at the start of this chapter. The approach is a direct translation of the expression for the posterior in Equation (1) above. For each observed state-action pair, we compute the likelihood of the agent (with given $$U$$) choosing that action in the state. (In contrast, the simple approach above will become intractable for long, noisy action sequences -- as it will need to loop over all possible sequences). 
 
 ~~~~
+var world = restaurantChoiceMDP;
+var feature = world.feature;
+
 var utilityTablePrior = function(){
   var baseUtilityTable = {
-    'donutSouth': 1,
-    'donutNorth': 1,
-    'veg': 1,
-    'noodle': 1,
-    'timeCost': -0.05
+    'Donut S': 1,
+    'Donut N': 1,
+    Veg: 1,
+    Noodle: 1,
+    timeCost: -0.05
   };
   return uniformDraw( 
-    update(baseUtilityTable, {donutNorth:2, donutSouth:2}), // prefers Donut
-    update(baseUtilityTable, {veg:2}), // prefers Veg
-    update(baseUtilityTable, {noodle:2}) // prefers Noodle
+    [{table: update(baseUtilityTable, {'Donut N':2, 'Donut S':2}),
+      favourite: 'donut'},
+     {table: update(baseUtilityTable, {Veg:2}),
+      favourite: 'veg'},
+     {table: update(baseUtilityTable, {Noodle:2}),
+      favourite: 'noodle'}]
   );
-  };
+};
 var alpha = 100;
-var observedStateActionSequence = []; // TODO add observed
-var world = makeDonutWorld2({big:true, start:[3,1], timeLeft:10});
+var observedStateAction = [[{loc: [3,1],
+			                 timeLeft: 10,
+							 terminateAfterAction: false}, 'l']];
 
 var posterior = Enumerate( function(){
-  var utilityTable = utilityTablePrior();
-  var agent = makeMDPAgent(utilityTable, alpha, world);
-  var act = agent.act;
+  var utilityTableAndFavourite = utilityTablePrior();
+  var utilityTable = utilityTableAndFavourite.table;
+  var utility = mdpTableToUtilityFunction(utilityTable, feature);
+  var favourite = utilityTableAndFavourite.favourite;
 
+  var params = {utility: utility,
+		        alpha: alpha};
+  var agent  = makeMDPAgent(params, world);
+  var act = agent.act;
   // For each observed state-action pair, compute likekihood of action
   map( function(stateAction){
-    factor( act(stateAction.state).score( [], stateAction.action) );
-  }, observedStateActionSequence )
+    factor( act(stateAction[0]).score( [], stateAction[1]) );
+  }, observedStateAction );
 
-  return utilityTable;
+  return {favourite: favourite};
 });
 
-print(posterior)
+viz.vegaPrint(posterior);
 ~~~~
 
 Note that utility functions where Vegetarian Cafe or Noodle Shop are most preferred have almost the same posterior probability. Since they had the same prior, this means that we haven't received evidence about which the agent prefers. Moreover, assuming the agent's `timeCost` really is negligible (and the agent always has enough total timesteps), then no matter where the agent is placed on the grid, they will choose Donut North or South. So we'd never get any information about whether they prefer the Vegetarian Cafe or Noodle Shop!
@@ -174,43 +186,53 @@ This issue of *unidentifiability* is common when inferring an agent's beliefs or
 The previous examples assumed that the agent's `timeCost` (the negative utility of each timestep before the agent reaches a restaurant) and the softmax $$\alpha$$ were known. We can modify the above example to include them in inference.
 
 ~~~~
+var world = restaurantChoiceMDP;
+var feature = world.feature;
+
 var utilityTablePrior = function(){
   var foodValues = [0,1,2,3];
   var timeCostValues = [-0.1, -0.3, -0.6, -1];
   var donut = uniformDraw(foodValues);
 
-  return {donutNorth: donut,
-          donutSouth: donut,
-          veg: uniformDraw(foodValues),
-          noodle: uniformDraw(foodValues),
+  return {'Donut N': donut,
+          'Donut S': donut,
+          Veg: uniformDraw(foodValues),
+          Noodle: uniformDraw(foodValues),
           timeCost: uniformDraw(timeCostValues)};
 };
-var alphaPrior = function(){return uniformDraw([.1,1,10,100]);
-var world = makeDonutWorld2({big:true, start:[3,1], timeLeft:10});
+var alphaPrior = function(){return uniformDraw([.1,1,10,100]);};
 
 var posterior = function(observedStateActionSequence){
-    return Enumerate( 
-  function(){
+  return Enumerate( function() {
     var utilityTable = utilityTablePrior();
     var alpha = alphaPrior();
-    var agent = makeMDPAgent(utilityTable, alpha, world);
+	var logAlpha = Math.log10(alpha);
+	var timeCost = utilityTable.timeCost;
+    var params = {utility: mdpTableToUtilityFunction(utilityTable, feature),
+		  alpha: alpha};
+    var agent = makeMDPAgent(params, world);
     var act = agent.act;
+
+    var donutBest = utilityTable['Donut N'] >= utilityTable['Veg']
+	  && utilityTable['Donut N'] >= utilityTable['Noodle'];
 
     // For each observed state-action pair, compute likekihood of action
     map( function(stateAction){
-      factor( act(stateAction.state).score( [], stateAction.action) );
-    }, observedStateActionSequence )
+      factor( act(stateAction[0]).score( [], stateAction[1]) );
+    }, observedStateActionSequence );
 
-    return {utilityTable:utilityTable, alpha:alpha};
+    return {donutBest: donutBest, logAlpha: logAlpha,
+		    timeCost: timeCost};
   });
+};
 
 
-var observedStateActionSequence = restaurantNameToPath.donutSouth
-posterior(observedStateActionSequence.slice(0,1))
-posterior(observedStateActionSequence.slice(0,2))
-posterior(observedStateActionSequence.slice(0,3))
+var observedStateActionSequence = locationsToStateActions(restaurantNameToPath.donutSouth);
 
-
+// these ERPs do not print for some reason
+// viz.vegaPrint(posterior(observedStateActionSequence.slice(0,1)));
+// viz.vegaPrint(posterior(observedStateActionSequence.slice(0,2)));
+viz.vegaPrint(posterior(observedStateActionSequence.slice(0,3)));
 ~~~~
 
 The posterior shows that taking a step towards Donut South can now be explained in terms of a high `timeCost`. If the agent has a low value for $$\alpha$$, then this step to the left is fairly likely even if the agent prefers the Noodle Store or Vegetarian Cafe. So including softmax noise in the inference makes inferences about other parameters closer to the prior. However, once we observe three steps towards Donut South, the inferences about preferences become fairly strong. 
