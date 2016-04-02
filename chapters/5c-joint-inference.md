@@ -53,21 +53,20 @@ The likelihood term on the RHS of this equation is simply the softmax probabilit
 
 ## Restaurant Choice Inference
 
-We return to the Restaurant Choice example and consider inference for the MDP and POMDP versions:
+Returning to the MDP Restaurant Choice problem, we compare a model that assumes an optimal, non-discounting MDP agent to a model that includes both time-inconsistent and optimal agents. We also consider models that allow a richer set of preferences. 
 
-1. In the MDP setting (where the agent has full knowledge), we compare a model that assumes an optimal, non-discounting MDP agent to a model that allows for time-inconsistency (but also includes a non-discounting optimal agent in the hypothesis space).
-
-2. In the POMDP setting (where the restaurants may be open or closed and the agent can learn this from observation), we do joint inference over preferences, beliefs and discounting behavior. We show that our inference approach can produce multiple explanations for the same behavior and that explanations in terms of beliefs and preferences are more plausible than those involving time-inconsistency. 
+<!-- 2. In the POMDP setting (where the restaurants may be open or closed and the agent can learn this from observation), we do joint inference over preferences, beliefs and discounting behavior. We show that our inference approach can produce multiple explanations for the same behavior and that explanations in terms of beliefs and preferences are more plausible than those involving time-inconsistency. 
 
 As we discussed in Chapter V.1, time-inconsistent agents can produce trajectories on the MDP (full knowledge) version of this scenario that never occur for an optimal agent without noise. 
 
 In our first inference example, we do joint inference over preferences, softmax noise and the discounting behavior of the agent. (We assume for this example that the agent has full knowledge and is not Myopic). We compare the preference inferences [that allow for possibility of time inconsistency] to the earlier inference approach that assumes optimality.
+-->
 
 ### Example 1: Time-inconsistent vs. optimal MDP agents
 This example compares a model that assumes an optimal agent (and just infers their preferences and softmax noise) to a model that also allows for sub-optimal time-inconsistent agents. Before making a direct comparison, we demonstrate that we can infer the preferences of time-inconsistent agents from observations of their behavior.
 
 #### Assume discounting, infer "Naive" or "Sophisticated"
-First we condition on the agent moving to Donut North, which is distinctive to the Naive hyperbolic discounter:
+First we condition on the path where the agent moves to Donut North. We call this the `naive` path because its distinctive to the Naive hyperbolic discounter:
 
 ~~~~
 var world = makeRestaurantChoiceMDP();
@@ -103,11 +102,14 @@ var exampleGetPosterior = function(world, priorUtilityTable, priorDiscounting,
       factor(agentAction(state, 0).score([], action)) ; 
     }, observedStateAction);
 
-    // return parameters
+    // return parameters and summary statistics
     var vegMinusDonut = sum(utilityTable['Veg']) - sum(utilityTable['Donut N']);
+
     return {
       utility: utilityTable, 
       sophisticatedOrNaive: discounting.sophisticatedOrNaive,
+      discount: discounting.discount, 
+      alpha: alpha,
       vegMinusDonut: vegMinusDonut,
     };
   });
@@ -115,7 +117,7 @@ var exampleGetPosterior = function(world, priorUtilityTable, priorDiscounting,
 exampleGetPosterior;  
 ~~~~
 
-This inference function allows for inference over the softmax `alpha` parameter and the discount constant `discount`. For this example, we fix these values so that the agent has low noise and `discount==1`. We also fix the `timeCost` utility to be small and negative, as well as the utility of Noodle to be negative. So we infer only the agent's preferences and whether they are Naive or Sophisticated.
+This inference function allows for inference over the softmax parameter ($$\alpha$$ or `alpha`) and the discount constant ($$k$$ or `discount`). For this example, we fix these values so that the agent has low noise ($$\alpha=1000$$) and $$k=1$$. We also fix the `timeCost` utility to be small and negative, as well as the utility of `Noodle` to be negative. So we infer only the agent's preferences and whether they are Naive or Sophisticated.
 
 ~~~~
 // Call to hyperbolic library function and helper display function
@@ -125,9 +127,10 @@ var getPosterior = restaurantHyperbolicInfer.getPosterior;
 
 var displayResults = function(erp){
   var utility = erp.MAP().val.utility;
-  print('MAP utility for Veg: ' + utility['Veg']);
-  print('... and for Donut: ' + utility['Donut N'] + ' \n')
+  print('MAP utility for Veg: ' + utility['Veg'] + 
+  'Donut: ' + utility['Donut N'] + ' \n')
   viz.vegaPrint(getMarginalObject(erp,'vegMinusDonut'));
+  viz.vegaPrint(getMarginalObject(erp,'donutTempting'));
   viz.vegaPrint(getMarginalObject(erp,'sophisticatedOrNaive'));
 };
 ///
@@ -386,6 +389,7 @@ displayResults(posterior);
 #### Preferences for two donut stores can vary
 Another explanation of the Naive path is that the agent has a preference for "Donut N" over "Donut S". If we add this to our set of possible preferences, inference changes significantly. We assume the agent is Naive. We know there are three relevant explanations (plus combinations of these which would over-determine the result): softmax noise, being Naive, and preferring Donut North to South. 
 
+
 ~~~~
 ///fold:
 var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
@@ -394,15 +398,9 @@ var getPosterior = restaurantHyperbolicInfer.getPosterior;
 var displayResults = function(erp){
   var utility = erp.MAP().val.utility;
   print('MAP utility for Veg: ' + utility['Veg'] 
-        +'.  Donut N: ' + utility['Donut N'] +
-        +'\n .  Donut S: ' + utility['Donut S']);
-
-  var utilityERP = getMarginalObject(erp,'utility');
-  var marginal = Enumerate(function(){
-    var u = sample(utilityERP);
-    return {'Donut N': u['Donut N'], 'Donut S': u['Donut S']};
-  });
-  
+        +'. Donut N: ' + utility['Donut N'] +
+        +'. Donut S: ' + utility['Donut S']);
+  viz.vegaPrint(getMarginalObject(erp,'donutNWins'));
   viz.vegaPrint(getMarginalObject(erp,'discount'));
   var alphaPrint = Enumerate(function(){
     return {alpha: JSON.stringify(sample(erp).alpha) };
@@ -420,7 +418,7 @@ var priorUtilityTable = function(){
     'Donut N' : donutN,
     'Donut S' : [donutN[0] + uniformDraw([-3,0,3]), donutN[1]],
     'Veg'     : veg,
-    'Noodle'  : [-5, -5],
+    'Noodle'  : [-10, -10],
     'timeCost': -.01
   };
 };
@@ -435,12 +433,62 @@ var priorAlpha = function(){return uniformDraw([.1, 100, 1000]);};
 var prior = {utilityTable:priorUtilityTable, discounting:priorDiscounting, alpha:priorAlpha};
 
 // Get world and observations
-var world = makeRestaurantChoiceMDP({noReverse:true});
+var world = makeRestaurantChoiceMDP();
 var observedStateAction = restaurantNameToObservationTime11['naive'];
 var posterior = getPosterior(world, prior, observedStateAction);
 displayResults(posterior);
 ~~~~
 
+
+Observe the sophisticated path with possibly positive timeCost:
+~~~~
+///fold:
+var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
+var getPosterior = restaurantHyperbolicInfer.getPosterior;
+
+var displayResults = function(erp){
+  var utility = erp.MAP().val.utility;
+  print('MAP utility for Veg: ' + utility['Veg'] 
+        +'. Donut: ' + utility['Donut N']
+        +'. Timecost: ' + utility['timeCost']);
+  viz.vegaPrint(getMarginalObject(erp,'timeCost'));
+  viz.vegaPrint(getMarginalObject(erp,'discount'));
+  var alphaPrint = Enumerate(function(){
+    return {alpha: JSON.stringify(sample(erp).alpha) };
+  });                          
+  viz.vegaPrint(alphaPrint);
+};
+///
+
+// Prior on agent's utility function
+var priorUtilityTable = function(){
+  var utilityValues =  [-10, 0, 10, 20, 30];
+  var donut = [uniformDraw(utilityValues), -10]
+  var veg = [uniformDraw(utilityValues), 20];
+  return {
+    'Donut N' : donut,
+    'Donut S' : donut,
+    'Veg'     : veg,
+    'Noodle'  : [-10, -10],
+    'timeCost': uniformDraw([-.01, .1, 1])
+  };
+};
+
+var priorDiscounting = function(){ 
+  return {
+    discount: uniformDraw([0,1]),
+    sophisticatedOrNaive: 'sophisticated'
+  };
+};
+var priorAlpha = function(){return uniformDraw([.1, 100, 1000]);};
+var prior = {utilityTable:priorUtilityTable, discounting:priorDiscounting, alpha:priorAlpha};
+
+// Get world and observations
+var world = makeRestaurantChoiceMDP();
+var observedStateAction = restaurantNameToObservationTime11['sophisticated'];
+var posterior = getPosterior(world, prior, observedStateAction);
+displayResults(posterior);
+~~~~                             
 
 ### Naive/Soph/Neutral examples for Restaurant Choice Gridworld
 
