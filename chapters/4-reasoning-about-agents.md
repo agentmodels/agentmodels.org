@@ -119,6 +119,21 @@ For this example, we condition on the agent making a single step from $$[3,1]$$ 
 
 [TODO Codebox showing trajectory with only a single step]
 
+~~~~
+var world = restaurantChoiceMDP;
+var singleStepTrajectory = [{manifestState: {loc: [3,1],
+	                                         timeLeft: 10,
+											 terminateAfterAction: false},
+	                         latentState: {'Donut S': true,
+							               'Donut N': true,
+										   Veg: true,
+										   Noodle: true}}, 'l'];
+
+GridWorld.draw(world,{trajectory: singleStepTrajectory});
+
+// GridWorld.draw doesn't like this?
+~~~~
+
 Our approach to inference is slightly different than in the example at the start of this chapter. The approach is a direct translation of the expression for the posterior in Equation (1) above. For each observed state-action pair, we compute the likelihood of the agent (with given $$U$$) choosing that action in the state. (In contrast, the simple approach above will become intractable for long, noisy action sequences -- as it will need to loop over all possible sequences). 
 
 ~~~~
