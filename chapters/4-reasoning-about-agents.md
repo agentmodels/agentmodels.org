@@ -35,41 +35,50 @@ From Bob's actions, we infer that he probably prefers the Donut Store to the oth
 
 In this first example of inference, Bob's preference for saving time are taken as given (with only a weak preference) and we infer (given the actions shown above) Bob's preference for the different restaurants. We model Bob using the MDP agent model from [Chapter III.1](/chapters/3a-mdp.html). We place a uniform prior over three possible utility functions for Bob: one favoring the Donut Store, one favoring Vegetarian Cafe and one favoring Noodle Shop. We use `Enumerate` to compute a Bayesian posterior over these utility functions, given Bob's observed behavior. Since the world is practically deterministic (with softmax parameter $$\alpha$$ set high), we just compare Bob's predicted states under each utility function to the states actually observed. To predict Bob's states for each utility function, we use the function `simulate` from [Chapter III.1](/chapters/3a-mdp.html). 
 
-[TODO: use functions from new *mdpAgent.wppl*. make representation of the prior a bit simpler. 
-
 ~~~~
+var world = restaurantChoiceMDP;
+var feature = world.feature;
+
+var observedLocs = restaurantNameToPath.donutSouth;
+var startState = {loc: [3,1],
+		          timeLeft: 15,
+				  terminateAfterAction: false};
 
 var utilityTablePrior = function(){
   var baseUtilityTable = {
-    'donutSouth': 1,
-    'donutNorth': 1,
-    'veg': 1,
-    'noodle': 1,
-    'timeCost': -0.05
+    'Donut S': 1,
+    'Donut N': 1,
+    Veg: 1,
+    Noodle: 1,
+    timeCost: -0.05
   };
   return uniformDraw( 
-    update(baseUtilityTable, {donutNorth:2, donutSouth:2}), // prefers Donut
-    update(baseUtilityTable, {veg:2}), // prefers Veg
-    update(baseUtilityTable, {noodle:2}) // prefers Noodle
+    [{table: update(baseUtilityTable, {'Donut N':2, 'Donut S':2}),
+      favourite: 'donut'},
+     {table: update(baseUtilityTable, {Veg:2}),
+      favourite: 'veg'},
+     {table: update(baseUtilityTable, {Noodle:2}),
+      favourite: 'noodle'}]
   );
 };
-var observedStates = []; //  restaurantNameToPath.donutSouth
-var world = makeDonutWorld2({big:true, start:[2,1], timeLeft:10}); // =restaurantChoiceMDP
 
-// TODO we can speed this up a lot by using:
-// Rejection( function(){return simulateMDP(world, agent, states);}, 1).MAP().val
-// instead of simulateMDP.
-
-var posterior  = Enumerate( function(){
-  var utilityTable = utilityTablePrior();
-  var agent  = makeMDPAgent(utilityTable, world);
-  var predictedStates = simulateMDP(world, agent, 'states');
-  condition( _.isEqual( observedStates, predictedStates ) );
-  return utilityTable;
+var favouritePosterior  = Enumerate( function(){
+  var utilityTableAndFavourite = utilityTablePrior();
+  var utilityTable = utilityTableAndFavourite.table;
+  var favourite = utilityTableAndFavourite.favourite;
+  
+  var utility = mdpTableToUtilityFunction(utilityTable, feature);
+  var params = {utility: utility,
+		        alpha: 100};
+  var agent  = makeMDPAgent(params, world);
+  
+  var predictedStates = simulateMDP(startState, world, agent, 'states');
+  var predictedLocs = _.map(predictedStates, 'loc');
+  condition(_.isEqual(observedLocs, predictedLocs));
+  return {favourite: favourite};
 });
 
-print(posterior)
-
+viz.vegaPrint(favouritePosterior);
 ~~~~
 
 ## Learning about an agent from their actions: formalization
