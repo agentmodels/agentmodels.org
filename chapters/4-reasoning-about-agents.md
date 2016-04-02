@@ -240,43 +240,62 @@ The posterior shows that taking a step towards Donut South can now be explained 
 
 As noted above, it is simple to extend our approach to inference to conditioning on multiple sequences of actions. Consider the two sequences below:
 
-[TODO display two sequences. first goes to DonutSouth, second goes directly to donut north]
+~~~~
+var world = restaurantChoiceMDP
+
+var observedPath1 =  restaurantNameToPath.donutSouth;
+var observedTrajectory1 = locationsToManifestStates(observedPath1);
+var observedPath2 =  restaurantNameToPath.donutNorth;
+var observedTrajectory2 = locationsToManifestStates(observedPath2);
+
+GridWorld.draw(world, {trajectory: observedTrajectory1});
+GridWorld.draw(world, {trajectory: observedTrajectory2});
+~~~~
+
+inference happens here
 
 ~~~~
+var world = restaurantChoiceMDP;
+var feature = world.feature;
 
 var utilityTablePrior = function(){
   var foodValues = [0,1,2,3];
   var timeCostValues = [-0.1, -0.3, -0.6, -1];
   var donut = uniformDraw(foodValues);
 
-  return {donutNorth: donut,
-          donutSouth: donut,
-          veg: uniformDraw(foodValues),
-          noodle: uniformDraw(foodValues),
+  return {'Donut N': donut,
+          'Donut S': donut,
+          Veg: uniformDraw(foodValues),
+          Noodle: uniformDraw(foodValues),
           timeCost: uniformDraw(timeCostValues)};
 };
-var alphaPrior = function(){return uniformDraw([.1,1,10,100]);
-var world = makeDonutWorld2({big:true, start:[3,1], timeLeft:10}); // TODO restaurantChoiceMDP
+var alphaPrior = function(){return uniformDraw([.1,1,10,100]);};
 
 var posterior = function(observedStateActionSequence){
-  return Enumerate( 
-    function(){
-      var utilityTable = utilityTablePrior();
-      var alpha = alphaPrior();
-      var agent = makeMDPAgent(utilityTable, alpha, world);
-      var act = agent.act;
-      
-      map( function(stateAction){
-        factor( act(stateAction.state).score( [], stateAction.action) );
-      }, observedStateActionSequence )
-      
-      return {utilityTable:utilityTable, alpha:alpha};
-    });
+  return Enumerate( function() {
+    var utilityTable = utilityTablePrior();
+    var alpha = alphaPrior();
+    var params = {utility: mdpTableToUtilityFunction(utilityTable, feature),
+		          alpha: alpha};
+    var agent = makeMDPAgent(params, world);
+    var act = agent.act;
 
-    
-  var observedSequence1 =  restaurantNameToPath.donutSouth
-  var observedSequence2 =  restaurantNameToPath.naive // which we could remain 'donutNorth'
-  posterior(observedSequence1.concat(observedSequence2))
+    var donutBest = utilityTable['Donut N'] >= utilityTable['Veg']
+	  && utilityTable['Donut N'] >= utilityTable['Noodle'];
+
+    map( function(stateAction){
+      factor( act(stateAction[0]).score( [], stateAction[1]) );
+    }, observedStateActionSequence );
+
+    return {donutBest: donutBest, logalpha: Math.log10(alpha),
+	        timeCost: utilityTable.timeCost};
+  });
+};
+  
+var observedSequence1 =  locationsToStateActions(restaurantNameToPath.donutSouth);
+var observedSequence2 =  locationsToStateActions(restaurantNameToPath.donutNorth);
+// same problem with printing the posterior as previous codebox
+// posterior(observedSequence1.concat(observedSequence2));
   // TODO: alternatively: can we run *score* on an array for more efficient computation of likelihoods
   // e.g. score([],[x1,x2]), where the function computes sufficient statistics of the input 
   
