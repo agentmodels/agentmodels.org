@@ -230,6 +230,7 @@ var posterior = function(observedStateActionSequence){
 var observedStateActionSequence = locationsToStateActions(restaurantNameToPath.donutSouth);
 
 // these ERPs do not print for some reason
+// TODO: fix this
 // viz.vegaPrint(posterior(observedStateActionSequence.slice(0,1)));
 // viz.vegaPrint(posterior(observedStateActionSequence.slice(0,2)));
 viz.vegaPrint(posterior(observedStateActionSequence.slice(0,3)));
