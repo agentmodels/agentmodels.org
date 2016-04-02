@@ -20,17 +20,12 @@ This chapter provides an array of illustrative examples of learning about agents
 
 Consider the MDP version of Bob's Restaurant Choice problem. Bob is choosing between restaurants and has full knowledge of which restaurants are open (i.e. all of them) and knows the street layout. Previously, we discussed how to compute optimal behavior *given* Bob's utility function over restaurants. Now we get to observe Bob's behavior and our task is to infer his utility function:
 
-[TODO Fix. Path is directly to donutSouth]
-
 ~~~~
-//var world = makeDonutWorld2({big:true});
-
 var world = restaurantChoiceMDP; 
-var observedPath = restaurantNameToPath.donutSouth
+var observedPath = restaurantNameToPath.donutSouth;
+var observedTrajectory = locationsToManifestStates(observedPath);
 
-// problem could be that observedPath is array of locs, not states
-
-GridWorld.draw(world,{trajectory: observedPath});
+GridWorld.draw(world,{trajectory: observedTrajectory});
 ~~~~
 
 From Bob's actions, we infer that he probably prefers the Donut Store to the other restaurants. An alternative explanation is that Bob cares most about saving time. He might prefer the Vegetarian Cafe (all things being equal) but his preference is not strong enough to spend extra time getting there.
@@ -121,17 +116,14 @@ For this example, we condition on the agent making a single step from $$[3,1]$$ 
 
 ~~~~
 var world = restaurantChoiceMDP;
-var singleStepTrajectory = [{manifestState: {loc: [3,1],
-	                                         timeLeft: 10,
-											 terminateAfterAction: false},
-	                         latentState: {'Donut S': true,
-							               'Donut N': true,
-										   Veg: true,
-										   Noodle: true}}, 'l'];
+var singleStepTrajectory = [{loc: [3,1],
+                             timeLeft: 10,
+							 terminateAfterAction: false},
+						    {loc: [2,1],
+							 timeLeft: 9,
+							 terminateAfterAction: false}];
 
 GridWorld.draw(world,{trajectory: singleStepTrajectory});
-
-// GridWorld.draw doesn't like this?
 ~~~~
 
 Our approach to inference is slightly different than in the example at the start of this chapter. The approach is a direct translation of the expression for the posterior in Equation (1) above. For each observed state-action pair, we compute the likelihood of the agent (with given $$U$$) choosing that action in the state. (In contrast, the simple approach above will become intractable for long, noisy action sequences -- as it will need to loop over all possible sequences). 
