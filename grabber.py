@@ -1,8 +1,18 @@
 from bs4 import BeautifulSoup
 import os
 
+
+#TODO:
+# 1. relative paths
+# 2. function that takes single path then loop over all chapters
+# 3. probably best to make a directory for each chapter
+# 4. where should the script be store? should be on github so people can download it
+
+
+
 htmlPath  = '/Users/owainevans/agents/agentmodels.org/_site/chapters/'
 htmlName = '1-introduction.html'
+
 
 with open(htmlPath + htmlName, 'r') as htmlFile:
     soup = BeautifulSoup(htmlFile, 'html.parser')
