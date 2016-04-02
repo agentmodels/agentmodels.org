@@ -28,6 +28,8 @@ Consider the MDP version of Bob's Restaurant Choice problem. Bob is choosing bet
 var world = restaurantChoiceMDP; 
 var observedPath = restaurantNameToPath.donutSouth
 
+// problem could be that observedPath is array of locs, not states
+
 GridWorld.draw(world,{trajectory: observedPath});
 ~~~~
 
