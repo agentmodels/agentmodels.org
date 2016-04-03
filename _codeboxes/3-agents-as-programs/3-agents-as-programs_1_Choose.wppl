@@ -1,0 +1,20 @@
+// Choose to eat at the Italian or French restaurants
+var actions = ['italian', 'french'];
+
+var transition = function(state, action){
+  return (action === 'italian') ? 'pizza' : 'steak frites';
+};
+
+var utility = function(state){
+  return (state === 'pizza') ? 1 : 0;
+};
+
+var maxAgent = function(state){
+  return argMax(
+    function(action){
+      return utility(transition(state, action));
+    },
+    actions);
+};
+
+print("Choice in default state: " + maxAgent("default"));

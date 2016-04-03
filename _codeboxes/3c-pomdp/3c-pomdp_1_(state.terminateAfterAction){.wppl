@@ -1,0 +1,7 @@
+if (state.terminateAfterAction){
+  return output;
+} else {   
+  var nextState = transition(state, action);
+  return output.concat(sampleSequence(nextState, belief, action));
+  }
+};   return sampleSequence(startState, priorBelief, 'startAction'); }; ```

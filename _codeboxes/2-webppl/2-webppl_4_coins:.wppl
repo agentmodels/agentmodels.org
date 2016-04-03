@@ -1,0 +1,8 @@
+print('Fair coins: ' + [flip(0.5), flip(0.5)]);
+print('Biased coins: ' + [flip(0.9), flip(0.9)]);
+
+var coinWithSide = function(){
+  return categorical([.49, .49, .02], ['heads', 'tails', 'side']);
+};
+
+print(repeat(5, coinWithSide)); // draw i.i.d samples

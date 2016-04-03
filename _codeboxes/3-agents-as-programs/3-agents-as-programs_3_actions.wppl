@@ -1,0 +1,15 @@
+var actions = ['italian', 'french'];
+
+var transition = function(state, action){
+  return (action === 'italian') ? 'pizza' : 'steak frites';
+};
+
+var inferenceAgent = function(state){
+  return Enumerate(function(){
+    var action = uniformDraw(actions);
+    condition(transition(state, action) === 'pizza');
+    return action;
+  });
+};
+
+viz.print(inferenceAgent("default"));

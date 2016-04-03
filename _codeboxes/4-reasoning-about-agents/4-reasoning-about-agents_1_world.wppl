@@ -1,0 +1,5 @@
+var world = restaurantChoiceMDP; 
+var observedPath = restaurantNameToPath.donutSouth;
+var observedTrajectory = locationsToManifestStates(observedPath);
+
+GridWorld.draw(world,{trajectory: observedTrajectory});

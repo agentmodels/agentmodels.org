@@ -1,0 +1,31 @@
+var world = getRestaurantChoicePOMDP();
+var feature = world.feature;
+var utilityTable = {'Donut N': 1,
+		            'Donut S': 1,
+					'Veg': 3,
+					'Noodle': 5,
+					timeCost: -0.1};
+var utility = tableToUtilityFunction(utilityTable, feature);
+var startState = {
+  manifestState: { loc: [3,1],
+		           terminateAfterAction: false,
+		           timeLeft: 11},
+  latentState: {'Donut N': true,
+		        'Donut S': true,
+				Veg: true,
+				Noodle: false}
+};
+
+var latentSampler = function() {
+  return categorical([0.8, 0.2], [update(startState.latentState,
+				                     	 {Noodle: true}),
+				                  startState.latentState]);
+};
+
+var prior = getPriorBeliefGridworld(startState.manifestState, latentSampler);
+var agent = makeBeliefAgent({utility: utility,
+			                 alpha: 100,
+			                 priorBelief: prior}, world);
+var trajectory = simulateBeliefAgent(startState, world, agent, 'states');
+
+trajectoryToLocations(trajectory);

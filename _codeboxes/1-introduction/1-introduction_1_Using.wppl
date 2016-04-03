@@ -1,0 +1,23 @@
+// Using the stochastic function `flip` we build a function that
+// returns 'H' and 'T' with equal probability:
+
+var coin = function(){
+  return flip(.5) ? 'H' : 'T';
+};
+
+var flips = [coin(), coin(), coin()];
+print("Some coin flips: " + flips);
+
+
+// We now use `flip` to define a sampler for the geometric distribution:
+
+var geometric = function(p) {
+  return flip(p) ? 1 + geometric(p) : 1
+};
+
+var boundedGeometric = Enumerate(
+  function(){ return geometric(0.5); }, 
+  20);
+
+print('Histogram of (bounded) Geometric distribution');
+viz.print(boundedGeometric);

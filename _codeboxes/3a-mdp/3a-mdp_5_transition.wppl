@@ -1,0 +1,45 @@
+var transition = function(state, action){
+  return state + action;
+};
+  
+var utility = function(state){
+  return (state === 3) ? 1 : 0;
+};
+
+var agent = dp.cache(function(state, timeLeft){
+  return Enumerate(function(){
+    var action = uniformDraw([-1, 0, 1]);
+    var eu = expectedUtility(state, action, timeLeft);    
+    factor(100 * eu);
+    return action;
+  });
+});
+
+var expectedUtility = dp.cache(function(state, action, timeLeft){
+  var u = utility(state,action);
+  var newTimeLeft = timeLeft - 1;
+  
+  if (newTimeLeft == 0){
+    return u; 
+  } else {                     
+    return u + expectation( Enumerate(function(){
+      var nextState = transition(state, action); 
+      var nextAction = sample(agent(nextState, newTimeLeft));
+      return expectedUtility(nextState, nextAction, newTimeLeft);
+    }));
+  }
+});
+
+var startState = 0;
+
+var getRuntime = function(totalTime){
+    return timeit( function(){
+        return agent(startState,totalTime);
+    }).runtimeInMilliseconds.toPrecision(4);
+};
+
+var numSteps = [3, 4, 5, 6, 7];
+var runtimes = map(getRuntime, numSteps);
+print('Runtime in ms for num steps: ' + numSteps + '\n' + runtimes);
+
+viz.bar(numSteps, runtimes)

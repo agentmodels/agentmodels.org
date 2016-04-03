@@ -1,0 +1,38 @@
+var exampleGetPosterior = function(world, priorUtilityTable, priorDiscounting,
+    priorAlpha, observedStateAction){
+  return Enumerate(function () {
+
+    // Sample parameters from prior
+    var utilityTable = priorUtilityTable();
+    var sophisticatedOrNaive = priorDiscounting().sophisticatedOrNaive;
+
+    // Create agent with those parameters
+    var agent = makeHyperbolicDiscounter(
+      { utility   : makeRestaurantUtilityMDP(world, utilityTable),
+        alpha     : priorAlpha(), 
+        discount  : priorDiscounting().discount,
+        sophisticatedOrNaive : sophisticatedOrNaive
+      }, world);
+    
+    var agentAction = agent.act;
+
+    // Condition on observed actions
+    map(function (stateAction) {
+      var state   = stateAction[0];
+      var action  = stateAction[1];
+      factor(agentAction(state, 0).score([], action)) ; 
+    }, observedStateAction);
+
+    // return parameters and summary statistics
+    var vegMinusDonut = sum(utilityTable['Veg']) - sum(utilityTable['Donut N']);
+
+    return {
+      utility: utilityTable, 
+      sophisticatedOrNaive: discounting.sophisticatedOrNaive,
+      discount: discounting.discount, 
+      alpha: alpha,
+      vegMinusDonut: vegMinusDonut,
+    };
+  });
+};
+exampleGetPosterior;  

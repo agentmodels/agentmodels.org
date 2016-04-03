@@ -1,0 +1,116 @@
+
+// ---------------
+// Defining the Bandits decision problem
+
+// Pull arm0 or arm1
+var actions = [0,1];
+
+// use latent "armToPrize" mapping in
+// state to determine which prize agent gets
+var transition = function(state, action){
+  return update(state, 
+                {prize: state.armToPrize[action], 
+                 timeLeft: state.timeLeft - 1,
+                 terminateAfterAction: state.timeLeft == 2})
+};
+
+// After pulling an arm, agent observes associated prize
+var observe = function(state){return state.prize;};
+
+var startState = { prize: 'start',
+                   timeLeft:3, 
+                   terminateAfterAction:false,
+                   armToPrize: {0:'chocolate', 1:'champagne'}
+                 };
+                
+// ---------------
+// Defining the POMDP agent
+
+// Agent's preferences over prizes
+var utility = function(state,action){
+  var prizeToUtility = {chocolate: 1, nothing: 0, champagne: 1.5, start:0};
+  return prizeToUtility[state.prize];
+};
+
+// Agent's prior prior includes possibility that arm1 has no prize
+// (instead of champagne)
+var alternativeStartState = update(startState, {armToPrize:{0:'chocolate', 1:'nothing'}});
+
+var priorBelief = Enumerate(function(){
+  return categorical( [.5, .5], [startState, alternativeStartState]);
+});
+
+
+// Agent's belief update: directly translates the belief update
+// equation above
+
+var updateBelief = function(belief, observation, action){
+  return Enumerate(function(){
+    var state = sample(belief);
+    var predictedNextState = transition(state, action);
+    var predictedObservation = observe(predictedNextState);
+    condition(_.isEqual(predictedObservation, observation));
+    return predictedNextState;
+  });
+};
+
+var act = dp.cache(
+  function(belief) {
+    return Enumerate(function(){
+      var action = uniformDraw(actions);
+      var eu = expectedUtility(belief, action);
+      factor(100 * eu);
+      return action;
+    });
+  });
+
+var expectedUtility = dp.cache(
+  function(belief, action) {
+    return expectation(
+      Enumerate(function(){
+	var state = sample(belief);
+	var u = utility(state, action);
+	if (state.terminateAfterAction) {
+	  return u;
+	} else {
+	  var nextState = transition(state, action);
+	  var nextObservation = observe(nextState);
+	  var nextBelief = updateBelief(belief, nextObservation, action);            
+	  var nextAction = sample(act(nextBelief));   
+	  return u + expectedUtility(nextBelief, nextAction);
+	}
+      }));
+  });
+
+
+var simulate = function(startState, priorBelief) {
+    
+  var sampleSequence = function(state, priorBelief, action) {
+    var observation = observe(state);
+    var belief = action=='startAction' ? priorBelief : updateBelief(priorBelief, observation, action);
+    var action = sample(act(belief));
+    var output = [ [state,action] ];
+         
+    if (state.terminateAfterAction){
+      return output;
+    } else {   
+      var nextState = transition(state, action);
+      return output.concat(sampleSequence(nextState, belief, action));
+    }
+  };
+  return sampleSequence(startState, priorBelief, 'startAction');
+};
+
+
+
+var displayTrajectory = function( trajectory ){
+  var out = map( function(state_action){
+    var previousPrize = state_action[0].prize;
+    var nextAction = state_action[1];
+    return [previousPrize, nextAction];
+  }, trajectory);  
+  var out = _.flatten(out);
+  return out.slice(1,out.length-1);
+};
+
+displayTrajectory(simulate(startState, priorBelief));

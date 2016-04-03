@@ -1,0 +1,52 @@
+var armToPrize = {0: 'chocolate',
+		          1: 'champagne'};
+var worldAndStart = makeIRLBanditWorldAndStart(2, armToPrize, 5);
+var observe = worldAndStart.world.observe;
+var fullObserve = getFullObserve(observe);
+var transition = worldAndStart.world.transition;
+
+var makeTrajectory = function(state) {
+  var observation = fullObserve(state);
+  var action = 0; // agent always pulls arm 0
+  var nextState = transition(state, action);
+  return [{state: state,
+	       observation: observation,
+	       action: action}];
+};
+
+var observedSequence = makeTrajectory(worldAndStart.startState);
+
+var baseParams = {
+  alpha: 100
+};
+
+var noChampagnePrior = Enumerate(function(){
+  var latent = flip(0.05) ? armToPrize : update(armToPrize, {1: 'nothing'});
+  return buildState(worldAndStart.startState.manifestState, latent);
+});
+var informedPrior = deltaERP(worldAndStart.startState);
+var priorInitialBelief = categoricalERP([0.5, 0.5], [noChampagnePrior,
+						                             informedPrior]);
+
+var likesChampagne = {nothing: 0,
+		              champagne: 5,
+					  chocolate: 3};
+var likesChocolate = {nothing: 0,
+		              champagne: 3,
+					  chocolate: 5};
+
+var priorPrizeToUtility = categoricalERP([0.5, 0.5], [likesChampagne,
+						                              likesChocolate]);
+
+var posterior = agentModelsIRLBanditInfer(baseParams, priorPrizeToUtility,
+					                      priorInitialBelief, worldAndStart,
+										  observedSequence);
+var utilityBeliefPosterior = Enumerate(function(){
+  var utilityBelief = sample(posterior);
+  var chocolateUtility = utilityBelief.prizeToUtility.chocolate;
+  var likesChocolate = chocolateUtility > 3;
+  var isInformed = isDeltaERP(utilityBelief.priorBelief);
+  return {likesChocolate: likesChocolate,
+	      isInformed: isInformed};
+});
+viz.vegaPrint(utilityBeliefPosterior);

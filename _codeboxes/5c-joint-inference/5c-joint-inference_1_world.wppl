@@ -1,0 +1,3 @@
+var world = makeRestaurantChoiceMDP();
+var path = map(first,restaurantNameToObservationTime11['naive']);         
+GridWorld.draw(world, {trajectory:path});

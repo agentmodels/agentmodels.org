@@ -1,0 +1,119 @@
+
+
+var makeAgent = function (params, world) {
+  var stateToActions = world.stateToActions;
+  var transition = world.transition;
+  var utility = params.utility;
+
+  var discountFunction = function(delay){
+    return 1/(1 + params.discount*delay);
+  };
+
+  var isNaive = params.sophisticatedOrNaive=='naive';
+    
+  var act = dp.cache( 
+    function(state, delay){
+      return Enumerate(function(){
+        var action = uniformDraw(stateToActions(state));
+        var eu = expectedUtility(state, action, delay);    
+        factor(params.alpha * eu);
+        return action;
+      });      
+    });
+  
+  var expectedUtility = dp.cache(
+    function(state, action, delay){
+      var u = discountFunction(delay) * utility(state, action);
+      if (state.terminateAfterAction){
+        return u; 
+      } else {                     
+        return u + expectation( Enumerate(function(){
+          var nextState = transition(state, action); 
+          var perceivedDelay = isNaive ? delay + 1 : 0;
+          var nextAction = sample(act(nextState, perceivedDelay));
+          return expectedUtility(nextState, nextAction, delay+1);  
+        }));
+      }                      
+    });
+  
+  return {
+    params : params,
+    expectedUtility : expectedUtility,
+    act: act
+  };
+};
+
+var simulate = function(startState, world, agent) {
+  var act = agent.act;
+  var expectedUtility = agent.expectedUtility;
+  var transition = world.transition;
+
+  var sampleSequence = function (state) {
+    var delay = 0;
+    var action = sample(act(state, delay));
+    var nextState = transition(state, action); 
+    var out = [state,action]
+    return state.terminateAfterAction ?
+      [out] : [out].concat(sampleSequence(nextState));
+  };
+  return sampleSequence(startState);
+};
+
+
+// TODO - move this to a library?
+var makeRestaurantUtilityFunction = function (world, rewards) { 
+  return function(state, action) {
+    var getFeature = world.feature;
+    var feature = getFeature(state);
+
+    if (feature.name) { return rewards[feature.name][state.timeAtRestaurant]; }
+    return rewards.timeCost;
+  };
+};
+
+
+// Construct MDP, i.e. world
+var startState = { 
+  loc : [3,0],
+  terminateAfterAction : false,
+  timeLeft : 13
+};
+
+var world = makeDonutWorld2({ big : true, maxTimeAtRestaurant : 2});
+
+
+// Construct hyperbolic discounting agent
+
+
+// Utilities for restaurants: [immediate reward, delayed reward]
+// Also *timeCost*, cost of taking a single action.
+
+var restaurantUtility = makeRestaurantUtilityFunction(world, {
+    'Donut N' : [10, -10],
+    'Donut S' : [10, -10],
+    'Veg'   : [-10, 20],
+    'Noodle': [0, 0],
+    'timeCost': -.01
+});
+
+var baseAgentParams = {
+  utility : restaurantUtility,
+  alpha : 500, 
+  discount : 1
+};
+
+// Construct Sophisticated and Naive agents
+var sophisticatedAgent = makeAgent(
+  update(baseAgentParams, {sophisticatedOrNaive: 'sophisticated'}), 
+  world
+);
+
+var naiveAgent = makeAgent( 
+  update(baseAgentParams, {sophisticatedOrNaive: 'naive'}), 
+  world
+);
+
+// TODO: draw these trajectories. 
+print('Soph traj' +  simulate(startState, world, sophisticatedAgent));
+print('Naive trajectory' + 
+            simulate(startState, world, naiveAgent));

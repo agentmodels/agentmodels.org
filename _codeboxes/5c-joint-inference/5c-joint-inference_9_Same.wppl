@@ -1,0 +1,47 @@
+// Same helper functions as above
+///fold:
+var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
+var getPosterior = restaurantHyperbolicInfer.getPosterior;
+
+var displayResults = function(erp){
+  var utility = erp.MAP().val.utility;
+  print('MAP utility for Veg: ' + utility['Veg']);
+  print('... and for Donut: ' + utility['Donut N'] + ' \n')
+  viz.vegaPrint(getMarginalObject(erp,'vegMinusDonut'));
+  viz.vegaPrint(getMarginalObject(erp,'sophisticatedOrNaive'));
+  var alphaPrint = Enumerate(function(){
+    return {alpha: JSON.stringify(sample(erp).alpha) };
+  });                          
+  viz.vegaPrint(alphaPrint);
+};
+///
+
+// Prior on agent's utility function
+  var priorUtilityTable = function(){
+    var utilityValues =  [-10, 0, 10, 20, 30];
+    var donut = [uniformDraw(utilityValues), -10];
+    var veg = [uniformDraw(utilityValues), 20];
+    return {
+      'Donut N' : donut,
+      'Donut S' : donut,
+      'Veg'     : veg,
+      'Noodle'  : [-10, -10],
+      'timeCost': -.01
+    };
+  };
+
+  var priorDiscounting = function(){ 
+    return {
+      discount: uniformDraw([0,1]),
+      sophisticatedOrNaive: uniformDraw(['naive','sophisticated'])
+    };
+  };
+  var priorAlpha = function(){return uniformDraw([.1, 10, 1000]);};
+var prior = {utilityTable:priorUtilityTable, discounting:priorDiscounting, alpha:priorAlpha};
+
+// Get world and observations
+var world = makeRestaurantChoiceMDP(); //  makeRestaurantChoiceMDP({noReverse:false});
+
+var observedStateAction = restaurantNameToObservationTime11['naive'];
+var posterior = getPosterior(world, prior, observedStateAction); // getPosterior(world, prior, observedStateAction, 2); condition thrice
+displayResults(posterior);

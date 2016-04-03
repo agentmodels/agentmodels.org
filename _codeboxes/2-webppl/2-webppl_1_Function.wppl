@@ -1,0 +1,16 @@
+// Function definition using Javascript's `isNaN` and `log` primitives:
+
+var verboseLog = function(x){
+  if (x<=0 || window.isNaN(x)) {
+    print("Input " + x + " was not a positive number");
+    return null;
+  } else {
+    return Math.log(x);
+  }
+};
+
+// Array with numbers, object, Boolean types
+var inputs = [1, 1.5, -1, {key: 1}, true];
+
+print("Apply verboseLog to elements in array: "); 
+map(verboseLog, inputs);

@@ -1,0 +1,13 @@
+// Assignment produces an error:
+
+// var table = {};
+// table.key = 1;
+// table.key = table.key + 1;
+// => Assignment is allowed only to fields of globalStore.
+
+
+// Instead do this:
+
+var table = {key: 1};
+var updatedTable = {key: table.key + 1};
+updatedTable;

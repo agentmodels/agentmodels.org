@@ -1,0 +1,56 @@
+
+// test to show the scaling properties of stochastic bandits
+
+var varyArms = function(n) {
+
+  var world = makeStochasticBanditWorld(n);
+
+  var probablyChampagneERP = categoricalERP([0.2, 0.8], ['nothing', 'champagne']);
+  var probablyNothingERP = categoricalERP([0.8, 0.2], ['nothing', 'champagne']);
+  
+  var makeLatentState = function(numArms) {
+    return map(function(x){return probablyChampagneERP;}, _.range(numArms));
+  };
+
+  var startState = buildStochasticBanditStartState(5, makeLatentState(n));
+
+  var latentSampler = function(numArms) {
+    return map(function(x){return uniformDraw([probablyNothingERP,
+					                           probablyChampagneERP]);},
+	           _.range(numArms));
+  };
+  var prior = Enumerate(function(){
+    var latentState = latentSampler(n);
+    return buildStochasticBanditStartState(5, latentState);
+  });
+
+  var prizeToUtility = {start: 0, nothing: 0, chocolate: 1, champagne: 1.5};
+
+  var utility = makeStochasticBanditUtility(prizeToUtility);
+  var agentParams = {utility: utility,
+		             alpha: 100,
+		             priorBelief: prior,
+		             fastUpdateBelief: false};
+  var agent = makeBeliefAgent(agentParams, world);
+
+  var f = function() {
+    var trajectory = simulateBeliefAgent(startState, world, agent, 'stateAction');
+    return trajectory;
+  };
+
+  return timeit(f).runtimeInMilliseconds.toPrecision(3) * 0.001;
+
+};
+
+// varying the number of arms
+
+var arms = [1,2,3];
+var runtimes = map(varyArms, arms);
+
+print('Runtime in sec for arms ' + arms + '\n' + runtimes);
+
+viz.bar(arms, runtimes);
+
+// note the increase in order of magnitude. If we called this for 4 arms, the
+// increase would continue, meaning that it would take impractically long.
+

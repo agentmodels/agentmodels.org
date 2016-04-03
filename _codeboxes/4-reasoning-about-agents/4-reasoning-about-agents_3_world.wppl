@@ -1,0 +1,9 @@
+var world = restaurantChoiceMDP;
+var singleStepTrajectory = [{loc: [3,1],
+                             timeLeft: 10,
+							 terminateAfterAction: false},
+						    {loc: [2,1],
+							 timeLeft: 9,
+							 terminateAfterAction: false}];
+
+GridWorld.draw(world,{trajectory: singleStepTrajectory});

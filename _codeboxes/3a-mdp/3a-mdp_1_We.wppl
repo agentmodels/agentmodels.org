@@ -1,0 +1,5 @@
+// We use the Webppl-gridworld library
+var world = restaurantChoiceMDP;
+var startState = restaurantChoiceStart;
+
+GridWorld.draw(world, { trajectory : [ startState ] });

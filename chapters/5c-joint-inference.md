@@ -189,6 +189,7 @@ var displayResults = function(erp){
   print('MAP utility for Veg: ' + utility['Veg']);
   print('... and for Donut: ' + utility['Donut N'] + ' \n')
   viz.vegaPrint(getMarginalObject(erp,'vegMinusDonut'));
+  viz.vegaPrint(getMarginalObject(erp,'donutTempting'));
   viz.vegaPrint(getMarginalObject(erp,'sophisticatedOrNaive'));
 };
 
@@ -245,6 +246,7 @@ var displayResults = function(erp){
   print('MAP utility for Veg: ' + utility['Veg']);
   print('... and for Donut: ' + utility['Donut N'] + ' \n')
   viz.vegaPrint(getMarginalObject(erp,'vegMinusDonut'));
+  viz.vegaPrint(getMarginalObject(erp,'donutTempting'));
   viz.vegaPrint(getMarginalObject(erp,'sophisticatedOrNaive'));
 };
 
@@ -347,6 +349,7 @@ var displayResults = function(erp){
   print('MAP utility for Veg: ' + utility['Veg']);
   print('... and for Donut: ' + utility['Donut N'] + ' \n')
   viz.vegaPrint(getMarginalObject(erp,'vegMinusDonut'));
+  viz.vegaPrint(getMarginalObject(erp,'donutTempting'));
   viz.vegaPrint(getMarginalObject(erp,'sophisticatedOrNaive'));
   var alphaPrint = Enumerate(function(){
     return {alpha: JSON.stringify(sample(erp).alpha) };
@@ -401,6 +404,7 @@ var displayResults = function(erp){
         +'. Donut N: ' + utility['Donut N'] +
         +'. Donut S: ' + utility['Donut S']);
   viz.vegaPrint(getMarginalObject(erp,'donutNWins'));
+  viz.vegaPrint(getMarginalObject(erp,'donutTempting'));
   viz.vegaPrint(getMarginalObject(erp,'discount'));
   var alphaPrint = Enumerate(function(){
     return {alpha: JSON.stringify(sample(erp).alpha) };
@@ -452,6 +456,7 @@ var displayResults = function(erp){
         +'. Donut: ' + utility['Donut N']
         +'. Timecost: ' + utility['timeCost']);
   viz.vegaPrint(getMarginalObject(erp,'timeCost'));
+  viz.vegaPrint(getMarginalObject(erp,'donutTempting'));
   viz.vegaPrint(getMarginalObject(erp,'discount'));
   var alphaPrint = Enumerate(function(){
     return {alpha: JSON.stringify(sample(erp).alpha) };

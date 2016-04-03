@@ -1,0 +1,5 @@
+var appleOrangeERP = Enumerate(function(){ 
+  return flip(0.9) ? "apple" : "orange";
+});
+
+viz.print(appleOrangeERP);

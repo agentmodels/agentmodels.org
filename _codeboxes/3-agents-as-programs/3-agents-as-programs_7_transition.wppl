@@ -1,0 +1,32 @@
+var transition = function(state, action){
+  var nextStates = ['bad', 'good', 'spectacular'];
+  if (action === 'italian'){ 
+    return categorical([0.2, 0.6, 0.2], nextStates);
+  } else {
+    return categorical([0.05, 0.9, 0.05], nextStates);
+  };
+};
+
+var utility = function(state){
+  var table = { bad: -10, good: 6, spectacular: 8 };
+  return table[state];
+};
+
+var alpha = 1;
+
+var softMaxAgent = function(state){
+  return Enumerate(function(){
+
+    var action = uniformDraw(['french', 'italian']);
+
+    var expectedUtility = function(action){
+      return expectation( Enumerate(function(){
+        return utility(transition(state,action));
+      }));
+    };
+    factor(alpha * expectedUtility(action));
+    return action;
+  })
+};
+
+viz.print(softMaxAgent('default'));
