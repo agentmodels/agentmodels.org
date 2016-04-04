@@ -115,6 +115,8 @@ For this example, we condition on the agent making a single step from $$[3,1]$$ 
 [TODO Codebox showing trajectory with only a single step]
 
 ~~~~
+// show_single_step_trajectory
+
 var world = restaurantChoiceMDP;
 var singleStepTrajectory = [{loc: [3,1],
                              timeLeft: 10,
@@ -129,6 +131,8 @@ GridWorld.draw(world,{trajectory: singleStepTrajectory});
 Our approach to inference is slightly different than in the example at the start of this chapter. The approach is a direct translation of the expression for the posterior in Equation (1) above. For each observed state-action pair, we compute the likelihood of the agent (with given $$U$$) choosing that action in the state. (In contrast, the simple approach above will become intractable for long, noisy action sequences -- as it will need to loop over all possible sequences). 
 
 ~~~~
+// infer_from_single_step_trajectory
+
 var world = restaurantChoiceMDP;
 var feature = world.feature;
 
@@ -186,7 +190,9 @@ This issue of *unidentifiability* is common when inferring an agent's beliefs or
 The previous examples assumed that the agent's `timeCost` (the negative utility of each timestep before the agent reaches a restaurant) and the softmax $$\alpha$$ were known. We can modify the above example to include them in inference.
 
 ~~~~
-var world = restaurantChoiceMDP;
+// infer_utilities_timeCost_softmax_noise
+
+var world = restaurantChoiceMDPWithReverse;
 var feature = world.feature;
 
 var utilityTablePrior = function(){
@@ -206,10 +212,8 @@ var posterior = function(observedStateActionSequence){
   return Enumerate( function() {
     var utilityTable = utilityTablePrior();
     var alpha = alphaPrior();
-	var logAlpha = Math.log10(alpha);
-	var timeCost = utilityTable.timeCost;
     var params = {utility: mdpTableToUtilityFunction(utilityTable, feature),
-		  alpha: alpha};
+		          alpha: alpha};
     var agent = makeMDPAgent(params, world);
     var act = agent.act;
 
@@ -219,21 +223,33 @@ var posterior = function(observedStateActionSequence){
     // For each observed state-action pair, compute likekihood of action
     map( function(stateAction){
       factor( act(stateAction[0]).score( [], stateAction[1]) );
-    }, observedStateActionSequence );
+      }, observedStateActionSequence );
+
+	var logAlpha = Math.log10(alpha);
+	var timeCost = JSON.stringify(utilityTable.timeCost);
 
     return {donutBest: donutBest, logAlpha: logAlpha,
 		    timeCost: timeCost};
   });
 };
 
+var observedStateActionSequence = restaurantNameToObservationTime11['donutSouth'];
 
-var observedStateActionSequence = locationsToStateActions(restaurantNameToPath.donutSouth);
-
-// these ERPs do not print for some reason
-// TODO: fix this
-// viz.vegaPrint(posterior(observedStateActionSequence.slice(0,1)));
-// viz.vegaPrint(posterior(observedStateActionSequence.slice(0,2)));
-viz.vegaPrint(posterior(observedStateActionSequence.slice(0,3)));
+print('Conditioning on one action:');
+var posterior1 = posterior(observedStateActionSequence.slice(0,1));
+viz.vegaPrint(getMarginalObject(posterior1, 'donutBest'));
+viz.vegaPrint(getMarginalObject(posterior1, 'logAlpha'));
+viz.vegaPrint(getMarginalObject(posterior1, 'timeCost'));
+print('Conditioning on two actions:');
+var posterior2 = posterior(observedStateActionSequence.slice(0,2));
+viz.vegaPrint(getMarginalObject(posterior2, 'donutBest'));
+viz.vegaPrint(getMarginalObject(posterior2, 'logAlpha'));
+viz.vegaPrint(getMarginalObject(posterior2, 'timeCost'));
+print('Conditioning on three actions:');
+var posterior3 = posterior(observedStateActionSequence.slice(0,3));
+viz.vegaPrint(getMarginalObject(posterior3, 'donutBest'));
+viz.vegaPrint(getMarginalObject(posterior3, 'logAlpha'));
+viz.vegaPrint(getMarginalObject(posterior3, 'timeCost'));
 ~~~~
 
 The posterior shows that taking a step towards Donut South can now be explained in terms of a high `timeCost`. If the agent has a low value for $$\alpha$$, then this step to the left is fairly likely even if the agent prefers the Noodle Store or Vegetarian Cafe. So including softmax noise in the inference makes inferences about other parameters closer to the prior. However, once we observe three steps towards Donut South, the inferences about preferences become fairly strong. 
@@ -241,7 +257,9 @@ The posterior shows that taking a step towards Donut South can now be explained 
 As noted above, it is simple to extend our approach to inference to conditioning on multiple sequences of actions. Consider the two sequences below:
 
 ~~~~
-var world = restaurantChoiceMDP
+// display_multiple_trajectories
+
+var world = restaurantChoiceMDPWithReverse;
 
 var observedPath1 =  restaurantNameToPath.donutSouth;
 var observedTrajectory1 = locationsToManifestStates(observedPath1);
@@ -255,7 +273,9 @@ GridWorld.draw(world, {trajectory: observedTrajectory2});
 inference happens here
 
 ~~~~
-var world = restaurantChoiceMDP;
+// infer_from_multiple_trajectories
+
+var world = restaurantChoiceMDPWithReverse;
 var feature = world.feature;
 
 var utilityTablePrior = function(){
@@ -287,15 +307,20 @@ var posterior = function(observedStateActionSequence){
       factor( act(stateAction[0]).score( [], stateAction[1]) );
     }, observedStateActionSequence );
 
-    return {donutBest: donutBest, logalpha: Math.log10(alpha),
-	        timeCost: utilityTable.timeCost};
+	var logAlpha = Math.log10(alpha);
+	var timeCost = JSON.stringify(utilityTable.timeCost);
+
+    return {donutBest: donutBest, logAlpha: logAlpha,
+	        timeCost: timeCost};
   });
 };
   
-var observedSequence1 =  locationsToStateActions(restaurantNameToPath.donutSouth);
-var observedSequence2 =  locationsToStateActions(restaurantNameToPath.donutNorth);
-// same problem with printing the posterior as previous codebox
-// posterior(observedSequence1.concat(observedSequence2));
+var observedSequence1 = restaurantNameToObservationTime11['naive'];
+var observedSequence2 = restaurantNameToObservationTime11['donutSouth'];
+var posteriorERP = posterior(observedSequence1.concat(observedSequence2));
+viz.vegaPrint(getMarginalObject(posteriorERP, 'donutBest'));
+viz.vegaPrint(getMarginalObject(posteriorERP, 'logAlpha'));
+viz.vegaPrint(getMarginalObject(posteriorERP, 'timeCost'));
   // TODO: alternatively: can we run *score* on an array for more efficient computation of likelihoods
   // e.g. score([],[x1,x2]), where the function computes sufficient statistics of the input 
   
