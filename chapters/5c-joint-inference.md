@@ -501,13 +501,13 @@ In summary, if we observe the agent repeatedly take the Naive path, the "Optimal
 
 
 #### Preferences for the two Donut Store branches can vary
-Another explanation of the Naive path is that the agent has a preference for the "Donut N" branch of the Donut Store over the "Donut S" branch. Maybe this branch is better run or has more space. We assume the two Donut stores at least don't differ by much in their utility. If we add this to our set of possible preferences, inference changes significantly.
+Another explanation of the Naive path is that the agent has a preference for the "Donut N" branch of the Donut Store over the "Donut S" branch. Maybe this branch is better run or has more space. If we add this to our set of possible preferences, inference changes significantly.
 
 To speed up inference, we use a fixed assumption that the agent is Naive. There are three explanations of the agent's path:
 
 1. Softmax noise: measured by $$\alpha$$
 2. The agent is Naive and tempted by Donut: measured by `discount` and `donutTempting`
-3. The agent prefers Donut N to Donut S: measured by `donutNWins` (i.e. Donut N's utility is greater than Donut S's).
+3. The agent prefers Donut N to Donut S: measured by `donutNGreaterDonutS` (i.e. Donut N's utility is greater than Donut S's).
 
 These three can also be combined to explain the behavior. 
 
@@ -529,19 +529,18 @@ var displayResults = function(erp, label){
   viz.vegaPrint(alphaPrint);
   viz.vegaPrint(getMarginalObject(erp, 'donutTempting'));
   viz.vegaPrint(getMarginalObject(erp, 'discount'));
-  viz.vegaPrint(getMarginalObject(erp, 'donutNWins'));
+  viz.vegaPrint(getMarginalObject(erp, 'donutNGreaterDonutS'));
 };
 ///
 
 // Prior on agent's utility function
 var priorUtilityTable = function(){
-  var utilityValues =  [-10, 0, 10, 20, 30];
-  var donutN = [uniformDraw(utilityValues), -10]
-  var veg = [uniformDraw(utilityValues), 20];
+  var utilityValues =  [-10, 0, 10, 20];
+  
   return {
-    'Donut N' : donutN,
-    'Donut S' : [donutN[0] + uniformDraw([-3,0,3]), donutN[1]],
-    'Veg'     : veg,
+    'Donut N' : [uniformDraw(utilityValues), -10],
+    'Donut S' : [uniformDraw(utilityValues), -10],
+    'Veg'     : [20, uniformDraw(utilityValues)],
     'Noodle'  : [-10, -10],
     'timeCost': -.01
   };
@@ -564,27 +563,33 @@ displayResults(getPosterior(world, prior, []), 'Prior distribution')
 displayResults(posterior, 'Posterior on Naive path');
 ~~~~
 
+The explanation in terms of Donut North being preferred does well in the posterior. This is because the discounting explanation (even assuming the agent is Naive) is unlikely a priori (due to our simple uniform priors on utilities and discounting). While high noise is more plausible a priori, the noise explanation still needs to posit a low probability series of events. 
 
-Observe the sophisticated path with possibly positive timeCost:
+We see a similar result if we enrich the set of possible utilities for the Sophisticated path. This time, we allow the `timeCost`, i.e. the cost for taking a single timestep, to be positive. This means the agent preferes to spend as much time moving around before reaching a restaurant. Here are the results:
+
+
 ~~~~
+// infer_joint_timecost_sophisticated
 ///fold:
 var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
 var getPosterior = restaurantHyperbolicInfer.getPosterior;
 
-var displayResults = function(erp){
+var displayResults = function(erp, label){
+  if (label){print('Display: ' + label)}
   var utility = erp.MAP().val.utility;
   print('MAP utility for Veg: ' + utility['Veg'] 
-        +'. Donut: ' + utility['Donut N']
-        +'. Timecost: ' + utility['timeCost']);
-  viz.vegaPrint(getMarginalObject(erp,'timeCost'));
-  viz.vegaPrint(getMarginalObject(erp,'donutTempting'));
-  viz.vegaPrint(getMarginalObject(erp,'discount'));
+        +'. Donut: ' + utility['Donut N'] +
+        +'. TimeCost: ' + utility['timeCost']);
   var alphaPrint = Enumerate(function(){
     return {alpha: JSON.stringify(sample(erp).alpha) };
   });                          
   viz.vegaPrint(alphaPrint);
+  viz.vegaPrint(getMarginalObject(erp, 'donutTempting'));
+  viz.vegaPrint(getMarginalObject(erp, 'discount'));
+  viz.vegaPrint(getMarginalObject(erp,'timeCost'));
 };
 ///
+
 
 // Prior on agent's utility function
 var priorUtilityTable = function(){
@@ -596,7 +601,7 @@ var priorUtilityTable = function(){
     'Donut S' : donut,
     'Veg'     : veg,
     'Noodle'  : [-10, -10],
-    'timeCost': uniformDraw([-.01, .1, 1])
+    'timeCost': uniformDraw([-0.01, 0.1, 1])
   };
 };
 
@@ -606,21 +611,21 @@ var priorDiscounting = function(){
     sophisticatedOrNaive: 'sophisticated'
   };
 };
-var priorAlpha = function(){return uniformDraw([.1, 100, 1000]);};
+var priorAlpha = function(){return uniformDraw([0.1, 100, 1000]);};
 var prior = {utilityTable:priorUtilityTable, discounting:priorDiscounting, alpha:priorAlpha};
 
 // Get world and observations
 var world = makeRestaurantChoiceMDP();
 var observedStateAction = restaurantNameToObservationTime11['sophisticated'];
 var posterior = getPosterior(world, prior, observedStateAction);
-displayResults(posterior);
+displayResults(getPosterior(world, prior, []), 'Prior distribution')
+displayResults(posterior, 'Posterior on Sophisticated Path');
 ~~~~                             
 
+-----------
+
+
 ### Naive/Soph/Neutral examples for Restaurant Choice Gridworld
-
-- Recover correct inference about preferences and agent type in three simple cases (no beliefs)
-
-- Two or three scenario example. Softmaxing is ruled out in favor of naive/soph
 
 - Joint inference for Naive and Soph examples:
 
@@ -628,7 +633,8 @@ In Naive, we consider false belief about Donut South being closed, preference fo
 
 For Soph, we compare false belief the Noodle is open, a positive timeCost (which is has a low prior probability), and the Soph explanation. We could mention the experiment showing that when belief / preference explanations were possible, people tended to prefer them over HD explanations (though they did generate HD explanations spontaneously).
 
-- Big inference example (maybe in later chapter): use HMC and do inference oiver cts params. 
+- Big inference example (maybe in later chapter): use HMC and do inference oiver cts params.
+
 
 ### Procrastination Example
 HD causes big deviation in behavior. This is like smoker who smokes every day but wishes to quit.  Can you how inference gets stronger with passing days (online inference).
