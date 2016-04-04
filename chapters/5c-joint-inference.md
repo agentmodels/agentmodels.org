@@ -573,6 +573,7 @@ The explanation in terms of Donut North being preferred does well in the posteri
 
 We see a similar result if we enrich the set of possible utilities for the Sophisticated path. This time, we allow the `timeCost`, i.e. the cost for taking a single timestep, to be positive. This means the agent prefers to spend as much time as possible moving around before reaching a restaurant. Here are the results:
 
+Observe the sophisticated path with possibly positive timeCost:
 
 ~~~~
 // infer_joint_timecost_sophisticated
