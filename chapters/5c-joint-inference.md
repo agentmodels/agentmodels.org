@@ -355,8 +355,8 @@ var getPosterior = restaurantHyperbolicInfer.getPosterior;
 
 var displayResults = function(erp){
   var utility = erp.MAP().val.utility;
-  print('MAP utility for Veg: ' + utility['Veg']);
-  print('... and for Donut: ' + utility['Donut N'] + ' \n')
+  print('MAP utility for Veg: ' + utility['Veg'] + 
+  '. Donut: ' + utility['Donut N'] + ' \n')
   viz.vegaPrint(getMarginalObject(erp,'vegMinusDonut'));
   viz.vegaPrint(getMarginalObject(erp,'donutTempting'));
   viz.vegaPrint(getMarginalObject(erp,'sophisticatedOrNaive'));
@@ -398,7 +398,7 @@ var posterior = getPosterior(world, prior, observedStateAction); // getPosterior
 displayResults(posterior);
 ~~~~
 
-#### Preferences for two donut stores can vary
+#### Preferences for the two Donut Store branches can vary
 Another explanation of the Naive path is that the agent has a preference for "Donut N" over "Donut S". If we add this to our set of possible preferences, inference changes significantly. We assume the agent is Naive. We know there are three relevant explanations (plus combinations of these which would over-determine the result): softmax noise, being Naive, and preferring Donut North to South. 
 
 

@@ -3,15 +3,21 @@ import os
 
 
 #TODO:
+# run jekyll serve to generate the new html (or switch to grabbing from the markdown)
+# delete all old codeboxes
 # make sure print, viz.print, draw work in both editor and node
 # remove "bad" symbols from possible filenames
 # start adding names to codeboxes, esp. long ones
 
+# could do a code substitute for viz.print or viz.vegaPrint
+# (but could just define them in webppl-gridworld so they do nothing
+# and could define print as console.log. 
 
+
+chapterPath  = '_site/chapters/'
 
 def chapterToScripts(chapterName):
     
-    chapterPath  = '_site/chapters/'
     chapterFilename = chapterName + '.html'
     
     with open(chapterPath + chapterFilename, 'r') as chapterFile:
@@ -26,7 +32,7 @@ def chapterToScripts(chapterName):
     
     for i, box in enumerate(codeboxes):
         label = box.split()[1]  # take first word after initial comment tag
-        scriptName = chapterName + '_' + str(i+1) + '_' + label + '.wppl'
+        scriptName = str(i+1) + '_' + label + '.wppl'
         with open(scriptPath + '/' + scriptName,'w+') as file:
             file.write(box)
 
