@@ -24,7 +24,7 @@ This example program uses most of the Javascript syntax that is available in Web
 // Function definition using Javascript's `isNaN` and `log` primitives:
 
 var verboseLog = function(x){
-  if (x<=0 || window.isNaN(x)) {
+  if (x<=0 || _.isNaN(x)) {
     print("Input " + x + " was not a positive number");
     return null;
   } else {
