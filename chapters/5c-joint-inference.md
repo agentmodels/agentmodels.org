@@ -66,12 +66,16 @@ In our first inference example, we do joint inference over preferences, softmax 
 This example compares a model that assumes an optimal agent (and just infers their preferences and softmax noise) to a model that also allows for sub-optimal, time-inconsistent agents. Before making a direct comparison, we demonstrate that we can infer the preferences of time-inconsistent agents from observations of their behavior.
 
 #### Assume discounting, infer "Naive" or "Sophisticated"
-First we condition on the path where the agent moves to Donut North. We call this the `naive` path because it is distinctive to the Naive hyperbolic discounter:
+First we condition on the path where the agent moves to Donut North. We call this the Naive path because it is distinctive to the Naive hyperbolic discounter (tempted by Donut North on the way to Veg):
 
 ~~~~
 // draw_naive_path
 var world = makeRestaurantChoiceMDP();
-var path = map(first,restaurantNameToObservationTime11['naive']);         
+var observedStateAction = restaurantNameToObservationTime11['naive'];
+print('Observations loaded from library function: \n' 
+       + JSON.stringify(observedStateAction) + ' \n');
+
+var path = map(first,observedStateAction);
 GridWorld.draw(world, {trajectory:path});
 ~~~~
 
@@ -80,14 +84,16 @@ For inference, we specialize the approach above for agents in MDPs that are pote
 ~~~~
 // getPosterior_function
 
-var exampleGetPosterior = function(world, priorUtilityTable, priorDiscounting,
-    priorAlpha, observedStateAction){
+var exampleGetPosterior = function(world, prior, observedStateAction){
   return Enumerate(function () {
 
     // Sample parameters from prior
-    var utilityTable = priorUtilityTable();
+    var priorUtility = prior.priorUtility;
+    var utilityTable = priorUtility();
+    var priorDiscounting = prior.discounting
     var sophisticatedOrNaive = priorDiscounting().sophisticatedOrNaive;
 
+    var priorAlpha = prior.priorAlpha;
     // Create agent with those parameters
     var agent = makeHyperbolicDiscounter(
       { utility   : makeRestaurantUtilityMDP(world, utilityTable),
@@ -120,7 +126,7 @@ var exampleGetPosterior = function(world, priorUtilityTable, priorDiscounting,
 null;
 ~~~~
 
-This inference function allows for inference over the softmax parameter ($$\alpha$$ or `alpha`) and the discount constant ($$k$$ or `discount`). For this example, we fix these values so that the agent has low noise ($$\alpha=1000$$) and so $$k=1$$. We also fix the `timeCost` utility to be small and negative and Nooodle's utility to be negative. We infer only the agent's utilities and whether they are Naive or Sophisticated.
+This inference function allows for inference over the softmax parameter ($$\alpha$$ or `alpha`) and the discount constant ($$k$$ or `discount`). For this example, we fix these values so that the agent has low noise ($$\alpha=1000$$) and so $$k=1$$. We also fix the `timeCost` utility to be small and negative and Noodle's utility to be negative. We infer only the agent's utilities and whether they are Naive or Sophisticated.
 
 ~~~~
 // infer_assume_discounting_naive
@@ -142,7 +148,7 @@ var displayResults = function(erp, label){
 
 // Prior on agent's utility function: each restaurant has an
 // *immediate* utility and a *delayed* utility (which is received after a delay of 1). 
-var priorUtilityTable = function(){
+var priorUtility = function(){
   var utilityValues =  [-10, 0, 10, 20];
   var donut = [uniformDraw(utilityValues), uniformDraw(utilityValues)];
   var veg = [uniformDraw(utilityValues), uniformDraw(utilityValues)];
@@ -162,7 +168,7 @@ var priorDiscounting = function(){
   };
 };
 var priorAlpha = function(){return 1000;};
-var prior = {utilityTable:priorUtilityTable, discounting:priorDiscounting, alpha:priorAlpha};
+var prior = {utility:priorUtility, discounting:priorDiscounting, alpha:priorAlpha};
 
 // Get world and observations
 var world = makeRestaurantChoiceMDP();
@@ -180,7 +186,7 @@ The first graph shows the distribution over whether the agent is Sophisticated o
 
 --------
 
-Using the same prior, we condition on the path distinctive to the Sophisticated agent:
+Using the same prior, we condition on the "Sophisticated" path (i.e. the path distinctive to the Sophisticated agent who avoids the temptation of Donut North and takes the long route to Veg):
 
 ~~~~
 // draw_sophisticated_path
@@ -211,7 +217,7 @@ var displayResults = function(erp, label){
 };
   
 // Prior on agent's utility function
-var priorUtilityTable = function(){
+var priorUtility = function(){
   var utilityValues =  [-10, 0, 10, 20];
   var donut = [uniformDraw(utilityValues), uniformDraw(utilityValues)];
   var veg = [uniformDraw(utilityValues), uniformDraw(utilityValues)];
@@ -231,7 +237,7 @@ var priorDiscounting = function(){
   };
 };
 var priorAlpha = function(){return 1000;};
-var prior = {utilityTable:priorUtilityTable, discounting:priorDiscounting, alpha:priorAlpha};
+var prior = {utility:priorUtility, discounting:priorDiscounting, alpha:priorAlpha};
 ///
 
 // Get world and observations
@@ -272,7 +278,7 @@ var displayResults = function(erp, label){
 
 
 // Prior on agent's utility function
-var priorUtilityTable = function(){
+var priorUtility = function(){
   var utilityValues =  [-10, 0, 10, 20];
   var donut = [uniformDraw(utilityValues), uniformDraw(utilityValues)];
   var veg = [uniformDraw(utilityValues), uniformDraw(utilityValues)];
@@ -292,7 +298,7 @@ var priorDiscounting = function(){
   };
 };
 var priorAlpha = function(){return 1000;};
-var prior = {utilityTable:priorUtilityTable, discounting:priorDiscounting, alpha:priorAlpha};
+var prior = {utility:priorUtility, discounting:priorDiscounting, alpha:priorAlpha};
 ///
 
 // Get world and observations
@@ -325,7 +331,7 @@ var displayResults = function(erp, label){
 ///
 
 // Prior on agent's utility function
-var priorUtilityTable = function(){
+var priorUtility = function(){
   var utilityValues = [-10,0,10,20,30,40];
   // with no discounting, delayed utilities are ommitted
   var donut = [uniformDraw(utilityValues), 0];
@@ -348,9 +354,7 @@ var priorDiscounting = function(){
 };
 
 var priorAlpha = function(){return uniformDraw([0.1, 10, 100, 1000]);};
-var prior = {utilityTable:priorUtilityTable, 
-             discounting:priorDiscounting, 
-             alpha:priorAlpha};
+var prior = {utility:priorUtility, discounting:priorDiscounting, alpha:priorAlpha};
 
 // Get world and observations
 var world = makeRestaurantChoiceMDP();
@@ -394,7 +398,7 @@ var displayResults = function(erp, label){
 };
 
 // Prior on agent's utility function
-var priorUtilityTable = function(){
+var priorUtility = function(){
   var utilityValues = [-10,0,10,20,30,40];
   // with no discounting, delayed utilities are ommitted
   var donut = [uniformDraw(utilityValues), 0];
@@ -417,15 +421,14 @@ var priorDiscounting = function(){
 };
 
 var priorAlpha = function(){return uniformDraw([0.1, 10, 100, 1000]);};
-var prior = {utilityTable:priorUtilityTable, 
-             discounting:priorDiscounting, 
-             alpha:priorAlpha};
+var prior = {utility:priorUtility, discounting:priorDiscounting, alpha:priorAlpha};
 ///
 
 // Get world and observations
 var world = makeRestaurantChoiceMDP();
 var observedStateActionNaive = restaurantNameToObservationTime11['naive'];
-var posteriorNaive = getPosterior(world, prior, observedStateActionNaive);
+var numberRepeats = 2; // with 2 repeats, we condition a total of 3 times
+var posteriorNaive = getPosterior(world, prior, observedStateActionNaive, numberRepeats);
 displayResults( posteriorNaive, 'Posterior on conditioning 3 times on Naive path')
 ~~~~
 
@@ -462,7 +465,7 @@ var displayResults = function(erp, label){
 
 // Prior on agent's utility function. We fix the delayed utilities
 // to make inference faster
-  var priorUtilityTable = function(){
+  var priorUtility = function(){
     var utilityValues =  [-10, 0, 10, 20, 30];
     var donut = [uniformDraw(utilityValues), -10];
     var veg = [uniformDraw(utilityValues), 20];
@@ -482,7 +485,9 @@ var displayResults = function(erp, label){
     };
   };
   var priorAlpha = function(){return uniformDraw([.1, 10, 1000]);};
-var prior = {utilityTable:priorUtilityTable, discounting:priorDiscounting, alpha:priorAlpha};
+var prior = {utility:priorUtility, 
+             discounting:priorDiscounting, 
+             alpha:priorAlpha};
 
 // Get world and observations
 var world = makeRestaurantChoiceMDP(); //  makeRestaurantChoiceMDP({noReverse:false});
@@ -491,7 +496,8 @@ var observedStateAction = restaurantNameToObservationTime11['naive'];
 var posterior = getPosterior(world, prior, observedStateAction);
 displayResults(getPosterior(world, prior, []), 'Prior distribution');
 displayResults(posterior, 'Posterior on Naive path');
-displayResults(getPosterior(world, prior, observedStateAction, 2), 'Posterior on three repeats of Naive path')
+var numberRepeats = 2;
+displayResults(getPosterior(world, prior, observedStateAction, numberRepeats), 'Posterior on three repeats of Naive path')
 
 ~~~~
 
@@ -534,7 +540,7 @@ var displayResults = function(erp, label){
 ///
 
 // Prior on agent's utility function
-var priorUtilityTable = function(){
+var priorUtility = function(){
   var utilityValues =  [-10, 0, 10, 20];
   
   return {
@@ -553,7 +559,7 @@ var priorDiscounting = function(){
   };
 };
 var priorAlpha = function(){return uniformDraw([.1, 100, 1000]);};
-var prior = {utilityTable:priorUtilityTable, discounting:priorDiscounting, alpha:priorAlpha};
+var prior = {utility:priorUtility, discounting:priorDiscounting, alpha:priorAlpha};
 
 // Get world and observations
 var world = makeRestaurantChoiceMDP();
@@ -565,7 +571,7 @@ displayResults(posterior, 'Posterior on Naive path');
 
 The explanation in terms of Donut North being preferred does well in the posterior. This is because the discounting explanation (even assuming the agent is Naive) is unlikely a priori (due to our simple uniform priors on utilities and discounting). While high noise is more plausible a priori, the noise explanation still needs to posit a low probability series of events. 
 
-We see a similar result if we enrich the set of possible utilities for the Sophisticated path. This time, we allow the `timeCost`, i.e. the cost for taking a single timestep, to be positive. This means the agent preferes to spend as much time moving around before reaching a restaurant. Here are the results:
+We see a similar result if we enrich the set of possible utilities for the Sophisticated path. This time, we allow the `timeCost`, i.e. the cost for taking a single timestep, to be positive. This means the agent prefers to spend as much time as possible moving around before reaching a restaurant. Here are the results:
 
 
 ~~~~
@@ -586,13 +592,16 @@ var displayResults = function(erp, label){
   viz.vegaPrint(alphaPrint);
   viz.vegaPrint(getMarginalObject(erp, 'donutTempting'));
   viz.vegaPrint(getMarginalObject(erp, 'discount'));
-  viz.vegaPrint(getMarginalObject(erp,'timeCost'));
+   var timePrint = Enumerate(function(){
+    return {timeCost: JSON.stringify(sample(erp).utility.timeCost) };
+  });   
+  viz.vegaPrint(timePrint);
 };
 ///
 
 
 // Prior on agent's utility function
-var priorUtilityTable = function(){
+var priorUtility = function(){
   var utilityValues =  [-10, 0, 10, 20, 30];
   var donut = [uniformDraw(utilityValues), -10]
   var veg = [uniformDraw(utilityValues), 20];
@@ -612,7 +621,7 @@ var priorDiscounting = function(){
   };
 };
 var priorAlpha = function(){return uniformDraw([0.1, 100, 1000]);};
-var prior = {utilityTable:priorUtilityTable, discounting:priorDiscounting, alpha:priorAlpha};
+var prior = {utility:priorUtility, discounting:priorDiscounting, alpha:priorAlpha};
 
 // Get world and observations
 var world = makeRestaurantChoiceMDP();
@@ -624,8 +633,10 @@ displayResults(posterior, 'Posterior on Sophisticated Path');
 
 -----------
 
+------------
 
-### Naive/Soph/Neutral examples for Restaurant Choice Gridworld
+
+## Naive/Soph/Neutral examples for Restaurant Choice Gridworld
 
 - Joint inference for Naive and Soph examples:
 
@@ -636,11 +647,11 @@ For Soph, we compare false belief the Noodle is open, a positive timeCost (which
 - Big inference example (maybe in later chapter): use HMC and do inference oiver cts params.
 
 
-### Procrastination Example
+## Procrastination Example
 HD causes big deviation in behavior. This is like smoker who smokes every day but wishes to quit.  Can you how inference gets stronger with passing days (online inference).
 
 
-### Bandits
+## Bandits
 
 - Hyperbolic discounter and myopic-for-utility agent will explore less than optimal agent on both deterministic and stochastic bandits. We assume arm0 has a prize known to the agent and arm0 is uncertain to the agent (and we know the agent's prior). So the inference task is just to learn the utility the agent assigns to the prize from arm0. (We could assume that we know the utilities of the two possible prizes resulting from arm1). If the agent is discounting/myopic, they might take arm0, even if they don't have a very strong preference for the arm0 prize. As the time horizon gets longer, the difference in inference between the model that assumes optimality and the one that allows for discounting or myopia will get bigger. (With stochastic bandits you could have arms which are known to have high variance and with uncertain expectation. In this case you might get less exploration even if the myopia bound is higher or discounting is weaker. It'd be nice to include such an example but it's not neccesary). 
 
