@@ -5,6 +5,10 @@ description: Hyperbolic discounting, Naive and Sophisticated Agents, Formal Defi
 
 ---
 
+<!--
+- small chapter on exponential discounting
+- example or exercise with codebox for gridworld or bandits
+-->
 
 ### Introduction
 Time inconsistency is part of everyday human experience. In the night you wish to rise early; in the morning you prefer to sleep in. There is an inconsistency between what you prefer your future self to do and what your future self prefers to do. Forseeing this inconsistency, you take actions in the night to bind your morning self to get up. These range from setting an alarm clock to arranging for someone to drag you out of bed.
