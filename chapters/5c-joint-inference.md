@@ -66,9 +66,10 @@ In our first inference example, we do joint inference over preferences, softmax 
 This example compares a model that assumes an optimal agent (and just infers their preferences and softmax noise) to a model that also allows for sub-optimal time-inconsistent agents. Before making a direct comparison, we demonstrate that we can infer the preferences of time-inconsistent agents from observations of their behavior.
 
 #### Assume discounting, infer "Naive" or "Sophisticated"
-First we condition on the path where the agent moves to Donut North. We call this the `naive` path because its distinctive to the Naive hyperbolic discounter:
+First we condition on the path where the agent moves to Donut North. We call this the `naive` path because it is distinctive to the Naive hyperbolic discounter:
 
 ~~~~
+// draw_naive_path
 var world = makeRestaurantChoiceMDP();
 var path = map(first,restaurantNameToObservationTime11['naive']);         
 GridWorld.draw(world, {trajectory:path});
@@ -77,6 +78,8 @@ GridWorld.draw(world, {trajectory:path});
 For inference, we specialize the approach above for (possibly time-inconsistent) agents in MDPs. So we infer $$\nu$$ and $$k$$ (the hyperbolic discounting parameters) but not the initial belief state $$b_0$$. The function `exampleGetPosterior` is a slightly simplified version of the library function we use below.
 
 ~~~~
+// getPosterior_function
+
 var exampleGetPosterior = function(world, priorUtilityTable, priorDiscounting,
     priorAlpha, observedStateAction){
   return Enumerate(function () {
@@ -117,9 +120,10 @@ var exampleGetPosterior = function(world, priorUtilityTable, priorDiscounting,
 exampleGetPosterior;  
 ~~~~
 
-This inference function allows for inference over the softmax parameter ($$\alpha$$ or `alpha`) and the discount constant ($$k$$ or `discount`). For this example, we fix these values so that the agent has low noise ($$\alpha=1000$$) and $$k=1$$. We also fix the `timeCost` utility to be small and negative, as well as the utility of `Noodle` to be negative. So we infer only the agent's preferences and whether they are Naive or Sophisticated.
+This inference function allows for inference over the softmax parameter ($$\alpha$$ or `alpha`) and the discount constant ($$k$$ or `discount`). For this example, we fix these values so that the agent has low noise ($$\alpha=1000$$) and so $$k=1$$. We also fix the `timeCost` utility to be small and negative and Nooodle's utility to be negative. We infer only the agent's utilities and whether they are Naive or Sophisticated.
 
 ~~~~
+// infer_assume_discounting_naive
 // Call to hyperbolic library function and helper display function
 ///fold:
 var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
@@ -170,6 +174,7 @@ The graphs display the posterior after conditioning on the behavior depicted abo
 Using the same prior, we condition on the path distinctive to the Sophisticated agent:
 
 ~~~~
+// draw_sophisticated_path
 var world = makeRestaurantChoiceMDP();
 var path = map(first, restaurantNameToObservationTime11['sophisticated']);         
 GridWorld.draw(world, {trajectory:path});
@@ -178,6 +183,8 @@ GridWorld.draw(world, {trajectory:path});
 Here are the results of inference: 
 
 ~~~~
+// infer_assume_discounting_sophisticated
+
 // Definition of world, prior and inference function is same as above codebox
 
 ///fold:
@@ -227,6 +234,7 @@ displayResults(posterior);
 If the agent goes directly to Veg, then they don't provide information about whether they are Naive or Sophisticated. Using the same prior again, we do inference on this path:
 
 ~~~~
+// draw_vegDirect_path
 var world = makeRestaurantChoiceMDP();
 var path = map(first, restaurantNameToObservationTime11['vegDirect']);         
 GridWorld.draw(world, {trajectory:path});
@@ -235,6 +243,7 @@ GridWorld.draw(world, {trajectory:path});
 Here are the results of inference: 
 
 ~~~~
+// infer_assume_discount_vegDirect
 // Definition of world, prior and inference function is same as above codebox
 
 ///fold:

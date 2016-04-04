@@ -4,7 +4,7 @@ import os
 
 #TODO:
 # make sure print, viz.print, draw work in both editor and node
-# remove symbols from possible filenames
+# remove "bad" symbols from possible filenames
 # start adding names to codeboxes, esp. long ones
 
 
