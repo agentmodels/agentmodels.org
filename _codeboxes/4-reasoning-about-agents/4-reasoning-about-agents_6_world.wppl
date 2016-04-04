@@ -1,9 +1,0 @@
-var world = restaurantChoiceMDP
-
-var observedPath1 =  restaurantNameToPath.donutSouth;
-var observedTrajectory1 = locationsToManifestStates(observedPath1);
-var observedPath2 =  restaurantNameToPath.donutNorth;
-var observedTrajectory2 = locationsToManifestStates(observedPath2);
-
-GridWorld.draw(world, {trajectory: observedTrajectory1});
-GridWorld.draw(world, {trajectory: observedTrajectory2});

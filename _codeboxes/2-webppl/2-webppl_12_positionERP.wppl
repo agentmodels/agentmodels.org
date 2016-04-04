@@ -1,7 +1,0 @@
-var positionERP = Rejection(function(){
-  return { 
-    X: gaussian(0, 1), 
-    Y: gaussian(0, 1)};
-}, 1000);
-
-viz.print(positionERP);

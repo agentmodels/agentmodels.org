@@ -1,8 +1,0 @@
-var utilityTable = { east: 10, west: 1, hill: -10, timeCost: -.1 };
-var alpha = 100;
-var transitionNoiseProb = 0;
-
-var params = makeHike(transitionNoiseProb, alpha, utilityTable);
-
-var startState = [0, 1];
-GridWorld.draw(params, {labels: params.labels, trajectory: [[startState]]});

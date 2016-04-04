@@ -1,7 +1,0 @@
-var dist = Enumerate(function(){
-  var n = uniformDraw([0, 1, 2]);
-  factor(n * n);
-  return n;
-});
-
-viz.print(dist);

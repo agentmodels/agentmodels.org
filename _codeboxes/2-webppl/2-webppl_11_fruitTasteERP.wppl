@@ -1,8 +1,0 @@
-var fruitTasteERP = Enumerate(function(){
-  return {
-    fruit: categorical([0.3, 0.3, 0.4], ["apple", "banana", "orange"]),
-    tasty: flip(0.7)
-  };
-});
-
-viz.print(fruitTasteERP);

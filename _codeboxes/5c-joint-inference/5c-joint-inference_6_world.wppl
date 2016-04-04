@@ -1,3 +1,0 @@
-var world = makeRestaurantChoiceMDP();
-var path = map(first, restaurantNameToObservationTime11['vegDirect']);         
-GridWorld.draw(world, {trajectory:path});
