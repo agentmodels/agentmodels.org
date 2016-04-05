@@ -1,10 +1,12 @@
 from bs4 import BeautifulSoup
 import os
 
+# Directions:
+# 1. edit markdown files, 2. do "jekyll serve" to create html (TODO: automate running jekyll)
+# 3. run this script.
 
-#TODO:
-# run jekyll serve to generate the new html (or switch to grabbing from the markdown)
-
+# TODO:
+# come up with system for adding codeboxe scripts to webppl-gridworld
 # make sure print, viz.print, draw work in both editor and node
 
 
