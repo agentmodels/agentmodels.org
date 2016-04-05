@@ -651,6 +651,131 @@ For Soph, we compare false belief the Noodle is open, a positive timeCost (which
 ## Procrastination Example
 HD causes big deviation in behavior. This is like smoker who smokes every day but wishes to quit.  Can you how inference gets stronger with passing days (online inference).
 
+Probably talk about the structure of the procrastination MDP
+
+~~~~
+// non-discounter_completes_immediately
+
+var world = makeProcrastinationMDP();
+
+var utilityTable = {reward: 10,
+		            procrastinationCost: -0.1,
+					workCost: -1};
+var utility = makeProcrastinationUtility(utilityTable);
+
+var startState = {loc: "procrastinating",
+		          procrastinationSteps: 0,
+				  timeLeft: 10,
+				  terminateAfterAction: false};
+
+var agent = makeMDPAgent({utility: utility, alpha: 100}, world);
+var trajectory = simulateMDP(startState, world, agent, 'stateAction');
+map(function(stateAction){return [stateAction[0].loc, stateAction[1]];},
+    trajectory);
+~~~~
+
+~~~~
+// non-discounter_never_completes
+
+var world = makeProcrastinationMDP();
+
+var utilityTable = {reward: 0.8,
+        		    procrastinationCost: -0.1,
+					workCost: -1};
+var utility = makeProcrastinationUtility(utilityTable);
+
+var startState = {loc: "procrastinating",
+		          procrastinationSteps: 0,
+				  timeLeft: 5,
+				  terminateAfterAction: false};
+
+var agent = makeMDPAgent({utility: utility, alpha: 100}, world);
+var trajectory = simulateMDP(startState, world, agent, 'stateAction');
+map(function(stateAction){return [stateAction[0].loc, stateAction[1]];},
+    trajectory);
+~~~~
+
+
+~~~~
+// discounter_procrastinates
+
+// procrastinates, because it thinks that it will do it later
+
+var world = makeProcrastinationMDP();
+
+var utilityTable = {reward: 10,
+		            procrastinationCost: -0.1,
+					workCost: -1};
+var utility = makeProcrastinationUtility(utilityTable);
+
+var startState = {loc: "procrastinating",
+		          procrastinationSteps: 0,
+				  timeLeft: 10,
+				  terminateAfterAction: false};
+
+var params = {utility: utility,
+		      alpha: 100,
+		      discount: 5,
+		      sophisticatedOrNaive: 'naive'};
+  
+var agent = makeHyperbolicDiscounter(params, world);
+var trajectory = simulateHyperbolic(startState, world, agent, 'stateAction');
+map(function(stateAction){return [stateAction[0].loc, stateAction[1]];},
+    trajectory);
+~~~~
+
+~~~~
+// discounter_procrastination_varies_with_discount
+
+// when the discount is small, the agent thinks that it should do the task
+// immediately in order to avoid the procrastination cost, since it doesn't care
+// about the workCost coming before the reward.
+// when the discount is bigger, the agent procrastinates to the last moment, but
+// eventually does the job because it's still better than nothing
+// when the discount is very large, the agent always thinks that the utility of
+// doing the work is below zero, so never does it.
+
+var procrastinationWithDiscount = function(discount){
+  var world = makeProcrastinationMDP();
+
+  var utilityTable = {reward: 10,
+		              procrastinationCost: -0.1,
+		              workCost: -1};
+  var utility = makeProcrastinationUtility(utilityTable);
+
+  var startState = {loc: "procrastinating",
+		            procrastinationSteps: 0,
+		            timeLeft: 10,
+		            terminateAfterAction: false};
+
+  var params = {utility: utility,
+		        alpha: 100,
+		        discount: discount,
+		        sophisticatedOrNaive: 'naive'};
+  
+  var agent = makeHyperbolicDiscounter(params, world);
+  var trajectory = simulateHyperbolic(startState, world, agent, 'stateAction');
+  return [last(trajectory)[1], trajectory.length];
+};
+
+var discounts = range(11);
+var lastActionsAndTimes = map(procrastinationWithDiscount, discounts);
+
+print('Discounts: ' + discounts + '\nLast actions and lengths of trajectories:'
+      + JSON.stringify(lastActionsAndTimes));
+~~~~
+
+~~~~
+// infer_procrastination_no_discount
+
+// want to infer alpha and R while looking at a trajectory that puts off the
+// task until the end, while assuming that the agent does not discount.
+~~~~
+
+~~~~
+// infer_procrastination_discount
+~~~~
+
 
 ## Bandits
 
