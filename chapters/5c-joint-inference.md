@@ -770,10 +770,142 @@ print('Discounts: ' + discounts + '\nLast actions and lengths of trajectories:'
 
 // want to infer alpha and R while looking at a trajectory that puts off the
 // task until the end, while assuming that the agent does not discount.
+
+// as the agent keeps procrastinating, you become more sure that the agent is
+// rational and that the reward is just very low, but at the final step when
+// you see the agent starting work, your credence in the agent's irrationality and
+// that the reward is actually high jumps
+
+var posterior = function(stateActionPairs) {
+  return Enumerate(function(){
+    var world = makeProcrastinationMDP();
+    var reward = uniformDraw([0.5, 10]);
+    var alpha = uniformDraw([0.1, 1, 10, 100]);
+    var logAlpha = Math.log10(alpha);
+
+    var utilityTable = {reward: reward,
+			            procrastinationCost: -0.1,
+						workCost: -1};
+    var utility = makeProcrastinationUtility(utilityTable);
+    var params = {utility: utility,
+		          alpha: alpha};
+    var agent = makeMDPAgent(params, world);
+    var act = agent.act;
+
+    map(function(stateAction){
+      factor(act(stateAction[0]).score([], stateAction[1]));
+    }, stateActionPairs);
+
+    return {reward: reward, logAlpha: logAlpha};
+  });
+};
+
+// give it prefixes of the actual sequence, see how expected reward and logAlpha varies
+
+var observedStateAction = procrastinateUntilEnd10;
+
+var getExpectedRewardFromNStateActionPairs = function(n){
+  var posteriorERP = posterior(observedStateAction.slice(0,n));
+  var rewardERP = Enumerate(function(){
+    return sample(posteriorERP).reward;
+  });
+  return expectation(rewardERP);
+};
+
+var getExpectedLogAlphaFromNStateActionPairs = function(n){
+  var posteriorERP = posterior(observedStateAction.slice(0,n));
+  var logAlphaERP = Enumerate(function(){
+    return sample(posteriorERP).logAlpha;
+  });
+  return expectation(logAlphaERP);
+};
+
+var observedTimesteps = range(10);
+var expectedRewards = map(getExpectedRewardFromNStateActionPairs,
+			              observedTimesteps);
+var expectedLogAlphas = map(getExpectedLogAlphaFromNStateActionPairs,
+			                observedTimesteps);
+
+print('Expected reward vs state action pairs observed');
+viz.line(observedTimesteps, expectedRewards);
+
+print('Expected log alpha vs state action pairs observed');
+viz.line(observedTimesteps, expectedLogAlphas);
 ~~~~
 
 ~~~~
 // infer_procrastination_discount
+
+var posterior = function(stateActionPairs) {
+  return Enumerate(function(){
+    var world = makeProcrastinationMDP();
+    var reward = uniformDraw([0.5, 10]);
+    var alpha = uniformDraw([0.1, 1, 10, 100]);
+    var discount = uniformDraw([0, 5, 10]);
+    var logAlpha = Math.log10(alpha);
+
+    var utilityTable = {reward: reward,
+			            procrastinationCost: -0.1,
+						workCost: -1};
+    var utility = makeProcrastinationUtility(utilityTable);
+    var params = {utility: utility,
+		          alpha: alpha,
+		          discount: discount,
+		          sophisticatedOrNaive: 'naive'};
+    var agent = makeHyperbolicDiscounter(params, world);
+    var act = agent.act;
+    map(function(stateAction){
+      factor(act(stateAction[0], 0).score([], stateAction[1]));
+    }, stateActionPairs);
+
+    return {reward: reward, logAlpha: logAlpha, discount: discount};
+  });
+};
+
+// give it prefixes of the actual sequence, see how expected reward and logAlpha varies
+
+var observedStateAction = procrastinateUntilEnd10;
+
+var getExpectedRewardFromNStateActionPairs = function(n){
+  var posteriorERP = posterior(observedStateAction.slice(0,n));
+  var rewardERP = Enumerate(function(){
+    return sample(posteriorERP).reward;
+  });
+  return expectation(rewardERP);
+};
+
+var getExpectedLogAlphaFromNStateActionPairs = function(n){
+  var posteriorERP = posterior(observedStateAction.slice(0,n));
+  var logAlphaERP = Enumerate(function(){
+    return sample(posteriorERP).logAlpha;
+  });
+  return expectation(logAlphaERP);
+};
+
+var getExpectedDiscountFromNStateActionPairs = function(n){
+  var posteriorERP = posterior(observedStateAction.slice(0,n));
+  var discountERP = Enumerate(function(){
+    return sample(posteriorERP).discount;
+  });
+  return expectation(discountERP);
+};
+
+var observedTimesteps = range(10);
+var expectedRewards = map(getExpectedRewardFromNStateActionPairs,
+			              observedTimesteps);
+var expectedLogAlphas = map(getExpectedLogAlphaFromNStateActionPairs,
+			                observedTimesteps);
+var expectedDiscounts = map(getExpectedDiscountFromNStateActionPairs,
+                            observedTimesteps);
+
+print('Expected reward vs state action pairs observed');
+viz.line(observedTimesteps, expectedRewards);
+
+print('Expected log alpha vs state action pairs observed');
+viz.line(observedTimesteps, expectedLogAlphas);
+
+print('Expected discount vs state action pairs observed');
+viz.line(observedTimesteps, expectedDiscounts);
 ~~~~
 
 
