@@ -911,7 +911,68 @@ viz.line(observedTimesteps, expectedDiscounts);
 
 ## Bandits
 
-- Hyperbolic discounter and myopic-for-utility agent will explore less than optimal agent on both deterministic and stochastic bandits. We assume arm0 has a prize known to the agent and arm1 is uncertain to the agent (and we know the agent's prior). So the inference task is just to learn the utility the agent assigns to the prize from arm0. (We could assume that we know the utilities of the two possible prizes resulting from arm1). If the agent is discounting/myopic, they might take arm0, even if they don't have a very strong preference for the arm0 prize. As the time horizon gets longer, the difference in inference between the model that assumes optimality and the one that allows for discounting or myopia will get bigger. A graph illustrating this difference is in the NIPS paper. (With stochastic bandits you could have arms which are known to have high variance and with uncertain expectation. In this case you might get less exploration even if the myopia bound is higher or discounting is weaker. It'd be nice to include such an example but it's not neccesary). 
+- Hyperbolic discounter and myopic-for-utility agent will explore less than optimal agent on both deterministic and stochastic bandits. We assume arm0 has a prize known to the agent and arm1 is uncertain to the agent (and we know the agent's prior). So the inference task is just to learn the utility the agent assigns to the prize from arm0. (We could assume that we know the utilities of the two possible prizes resulting from arm1). If the agent is discounting/myopic, they might take arm0, even if they don't have a very strong preference for the arm0 prize. As the time horizon gets longer, the difference in inference between the model that assumes optimality and the one that allows for discounting or myopia will get bigger. A graph illustrating this difference is in the NIPS paper. (With stochastic bandits you could have arms which are known to have high variance and with uncertain expectation. In this case you might get less exploration even if the myopia bound is higher or discounting is weaker. It'd be nice to include such an example but it's not neccesary).
+
+~~~~
+// infer_utility_from_no_exploration
+
+var posterior = function(timeLeft, agentType) {
+  var numArms = 2;
+  var armToPrize = {0: 'chocolate',
+		            1: 'nothing'};
+  var worldAndStart = makeIRLBanditWorldAndStart(numArms, armToPrize, timeLeft);
+
+  var startState = worldAndStart.startState;
+  var alternativeLatent = update(armToPrize, {1: 'champagne'});
+  var alternativeStartState = update(startState, {latentState:
+						                          alternativeLatent});
+
+  var priorAgentPrior = deltaERP(categoricalERP([0.7, 0.3],
+						                        [startState,
+												 alternativeStartState]));
+  var priorPrizeToUtility = Enumerate(function(){
+    var chocUtility = uniformDraw(range(20));
+    return {chocolate: chocUtility,
+	        nothing: 0,
+			champagne: 20};
+  });
+  var prior = {priorAgentPrior: priorAgentPrior,
+	           priorPrizeToUtility: priorPrizeToUtility};
+
+  var baseAgentParams = {alpha: 100,
+			             myopia: {on: agentType === 'myopic', bound: 1},
+			             boundVOI: {on: false, bound: 0},
+						 sophisticatedOrNaive: 'naive',
+						 discount: agentType === 'hyperbolic' ? 1 : 0,
+						 noDelays: agentType === 'rational'};
+
+  var stateAction = [[startState, 0]];
+
+  var outputERP = inferIRLBandit(worldAndStart, baseAgentParams, prior,
+				                 stateAction, 'offPolicy', 0, 'beliefDelay');
+
+  return expectation(Enumerate(function(){
+    return sample(outputERP).prizeToUtility.chocolate;
+  }));
+};
+
+var timeLefts = range(10).slice(2);
+var rationalExpectations = map(function(t){return posterior(t, 'rational');},
+			                   timeLefts);
+var myopicExpectations = map(function(t){return posterior(t, 'myopic');},
+			                 timeLefts);
+var hyperbolicExpectations = map(function(t){return posterior(t, 'hyperbolic');},
+				                 timeLefts);
+
+print('Inference of utility of arm 0 for rational agent as timeLeft increases');
+viz.line(timeLefts, rationalExpectations);
+
+print('Inference of utility of arm 0 for myopic agent as timeLeft increases');
+viz.line(timeLefts, myopicExpectations);
+
+print('Inference of utility of arm 0 for hyperbolic agent as timeLeft increases');
+viz.line(timeLefts, hyperbolicExpectations);
+~~~~
 
 
 
