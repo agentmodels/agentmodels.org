@@ -83,11 +83,11 @@ The only difference from previous versions of Restaurant Choice is that we model
 
 **Exercise:** Before scrolling down, predict how Naive and Sophisticated hyperbolic discounters with identical preferences could differ in their actions on this problem.
 
-[codebox: bigGridworld. draw with agent starting in 3,1.]
+[TODO codebox: bigGridworld. draw with agent starting in 3,1.]
 
 We now consider two hyperbolic discounting agents with the same preferences and discounting function but where one is Naive and the other Sophisticated.
 
-[codeboxes with both Naive and Soph. Or one codebox with both and some parameter to control Naive/Soph easily.]
+[TODO codeboxes with both Naive and Soph. Or one codebox with both and some parameter to control Naive/Soph easily.]
 
 **Exercise:** Before reading further, your goal is to do preference inference from the observed actions in the codebox above (using only a pen and paper). The discount function is the hyperbola $$D=\frac{1}{1+kt}$$, where $$t$$ is the time from the present, $$D$$ is the discount factor (multiplied by the utility) and $$k$$ is a positive constant. Work out a full set of parameters for the agent that predict the observed behavior. This includes utilities for the restaurants (both *immediate* and *delayed*) and for the `timeCost`, as well as the discount constant $$k$$. (Assume there is no softmax noise). 
 
@@ -269,10 +269,65 @@ print('Naive trajectory' +
 
 ### Example: Procrastinating on a task
 
-In the examples above, time-inconsistency leads to behavior that optimal agents never exhibit. However, given softmax noise (or some other random noise model), the Naive path is relatively likely. If the agent goes "up" instead of "left" at $$[3,1]$$, then they will continue on to Donut North if they prefer Donuts. As we discuss in Chapter V.3, the explanation of this behavior in terms of noise becomes less likely if we see this behavior repeatedly. However, it might be unlikely that a human repeatedly (e.g. on multiple different days) takes the Naive path. So we turn to an example that is familiar from everyday life and where time inconsistency leads to behavior that  becomes arbitrarily unlikely on the softmax model.
+In the examples above, time-inconsistency leads to behavior that optimal agents never exhibit. However, given enough softmax noise (or some other random noise model), the Naive path will occur with non-trivial probability. If the agent goes "up" instead of "left" at $$[3,1]$$, then they will continue on to Donut North if they prefer Donuts. As we discuss in Chapter V.3, the explanation of this behavior in terms of noise becomes less likely if we see this behavior repeatedly. However, it might be unlikely that a human repeatedly (e.g. on multiple different days) takes the Naive path. So we turn to an example from everyday life where time inconsistency leads to behavior that  becomes arbitrarily unlikely on the softmax model (see refp:kleinberg2015time):
 
-> ####Procrastinating on a Task
-> You have a hard deadline of ten days to complete a task (e.g. write a paper for a class, complete >an application or taxes). Completing the task takes a full day and has negative utility. After the >task is complete you get a reward (typically bigger than the cost of the work). There is an >incentive to finish early: every day you delay finishing, your reward gets slightly smaller. (Imagine that it's good for your reputation to complete tasks early).
+> #### The Procrastination Problem
+> You have a hard deadline of ten days to complete a task (e.g. write a paper for a class, complete an application or tax return). Completing the task takes a full day and has a *cost* (e.g. it's unpleasant work). After the task is complete you get a *reward* (typically exceeding the cost). There is an incentive to finish early: every day you delay finishing, your reward gets slightly smaller. (Imagine that it's good for your reputation to complete tasks early or that early applicants are considered first).
+
+Note that if the task is worth doing at the last minute, then you should do it immediately (because the reward diminishes over time). Yet people often do this kind of task at the last minute -- the worst possible time to do it!
+
+Hyperbolic discounting provides an elegant model of this behavior. On Day 1, a hyperbolic discounter will prefer that they complete the task tomorrow rather than today. Moreover, a Naive agent wrongly predicts they will complete the task tomorrow and so puts off the task till Day 2. When Day 2 arrives, the Naive agent reasons in the same way -- telling themself that they can avoid the work today by putting it off till tomorrow. This continues until the last possible day, when the Naive agent finally completes the task.
+
+In this problem, the behavior of optimal and time-inconsistent agents with identical preferences (i.e. utility functions) diverges. If the deadline is $$T$$ days from the start, the optimal agent will do the task immediately and the Naive agent will do the task on Day $$T$$. [TODO: state Kleinberg result informally.]
+
+We formalize the Procrastination Problem in terms of a deterministic graph. Suppose the *deadline* is $$T$$ steps from the start. Assume that after $$t<T$$ steps the agent has not yet completed the task. Then the agent can take the action `"work"` (which has *work cost* $$-w$$) or the action `"wait"` with zero cost. After the `"work"` action the agent transitions to the `"reward"` state and receives $$R - t \epsilon$$, where $$R$$ is the *reward* for the task and $$\epsilon$$ is how much the reward diminishes for every day of waiting (the *wait cost*). 
+
+TODO: graph in image. would also be good to show Naive agent's expected utilities on the graph. 
+
+We simulate the behavior of hyperbolic discounters on the Procrastination Problem. We vary the discount rate $$k$$ while holding the other parameters fixed. The agent's behavior can be summarized by its final state (`"wait_state"` or `"reward_state:`) and by how much time elapses before termination. When $$k$$ is sufficiently high, the agent will not even complete the task on the last day. 
+
+~~~~
+
+// Construct Procrastinate world 
+var deadline = 10;
+var world = makeProcrastinationMDP2(deadline);
+
+// Agent params
+var utilityTable = {reward: 10,
+    waitCost: -0.1,
+    workCost: -1};
+
+var params = {utility: makeProcrastinationUtility2(utilityTable),
+	      alpha: 1000,
+	      discount: null,
+	      sophisticatedOrNaive: 'naive'};
+
+var getLastState = function(discount){
+  var agent = makeHyperbolicDiscounter(update(params, {discount: discount}), world);
+  var stateActions = simulateHyperbolic(world.startState, world, agent);
+  var states = map(first,stateActions);
+  return [last(states).loc, stateActions.length];
+};
+
+map( function(discount){
+    var lastState = getLastState(discount);
+    print('Discount: ' + discount + '. Last state: ' + lastState[0] +
+    '. Time: ' + lastState[1] + '\n')
+}, range(11) );
+// consider doing as table also    
+~~~~
+
+#### Exercise
+Run the codebox above with a Sophisticated agent. Explain the results. 
+
+
+
+
+
+
+
+
+
 
 
 
