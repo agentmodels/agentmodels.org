@@ -647,6 +647,19 @@ For Soph, we compare false belief the Noodle is open, a positive timeCost (which
 
 - Big inference example (maybe in later chapter): use HMC and do inference oiver cts params.
 
+## Learning preferences of procrastinators
+
+The Procrastination Problem from Chapter V.1. illustrates how agents with identical preferences can deviate *systematically* in their behavior due to time inconsistency. Suppose two agents care equally about finishing the task and assign the same cost to doing the hard work. The optimal agent will complete the task immediately. The Naive hyperbolic discounter will delay every day until the deadline, which could be (say) thirty days away!
+
+This kind of systematic deviation between agents is also significant for inferring preferences. We consider the problem of *online* inference, where we observe the agent's behavior each day and produce an estimate of their preferences. Suppose the agent has a deadline $$T$$ days into the future. The agent does not do the work till the last day. We compare the online inferences of two models. The *Optimal Model* assumes the agent is time-consistent with softmax parameter $$\alpha$$. The *Possibly Discounting* model includes optimal and hyperbolic discounting agents in the prior.
+
+
+
+
+We plot these below. We note two kinds of failure for the Optimal Model. First, until the very last observation (seeing the agent complete the task) it makes a bad inference about the agent's preferences. Second, its predictions about what the agent *will* do on at the last time step get worse and worse. (The optimal model infers the agent is less noisy over time and so less and less likely to randomly do the task on the last day).
+
+
+
 
 ## Procrastination Example
 HD causes big deviation in behavior. This is like smoker who smokes every day but wishes to quit.  Can you how inference gets stronger with passing days (online inference).
