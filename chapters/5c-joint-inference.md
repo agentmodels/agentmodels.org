@@ -773,7 +773,7 @@ var posterior = function(stateActionPairs, allowDiscount) {
   return Enumerate(function(){
     var world = makeProcrastinationMDP();
   	var reward = uniformDraw([0.5, 2, 3, 4, 5, 6, 7, 8]);
-	var alpha = uniformDraw([0.1, 0.2, 0.2, 0.2, 0.3], [0.1, 1, 10, 100, 1000]);
+	var alpha = categorical([0.1, 0.2, 0.2, 0.2, 0.3], [0.1, 1, 10, 100, 1000]);
 	var discount = allowDiscount ? uniformDraw([0, .5, .1, 2, 4]) : 0;
     var logAlpha = Math.log10(alpha);
 
