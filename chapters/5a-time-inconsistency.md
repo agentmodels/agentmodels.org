@@ -108,7 +108,7 @@ The Naive agent at objective time $$t$$ assumes his future self at objective tim
 Adding delays to our model is straightforward. In defining the MDP agent, we presented Bellman-style recursions for the expected utility of state-action pairs. Discounting agents evaluate states and actions differently depending on their *delay* from the present. So we now define expected utilities of state-action-delay triples:
 
 $$
-EU[s,a,d] = \delta(d)U(s, a) + E_{s', a'}(EU[s', a',d+1])
+EU[s,a,d] = \delta(d)U(s, a) + \mathbb{E}_{s', a'}(EU[s', a',d+1])
 $$
 
 where:

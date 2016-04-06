@@ -32,7 +32,7 @@ $$
 The expected utility depends on both immediate utility and, recursively, on future expected utility:
 
 $$
-EU_{s}[a] = U(s, a) + E_{s', a'}(EU_{s'}[a'])
+EU_{s}[a] = U(s, a) + \mathbb{E}_{s', a'}(EU_{s'}[a'])
 $$
 
 with the next state $$s' \sim T(s,a)$$ and $$a' \sim C(s')$$. This equation for expected utility will be denoted **Equation 1**. The decision problem ends either when a *terminal* state is reached or when the time-horizon is reached. (In the next few chapters, the time-horizon will always be finite). 

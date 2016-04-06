@@ -37,7 +37,7 @@ To extend the POMDP agent to the Myopic agent, we use the idea of *delays* from 
 We retain the notation from the definition of the POMDP agent and skip directly to the equation for the expected utility of a state, which we modify for the Myopic agent with cutoff point $$C \in [1,\infty]$$:
 
 $$
-EU_{b}[s,a,d] = U(s,a) + E_{s',o,a'}(EU_{b'}[s',a'_{b'},d+1])
+EU_{b}[s,a,d] = U(s,a) + \mathbb{E}_{s',o,a'}(EU_{b'}[s',a'_{b'},d+1])
 $$
 
 where:
