@@ -47,10 +47,10 @@ $$
 
 Intuitively, the probability that $$s'$$ is the new state depends on the marginal probability of transitioning to $$s'$$ (given $$b$$) and the probability of the observation $$o$$ occurring in $$s'$$. 
 
-In our previous agent model for MDPs, we defined the expected utility of an action $$a$$ in a state $$s$$ recursively in terms of the expected utility of the resulting pair of state $$s'$$ and action $$a'$$. This same recursive characterization of expected utility still holds. The important difference is that the agent's action $$a'$$ in $$s'$$ depends on their updated belief $$b'(s')$$ given the observation they receive in $$s'$$. So the expected utility of $$a$$ in $$s$$ depends on the agent's belief $$b$$ over the state $$s$$. We call the following the *Expected Utility of State Recursion*, which defines the function $$EU_{b}$$. This is analogous to the characterization of the *value*, $$V_{b}$$, of a state relative to a belief (see p.109 in refp:kaelbling1998planning). [TODO expectation should be math style].
+In our previous agent model for MDPs, we defined the expected utility of an action $$a$$ in a state $$s$$ recursively in terms of the expected utility of the resulting pair of state $$s'$$ and action $$a'$$. This same recursive characterization of expected utility still holds. The important difference is that the agent's action $$a'$$ in $$s'$$ depends on their updated belief $$b'(s')$$ given the observation they receive in $$s'$$. So the expected utility of $$a$$ in $$s$$ depends on the agent's belief $$b$$ over the state $$s$$. We call the following the *Expected Utility of State Recursion*, which defines the function $$EU_{b}$$. This is analogous to the characterization of the *value*, $$V_{b}$$, of a state relative to a belief (see p.109 in refp:kaelbling1998planning).
 
 $$
-EU_{b}[s,a] = U(s,a) + E_{s',o,a'}(EU_{b'}[s',a'_{b'}])
+EU_{b}[s,a] = U(s,a) + \mathbb{E}_{s',o,a'}(EU_{b'}[s',a'_{b'}])
 $$
 
 where:
@@ -64,13 +64,13 @@ where:
 The agent cannot use the Expected Utility of State Recursion to directly compute the best action, since the agent doesn't know the state. Instead the agent takes an expectation over their belief distribution, picking the action $$a$$ that maximizes the following:
 
 $$
-EU[b,a] = E_{s \sim b}(EU_{b}[s,a])
+EU[b,a] = \mathbb{E}_{s \sim b}(EU_{b}[s,a])
 $$
 
 We can also represent the expected utility of action $$a$$ given belief $$b$$ in terms of a recursion on the successor belief state. We call this the *Expected Utility of Belief Recursion*. It's analogous to the Bellman update rule [add reference].
 
 $$
-EU[b,a] = E_{s \sim b}( U(s,a) + E_{s',o,a'}(EU[b',a']) )
+EU[b,a] = \mathbb{E}_{s \sim b}( U(s,a) + \mathbb{E}_{s',o,a'}(EU[b',a']) )
 $$
 
 where $$s'$$, $$o$$, $$a'$$ and $$b'$$ are distributed as in the Expected Utility of State Recursion.
@@ -80,7 +80,7 @@ where $$s'$$, $$o$$, $$a'$$ and $$b'$$ are distributed as in the Expected Utilit
 As with the agent model for MDPs, we provide a direct translation of the equations above into an agent model for solving POMDPs. The variables `nextState`, `nextObservation`, `nextBelief`, and `nextAction` correspond to $$s'$$,  $$o$$, $$b'$$ and $$a'$$ respectively, and we use the Expected Utility of Belief Recursion. The following codebox defines the `act` and `expectedUtility` functions, without defining `updateBelief`, `transition`, `observe` or `utility`. 
 
 
-```javascript
+~~~~
 var act = function(belief) {
   return Enumerate(function(){
     var action = uniformDraw(actions);
@@ -126,7 +126,7 @@ var simulate = function(startState, priorBelief) {
     };
   return sampleSequence(startState, priorBelief, 'startAction');
 };
-```
+~~~~
 
 ## Applying the POMDP agent model
 
