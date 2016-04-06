@@ -775,7 +775,6 @@ var posterior = function(stateActionPairs, allowDiscount) {
   	var reward = uniformDraw([0.5, 2, 3, 4, 5, 6, 7, 8]);
 	var alpha = categorical([0.1, 0.2, 0.2, 0.2, 0.3], [0.1, 1, 10, 100, 1000]);
 	var discount = allowDiscount ? uniformDraw([0, .5, .1, 2, 4]) : 0;
-    var logAlpha = Math.log10(alpha);
 
     var utilityTable = {reward: reward,
 			            procrastinationCost: -0.1,
@@ -791,7 +790,7 @@ var posterior = function(stateActionPairs, allowDiscount) {
       factor(act(stateAction[0], 0).score([], stateAction[1]));
     }, stateActionPairs);
 
-    return {reward: reward, logAlpha: logAlpha, discount: discount};
+    return {reward: reward, alpha: alpha, discount: discount};
   });
 };
 
@@ -800,16 +799,16 @@ var posterior = function(stateActionPairs, allowDiscount) {
 var observedStateAction = procrastinateUntilEnd10;
 
 var expectedFeaturesFromNStateActionPairs = function(n){
-  var rationalPosterior = posterior(observedStateAction.slice(0,n), false);
+  var optimalPosterior = posterior(observedStateAction.slice(0,n), false);
   var hyperbolicPosterior = posterior(observedStateAction.slice(0,n), true);
-  return {rationalReward: expectation(getMarginal(rationalPosterior,
+  return {optimalReward: expectation(getMarginal(optimalPosterior,
 						                          'reward')),
 	      hyperbolicReward: expectation(getMarginal(hyperbolicPosterior,
 		                                            'reward')),
-          rationalLogAlpha: expectation(getMarginal(rationalPosterior,
-						                            'logAlpha')),
-	      hyperbolicLogAlpha: expectation(getMarginal(hyperbolicPosterior,
-						                              'logAlpha')),
+          optimalAlpha: expectation(getMarginal(optimalPosterior,
+						                         'alpha')),
+	      hyperbolicAlpha: expectation(getMarginal(hyperbolicPosterior,
+						                           'alpha')),
 	      hyperbolicDiscount: expectation(getMarginal(hyperbolicPosterior,
 						                              'discount'))};
 };
@@ -817,28 +816,28 @@ var expectedFeaturesFromNStateActionPairs = function(n){
 var observedTimesteps = range(10);
 
 var expectations = map(expectedFeaturesFromNStateActionPairs, observedTimesteps);
-var expectedRewardsRational = map(function(object){return object.rationalReward;},
-				                  expectations);
-var expectedLogAlphasRational = map(function(object){return object.rationalLogAlpha;},
-				                    expectations);
+var expectedRewardsOptimal = map(function(object){return object.optimalReward;},
+				                 expectations);
+var expectedAlphasOptimal = map(function(object){return object.optimalAlpha;},
+				                expectations);
 var expectedRewardsHyperbolic = map(function(object){return object.hyperbolicReward;},
 				                    expectations);
-var expectedLogAlphasHyperbolic = map(function(object){return object.hyperbolicLogAlpha;},
-				                      expectations);
+var expectedAlphasHyperbolic = map(function(object){return object.hyperbolicAlpha;},
+				                   expectations);
 var expectedDiscountsHyperbolic = map(function(object){return object.hyperbolicDiscount;},
                                       expectations);
 
-print('Expected reward vs state action pairs observed, rational');
-viz.line(observedTimesteps, expectedRewardsRational);
+print('Expected reward vs state action pairs observed, optimal');
+viz.line(observedTimesteps, expectedRewardsOptimal);
 
-print('Expected log alpha vs state action pairs observed, rational');
-viz.line(observedTimesteps, expectedLogAlphasRational);
+print('Expected alpha vs state action pairs observed, optimal');
+viz.line(observedTimesteps, expectedAlphasOptimal);
 
 print('Expected reward vs state action pairs observed, hyperbolic');
 viz.line(observedTimesteps, expectedRewardsHyperbolic);
 
-print('Expected log alpha vs state action pairs observed, hyperbolic');
-viz.line(observedTimesteps, expectedLogAlphasHyperbolic);
+print('Expected alpha vs state action pairs observed, hyperbolic');
+viz.line(observedTimesteps, expectedAlphasHyperbolic);
 
 print('Expected discount vs state action pairs observed, hyperbolic');
 viz.line(observedTimesteps, expectedDiscountsHyperbolic);
@@ -880,7 +879,7 @@ var posterior = function(timeLeft, agentType) {
 			             boundVOI: {on: false, bound: 0},
 						 sophisticatedOrNaive: 'naive',
 						 discount: agentType === 'hyperbolic' ? 1 : 0,
-						 noDelays: agentType === 'rational'};
+						 noDelays: agentType === 'optimal'};
 
   var stateAction = [[startState, 0]];
 
@@ -893,15 +892,15 @@ var posterior = function(timeLeft, agentType) {
 };
 
 var timeLefts = range(10).slice(2);
-var rationalExpectations = map(function(t){return posterior(t, 'rational');},
+var optimalExpectations = map(function(t){return posterior(t, 'optimal');},
 			                   timeLefts);
 var myopicExpectations = map(function(t){return posterior(t, 'myopic');},
 			                 timeLefts);
 var hyperbolicExpectations = map(function(t){return posterior(t, 'hyperbolic');},
 				                 timeLefts);
 
-print('Inference of utility of arm 0 for rational agent as timeLeft increases');
-viz.line(timeLefts, rationalExpectations);
+print('Inference of utility of arm 0 for optimal agent as timeLeft increases');
+viz.line(timeLefts, optimalExpectations);
 
 print('Inference of utility of arm 0 for myopic agent as timeLeft increases');
 viz.line(timeLefts, myopicExpectations);
