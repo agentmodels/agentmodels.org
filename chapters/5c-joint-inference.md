@@ -911,17 +911,14 @@ var expectedFeaturesFromNStateActionPairs = function(n){
 
 var observedTimesteps = range(10);
 
+// makePick takes a key and return a function which takes an object and returns
+// {key: object[key]}
 var expectations = map(expectedFeaturesFromNStateActionPairs, observedTimesteps);
-var expectedRewardsOptimal = map(function(object){return object.optimalReward;},
-				                 expectations);
-var expectedAlphasOptimal = map(function(object){return object.optimalAlpha;},
-				                expectations);
-var expectedRewardsHyperbolic = map(function(object){return object.hyperbolicReward;},
-				                    expectations);
-var expectedAlphasHyperbolic = map(function(object){return object.hyperbolicAlpha;},
-				                   expectations);
-var expectedDiscountsHyperbolic = map(function(object){return object.hyperbolicDiscount;},
-                                      expectations);
+var expectedRewardsOptimal = map(makePick('optimalReward'), expectations);
+var expectedAlphasOptimal = map(makePick('optimalAlpha'), expectations);
+var expectedRewardsHyperbolic = map(makePick('hyperbolicReward'), expectations);
+var expectedAlphasHyperbolic = map(makePick('hyperbolicAlpha'), expectations);
+var expectedDiscountsHyperbolic = map(makePick('hyperbolicDiscount'), expectations);
 
 print('Expected reward vs state action pairs observed, optimal');
 viz.line(observedTimesteps, expectedRewardsOptimal);
