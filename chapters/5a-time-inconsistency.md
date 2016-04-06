@@ -130,6 +130,8 @@ The Naive agent simulates his future actions by computing $$C(s';d+1)$$; the Sop
 
 
 ### Implementing the hyperbolic discounter
+TODO: implement exponential discounting and show that naive/soph doesn't make a difference and agent never does the Naive path. 
+
 As with the MDP and POMDP agents, our WebPPL implementation directly translates the mathematical formulation of Naive and Sophisticated hyperbolic discounting. The variable names correspond as follows:
 
 - The function $$\delta$$ is named `discountFunction`
@@ -140,7 +142,7 @@ As with the MDP and POMDP agents, our WebPPL implementation directly translates 
 
 [TODO: add John's changing expected utilities, with an explanation of them]
 
-<!--code from scratch/agentModelsHyperbolic.wppl]-->
+<!--code from src/hyperbolic.wppl]-->
 ~~~~
 
 
@@ -262,6 +264,18 @@ print('Soph traj' +  simulate(startState, world, sophisticatedAgent));
 print('Naive trajectory' + 
             simulate(startState, world, naiveAgent));
 ~~~~
+            
+
+
+### Example: Procrastinating on a task
+
+In the examples above, time-inconsistency leads to behavior that optimal agents never exhibit. However, given softmax noise (or some other random noise model), the Naive path is relatively likely. If the agent goes "up" instead of "left" at $$[3,1]$$, then they will continue on to Donut North if they prefer Donuts. As we discuss in Chapter V.3, the explanation of this behavior in terms of noise becomes less likely if we see this behavior repeatedly. However, it might be unlikely that a human repeatedly (e.g. on multiple different days) takes the Naive path. So we turn to an example that is familiar from everyday life and where time inconsistency leads to behavior that  becomes arbitrarily unlikely on the softmax model.
+
+> ####Procrastinating on a Task
+> You have a hard deadline of ten days to complete a task (e.g. write a paper for a class, complete >an application or taxes). Completing the task takes a full day and has negative utility. After the >task is complete you get a reward (typically bigger than the cost of the work). There is an >incentive to finish early: every day you delay finishing, your reward gets slightly smaller. (Imagine that it's good for your reputation to complete tasks early).
+
+
+
 
 
 
