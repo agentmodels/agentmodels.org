@@ -651,14 +651,97 @@ For Soph, we compare false belief the Noodle is open, a positive timeCost (which
 
 The Procrastination Problem from Chapter V.1. illustrates how agents with identical preferences can deviate *systematically* in their behavior due to time inconsistency. Suppose two agents care equally about finishing the task and assign the same cost to doing the hard work. The optimal agent will complete the task immediately. The Naive hyperbolic discounter will delay every day until the deadline, which could be (say) thirty days away!
 
-This kind of systematic deviation between agents is also significant for inferring preferences. We consider the problem of *online* inference, where we observe the agent's behavior each day and produce an estimate of their preferences. Suppose the agent has a deadline $$T$$ days into the future. The agent does not do the work till the last day. We compare the online inferences of two models. The *Optimal Model* assumes the agent is time-consistent with softmax parameter $$\alpha$$. The *Possibly Discounting* model includes optimal and hyperbolic discounting agents in the prior.
+This kind of systematic deviation between agents is also significant for inferring preferences. We consider the problem of *online* inference, where we observe the agent's behavior each day and produce an estimate of their preferences. Suppose the agent has a deadline $$T$$ days into the future and leaves the work till the last day. As we discussed earlier, this is just the kind of behavior we see in people every day -- and so is a good test for a model of inference. We compare the online inferences of two models. The *Optimal Model* assumes the agent is time-consistent with softmax parameter $$\alpha$$. The *Possibly Discounting* model includes both optimal and Naive hyperbolic discounting agents in the prior.
+
+For each model, we compute posteriors for the agent's parameters after observing the agent's choice at each timestep. We set $$T=10$$. So the observed actions are `["wait", "wait", "wait", ... , "work"]`, where `"work"` is the final action. We fix the utilities for doing the work (the `workCost` or $$-w$$) and for delaying the work (the `waitCost` or $$-\epsilon$$). We learn the following parameters:
+
+- The reward for doing the task: $$R$$ or `reward`
+- The agent's softmax parameter $$\alpha$$
+- The agent's discount rate (for the Possibly Discounting model): $$k$$ or `discount`
+
+For each parameter, we plot a time-series showing the posterior expectation of the variable on each day. We also plot the model's posterior predictive probability that the agent would do the work on the last day (assuming the agent gets to the last day without having done the work). This feature is called `predictWorkLastMinute` in the codebox. (This feautre us a measure of whether the model predicts what actually happens on the last day). 
 
 
+~~~~ 
+// infer_procrastination
+
+var observedStateAction = procrastinateUntilEnd102;
+var lastChanceState = secondLast(observedStateAction)[0];
 
 
-We plot these below. We note two kinds of failure for the Optimal Model. First, until the very last observation (seeing the agent complete the task) it makes a bad inference about the agent's preferences. Second, its predictions about what the agent *will* do on at the last time step get worse and worse. (The optimal model infers the agent is less noisy over time and so less and less likely to randomly do the task on the last day).
+var posterior = function(observedStateAction, optimalModel) {
+  var world = makeProcrastinationMDP2();
+ 
+  return Enumerate(function(){
+   
+    var utilityTable = {reward: uniformDraw([0.5, 2, 3, 4, 5, 6, 7, 8]),
+			waitCost: -0.1,
+			workCost: -1};
+    
+    var params = {
+      utility: makeProcrastinationUtility2(utilityTable),
+      alpha: categorical([0.1, 0.2, 0.2, 0.2, 0.3], [0.1, 1, 10, 100, 1000]),
+      discount: optimalModel ? 0 :  uniformDraw([0, .5, .1, 2, 4]),
+      sophisticatedOrNaive: 'naive'
+    };
+    
+    var agent = makeHyperbolicDiscounter(params, world);
+    var act = agent.act;
+    
+    map(function(stateAction){
+      var state = stateAction[0];
+      var action = stateAction[1];
+      factor( act(state, 0).score([], action) )
+    }, observedStateAction);
+
+    return {reward: utilityTable.reward, 
+            alpha: params.alpha, 
+            discount: params.discount, 
+            predictWorkLastMinute: sample( act(lastChanceState, 0) ) == 'work'};
+  });
+};
+
+var features = ['reward', 'predictWorkLastMinute', 'alpha', 'discount'];
+
+// inference up to the t-th observation
+var inferUpToTimeIndex = function(timeIndex){
+  
+  var expectations = function(erp){
+    return map(function(feature){return expectation(getMarginal(erp,feature));
+    }, features)
+  };
+
+  return map( function(optimal_or_hyperbolic){
+    var observations = observedStateAction.slice(0,timeIndex);
+    return expectations( posterior(observations, optimal_or_hyperbolic));
+  }, [1,0]);
+};
+
+var indexToExpectations = map(inferUpToTimeIndex, range(observedStateAction.length));
 
 
+// build full time series for each feature
+var getTimeSeries = function(optimal_or_hyper){
+  optimal_or_hyper == 0 ? print('Optimal Model:') : print('Possibly Discounting Model:');
+  return map( function(i){
+    var featureOut = map(function(optimal_hyper){return optimal_hyper[optimal_or_hyper][i];}, 
+                         indexToExpectations);
+    print('\n\n feature:' + features[i]); //, ' \n', featureOut);
+    viz.line( range(observedStateAction.length), features[i] );
+    return featureOut;
+  }, range(features.length) );
+};
+
+print('Posterior expectation on feature after 
+       observing agent "wait" for t timesteps (and "work" when t=9)');
+map(getTimeSeries,[0,1]);
+~~~~
+
+When evaluating the two models, it's worth keeping in mind that the behavior we conditioned on is typical for humans. Suppose you hear someone has still not done a task with only two days left (where the cost for delaying is small and there's no risk of running out of time on the last day). Would you confidently rule out them doing it at the last minute? 
+
+With two days left, the Optimal model has almost complete confidence that the agent doesn't care about the task enough to do the work (`reward < workCost`). Hence it assigns probability $$0.005$$ to the agent doing the task at the last minute (`predictWorkLastMinute`). By contrast, the Possibly Discounting model predicts the agent will do the task with probability around $$0.2$$. This probability is much higher because the model maintains the hypothesis that the agent values the reward enough to do it at the last minute (expectation for `reward` is 2.9 vs. 0.5). The probability is no higher than $$0.2$$ because the agent might be optimal (`discount==0`) or the agent might be too lazy to do the work even at the last minute (`discount` is high enough to overwhelm `reward`).
+
+Suppose you now observe the person doing the task on the final day. What do you infer about them? The Optimal Model has to explain the action by massively revising its inference about `reward` and $$alpha$$. It suddenly infers that the agent is extremely noisy and that `reward > workCost` by a big margin. The extreme noise is needed to explain why the agent would miss a good option nine out of ten times. By contrast, the Possibly Discounting Model does not change its inference about the agent's noise level very much at all (in terms of pratical significance). It infers a much higher value for `reward`, which is plausible in this context. [Point that Optimal Model predicts the agent will finish early on a similar problem, while Discounting Model will predict waiting till last minute.]
 
 
 ## Procrastination Example
