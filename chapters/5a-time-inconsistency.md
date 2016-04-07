@@ -300,7 +300,7 @@ var deadline = 10;
 var world = makeProcrastinationMDP2(deadline);
 
 // Agent params
-var utilityTable = {reward: 10,
+var utilityTable = {reward: 5,
     waitCost: -0.1,
     workCost: -1};
 
@@ -327,19 +327,4 @@ map( function(discount){
 #### Exercise
 Run the codebox above with a Sophisticated agent. Explain the results. 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+With discount 3, the sophisticated agent will start work after waiting 3 times, while the naive agent will never start. This is because at every point, the agent prefers doing it next step to this step, but after waiting 3 times, the sophisticated agent will prefer doing the task now to doing it at the last moment. Since at the start, the agent prefers doing the task after waiting 3 times to doing it immediately, the sophisticated agent will wait 3 times, and then do the task. In contrast, the naive agent will always plan to procrastinate now and do the task immediately afterwards, until the last timestep when it will prefer to get the task done to never doing it.
