@@ -707,8 +707,8 @@ var displayTimeSeries = function(observedStateAction, getPosterior){
 ///
 
 var getPosterior = function(observedStateAction, useOptimalModel) {
-  var world = makeProcrastinationMDP2();
-  var lastChanceState = secondLast(procrastinateUntilEnd102)[0];
+  var world = makeProcrastinationMDP();
+  var lastChanceState = secondLast(procrastinateUntilEnd10)[0];
   
   return Enumerate(function(){
    
@@ -716,7 +716,7 @@ var getPosterior = function(observedStateAction, useOptimalModel) {
 			waitCost: -0.1,
 			workCost: -1};
     var params = {
-      utility: makeProcrastinationUtility2(utilityTable),
+      utility: makeProcrastinationUtility(utilityTable),
       alpha: categorical([0.1, 0.2, 0.2, 0.2, 0.3], [0.1, 1, 10, 100, 1000]),
       discount: useOptimalModel ? 0 : uniformDraw([0, .5, 1, 2, 4]),
       sophisticatedOrNaive: 'naive'
@@ -738,8 +738,9 @@ var getPosterior = function(observedStateAction, useOptimalModel) {
   });
 };
 
-var observedStateAction = procrastinateUntilEnd102;
+var observedStateAction = procrastinateUntilEnd10;
 displayTimeSeries(observedStateAction, getPosterior);
+null;
 ~~~~
 
 When evaluating the two models, it's worth keeping in mind that the behavior we conditioned on is typical for humans. Suppose you hear someone has still not done a task with only two days left (where the cost for delaying is small and there's no risk of running out of time on the last day). Would you confidently rule out them doing it at the last minute? 
@@ -752,7 +753,7 @@ Suppose you now observe the person doing the task on the final day. What do you 
 ~~~~
 // infer_sophistication
 
-var world = makeProcrastinationMDP2();
+var world = makeProcrastinationMDP();
 var observedStateAction = workInMiddle10;
 
 var posterior = function(observedStateAction) {
@@ -762,7 +763,7 @@ var posterior = function(observedStateAction) {
 			            workCost: -1};
     
     var params = {
-      utility: makeProcrastinationUtility2(utilityTable),
+      utility: makeProcrastinationUtility(utilityTable),
       alpha: 1000,
       discount: uniformDraw([0, .5, 1, 2, 3, 4]),
       sophisticatedOrNaive: uniformDraw(['sophisticated', 'naive'])
