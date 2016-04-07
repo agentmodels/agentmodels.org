@@ -271,8 +271,8 @@ print('Naive trajectory' +
 
 In the examples above, time-inconsistency leads to behavior that optimal agents never exhibit. However, given enough softmax noise (or some other random noise model), the Naive path will occur with non-trivial probability. If the agent goes "up" instead of "left" at $$[3,1]$$, then they will continue on to Donut North if they prefer Donuts. As we discuss in Chapter V.3, the explanation of this behavior in terms of noise becomes less likely if we see this behavior repeatedly. However, it might be unlikely that a human repeatedly (e.g. on multiple different days) takes the Naive path. So we turn to an example from everyday life where time inconsistency leads to behavior that  becomes arbitrarily unlikely on the softmax model (see refp:kleinberg2015time):
 
-> *The Procrastination Problem*
-> You have a hard deadline of ten days to complete a task (e.g. write a paper for a class, complete an application or tax return). Completing the task takes a full day and has a *cost* (e.g. it's unpleasant work). After the task is complete you get a *reward* (typically exceeding the cost). There is an incentive to finish early: every day you delay finishing, your reward gets slightly smaller. (Imagine that it's good for your reputation to complete tasks early or that early applicants are considered first).
+> **The Procrastination Problem**
+> <br>You have a hard deadline of ten days to complete a task (e.g. write a paper for a class, complete an application or tax return). Completing the task takes a full day and has a *cost* (e.g. it's unpleasant work). After the task is complete you get a *reward* (typically exceeding the cost). There is an incentive to finish early: every day you delay finishing, your reward gets slightly smaller. (Imagine that it's good for your reputation to complete tasks early or that early applicants are considered first).
 
 Note that if the task is worth doing at the last minute, then you should do it immediately (because the reward diminishes over time). Yet people often do this kind of task at the last minute -- the worst possible time to do it!
 
@@ -284,7 +284,7 @@ We formalize the Procrastination Problem in terms of a deterministic graph. Supp
 
 TODO: graph like this:
 
-![diagram](/assets/img/diagram_procrastinate.png)
+![diagram](/assets/img/diagram_procrastinate.jpg)
 
 TODO would be cool to show changing expected utilities on the graph as we have for gridworld. 
 
