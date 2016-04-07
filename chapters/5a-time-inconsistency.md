@@ -271,7 +271,7 @@ print('Naive trajectory' +
 
 In the examples above, time-inconsistency leads to behavior that optimal agents never exhibit. However, given enough softmax noise (or some other random noise model), the Naive path will occur with non-trivial probability. If the agent goes "up" instead of "left" at $$[3,1]$$, then they will continue on to Donut North if they prefer Donuts. As we discuss in Chapter V.3, the explanation of this behavior in terms of noise becomes less likely if we see this behavior repeatedly. However, it might be unlikely that a human repeatedly (e.g. on multiple different days) takes the Naive path. So we turn to an example from everyday life where time inconsistency leads to behavior that  becomes arbitrarily unlikely on the softmax model (see refp:kleinberg2015time):
 
-> #### The Procrastination Problem
+> *The Procrastination Problem*
 > You have a hard deadline of ten days to complete a task (e.g. write a paper for a class, complete an application or tax return). Completing the task takes a full day and has a *cost* (e.g. it's unpleasant work). After the task is complete you get a *reward* (typically exceeding the cost). There is an incentive to finish early: every day you delay finishing, your reward gets slightly smaller. (Imagine that it's good for your reputation to complete tasks early or that early applicants are considered first).
 
 Note that if the task is worth doing at the last minute, then you should do it immediately (because the reward diminishes over time). Yet people often do this kind of task at the last minute -- the worst possible time to do it!
@@ -282,7 +282,11 @@ In this problem, the behavior of optimal and time-inconsistent agents with ident
 
 We formalize the Procrastination Problem in terms of a deterministic graph. Suppose the *deadline* is $$T$$ steps from the start. Assume that after $$t<T$$ steps the agent has not yet completed the task. Then the agent can take the action `"work"` (which has *work cost* $$-w$$) or the action `"wait"` with zero cost. After the `"work"` action the agent transitions to the `"reward"` state and receives $$R - t \epsilon$$, where $$R$$ is the *reward* for the task and $$\epsilon$$ is how much the reward diminishes for every day of waiting (the *wait cost*). 
 
-TODO: graph in image. would also be good to show Naive agent's expected utilities on the graph. 
+TODO: graph like this:
+
+![diagram](/assets/img/diagram_procrastinate.png)
+
+TODO would be cool to show changing expected utilities on the graph as we have for gridworld. 
 
 We simulate the behavior of hyperbolic discounters on the Procrastination Problem. We vary the discount rate $$k$$ while holding the other parameters fixed. The agent's behavior can be summarized by its final state (`"wait_state"` or `"reward_state:`) and by how much time elapses before termination. When $$k$$ is sufficiently high, the agent will not even complete the task on the last day. 
 
