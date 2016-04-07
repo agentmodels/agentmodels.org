@@ -749,7 +749,7 @@ With two days left, the Optimal model has almost complete confidence that the ag
 
 Suppose you now observe the person doing the task on the final day. What do you infer about them? The Optimal Model has to explain the action by massively revising its inference about `reward` and $$\alpha$$. It suddenly infers that the agent is extremely noisy and that `reward > workCost` by a big margin. The extreme noise is needed to explain why the agent would miss a good option nine out of ten times. By contrast, the Possibly Discounting Model does not change its inference about the agent's noise level very much at all (in terms of pratical significance). It infers a much higher value for `reward`, which is plausible in this context. [Point that Optimal Model predicts the agent will finish early on a similar problem, while Discounting Model will predict waiting till last minute.]
 
-<!--
+<!--  SOPHISTICATED AGENT INFERENCE
 ~~~~
 // infer_sophistication
 
@@ -790,72 +790,91 @@ viz.vegaPrint(posterior(observedStateAction));
 
 
 ## Bandits
+We've seen that assuming optimality can lead to bad inferences due to systematic deviations between optimal and time-inconsistent agents. For this example we move to a POMDP problem: the IRL Bandit problem of earlier chapters. In Chapter V.2, we noted that the Greedy agent will explore less than an optimal agent. The Greedy agent plans each action as if time runs out in $$C_g$$ steps, where $$C_g$$ is the *bound* for look ahead. If exploration only pays off in the long-run (after the bound) then the agent won't explore. If there's no noise in transitions or in selection of actions, the Greedy agent will *never* explore and will do worse than an agent that optimally solves the POMDP.
+
+For inference, 
+
+For inference, if we assume an agent is solving a POMDP optimally, then the choice of not exploring indicates that the agent has a low prior on the expectation of the unknown options. For a longer time horizon (where exploration becomes more valuable in expectation), this inference becomes stronger. 
+
+As above, we compare the inferences of two models. The *Optimal Model* assumes an agent solving the POMDP optimally. The *Possibly Myopic Model* includes both the optimal agent and Myopic-Utility agents with different values for the bound or "look-ahead". 
+
+
+
 
 - Hyperbolic discounter and myopic-for-utility agent will explore less than optimal agent on both deterministic and stochastic bandits. We assume arm0 has a prize known to the agent and arm1 is uncertain to the agent (and we know the agent's prior). So the inference task is just to learn the utility the agent assigns to the prize from arm0. (We could assume that we know the utilities of the two possible prizes resulting from arm1). If the agent is discounting/myopic, they might take arm0, even if they don't have a very strong preference for the arm0 prize. As the time horizon gets longer, the difference in inference between the model that assumes optimality and the one that allows for discounting or myopia will get bigger. A graph illustrating this difference is in the NIPS paper. (With stochastic bandits you could have arms which are known to have high variance and with uncertain expectation. In this case you might get less exploration even if the myopia bound is higher or discounting is weaker. It'd be nice to include such an example but it's not neccesary).
 
 ~~~~
 // infer_utility_from_no_exploration
 
-var posterior = function(timeLeft, agentType) {
+var getPosterior = function(timeLeft, useOptimalModel) {
   var numArms = 2;
   var armToPrize = {0: 'chocolate',
-		            1: 'nothing'};
+		    1: 'nothing'};
   var worldAndStart = makeIRLBanditWorldAndStart(numArms, armToPrize, timeLeft);
-
   var startState = worldAndStart.startState;
   var alternativeLatent = update(armToPrize, {1: 'champagne'});
   var alternativeStartState = update(startState, {latentState:
-						                          alternativeLatent});
+						  alternativeLatent});
 
   var priorAgentPrior = deltaERP(categoricalERP([0.7, 0.3],
-						                        [startState,
-												 alternativeStartState]));
+						[startState,
+						 alternativeStartState]));
+  
   var priorPrizeToUtility = Enumerate(function(){
-    var chocUtility = uniformDraw(range(20));
-    return {chocolate: chocUtility,
-	        nothing: 0,
-			champagne: 20};
+    return {chocolate: uniformDraw(range(20).concat(25)),
+	    nothing: 0,
+	    champagne: 20};
   });
+  
+  var priorMyopia =  useOptimalModel ? deltaERP({on:false, bound:0}) :
+      Enumerate(function(){
+        return {on: true, 
+                bound: categorical([.4, .2, .1, .1, .1, .1], 
+                                   [1, 2, 3, 4, 6, 10])};
+      });
+  
   var prior = {priorAgentPrior: priorAgentPrior,
-	           priorPrizeToUtility: priorPrizeToUtility};
+	       priorPrizeToUtility: priorPrizeToUtility,
+               priorMyopia: priorMyopia};
 
-  var baseAgentParams = {alpha: 100,
-			             myopia: {on: agentType === 'myopic', bound: 1},
-			             boundVOI: {on: false, bound: 0},
-						 sophisticatedOrNaive: 'naive',
-						 discount: agentType === 'hyperbolic' ? 1 : 0,
-						 noDelays: agentType === 'optimal'};
+  var baseAgentParams = {alpha: 1000,
+			 myopia: {on: false, bound:0},
+			 boundVOI: {on: false, bound: 0},
+			 sophisticatedOrNaive: 'naive',
+			 discount: 0, //agentType === 'hyperbolic' ? 1 : 0,
+			 noDelays: useOptimalModel};                      
 
-  var stateAction = [[startState, 0]];
-
+  var observations = [[startState, 0]];
+  
   var outputERP = inferIRLBandit(worldAndStart, baseAgentParams, prior,
-				                 stateAction, 'offPolicy', 0, 'beliefDelay');
-
-  return expectation(Enumerate(function(){
+				 observations, 'offPolicy', 0, 'beliefDelay');
+  
+  var marginalChocolate = Enumerate(function(){
     return sample(outputERP).prizeToUtility.chocolate;
-  }));
+  });
+  
+  return [expectation(marginalChocolate), 
+          expectation(getMarginal(outputERP,'myopiaBound'))]
 };
 
-var timeLefts = range(10).slice(2);
-var optimalExpectations = map(function(t){return posterior(t, 'optimal');},
-			                  timeLefts);
-var myopicExpectations = map(function(t){return posterior(t, 'myopic');},
-			                 timeLefts);
-var hyperbolicExpectations = map(function(t){return posterior(t, 'hyperbolic');},
-				                 timeLefts);
+var timeHorizonValues = range(10).slice(2);
 
-var priorExpectation = expectation(uniformDraw(range(20)));
+var optimalExpectations = map(function(t){return getPosterior(t, true);},
+			      timeHorizonValues);
+var possiblyMyopicExpectations = map(function(t){return getPosterior(t, false);},
+			             timeHorizonValues);
 
-print('Prior expected utility of arm 0: ' + priorExpectation);
+print('Prior expected utility for arm0 (chocolate): ' + listMean(range(20).concat(25)) );
 
-print('Inference of utility of arm 0 for optimal agent as timeLeft increases');
-viz.line(timeLefts, optimalExpectations);
+print('Inferred Utility for arm0 (chocolate) for Optimal Model as timeHorizon increases');
+viz.line(timeHorizonValues, map(first, optimalExpectations));
 
-print('Inference of utility of arm 0 for myopic agent as timeLeft increases');
-viz.line(timeLefts, myopicExpectations);
+print('Inferred Utility for arm0 (chocolate) for Possibly Greedy Model as timeHorizon increases');
+viz.line(timeHorizonValues, map(first, possiblyMyopicExpectations));
 
-print('Inference of utility of arm 0 for hyperbolic agent as timeLeft increases');
-viz.line(timeLefts, hyperbolicExpectations);
+print('Inferred Myopic Bound for Possibly Greedy Model as timeHorizon increases');
+viz.line(timeHorizonValues, map(second, possiblyMyopicExpectations));
+
 ~~~~
 
 
