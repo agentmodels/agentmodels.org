@@ -751,8 +751,8 @@ var observedStateAction = workInMiddle10;
 var posterior = function(observedStateAction) {
   return Enumerate(function(){
     var utilityTable = {reward: uniformDraw([0.5, 2, 3, 4, 5, 6, 7, 8]),
-			waitCost: -0.1,
-			workCost: -1};
+			            waitCost: -0.1,
+			            workCost: -1};
     
     var params = {
       utility: makeProcrastinationUtility2(utilityTable),
