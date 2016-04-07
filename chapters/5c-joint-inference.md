@@ -653,41 +653,78 @@ The Procrastination Problem from Chapter V.1. illustrates how agents with identi
 
 This kind of systematic deviation between agents is also significant for inferring preferences. We consider the problem of *online* inference, where we observe the agent's behavior each day and produce an estimate of their preferences. Suppose the agent has a deadline $$T$$ days into the future and leaves the work till the last day. As we discussed earlier, this is just the kind of behavior we see in people every day -- and so is a good test for a model of inference. We compare the online inferences of two models. The *Optimal Model* assumes the agent is time-consistent with softmax parameter $$\alpha$$. The *Possibly Discounting* model includes both optimal and Naive hyperbolic discounting agents in the prior.
 
-For each model, we compute posteriors for the agent's parameters after observing the agent's choice at each timestep. We set $$T=10$$. So the observed actions are `["wait", "wait", "wait", ... , "work"]`, where `"work"` is the final action. We fix the utilities for doing the work (the `workCost` or $$-w$$) and for delaying the work (the `waitCost` or $$-\epsilon$$). We learn the following parameters:
+For each model, we compute posteriors for the agent's parameters after observing the agent's choice at each timestep. We set $$T=10$$. So the observed actions are:
+
+>`["wait", "wait", "wait", ... , "work"]`
+
+where `"work"` is the final action. We fix the utilities for doing the work (the `workCost` or $$-w$$) and for delaying the work (the `waitCost` or $$-\epsilon$$). We infer the following parameters:
 
 - The reward for doing the task: $$R$$ or `reward`
-- The agent's softmax parameter $$\alpha$$
+- The agent's softmax parameter: $$\alpha$$
 - The agent's discount rate (for the Possibly Discounting model): $$k$$ or `discount`
 
-For each parameter, we plot a time-series showing the posterior expectation of the variable on each day. We also plot the model's posterior predictive probability that the agent would do the work on the last day (assuming the agent gets to the last day without having done the work). This feature is called `predictWorkLastMinute` in the codebox. (This feautre us a measure of whether the model predicts what actually happens on the last day). 
-
+For each parameter, we plot a time-series showing the posterior expectation of the variable on each day. We also plot the model's posterior predictive probability that the agent would do the work on the last day (assuming the agent gets to the last day without having done the work). This feature is called `predictWorkLastMinute` in the codebox.
 
 ~~~~ 
 // infer_procrastination
 
-var observedStateAction = procrastinateUntilEnd102;
-var lastChanceState = secondLast(observedStateAction)[0];
+///fold
+var displayTimeSeries = function(observedStateAction, getPosterior){
+  var features = ['reward', 'predictWorkLastMinute', 'alpha', 'discount'];
+  
+  // erp on {a:1, b:3, ...} -> [E('a'), E('b') ... ]
+  var erpToMarginalExpectations = function(erp, keys){
+    return map(function(key){
+      return expectation(getMarginal(erp,key));
+    }, keys);
+  };
+  // condition observations up to *timeIndex* and take expectations
+  var inferUpToTimeIndex = function(timeIndex, useOptimalModel){
+    var observations = observedStateAction.slice(0,timeIndex);
+    return erpToMarginalExpectations( getPosterior(observations, useOptimalModel), features);
+  };
 
+  var getTimeSeries = function(useOptimalModel){
+    var dummy = useOptimalModel ? print('Optimal Model:') : print('Possibly Discounting Model:');
 
-var posterior = function(observedStateAction, optimalModel) {
+    var inferAllTimeIndexes = map( function(index){
+      return inferUpToTimeIndex(index, useOptimalModel);
+    }, range(observedStateAction.length));
+
+    return map( function(i){
+      // get full time series of online inferences for each feature
+      var series = map(function(infer){return infer[i];}, inferAllTimeIndexes);
+      
+      print('\n\n feature:' + features[i]); //, ' \n', featureOut);
+      viz.line( range(observedStateAction.length), series );
+    }, range(features.length) );
+  };
+
+  print('Posterior expectation on feature after observing "wait" for t timesteps and "work" when t=9');
+  map(getTimeSeries,[true, false]);
+  return '';
+};
+///
+
+var getPosterior = function(observedStateAction, useOptimalModel) {
   var world = makeProcrastinationMDP2();
- 
+  var lastChanceState = secondLast(procrastinateUntilEnd102)[0];
+  
   return Enumerate(function(){
    
     var utilityTable = {reward: uniformDraw([0.5, 2, 3, 4, 5, 6, 7, 8]),
-			            waitCost: -0.1,
-			            workCost: -1};
-    
+			waitCost: -0.1,
+			workCost: -1};
     var params = {
       utility: makeProcrastinationUtility2(utilityTable),
       alpha: categorical([0.1, 0.2, 0.2, 0.2, 0.3], [0.1, 1, 10, 100, 1000]),
-      discount: optimalModel ? 0 : uniformDraw([0, .5, 1, 2, 4]),
+      discount: useOptimalModel ? 0 : uniformDraw([0, .5, 1, 2, 4]),
       sophisticatedOrNaive: 'naive'
     };
     
     var agent = makeHyperbolicDiscounter(params, world);
     var act = agent.act;
-    
+
     map(function(stateAction){
       var state = stateAction[0];
       var action = stateAction[1];
@@ -701,39 +738,8 @@ var posterior = function(observedStateAction, optimalModel) {
   });
 };
 
-var features = ['reward', 'predictWorkLastMinute', 'alpha', 'discount'];
-
-// inference up to the t-th observation
-var inferUpToTimeIndex = function(timeIndex){
-  
-  var expectations = function(erp){
-    return map(function(feature){return expectation(getMarginal(erp,feature));
-    }, features)
-  };
-
-  return map( function(optimal_or_hyperbolic){
-    var observations = observedStateAction.slice(0,timeIndex);
-    return expectations( posterior(observations, optimal_or_hyperbolic));
-  }, [1,0]);
-};
-
-var indexToExpectations = map(inferUpToTimeIndex, range(observedStateAction.length));
-
-
-// build full time series for each feature
-var getTimeSeries = function(optimal_or_hyper){
-  optimal_or_hyper == 0 ? print('Optimal Model:') : print('Possibly Discounting Model:');
-  return map( function(i){
-    var featureOut = map(function(optimal_hyper){return optimal_hyper[optimal_or_hyper][i];}, 
-                         indexToExpectations);
-    print('\n\n feature:' + features[i]); //, ' \n', featureOut);
-    viz.line( range(observedStateAction.length), features[i] );
-    return featureOut;
-  }, range(features.length) );
-};
-
-print('Posterior expectation on feature after observing agent "wait" for t timesteps (and "work" when t=9)');
-map(getTimeSeries,[0,1]);
+var observedStateAction = procrastinateUntilEnd102;
+displayTimeSeries(observedStateAction, getPosterior);
 ~~~~
 
 When evaluating the two models, it's worth keeping in mind that the behavior we conditioned on is typical for humans. Suppose you hear someone has still not done a task with only two days left (where the cost for delaying is small and there's no risk of running out of time on the last day). Would you confidently rule out them doing it at the last minute? 
@@ -742,6 +748,7 @@ With two days left, the Optimal model has almost complete confidence that the ag
 
 Suppose you now observe the person doing the task on the final day. What do you infer about them? The Optimal Model has to explain the action by massively revising its inference about `reward` and $$\alpha$$. It suddenly infers that the agent is extremely noisy and that `reward > workCost` by a big margin. The extreme noise is needed to explain why the agent would miss a good option nine out of ten times. By contrast, the Possibly Discounting Model does not change its inference about the agent's noise level very much at all (in terms of pratical significance). It infers a much higher value for `reward`, which is plausible in this context. [Point that Optimal Model predicts the agent will finish early on a similar problem, while Discounting Model will predict waiting till last minute.]
 
+<!--
 ~~~~
 // infer_sophistication
 
@@ -777,200 +784,8 @@ var posterior = function(observedStateAction) {
 
 viz.vegaPrint(posterior(observedStateAction));
 ~~~~
+-->
 
-Note that we need a precise parameter setting to get the observed behaviour, so if we have a prior over alpha that puts substantial weight on low values, we will think it more likely that alpha was low than that the discount and reward lined up in the required way.
-
-## Procrastination Example
-HD causes big deviation in behavior. This is like smoker who smokes every day but wishes to quit.  Can you how inference gets stronger with passing days (online inference).
-
-Probably talk about the structure of the procrastination MDP
-
-~~~~
-// non-discounter_completes_immediately
-
-var world = makeProcrastinationMDP();
-
-var utilityTable = {reward: 10,
-		            procrastinationCost: -0.1,
-					workCost: -1};
-var utility = makeProcrastinationUtility(utilityTable);
-
-var startState = {loc: "procrastinating",
-		          procrastinationSteps: 0,
-				  timeLeft: 10,
-				  terminateAfterAction: false};
-
-var agent = makeMDPAgent({utility: utility, alpha: 100}, world);
-var trajectory = simulateMDP(startState, world, agent, 'stateAction');
-map(function(stateAction){return [stateAction[0].loc, stateAction[1]];},
-    trajectory);
-~~~~
-
-~~~~
-// non-discounter_never_completes
-
-var world = makeProcrastinationMDP();
-
-var utilityTable = {reward: 0.8,
-        		    procrastinationCost: -0.1,
-					workCost: -1};
-var utility = makeProcrastinationUtility(utilityTable);
-
-var startState = {loc: "procrastinating",
-		          procrastinationSteps: 0,
-				  timeLeft: 5,
-				  terminateAfterAction: false};
-
-var agent = makeMDPAgent({utility: utility, alpha: 100}, world);
-var trajectory = simulateMDP(startState, world, agent, 'stateAction');
-map(function(stateAction){return [stateAction[0].loc, stateAction[1]];},
-    trajectory);
-~~~~
-
-
-~~~~
-// discounter_procrastinates
-
-// procrastinates, because it thinks that it will do it later
-
-var world = makeProcrastinationMDP();
-
-var utilityTable = {reward: 10,
-		            procrastinationCost: -0.1,
-					workCost: -1};
-var utility = makeProcrastinationUtility(utilityTable);
-
-var startState = {loc: "procrastinating",
-		          procrastinationSteps: 0,
-				  timeLeft: 10,
-				  terminateAfterAction: false};
-
-var params = {utility: utility,
-		      alpha: 100,
-		      discount: 5,
-		      sophisticatedOrNaive: 'naive'};
-  
-var agent = makeHyperbolicDiscounter(params, world);
-var trajectory = simulateHyperbolic(startState, world, agent, 'stateAction');
-map(function(stateAction){return [stateAction[0].loc, stateAction[1]];},
-    trajectory);
-~~~~
-
-~~~~
-// discounter_procrastination_varies_with_discount
-
-// when the discount is small, the agent thinks that it should do the task
-// immediately in order to avoid the procrastination cost, since it doesn't care
-// about the workCost coming before the reward.
-// when the discount is bigger, the agent procrastinates to the last moment, but
-// eventually does the job because it's still better than nothing
-// when the discount is very large, the agent always thinks that the utility of
-// doing the work is below zero, so never does it.
-
-var procrastinationWithDiscount = function(discount){
-  var world = makeProcrastinationMDP();
-
-  var utilityTable = {reward: 10,
-		              procrastinationCost: -0.1,
-		              workCost: -1};
-  var utility = makeProcrastinationUtility(utilityTable);
-
-  var startState = {loc: "procrastinating",
-		            procrastinationSteps: 0,
-		            timeLeft: 10,
-		            terminateAfterAction: false};
-
-  var params = {utility: utility,
-		        alpha: 100,
-		        discount: discount,
-		        sophisticatedOrNaive: 'naive'};
-  
-  var agent = makeHyperbolicDiscounter(params, world);
-  var trajectory = simulateHyperbolic(startState, world, agent, 'stateAction');
-  return [last(trajectory)[1], trajectory.length];
-};
-
-var discounts = range(11);
-var lastActionsAndTimes = map(procrastinationWithDiscount, discounts);
-
-print('Discounts: ' + discounts + '\nLast actions and lengths of trajectories:'
-      + JSON.stringify(lastActionsAndTimes));
-~~~~
-
-
-~~~~
-// infer_procrastination
-
-var posterior = function(stateActionPairs, allowDiscount) {
-  return Enumerate(function(){
-    var world = makeProcrastinationMDP();
-  	var reward = uniformDraw([0.5, 2, 3, 4, 5, 6, 7, 8]);
-	var alpha = categorical([0.1, 0.2, 0.2, 0.2, 0.3], [0.1, 1, 10, 100, 1000]);
-	var discount = allowDiscount ? uniformDraw([0, .5, .1, 2, 4]) : 0;
-
-    var utilityTable = {reward: reward,
-			            procrastinationCost: -0.1,
-						workCost: -1};
-    var utility = makeProcrastinationUtility(utilityTable);
-    var params = {utility: utility,
-		          alpha: alpha,
-		          discount: discount,
-		          sophisticatedOrNaive: 'naive'};
-    var agent = makeHyperbolicDiscounter(params, world);
-    var act = agent.act;
-    map(function(stateAction){
-      factor(act(stateAction[0], 0).score([], stateAction[1]));
-    }, stateActionPairs);
-
-    return {reward: reward, alpha: alpha, discount: discount};
-  });
-};
-
-// give it prefixes of the actual sequence, see how expected reward and logAlpha varies
-
-var observedStateAction = procrastinateUntilEnd10;
-
-var expectedFeaturesFromNStateActionPairs = function(n){
-  var optimalPosterior = posterior(observedStateAction.slice(0,n), false);
-  var hyperbolicPosterior = posterior(observedStateAction.slice(0,n), true);
-  return {optimalReward: expectation(getMarginal(optimalPosterior,
-						                          'reward')),
-	      hyperbolicReward: expectation(getMarginal(hyperbolicPosterior,
-		                                            'reward')),
-          optimalAlpha: expectation(getMarginal(optimalPosterior,
-						                         'alpha')),
-	      hyperbolicAlpha: expectation(getMarginal(hyperbolicPosterior,
-						                           'alpha')),
-	      hyperbolicDiscount: expectation(getMarginal(hyperbolicPosterior,
-						                              'discount'))};
-};
-
-var observedTimesteps = range(10);
-
-// makePick takes a key and return a function which takes an object and returns
-// {key: object[key]}
-var expectations = map(expectedFeaturesFromNStateActionPairs, observedTimesteps);
-var expectedRewardsOptimal = map(makePick('optimalReward'), expectations);
-var expectedAlphasOptimal = map(makePick('optimalAlpha'), expectations);
-var expectedRewardsHyperbolic = map(makePick('hyperbolicReward'), expectations);
-var expectedAlphasHyperbolic = map(makePick('hyperbolicAlpha'), expectations);
-var expectedDiscountsHyperbolic = map(makePick('hyperbolicDiscount'), expectations);
-
-print('Expected reward vs state action pairs observed, optimal');
-viz.line(observedTimesteps, expectedRewardsOptimal);
-
-print('Expected alpha vs state action pairs observed, optimal');
-viz.line(observedTimesteps, expectedAlphasOptimal);
-
-print('Expected reward vs state action pairs observed, hyperbolic');
-viz.line(observedTimesteps, expectedRewardsHyperbolic);
-
-print('Expected alpha vs state action pairs observed, hyperbolic');
-viz.line(observedTimesteps, expectedAlphasHyperbolic);
-
-print('Expected discount vs state action pairs observed, hyperbolic');
-viz.line(observedTimesteps, expectedDiscountsHyperbolic);
-~~~~
 
 
 ## Bandits
