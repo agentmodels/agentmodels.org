@@ -321,7 +321,7 @@ map( function(discount){
     print('Discount: ' + discount + '. Last state: ' + lastState[0] +
     '. Time: ' + lastState[1] + '\n')
 }, range(11) );
-// consider doing as table also    
+// consider doing as table also
 ~~~~
 
 #### Exercise
