@@ -675,13 +675,13 @@ var posterior = function(observedStateAction, optimalModel) {
   return Enumerate(function(){
    
     var utilityTable = {reward: uniformDraw([0.5, 2, 3, 4, 5, 6, 7, 8]),
-			waitCost: -0.1,
-			workCost: -1};
+			            waitCost: -0.1,
+			            workCost: -1};
     
     var params = {
       utility: makeProcrastinationUtility2(utilityTable),
       alpha: categorical([0.1, 0.2, 0.2, 0.2, 0.3], [0.1, 1, 10, 100, 1000]),
-      discount: optimalModel ? 0 :  uniformDraw([0, .5, .1, 2, 4]),
+      discount: optimalModel ? 0 : uniformDraw([0, .5, 1, 2, 4]),
       sophisticatedOrNaive: 'naive'
     };
     
@@ -732,8 +732,7 @@ var getTimeSeries = function(optimal_or_hyper){
   }, range(features.length) );
 };
 
-print('Posterior expectation on feature after 
-       observing agent "wait" for t timesteps (and "work" when t=9)');
+print('Posterior expectation on feature after observing agent "wait" for t timesteps (and "work" when t=9)');
 map(getTimeSeries,[0,1]);
 ~~~~
 
@@ -742,7 +741,6 @@ When evaluating the two models, it's worth keeping in mind that the behavior we 
 With two days left, the Optimal model has almost complete confidence that the agent doesn't care about the task enough to do the work (`reward < workCost`). Hence it assigns probability $$0.005$$ to the agent doing the task at the last minute (`predictWorkLastMinute`). By contrast, the Possibly Discounting model predicts the agent will do the task with probability around $$0.2$$. This probability is much higher because the model maintains the hypothesis that the agent values the reward enough to do it at the last minute (expectation for `reward` is 2.9 vs. 0.5). The probability is no higher than $$0.2$$ because the agent might be optimal (`discount==0`) or the agent might be too lazy to do the work even at the last minute (`discount` is high enough to overwhelm `reward`).
 
 Suppose you now observe the person doing the task on the final day. What do you infer about them? The Optimal Model has to explain the action by massively revising its inference about `reward` and $$\alpha$$. It suddenly infers that the agent is extremely noisy and that `reward > workCost` by a big margin. The extreme noise is needed to explain why the agent would miss a good option nine out of ten times. By contrast, the Possibly Discounting Model does not change its inference about the agent's noise level very much at all (in terms of pratical significance). It infers a much higher value for `reward`, which is plausible in this context. [Point that Optimal Model predicts the agent will finish early on a similar problem, while Discounting Model will predict waiting till last minute.]
-
 
 ## Procrastination Example
 HD causes big deviation in behavior. This is like smoker who smokes every day but wishes to quit.  Can you how inference gets stronger with passing days (online inference).
@@ -986,11 +984,15 @@ var posterior = function(timeLeft, agentType) {
 
 var timeLefts = range(10).slice(2);
 var optimalExpectations = map(function(t){return posterior(t, 'optimal');},
-			                   timeLefts);
+			                  timeLefts);
 var myopicExpectations = map(function(t){return posterior(t, 'myopic');},
 			                 timeLefts);
 var hyperbolicExpectations = map(function(t){return posterior(t, 'hyperbolic');},
 				                 timeLefts);
+
+var priorExpectation = expectation(uniformDraw(range(20)));
+
+print('Prior expected utility of arm 0: ' + priorExpectation);
 
 print('Inference of utility of arm 0 for optimal agent as timeLeft increases');
 viz.line(timeLefts, optimalExpectations);
