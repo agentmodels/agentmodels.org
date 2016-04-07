@@ -742,6 +742,44 @@ With two days left, the Optimal model has almost complete confidence that the ag
 
 Suppose you now observe the person doing the task on the final day. What do you infer about them? The Optimal Model has to explain the action by massively revising its inference about `reward` and $$\alpha$$. It suddenly infers that the agent is extremely noisy and that `reward > workCost` by a big margin. The extreme noise is needed to explain why the agent would miss a good option nine out of ten times. By contrast, the Possibly Discounting Model does not change its inference about the agent's noise level very much at all (in terms of pratical significance). It infers a much higher value for `reward`, which is plausible in this context. [Point that Optimal Model predicts the agent will finish early on a similar problem, while Discounting Model will predict waiting till last minute.]
 
+~~~~
+// infer_sophistication
+
+var world = makeProcrastinationMDP2();
+var observedStateAction = workInMiddle10;
+
+var posterior = function(observedStateAction) {
+  return Enumerate(function(){
+    var utilityTable = {reward: uniformDraw([0.5, 2, 3, 4, 5, 6, 7, 8]),
+			waitCost: -0.1,
+			workCost: -1};
+    
+    var params = {
+      utility: makeProcrastinationUtility2(utilityTable),
+      alpha: 1000,
+      discount: uniformDraw([0, .5, 1, 2, 3, 4]),
+      sophisticatedOrNaive: uniformDraw(['sophisticated', 'naive'])
+    };
+    
+    var agent = makeHyperbolicDiscounter(params, world);
+    var act = agent.act;
+    
+    map(function(stateAction){
+      var state = stateAction[0];
+      var action = stateAction[1];
+      factor( act(state, 0).score([], action) );
+    }, observedStateAction);
+
+    return {sophisticatedOrNaive: params.sophisticatedOrNaive};
+
+  });
+};
+
+viz.vegaPrint(posterior(observedStateAction));
+~~~~
+
+Note that we need a precise parameter setting to get the observed behaviour, so if we have a prior over alpha that puts substantial weight on low values, we will think it more likely that alpha was low than that the discount and reward lined up in the required way.
+
 ## Procrastination Example
 HD causes big deviation in behavior. This is like smoker who smokes every day but wishes to quit.  Can you how inference gets stronger with passing days (online inference).
 
