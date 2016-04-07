@@ -789,19 +789,21 @@ viz.vegaPrint(posterior(observedStateAction));
 
 
 
-## Bandits
-We've seen that assuming optimality can lead to bad inferences due to systematic deviations between optimal and time-inconsistent agents. For this example we move to a POMDP problem: the IRL Bandit problem of earlier chapters. In Chapter V.2, we noted that the Greedy agent will explore less than an optimal agent. The Greedy agent plans each action as if time runs out in $$C_g$$ steps, where $$C_g$$ is the *bound* for look ahead. If exploration only pays off in the long-run (after the bound) then the agent won't explore. If there's no noise in transitions or in selection of actions, the Greedy agent will *never* explore and will do worse than an agent that optimally solves the POMDP.
+## Greedy Agents in Bandits
+We've seen that assuming optimality can lead to bad inferences due to systematic deviations between optimal and time-inconsistent agents. For this example we move to a POMDP problem: the IRL Bandit problem of earlier chapters. In Chapter V.2, we noted that the Greedy agent will explore less than an optimal agent. The Greedy agent plans each action as if time runs out in $$C_g$$ steps, where $$C_g$$ is the *bound* for look ahead. If exploration only pays off in the long-run (after the bound) then the agent won't explore[^bandit1]. This means there are two possible explanations for an agent not exploring: either the agent is greedy or the agent has a low prior on utility of the unknown options. 
+[^bandit1]: If there's no noise in transitions or in selection of actions, the Greedy agent will *never* explore and will do worse than an agent that optimally solves the POMDP.
 
-For inference, 
+For this example, we consider the deterministic bandit-style problem from earlier. At each trial, the agent chooses between two arms with the following properties:
 
-For inference, if we assume an agent is solving a POMDP optimally, then the choice of not exploring indicates that the agent has a low prior on the expectation of the unknown options. For a longer time horizon (where exploration becomes more valuable in expectation), this inference becomes stronger. 
+- `arm0`: yields chocolate
 
-As above, we compare the inferences of two models. The *Optimal Model* assumes an agent solving the POMDP optimally. The *Possibly Myopic Model* includes both the optimal agent and Myopic-Utility agents with different values for the bound or "look-ahead". 
+- `arm1`: yields either champagne or no prize at all (agent's prior is $$0.7$$ for champagne)
 
+The inference problem is to infer the agent's preference over chocolate. While this problem with only two deterministic arms may seem overly simple, the same kind of structure is shared by more realistic problems. For example, we can imagine observing people choosing between different cuisines, restaurants or menu options. Usually people will know some options (arms) well but be uncertain about others. When inferring their preferences, we (as outside observers) need to distinguish between options chosen for exploration vs. exploitation The same applies to the example of people choosing media sources. Someone might try out a channel just in case it shows their favorite genre.
 
+As with the Procrastination example above, we compare the inferences of two models. The *Optimal Model* assumes an agent solving the POMDP optimally. The *Possibly Greedy Model* includes both the optimal agent and Greedy agents with different values for the bound $$C_g$$. The models know the agent's utility for champagne and their prior about how likely champagne is from `arm1`. The models have a fixed prior on the agent's utility for chocolate. We vary the agent's time horizon between 2 and 10 timesteps and plot posterior expectations for the utility of chocolate. For the Possibly Greedy model, we also plot the expectation for $$C_g$$. 
 
-
-- Hyperbolic discounter and myopic-for-utility agent will explore less than optimal agent on both deterministic and stochastic bandits. We assume arm0 has a prize known to the agent and arm1 is uncertain to the agent (and we know the agent's prior). So the inference task is just to learn the utility the agent assigns to the prize from arm0. (We could assume that we know the utilities of the two possible prizes resulting from arm1). If the agent is discounting/myopic, they might take arm0, even if they don't have a very strong preference for the arm0 prize. As the time horizon gets longer, the difference in inference between the model that assumes optimality and the one that allows for discounting or myopia will get bigger. A graph illustrating this difference is in the NIPS paper. (With stochastic bandits you could have arms which are known to have high variance and with uncertain expectation. In this case you might get less exploration even if the myopia bound is higher or discounting is weaker. It'd be nice to include such an example but it's not neccesary).
+<!--(With stochastic bandits you could have arms which are known to have high variance and with uncertain expectation. In this case you might get less exploration even if the myopia bound is higher or discounting is weaker. It'd be nice to include such an example but it's not neccesary).--> 
 
 ~~~~
 // infer_utility_from_no_exploration
@@ -872,14 +874,16 @@ viz.line(timeHorizonValues, map(first, optimalExpectations));
 print('Inferred Utility for arm0 (chocolate) for Possibly Greedy Model as timeHorizon increases');
 viz.line(timeHorizonValues, map(first, possiblyMyopicExpectations));
 
-print('Inferred Myopic Bound for Possibly Greedy Model as timeHorizon increases');
+print('Inferred Greedy Bound for Possibly Greedy Model as timeHorizon increases');
 viz.line(timeHorizonValues, map(second, possiblyMyopicExpectations));
-
 ~~~~
 
+The graphs show that as the agent's time horizon increases the inferences of the two models diverge. For the Optimal agent, the longer time horizon makes exploration more valuable. So the Optimal model infers a higher utility for the known option as the time horizon increases. By contrast, the Possibly Greedy model can explain away the lack of exploration by the agent being Greedy. This latter model infers slightly lower values for $$C_g$$ as the horizon increases. 
+
+>**Exercise**: Suppose that instead of allowing the agent to be greedy, we allowed the agent to be a hyperbolic discounter. Think about how this would affect inferences from the observations above and for other sequences of observation. Change the code above to test out your predictions. [TODO: could add Myopic agent and stochastic bandits].
 
 
 ### Restaurant in Foreign City example
-Model without myopia assumes a preference for the restaurants that are close (i.e. a prior that prefers them). If we add more restaurants, or make the variance higher and timecost lower, we can accentuate this effect. We can also make the game repeated (problem of tractability). 
+TODO: Model without myopia assumes a preference for the restaurants that are close (i.e. a prior that prefers them). If we add more restaurants, or make the variance higher and timecost lower, we can accentuate this effect. We can also make the game repeated (problem of tractability). 
 
 
