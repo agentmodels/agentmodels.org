@@ -17,14 +17,13 @@ Suppose that Alice is hiking. There are two peaks nearby, denoted "West" and "Ea
 We represent Alice's hiking problem with a Gridworld similar to Bob's Restaurant Choice example. The peaks are terminal states, providing differing utilities. The steep hill is represented by a row of terminal state, each with identical negative utility. Each timestep before Alice reaches a terminal state incurs a "time cost", which is negative to represent the fact that Alice prefers a shorter hike. 
 
 ~~~~
-var utilityTable = { east: 10, west: 1, hill: -10, timeCost: -.1 };
-var alpha = 100;
 var transitionNoiseProb = 0;
-
-var params = makeHike(transitionNoiseProb, alpha, utilityTable);
-
-var startState = [0, 1];
-GridWorld.draw(params, {labels: params.labels, trajectory: [[startState]]});
+var world = makeHike(transitionNoiseProb);
+var startState = {loc: [0, 1],
+                  timeLeft: 10,
+				  terminateAfterAction: false};
+				  
+GridWorld.draw(world, {trajectory: [startState]});
 ~~~~
 
 We start with a *deterministic* transition function. In this case, Alice's risk of falling down the steep hill is solely due to softmax noise in her action choice (which is minimal in this case). The agent model is the same as the one at the end of [Chapter III.1](/chapters/3a-mdp.html'). We wrap the functions `agent`, `expectedUtility` and `simulate` in a function `mdpSimulateGridworld`. The following code box defines this function and we use it later on without defining it (since it is also included in the WebPPL Gridworld library). 
@@ -46,7 +45,7 @@ var makeMDPAgent = function(params, world) {
         var eu = expectedUtility(state, action);
         factor(alpha * eu);
         return action;
-      });      
+      });
     });
   
   var expectedUtility = dp.cache(
@@ -54,13 +53,13 @@ var makeMDPAgent = function(params, world) {
       var u = utility(state, action);
       if (state.terminateAfterAction){
         return u; 
-      } else {                     
+      } else {
         return u + expectation( Enumerate(function(){
           var nextState = transition(state, action); 
           var nextAction = sample(act(nextState));
-          return expectedUtility(nextState, nextAction);  
+          return expectedUtility(nextState, nextAction);
         }));
-      }                      
+      }
     });
   
   return {
@@ -112,6 +111,7 @@ var agent = makeMDPAgent({utility: utility, alpha: alpha}, world);
 
 var trajectory = simulateMDP(startState, world, agent);
 
+// GridWorld.draw(world, {trajectory: trajectory});
 var displayTrajectory = function(trajectory) {
   var stateActionToLocAction = function(stateAction) {
     return [stateAction[0].loc, stateAction[1]];
@@ -119,8 +119,7 @@ var displayTrajectory = function(trajectory) {
   return map(stateActionToLocAction, trajectory);
 };
 
-displayTrajectory(trajectory);
-
+displayTrajectory(trajectory)
 ~~~~
 
 ## Hiking under the influence 
@@ -187,8 +186,7 @@ var agent = makeMDPAgent({utility: utility, alpha: alpha}, world)
 
 var startState = {loc: [0,1],
                   timeLeft: 12,
-				  terminateAfterAction: false,
-				  timeAtRestaurant: 1};
+				  terminateAfterAction: false};
 
 var trajectory = simulateMDP(startState, world, agent);
 // draw trajectory
