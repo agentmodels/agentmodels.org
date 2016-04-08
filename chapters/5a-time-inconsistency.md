@@ -295,6 +295,61 @@ var makeAgent = function (params, world) {
   };
 };
 
+~~~~
+
+
+Next we simulate both the naive and sophisticated versions of our hyperbolic discounter. 
+
+To better understand the behavior of the discounter, we use the `plannedTrajectories` function to compute the agent's current plan at each timestep. `plannedTrajectories` computes what full path the agent currently expects its future self to take. The naive agent, the plan is systematically wrong; the naive agent thinks in the future it will value rewards the same way it does now, but in reality it will discount them differently. The sophisticated agent on the other hand, correctly anticipates its future actions, the agent knows that in the future it will value rewards differently that it does now. 
+
+We can animate these expected paths by passing the optional `paths` argument to `GridWorld.draw`.
+
+Watch the simulation and notice how the naive agent changes its plan to go to Veg as it passes by Donut N. It failed to anticipate that it would be sidetracked by Donut N. The sophisticated agent, on the other hand anticipates this and routes around Donut N. 
+
+~~~~
+var makeAgent = function (params, world) {
+  var stateToActions = world.stateToActions;
+  var transition = world.transition;
+  var utility = params.utility;
+
+  var discountFunction = function(delay){
+    return 1/(1 + params.discount*delay);
+  };
+
+  var isNaive = params.sophisticatedOrNaive=='naive';
+    
+  var act = dp.cache( 
+    function(state, delay){
+      return Enumerate(function(){
+        var action = uniformDraw(stateToActions(state));
+        var eu = expectedUtility(state, action, delay);    
+        factor(params.alpha * eu);
+        return action;
+      });      
+    });
+  
+  var expectedUtility = dp.cache(
+    function(state, action, delay){
+      var u = discountFunction(delay) * utility(state, action);
+      if (state.terminateAfterAction){
+        return u; 
+      } else {                     
+        return u + expectation( Enumerate(function(){
+          var nextState = transition(state, action); 
+          var perceivedDelay = isNaive ? delay + 1 : 0;
+          var nextAction = sample(act(nextState, perceivedDelay));
+          return expectedUtility(nextState, nextAction, delay+1);  
+        }));
+      }                      
+    });
+  
+  return {
+    params : params,
+    expectedUtility : expectedUtility,
+    act: act
+  };
+};
+
 var simulate = function(startState, world, agent) {
   var act = agent.act;
   var expectedUtility = agent.expectedUtility;
@@ -311,18 +366,6 @@ var simulate = function(startState, world, agent) {
 };
 
 
-// TODO - move this to a library?
-var makeRestaurantUtilityFunction = function (world, rewards) { 
-  return function(state, action) {
-    var getFeature = world.feature;
-    var feature = getFeature(state);
-
-    if (feature.name) { return rewards[feature.name][state.timeAtRestaurant]; }
-    return rewards.timeCost;
-  };
-};
-
-// Construct MDP, i.e. world
 var startState = { 
   loc : [3,0],
   terminateAfterAction : false,
@@ -364,25 +407,38 @@ var sophisticatedHyperbolicAgent = makeAgent(
   world
 );
 
-var sophisticatedHyperbolicTrajectory = simulate(startState, world,
-	                                             sophisticatedHyperbolicAgent);
+var trajectory = simulate(startState, world,
+	                  sophisticatedHyperbolicAgent);
+
+var plans = plannedTrajectories(trajectory, world, sophisticatedHyperbolicAget);
+print('Sophisticated hyperbolic trajectory:');
+Gridworld.draw(world, { trajectory : trajectory, paths : plans });
 
 var naiveHyperbolicAgent = makeAgent( 
   update(baseAgentParams, {sophisticatedOrNaive: 'naive'}), 
   world
 );
 
-var naiveHyperbolicTrajectory = simulate(startState, world,
-                                         naiveHyperbolicAgent);
+var trajectory = simulate(startState, world,
+	                  naiveHyperbolicAgent);
+
+var plans = plannedTrajectories(trajectory, world, naiveHyperbolicAgent);
+print('Naive hyperbolic trajectory:');
+Gridworld.draw(world, { trajectory : trajectory, paths : plans });
+
 
 var sophisticatedExponentialAgent = makeAgent(
   update(baseAgentParams, {sophisticatedOrNaive: 'sophisticated',
 			   discountFunction: exponentialDiscount}),
   world
 );
+var trajectory = simulate(startState, world,
+	                  sophisticatedExponentialAgent);
 
-var sophisticatedExponentialTrajectory = simulate(startState, world,
-                                                  sophisticatedExponentialAgent);
+var plans = plannedTrajectories(trajectory, world, sophisticatedExponentialAgent);
+print('Sophisticated exponential trajectory:');
+Gridworld.draw(world, { trajectory : trajectory, paths : plans });
+
 
 var naiveExponentialAgent = makeAgent(
   update(baseAgentParams, {sophisticatedOrNaive: 'naive',
@@ -390,25 +446,12 @@ var naiveExponentialAgent = makeAgent(
   world
 );
 
-var naiveExponentialTrajectory = simulate(startState, world,
-                                          naiveExponentialAgent);
+var trajectory = simulate(startState, world,
+	                  naiveExponentialAgent);
 
-print('Sophisticated hyperbolic trajectory:');
-
-GridWorld.draw(world, {trajectory: sophisticatedHyperbolicTrajectory});
-
-print('Naive hyperbolic trajectory:');
-
-GridWorld.draw(world, {trajectory: naiveHyperbolicTrajectory});
-
-print('Sophisticated exponential trajectory:');
-
-GridWorld.draw(world, {trajectory: sophisticatedExponentialTrajectory});
-
+var plans = plannedTrajectories(trajectory, world, naiveExponentialAgent);
 print('Naive exponential trajectory:');
-
-GridWorld.draw(world, {trajectory: naiveExponentialTrajectory});
-  
+Gridworld.draw(world, { trajectory : trajectory, paths : plans });
 ~~~~
             
 
@@ -434,7 +477,6 @@ TODO: graph like this:
 
 We simulate the behavior of hyperbolic discounters on the Procrastination Problem. We vary the discount rate $$k$$ while holding the other parameters fixed. The agent's behavior can be summarized by its final state (`"wait_state"` or `"reward_state`) and by how much time elapses before termination. When $$k$$ is sufficiently high, the agent will not even complete the task on the last day. 
 
-~~~~
 // procrastinate
 
 // Construct Procrastinate world 
@@ -478,4 +520,3 @@ map( function(discount){
 -----------
 
 ### Footnotes
-
