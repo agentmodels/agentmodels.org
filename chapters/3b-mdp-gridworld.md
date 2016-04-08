@@ -8,31 +8,26 @@ description: We extend the previous setup to stochastic actions (softmax) and tr
 
 We introduced Markov Decision Processes (MDPs) with the example of Bob moving around a city with the aim of efficiently finding a good restaurant. We return to this example in later chapters, considering how agents with *uncertainty* or *bias* will behave in this environment. This chapter explores some key features of MDPs that will be important throughout the tutorial.
 
-We begin by introducing a new gridworld MDP:
-
 ### Hiking in Gridworld
 
-Suppose that Alice is hiking. There are two peaks nearby, denoted "West" and "East". The peaks provide different views and Alice must choose between them. South of Alice's starting position is a steep hill. Falling down the hill would result in painful (but non-fatal) injury and end the hike early.
+We begin by introducing a new gridworld MDP:
+
+> **Hiking Problem**:
+>Suppose that Alice is hiking. There are two peaks nearby, denoted "West" and "East". The peaks provide different views and Alice must choose between them. South of Alice's starting position is a steep hill. Falling down the hill would result in painful (but non-fatal) injury and end the hike early.
 
 We represent Alice's hiking problem with a Gridworld similar to Bob's Restaurant Choice example. The peaks are terminal states, providing differing utilities. The steep hill is represented by a row of terminal state, each with identical negative utility. Each timestep before Alice reaches a terminal state incurs a "time cost", which is negative to represent the fact that Alice prefers a shorter hike. 
 
 ~~~~
-var transitionNoiseProb = 0;
-var world = makeHike(transitionNoiseProb);
-var startState = {loc: [0, 1],
-                  timeLeft: 10,
-				  terminateAfterAction: false};
-				  
+// draw_hike
+var world = makeHike(0);
+var startState = {loc: [0, 1]};
 GridWorld.draw(world, {trajectory: [startState]});
 ~~~~
 
-We start with a *deterministic* transition function. In this case, Alice's risk of falling down the steep hill is solely due to softmax noise in her action choice (which is minimal in this case). The agent model is the same as the one at the end of [Chapter III.1](/chapters/3a-mdp.html'). We wrap the functions `agent`, `expectedUtility` and `simulate` in a function `mdpSimulateGridworld`. The following code box defines this function and we use it later on without defining it (since it is also included in the WebPPL Gridworld library). 
+We start with a *deterministic* transition function. In this case, Alice's risk of falling down the steep hill is solely due to softmax noise in her action choice (which is minimal in this case). The agent model is the same as the one at the end of [Chapter III.1](/chapters/3a-mdp.html'). We wrap the functions `agent`, `expectedUtility` and `simulate` in a function `mdpSimulateGridworld`. The following codebox defines this function and we use it later on without defining it (since it's in the WebPPL Gridworld library). 
 
 ~~~~
 var makeMDPAgent = function(params, world) {
-  map(function(s){assert.ok(params.hasOwnProperty(s),'makeMDPAgent args');}, 
-      ['utility','alpha']);
-  
   var stateToActions = world.stateToActions;
   var transition = world.transition;
   var utility = params.utility;
