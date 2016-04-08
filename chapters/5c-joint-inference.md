@@ -221,21 +221,21 @@ As with the Procrastination example above, we compare the inferences of two mode
 var getPosterior = function(timeLeft, useOptimalModel) {
   var numArms = 2;
   var armToPrize = {0: 'chocolate',
-		    1: 'nothing'};
+		            1: 'nothing'};
   var worldAndStart = makeIRLBanditWorldAndStart(numArms, armToPrize, timeLeft);
   var startState = worldAndStart.startState;
   var alternativeLatent = update(armToPrize, {1: 'champagne'});
-  var alternativeStartState = update(startState, {latentState:
-						  alternativeLatent});
+  var alternativeStartState = update(startState,
+                                     {latentState: alternativeLatent});
 
   var priorAgentPrior = deltaERP(categoricalERP([0.7, 0.3],
-						[startState,
-						 alternativeStartState]));
+						                        [startState,
+						                         alternativeStartState]));
   
   var priorPrizeToUtility = Enumerate(function(){
     return {chocolate: uniformDraw(range(20).concat(25)),
-	    nothing: 0,
-	    champagne: 20};
+	        nothing: 0,
+	        champagne: 20};
   });
   
   var priorMyopia =  useOptimalModel ? deltaERP({on:false, bound:0}) :
@@ -246,20 +246,20 @@ var getPosterior = function(timeLeft, useOptimalModel) {
       });
   
   var prior = {priorAgentPrior: priorAgentPrior,
-	       priorPrizeToUtility: priorPrizeToUtility,
+	           priorPrizeToUtility: priorPrizeToUtility,
                priorMyopia: priorMyopia};
 
   var baseAgentParams = {alpha: 1000,
-			 myopia: {on: false, bound:0},
-			 boundVOI: {on: false, bound: 0},
-			 sophisticatedOrNaive: 'naive',
-			 discount: 0, //agentType === 'hyperbolic' ? 1 : 0,
-			 noDelays: useOptimalModel};                      
+			             myopia: {on: false, bound:0},
+						 boundVOI: {on: false, bound: 0},
+						 sophisticatedOrNaive: 'naive',
+						 discount: 0, //agentType === 'hyperbolic' ? 1 : 0,
+						 noDelays: useOptimalModel};
 
   var observations = [[startState, 0]];
   
   var outputERP = inferIRLBandit(worldAndStart, baseAgentParams, prior,
-				 observations, 'offPolicy', 0, 'beliefDelay');
+				                 observations, 'offPolicy', 0, 'beliefDelay');
   
   var marginalChocolate = Enumerate(function(){
     return sample(outputERP).prizeToUtility.chocolate;
@@ -272,9 +272,9 @@ var getPosterior = function(timeLeft, useOptimalModel) {
 var timeHorizonValues = range(10).slice(2);
 
 var optimalExpectations = map(function(t){return getPosterior(t, true);},
-			      timeHorizonValues);
+			                  timeHorizonValues);
 var possiblyMyopicExpectations = map(function(t){return getPosterior(t, false);},
-			             timeHorizonValues);
+			                         timeHorizonValues);
 
 print('Prior expected utility for arm0 (chocolate): ' + listMean(range(20).concat(25)) );
 
