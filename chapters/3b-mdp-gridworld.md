@@ -27,18 +27,19 @@ GridWorld.draw(world, {trajectory: [startState]});
 We start with a *deterministic* transition function. In this case, Alice's risk of falling down the steep hill is solely due to softmax noise in her action choice (which is minimal in this case). The agent model is the same as the one at the end of [Chapter III.1](/chapters/3a-mdp.html'). We wrap the functions `agent`, `expectedUtility` and `simulate` in a function `mdpSimulateGridworld`. The following codebox defines this function and we use it later on without defining it (since it's in the WebPPL Gridworld library). 
 
 ~~~~
-var makeMDPAgent = function(params, world) {
+// define_agent_simulate
+
+var makeMDPAgent = function(params, world) {  
   var stateToActions = world.stateToActions;
   var transition = world.transition;
   var utility = params.utility;
-  var alpha = params.alpha;
 
   var act = dp.cache( 
     function(state){
       return Enumerate(function(){
         var action = uniformDraw(stateToActions(state));
         var eu = expectedUtility(state, action);
-        factor(alpha * eu);
+        factor(params.alpha * eu);
         return action;
       });
     });
@@ -66,7 +67,6 @@ var makeMDPAgent = function(params, world) {
 
 var simulateMDP = function(startState, world, agent) {
   var act = agent.act;
-  var expectedUtility = agent.expectedUtility;
   var transition = world.transition;
 
   var sampleSequence = function(state) {
@@ -79,45 +79,36 @@ var simulateMDP = function(startState, world, agent) {
   return sampleSequence(startState);
 };
 
-var mdpTableToUtilityFunction = function(table, feature) {
-  return function(state, action) {
-    var stateFeatureName = feature(state).name;
-    
-    return stateFeatureName ? table[stateFeatureName] : table.timeCost;
-  };
-};
 
 // parameters for world
 var transitionNoiseProb = 0;
-
 var world = makeHike(transitionNoiseProb);
-var feature = world.feature;
-
 var startState = {loc: [0,1],
-		          timeLeft: 10,
-				  terminateAfterAction: false,
-				  timeAtRestaurant: 1};
+		          timeLeft: 12,
+				  terminateAfterAction: false};
 
 // parameters for agent
 var utilityTable = {East: 10, West: 1, Hill: -10, timeCost: -.1};
-var utility = mdpTableToUtilityFunction(utilityTable, feature);
-var alpha = 100;
-var agent = makeMDPAgent({utility: utility, alpha: alpha}, world);
-
+var utility = makeHikeUtilityFunction(world, utilityTable);
+var agent = makeMDPAgent({utility: utility, alpha: 1000}, world);
 var trajectory = simulateMDP(startState, world, agent);
 
-// GridWorld.draw(world, {trajectory: trajectory});
-var displayTrajectory = function(trajectory) {
-  var stateActionToLocAction = function(stateAction) {
-    return [stateAction[0].loc, stateAction[1]];
-  };
-  return map(stateActionToLocAction, trajectory);
-};
 
-displayTrajectory(trajectory)
+GridWorld.draw(world, {trajectory: map(first,trajectory)});
 ~~~~
 
-## Hiking under the influence 
+>**Exercise**: Adjust the parameters `utilityTable` in order to produce the following behaviors:
+
+>1. The agent does directly to "West".
+>2. The agent takes the long way around to "West".
+>3. The agent sometimes goes to the Hill at $$[1,0]$$. The probability of this outcome is close to the most likely trajectory for the agent. 
+
+
+<!-- 3 is obtained by making timeCost positive and Hill better than alternatives -->
+
+
+
+<!-- ## Hiking under the influence 
 
 TODO: change this example?
 
@@ -154,48 +145,74 @@ GridWorld.draw(params, {labels: params.labels, trajectory : trajectory});
 
 Sample some of the noisy agent's trajectories by repeatedly clicking "run". Does the agent ever fall down the hill? Why not? By varying the softmax noise `alpha` and other parameters, find a setting where the agent's modal trajectory length is the same as the `totalTime`. (Don't modify the `transitionNoiseProb` parameter for this exercise). 
 <!-- let alpha=0.5 and action cost = -.01 -->
+-->
 
+### Hiking with stochastic transitions
 
-## Hiking with stochastic transitions
+Imagine that the weather is very wet and windy. As a result, Alice will sometimes intend to go one way but actually go another way (because she slips in the mud). In this case, the shorter route to the peaks might be too risky for Alice.
 
-When softmax noise is high, the agent will make many small "mistakes" (i.e. suboptimal actions given the agent's own preferences), but few large mistakes. In contrast, sources of noise in the environment will change the agent's state transitions independent of the agent's preferences. In the hiking example, imagine that the weather is very wet and windy. As a result, Alice will sometimes intend to go one way but actually go another way (because she slips in the mud). In this case, the shorter route to the peaks might be too risky for Alice.
+To model bad weather, we assume that at every timestep, there is a constant independent probability `transitionNoiseProb` of the agent moving orthogonally to their intended direction. The independence assumption is unrealistic (if a location is slippery at one timestep it is more likely slippery the next), but it is simple and satisfies the Markov assumption for MDPs.
 
-To model bad weather, we assume that at every timestep, there is a constant independent probability `transitionNoiseProb` of the agent moving orthogonally to their intended direction. The independence assumption is unrealistic (if a location is slippery at one timestep it is more likely slippery the next), but it is simple and satisfies the Markov assumption.
-
-Setting `transitionNoiseProb=0.1`, the agent's first intended action is "up" instead of "right", because the shorter route is risky. 
-
-### Exercise
-
-Keeping `transitionNoiseProb=0.1`, find settings for the arguments to `makeHike` such that the agent goes "right" instead of "up". <!-- put up timeCost to -.5 or so --> 
+Setting `transitionNoiseProb=0.1`, the agent's first action is "up" instead of "right", because the shorter route is now risky. 
 
 ~~~~
-// Parameters for building Hiking MDP
+// parameters for world
 var transitionNoiseProb = 0.1;
 var world = makeHike(transitionNoiseProb);
-var feature = world.feature;
-
-var utilityTable = { East: 10, West: 1, Hill: -10, timeCost: -.1 };
-var utility = mdpTableToUtilityFunction(utilityTable, feature);
-var alpha = 100;
-var agent = makeMDPAgent({utility: utility, alpha: alpha}, world)
-
 var startState = {loc: [0,1],
-                  timeLeft: 12,
+		          timeLeft: 12,
 				  terminateAfterAction: false};
 
+// parameters for agent
+var utilityTable = { east: 10, west: 1, hill: -10, timeCost: -.1 };
+var utility = makeHikeUtilityFunction(world, utilityTable);
+var agent = makeMDPAgent({utility: utility, alpha: 1000}, world);
 var trajectory = simulateMDP(startState, world, agent);
-// draw trajectory
 
-
-var displayTrajectory = function(trajectory) {
-  var stateActionToLocAction = function(stateAction) {
-    return [stateAction[0].loc, stateAction[1]];
-  };
-  return map(stateActionToLocAction, trajectory);
-};
-
-displayTrajectory(trajectory)
+GridWorld.draw(world, {trajectory: map(first,trajectory)});
 ~~~~
+
+>**Exercise:**
+
+>1. Keeping `transitionNoiseProb=0.1`, find settings for `utilityTable` such that the agent goes "right" instead of "up".
+>2. Set `transitionNoiseProb=0.01`. Change a single parameter in `utilityTable` such that the agent goes "right" (there are multiple ways to do this). 
+<!-- put up timeCost to -1 or so --> 
+
+### Noisy transitions vs. Noisy agents
+It's important to distinguish noise in the transition function from the softmax noise for the agent's selection of actions. Noise in the transition function is a representation of randomness in the world. This is easiest to think about in casino games and other games of chance [^noise]. In playing a casino game (without cheating) any agent will need to model the randomness in the game. By contrast, softmax noise is a property of an agent. For example, we can vary the behavior otherwise identical agents by varying their parameter $$\alpha$$.
+
+Unlike transition noise, softmax noise will have less influence on the agent's planning for the Hiking Problem. Since it's so bad to fall down the hill, the softmax agent will very rarely do so even if they take the short route. The softmax agent is like a lazy person who takes mildy inefficient routes but "pulls himself together" when the stakes are high.
+
+>**Exercise:** Use the codebox above.
+
+~~~~
+// parameters for world
+var transitionNoiseProb = 0.1;
+var world = makeHike(transitionNoiseProb);
+var startState = {loc: [0,1],
+		          timeLeft: 12,
+				  terminateAfterAction: false};
+
+// parameters for agent
+var alpha = 1;
+var utilityTable = { east: 10, west: 1, hill: -10, timeCost: -.1 };
+var utility = makeHikeUtilityFunction(world, utilityTable);
+var agent = makeMDPAgent({utility: utility, alpha: alpha}, world);
+
+// generate a single trajectory
+var trajectory = simulateMDP(startState, world, agent);
+GridWorld.draw(world, {trajectory: map(first,trajectory)});
+
+// run 100 iid samples of the function *lengthTrajectory*
+var lengthTrajectory = function(){return simulateMDP(startState, world, agent).length;};
+var trajectoryERP = Rejection( lengthTrajectory, 100);
+viz.vegaPrint(trajectoryERP);
+
+~~~~
+
+To illustrate this, consider an agent with high softmax noise (e.g. $$\alpha=0.5$$) for the Hiking Problem. 
+
+[^noise]: An agent might also use a simplified representation of the world that treats a complex set of deterministic rules as random. In this sense, agents will vary in whether they represent an MDP as stochastic or not. We won't consider that case in this tutorial. 
 
 In a world with stochastic transitions, the agent sometimes finds itself in a state it did not intend to reach. The functions `agent` and `expectedUtility` (inside `mdpSimulateGridworld`) implicitly compute the expected utility of actions for every possible future state, including states that the agent will try to avoid. In the MDP literature, this function from states and remaining time to actions (or distributions on actions) is called a *policy*. (For infinite-horizon MDPs, policies are simply functions from states to actions.)
 
