@@ -20,15 +20,26 @@ jekyll serve
 To update webppl and webppl packages (`./scripts/update-webppl`):
 
 ~~~~
-npm install --save webppl@latest webppl-timeit@latest webppl-dp@latest probmods/webppl-viz agentmodels/webppl-gridworld
+npm install --save webppl@latest webppl-timeit@latest webppl-dp@latest agentmodels/webppl-gridworld
+cd node_modules/webppl
+npm install
+grunt bundle:../webppl-timeit:../webppl-dp:../webppl-gridworld
+cp bundle/webppl.min.js ../../assets/js/webppl.min.js
+cd ../..
+~~~~
+
+To update webppl-viz (`./scripts/update-viz`):
+
+~~~~
+npm install --save probmods/webppl-viz
 cd node_modules/vega
 npm install
 cd ../vega-lite
 npm install
-cd ../webppl
-npm install
-grunt bundle:../webppl-timeit:../webppl-dp:../webppl-viz:../webppl-gridworld
-cp bundle/webppl.min.js ../../assets/js/webppl.min.js
+cd ../webppl-viz
+make demo/webppl-viz.js
+cp demo/webppl-viz.js ../../assets/js/webppl-viz.js
+cp demo/webppl-viz.css ../../assets/css/webppl-viz.css
 cd ../..
 ~~~~
 

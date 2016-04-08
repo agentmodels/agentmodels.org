@@ -1,0 +1,15 @@
+#!/bin/bash
+set -e
+set -x
+
+npm install --save probmods/webppl-viz
+cd node_modules/vega
+npm install
+cd ../vega-lite
+npm install
+cd ../webppl-viz
+make demo/webppl-viz.js
+cp demo/webppl-viz.js ../../assets/js/webppl-viz.js
+cp demo/webppl-viz.css ../../assets/css/webppl-viz.css
+cd ../..
+echo "Success."
