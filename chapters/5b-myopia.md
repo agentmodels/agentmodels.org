@@ -330,7 +330,36 @@ Cell references are spreadsheet-style: [A, B, C, ... ] for columns and [1,2,3 ..
 Assuming we want to stick with "no uncertainty over utilities" and "utilities depend only on state", we would have to implement this by having extra states associated with the utility values in range(1,11). The latent state is the table {restaurantA:utilityRestaurantA}. The transition function is the normal gridworld transition, with an extra condition s.t. when the agent goes to a restaurant they get sent to state corresponding to the restaurant's utility. (Whatever solution is used need not be general. We don't need to show the code, we just need to make the example work).
 
 
+~~~~
+// optimal_agent_restaurant_search
+var gridworld = makeRestaurantSearchMDP({noReverse: true});
+var world = makeBanditGridworld(gridworld);
+var feature = world.feature;
+var startState = restaurantSearchStartState;
 
+var agentPrior = Enumerate(function(){
+  var rewardE = flip() ? 5 : 0;
+  var latentState = {A: 3,
+		             B: uniformDraw(range(6)),
+		             C: uniformDraw(range(6)),
+		             D: 5 - rewardE,
+		             E: rewardE};
+  return buildState(startState.manifestState, latentState);
+});
+
+var params = {
+  utility: makeBanditGridworldUtility(feature, -0.01),
+  alpha: 1000,
+  priorBelief: agentPrior
+};
+
+var agent = makeBeliefAgent(params, world);
+
+var trajectory = simulateBeliefAgent(startState, world, agent, 'stateAction');
+
+GridWorld.draw(world, {trajectory: trajectory})
+
+~~~~
 
 
 
