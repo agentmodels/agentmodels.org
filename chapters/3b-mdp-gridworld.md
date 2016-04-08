@@ -102,50 +102,8 @@ GridWorld.draw(world, {trajectory: map(first,trajectory)});
 >1. The agent does directly to "West".
 >2. The agent takes the long way around to "West".
 >3. The agent sometimes goes to the Hill at $$[1,0]$$. The probability of this outcome is close to the most likely trajectory for the agent. 
-
-
 <!-- 3 is obtained by making timeCost positive and Hill better than alternatives -->
 
-
-
-<!-- ## Hiking under the influence 
-
-TODO: change this example?
-
-If we set the softmax noise parameter `alpha=10`, the agent will often make sub-optimal decisions. While not realistic in Alice's situation, this might describe a confused or intoxicated agent. Since the agent is noisy, we sample many trajectories to approximate the agent's distribution on trajectories using the built-in function `Rejection`. The main use for `Rejection` is inference by rejection sampling. However, here we use `Rejection` without any `condition` or `factor` statement simply to summarize the agent's noisy behavior. We do this by computing the *length* of the agent's trajectories, since suboptimal actions will lead to less efficient routes to the East peak. (Note that, if the agent is left of a wall and takes the action "left", then the agent doesn't move anywhere. If the time cost isn't high, the noisy agent will often move towards the walls).
-
-~~~~
-// Parameters for building Hiking MDP
-var utilityTable = { east: 10, west: 1, hill: -10, timeCost: -.1 };
-var startState = [0, 1];
-
-var alpha = 10;
-var transitionNoiseProb = 0;
-var params = makeHike(transitionNoiseProb, alpha, utilityTable);
-
-var totalTime = 12;
-
-// Approximate distribution on trajectories using 500 samples
-var numRejectionSamples = 500;
-var trajectoryDist = mdpSimulateGridworld(
-  startState, totalTime, params, numRejectionSamples);
-
-// Show distribution on length of trajectories
-var trajectoryLengthDist = Enumerate(function(){
-  return sample(trajectoryDist).length;
-});
-viz.print(trajectoryLengthDist);
-
-// Show a random trajectory
-var trajectory = sample(trajectoryDist);
-GridWorld.draw(params, {labels: params.labels, trajectory : trajectory});
-~~~~
-
-### Exercise
-
-Sample some of the noisy agent's trajectories by repeatedly clicking "run". Does the agent ever fall down the hill? Why not? By varying the softmax noise `alpha` and other parameters, find a setting where the agent's modal trajectory length is the same as the `totalTime`. (Don't modify the `transitionNoiseProb` parameter for this exercise). 
-<!-- let alpha=0.5 and action cost = -.01 -->
--->
 
 ### Hiking with stochastic transitions
 
