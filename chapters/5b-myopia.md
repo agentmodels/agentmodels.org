@@ -355,10 +355,55 @@ var params = {
 
 var agent = makeBeliefAgent(params, world);
 
-var trajectory = simulateBeliefAgent(startState, world, agent, 'stateAction');
+var trajectory = simulateBeliefAgent(startState, world, agent, 'states');
 
-GridWorld.draw(world, {trajectory: trajectory})
+var manifestStates = map(function(state){return state.manifestState;},
+                         trajectory);
+print('Rewards for each restaurant: ' + JSON.stringify(startState.latentState));
+GridWorld.draw(gridworld, {trajectory: manifestStates})
+~~~~
 
+~~~~
+// myopic_agent_restaurant_search
+
+// try varying the boundVOI bound!
+var gridworld = makeRestaurantSearchMDP({noReverse: true});
+var world = makeBanditGridworld(gridworld);
+var feature = world.feature;
+var startState = restaurantSearchStartState;
+
+var agentPrior = Enumerate(function(){
+  var rewardE = flip() ? 5 : 0;
+  var latentState = {A: 3,
+		             B: uniformDraw(range(6)),
+		             C: uniformDraw(range(6)),
+		             D: 5 - rewardE,
+		             E: rewardE};
+  return buildState(startState.manifestState, latentState);
+});
+
+var params = {
+  utility: makeBanditGridworldUtility(feature, -0.01),
+  alpha: 1000,
+  priorBelief: agentPrior,
+  noDelays: false,
+  discount: 0,
+  sophisticatedOrNaive: 'naive',
+  myopia: {on: false, bound: 0},
+  boundVOI: {on: true, bound: 1},
+  recurseOnStateOrBelief: 'belief',
+  fastUpdateBelief: true
+};
+
+var agent = makeBeliefDelayAgent(params, world);
+
+var trajectory = simulateBeliefDelayAgent(startState, world, agent, 'states');
+
+var manifestStates = map(function(state){return state.manifestState},
+                         trajectory);
+
+print('Rewards for each restaurant: ' + JSON.stringify(startState.latentState));
+GridWorld.draw(gridworld, {trajectory: manifestStates});
 ~~~~
 
 
