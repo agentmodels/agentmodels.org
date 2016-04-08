@@ -187,6 +187,61 @@ var makeAgent = function (params, world) {
   };
 };
 
+~~~~
+
+
+Next we simulate both the naive and sophisticated versions of our hyperbolic discounter. 
+
+To better understand the behavior of the discounter, we use the `plannedTrajectories` function to compute the agent's current plan at each timestep. `plannedTrajectories` computes what full path the agent currently expects its future self to take. The naive agent, the plan is systematically wrong; the naive agent thinks in the future it will value rewards the same way it does now, but in reality it will discount them differently. The sophisticated agent on the other hand, correctly anticipates its future actions, the agent knows that in the future it will value rewards differently that it does now. 
+
+We can animate these expected paths by passing the optional `paths` argument to `GridWorld.draw`.
+
+Watch the simulation and notice how the naive agent changes its plan to go to Veg as it passes by Donut N. It failed to anticipate that it would be sidetracked by Donut N. The sophisticated agent, on the other hand anticipates this and routes around Donut N. 
+
+~~~~
+var makeAgent = function (params, world) {
+  var stateToActions = world.stateToActions;
+  var transition = world.transition;
+  var utility = params.utility;
+
+  var discountFunction = function(delay){
+    return 1/(1 + params.discount*delay);
+  };
+
+  var isNaive = params.sophisticatedOrNaive=='naive';
+    
+  var act = dp.cache( 
+    function(state, delay){
+      return Enumerate(function(){
+        var action = uniformDraw(stateToActions(state));
+        var eu = expectedUtility(state, action, delay);    
+        factor(params.alpha * eu);
+        return action;
+      });      
+    });
+  
+  var expectedUtility = dp.cache(
+    function(state, action, delay){
+      var u = discountFunction(delay) * utility(state, action);
+      if (state.terminateAfterAction){
+        return u; 
+      } else {                     
+        return u + expectation( Enumerate(function(){
+          var nextState = transition(state, action); 
+          var perceivedDelay = isNaive ? delay + 1 : 0;
+          var nextAction = sample(act(nextState, perceivedDelay));
+          return expectedUtility(nextState, nextAction, delay+1);  
+        }));
+      }                      
+    });
+  
+  return {
+    params : params,
+    expectedUtility : expectedUtility,
+    act: act
+  };
+};
+
 var simulate = function(startState, world, agent) {
   var act = agent.act;
   var expectedUtility = agent.expectedUtility;
@@ -201,18 +256,6 @@ var simulate = function(startState, world, agent) {
       [out] : [out].concat(sampleSequence(nextState));
   };
   return sampleSequence(startState);
-};
-
-
-// TODO - move this to a library?
-var makeRestaurantUtilityFunction = function (world, rewards) { 
-  return function(state, action) {
-    var getFeature = world.feature;
-    var feature = getFeature(state);
-
-    if (feature.name) { return rewards[feature.name][state.timeAtRestaurant]; }
-    return rewards.timeCost;
-  };
 };
 
 
@@ -252,18 +295,16 @@ var sophisticatedAgent = makeAgent(
   world
 );
 
+var trajectory = simulate(startState, world, sophisticatedAgent); 
+var plans = plannedTrajectories(trajectory, world, sophisticatedAgent);
+Gridworld.draw(world, { trajectory : trajectory, paths : plans });
+
 var naiveAgent = makeAgent( 
   update(baseAgentParams, {sophisticatedOrNaive: 'naive'}), 
   world
 );
 
-// TODO: draw these trajectories. 
-print('Soph traj' +  simulate(startState, world, sophisticatedAgent));
-print('Naive trajectory' + 
-            simulate(startState, world, naiveAgent));
+var trajectory = simulate(startState, world, naiveAgent); 
+var plans = plannedTrajectories(trajectory, world, naiveAgent);
+Gridworld.draw(world, { trajectory : trajectory, paths : plans });
 ~~~~
-
-
-
-
-
