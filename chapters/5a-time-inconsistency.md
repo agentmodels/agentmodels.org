@@ -200,6 +200,11 @@ Watch the simulation and notice how the naive agent changes its plan to go to Ve
 
 ~~~~
 var makeAgent = function (params, world) {
+  var defaultParams = {
+    alpha : 500, 
+    discount : 1
+  };
+  var params = update(defaultParams, params);
   var stateToActions = world.stateToActions;
   var transition = world.transition;
   var utility = params.utility;
@@ -251,7 +256,7 @@ var simulate = function(startState, world, agent) {
     var delay = 0;
     var action = sample(act(state, delay));
     var nextState = transition(state, action); 
-    var out = [state,action]
+    var out = state;
     return state.terminateAfterAction ?
       [out] : [out].concat(sampleSequence(nextState));
   };
@@ -259,52 +264,27 @@ var simulate = function(startState, world, agent) {
 };
 
 
-// Construct MDP, i.e. world
-var startState = { 
-  loc : [3,0],
-  terminateAfterAction : false,
-  timeLeft : 13
-};
-
-var world = makeDonutWorld2({ big : true, maxTimeAtRestaurant : 2});
-
-
-// Construct hyperbolic discounting agent
-
-
-// Utilities for restaurants: [immediate reward, delayed reward]
-// Also *timeCost*, cost of taking a single action.
+var world = restaurantChoiceMDP; 
+var start = restaurantChoiceStart;
 
 var restaurantUtility = makeRestaurantUtilityFunction(world, {
-    'Donut N' : [10, -10],
+    'Donut N' : [10, -10],  //[immediate reward, delayed reward]
     'Donut S' : [10, -10],
     'Veg'   : [-10, 20],
     'Noodle': [0, 0],
-    'timeCost': -.01
+    'timeCost': -.01  // cost of taking a single action 
 });
 
-var baseAgentParams = {
-  utility : restaurantUtility,
-  alpha : 500, 
-  discount : 1
-};
 
 // Construct Sophisticated and Naive agents
-var sophisticatedAgent = makeAgent(
-  update(baseAgentParams, {sophisticatedOrNaive: 'sophisticated'}), 
-  world
-);
+var sophisticatedAgent = makeAgent({sophisticatedOrNaive: 'sophisticated', utility : restaurantUtility }, world);
 
-var trajectory = simulate(startState, world, sophisticatedAgent); 
+var trajectory = simulate(start, world, sophisticatedAgent); 
 var plans = plannedTrajectories(trajectory, world, sophisticatedAgent);
-Gridworld.draw(world, { trajectory : trajectory, paths : plans });
+GridWorld.draw(world, { trajectory : trajectory, paths : plans });
 
-var naiveAgent = makeAgent( 
-  update(baseAgentParams, {sophisticatedOrNaive: 'naive'}), 
-  world
-);
-
-var trajectory = simulate(startState, world, naiveAgent); 
+var naiveAgent = makeAgent({sophisticatedOrNaive: 'naive', utility : restaurantUtility }, world);
+var trajectory = simulate(start, world, naiveAgent); 
 var plans = plannedTrajectories(trajectory, world, naiveAgent);
-Gridworld.draw(world, { trajectory : trajectory, paths : plans });
+GridWorld.draw(world, { trajectory : trajectory, paths : plans });
 ~~~~
