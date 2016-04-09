@@ -217,6 +217,7 @@ var makeAgent = function (params, world) {
     
   var act = dp.cache( 
     function(state, delay){
+      var delay = delay ? delay : 0; //make sure delay is never undefined
       return Enumerate(function(){
         var action = uniformDraw(stateToActions(state));
         var eu = expectedUtility(state, action, delay);    
@@ -227,6 +228,7 @@ var makeAgent = function (params, world) {
   
   var expectedUtility = dp.cache(
     function(state, action, delay){
+
       var u = discountFunction(delay) * utility(state, action);
       if (state.terminateAfterAction){
         return u; 
@@ -247,22 +249,6 @@ var makeAgent = function (params, world) {
   };
 };
 
-var simulate = function(startState, world, agent) {
-  var act = agent.act;
-  var expectedUtility = agent.expectedUtility;
-  var transition = world.transition;
-
-  var sampleSequence = function (state) {
-    var delay = 0;
-    var action = sample(act(state, delay));
-    var nextState = transition(state, action); 
-    var out = state;
-    return state.terminateAfterAction ?
-      [out] : [out].concat(sampleSequence(nextState));
-  };
-  return sampleSequence(startState);
-};
-
 
 var world = restaurantChoiceMDP; 
 var start = restaurantChoiceStart;
@@ -279,12 +265,12 @@ var restaurantUtility = makeRestaurantUtilityFunction(world, {
 // Construct Sophisticated and Naive agents
 var sophisticatedAgent = makeAgent({sophisticatedOrNaive: 'sophisticated', utility : restaurantUtility }, world);
 
-var trajectory = simulate(start, world, sophisticatedAgent); 
+var trajectory = simulateMDP(start, world, sophisticatedAgent); 
 var plans = plannedTrajectories(trajectory, world, sophisticatedAgent);
 GridWorld.draw(world, { trajectory : trajectory, paths : plans });
 
 var naiveAgent = makeAgent({sophisticatedOrNaive: 'naive', utility : restaurantUtility }, world);
-var trajectory = simulate(start, world, naiveAgent); 
+var trajectory = simulateMDP(start, world, naiveAgent); 
 var plans = plannedTrajectories(trajectory, world, naiveAgent);
 GridWorld.draw(world, { trajectory : trajectory, paths : plans });
 ~~~~

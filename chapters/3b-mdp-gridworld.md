@@ -190,18 +190,9 @@ var startState = {loc: [0,1],
 				  terminateAfterAction: false,
 				  timeAtRestaurant: 1};
 
-var trajectory = simulateMDP(startState, world, agent);
-// draw trajectory
+var trajectory = simulateMDP(startState, world, agent, 'stateAction');
 
-
-var displayTrajectory = function(trajectory) {
-  var stateActionToLocAction = function(stateAction) {
-    return [stateAction[0].loc, stateAction[1]];
-  };
-  return map(stateActionToLocAction, trajectory);
-};
-
-displayTrajectory(trajectory)
+GridWorld.draw(world, {trajectory : trajectory});
 ~~~~
 
 In a world with stochastic transitions, the agent sometimes finds itself in a state it did not intend to reach. The functions `agent` and `expectedUtility` (inside `mdpSimulateGridworld`) implicitly compute the expected utility of actions for every possible future state, including states that the agent will try to avoid. In the MDP literature, this function from states and remaining time to actions (or distributions on actions) is called a *policy*. (For infinite-horizon MDPs, policies are simply functions from states to actions.)
@@ -227,16 +218,7 @@ var startState = {loc: [1,1],
 
 var trajectory = simulateMDP(startState, world, agent);
 
-// draw trajectory
-
-var displayTrajectory = function(trajectory) {
-  var stateActionToLocAction = function(stateAction) {
-    return [stateAction[0].loc, stateAction[1]];
-  };
-  return map(stateActionToLocAction, trajectory);
-};
-
-displayTrajectory(trajectory)
+GridWorld.draw(world, {trajectory : trajectory});
 ~~~~
 
 Extending this idea, we can return and visualize the expected values of actions that the agent *could have taken* during their trajectory. For each state in a trajectory, we compute the expected value of each possible action (given the state and remaining time). The resulting numbers are analogous to Q-values in infinite-horizon MDPs. 
