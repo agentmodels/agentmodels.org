@@ -308,6 +308,11 @@ Watch the simulation and notice how the naive agent changes its plan to go to Ve
 
 ~~~~
 var makeAgent = function (params, world) {
+  var defaultParams = {
+    alpha : 500, 
+    discount : 1
+  };
+  var params = update(defaultParams, params);
   var stateToActions = world.stateToActions;
   var transition = world.transition;
   var utility = params.utility;
@@ -366,27 +371,15 @@ var simulate = function(startState, world, agent) {
 };
 
 
-var startState = { 
-  loc : [3,0],
-  terminateAfterAction : false,
-  timeLeft : 14
-};
-
-var world = makeDonutWorld2({ big : true,
-			                  maxTimeAtRestaurant : 2,
-							  noReverse: true});
-				  
-// Construct hyperbolic discounting agent and exponential discounting agent
-
-// Utilities for restaurants: [immediate reward, delayed reward]
-// Also *timeCost*, cost of taking a single action.
+var world = restaurantChoiceMDP; 
+var start = restaurantChoiceStart;
 
 var restaurantUtility = makeRestaurantUtilityFunction(world, {
-    'Donut N' : [10, -10],
+    'Donut N' : [10, -10],  //[immediate reward, delayed reward]
     'Donut S' : [10, -10],
     'Veg'   : [-10, 20],
     'Noodle': [0, 0],
-    'timeCost': -.01
+    'timeCost': -.01  // cost of taking a single action 
 });
 
 // exponential discount function
@@ -395,18 +388,9 @@ var exponentialDiscount = function(delay) {
   return Math.pow(0.8, delay);
 };
 
-var baseAgentParams = {
-  utility : restaurantUtility,
-  alpha : 500, 
-  discount : 1
-};
 
-// Construct Sophisticated and Naive hyperbolic agents
-var sophisticatedHyperbolicAgent = makeAgent(
-  update(baseAgentParams, {sophisticatedOrNaive: 'sophisticated'}), 
-  world
-);
-
+// Construct Sophisticated and Naive agents
+var sophisticatedHyperbolicAgent = makeAgent({sophisticatedOrNaive: 'sophisticated', utility : restaurantUtility }, world);
 var trajectory = simulate(startState, world,
 	                  sophisticatedHyperbolicAgent);
 
@@ -414,11 +398,7 @@ var plans = plannedTrajectories(trajectory, world, sophisticatedHyperbolicAget);
 print('Sophisticated hyperbolic trajectory:');
 Gridworld.draw(world, { trajectory : trajectory, paths : plans });
 
-var naiveHyperbolicAgent = makeAgent( 
-  update(baseAgentParams, {sophisticatedOrNaive: 'naive'}), 
-  world
-);
-
+var naiveHyperbolicAgent = makeAgent({sophisticatedOrNaive: 'naive', utility : restaurantUtility }, world) 
 var trajectory = simulate(startState, world,
 	                  naiveHyperbolicAgent);
 
