@@ -22,21 +22,32 @@ Time inconsistency has been used to explain not just quotidian laziness but also
 >**Question**: Would you prefer to get $100 after 30 days or $110 after 31 days?
 
 
-Most people prefer the $110. But a significant proportion of people reverse their earlier preference once the 30th day comes around and they contemplate getting $100 immediately. This chapter describes a formal model of time preference that predicts this reversal. We incorporate this model into our MDP agent and implement it in WebPPL.
+Most people prefer the $110. But a significant proportion of people reverse their earlier preference once the 30th day comes around and they contemplate getting $100 immediately. This chapter describes a formal model of time inconsistency that predicts this reversal. We incorporate this model into our MDP agent and implement it in WebPPL.
 
 ### Time inconsistency due to hyperbolic discounting
 
-- exponential discounting. justifications
+This chapter explores the model of human time inconsistency in terms of *hyperbolic discounting*. The idea is that humans prefer receiving the same rewards sooner rather than later and the *discount function* describing this quantitatively is a hyperbola. Before describing the hyperbolic model, we provide some background on time discounting and show how it can easily be added to the agent models of the previous chapter.
 
-- examples so far don't have any discount. since finite time horizon, not forced upon. can easily be added. if you're modeling a human, and you want to generally model the human as discounting exponentially, then even in a game with a known fixed time horizon, they will discount expoentially. (many problems have a short horizon, so non-discounting will be a good approximation. but we could imagine either humans/AIs with steep discount rates or problems that take place over long periods of time, even though there is a basically fixed end point -- e.g. people making choices of college activities before their fixed graduation date, people choosing spending/saving actions before a mandatory retirement date).
+#### Exponential discounting for optimal agents
 
-- gridworld with exponential discouting. should just be hyperbolic but with exponential function. (and naive is now the same as sophisticated). already have time cost. footnote: this is a very small effect to avoid the agent taking inefficient routes. even if a human is not discounting, they usually would rather spend less time walking (because they prefer some other use for the same time). then we made the simple assumption that the value of time is linear in additional units of time. economic models of agents have discount rates that would be very small across a 15 min period of walking to a restaurant. so for this example, we need to imagine an extremely impatient human (maybe they fear they are about to expire).
+The examples of decision problems in previous chapters have had a *known*, *finite* time horizon. However, in modeling long-term human decision problems, a known time horizon will often be unrealistic. First, human life spans have uncertain duration. Second, humans care about things (e.g. their descendants and friends) which persist being their life span. So it is common in both Machine Learning and Economics to consider decision problems with an unbounded time horizon.
 
-- goes to donut south or noodle but never donut north. later on in chapter we could show that the exp discounter never procrastinates on the procrastination problem.
+Decision problems with unbounded time raise an immediate difficulty for the idea of an agent planning by maximizing the summed expected utility. In general, the summed expected utilities for actions will diverge. The standard solution is to model the agent as maximizing the *discounted* expected utility, where the discount function is exponential with a single free parameter. The exponential function is analytically tractable and its infinite sums converge.
 
-- do a numerical example to show that exponential discounting, even low rate will lead to incredibly low valuing of future rewards.
+Apart from arguments of mathematical convenience, one can motivate exponential discounting as part of a general model of rational agents. Rational agents can have preferences over many kinds of property of the world. For instance, humans care about the food they eat, about the careers they enter, and about the state of the environment in fifty years' time. So a model of rationl agents should allow them to have a generalized preference for good things happening sooner rather than later. Exponential discounting models such a preference and makes the agent time consistent [^exponential].
 
-- library wise, we can just let hyper be the default discount function and allow a function to be an argument when making the agent. 
+[^exponential]: There are arguments that exponential discounting is the uniquely rational mode of discounting for agents with time preference. See X and Y for critical discussion (toby, dasgupta, wolfgang schwarz). 
+
+It is straightforward to add exponential discounting to our existing agent models. We explain this in detail below. First, we show some simple illustrates of the effects of exponential discounting. 
+
+Consider the deterministic Bandit problem from Chapter III.3. We imagine a person decides every year where to go on vacation. There is a fixed list of options and a finite time horizon [^bandit]. The person discounts exponetially and so they prefer a good vacation now to an even better one in the future. This means they are less likely to *explore*, since exploration takes time to pay off.
+
+[^bandit]: Imagine the person is looking for the best skiing or sports facilities and doesn't care about variety. There could be a known finite time horizon because they won't anymore be able to take a long vacation or they are too old for the sport. 
+
+TODO: Show deterministic bandits with say 5 arms. agent is certain about some but many are uncertain. Agent will explore the one's with fairly high EV but not the ones with high variance. [Alternatively, could do a gridworld example and show the agent who prefers veg goes to donuth south. Or could do some simple numerical computations for bandits.]
+
+
+ 
 
 
 #### Discounting utility
