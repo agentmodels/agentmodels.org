@@ -26,7 +26,7 @@ Most people prefer the $110. But a significant proportion of people reverse thei
 
 ### Time inconsistency due to hyperbolic discounting
 
-This chapter explores the model of human time inconsistency in terms of *hyperbolic discounting*. The idea is that humans prefer receiving the same rewards sooner rather than later and the *discount function* describing this quantitatively is a hyperbola. Before describing the hyperbolic model, we provide some background on time discounting and show how it can easily be added to the agent models of the previous chapter.
+This chapter explores the model time inconsistency as resulting from *hyperbolic discounting*. The idea is that humans prefer receiving the same rewards sooner rather than later and the *discount function* describing this quantitatively is a hyperbola. Before describing the hyperbolic model, we provide some background on time discounting and show how it can easily be added to the agent models of the previous chapter.
 
 #### Exponential discounting for optimal agents
 
@@ -40,7 +40,7 @@ Apart from arguments of mathematical convenience, one can motivate exponential d
 
 It is straightforward to add exponential discounting to our existing agent models. We explain this in detail below. First, we show some simple illustrates of the effects of exponential discounting. 
 
-Consider the deterministic Bandit problem from Chapter III.3. We imagine a person decides every year where to go on vacation. There is a fixed list of options and a finite time horizon [^bandit]. The person discounts exponetially and so they prefer a good vacation now to an even better one in the future. This means they are less likely to *explore*, since exploration takes time to pay off.
+Consider the deterministic Bandit problem from Chapter III.3. We imagine a person decides every year where to go on vacation. There is a fixed list of options and a finite time horizon [^bandit]. The person discounts exponentially and so they prefer a good vacation now to an even better one in the future. This means they are less likely to *explore*, since exploration takes time to pay off.
 
 [^bandit]: Imagine the person is looking for the best skiing or sports facilities and doesn't care about variety. There could be a known finite time horizon because they won't anymore be able to take a long vacation or they are too old for the sport. 
 
@@ -48,12 +48,10 @@ TODO: Show deterministic bandits with say 5 arms. agent is certain about some bu
 
 
  
+#### Discounting and time inconsistency
+Exponential discounting is typically thought of as an *indexical* or *relative* time preference. The agent prefers rewards on Day 1 to Day 10 but on Day 10 they prefer rewards on Day 11 to Day 20 (in exactly the same way). This is how exponential discounting is implemented in Reinforcement Learning. This indexical time preference seems "inconsistent" in some sense. With a discount rate of 0.95 per day (and linear utility in money), $100 after 30 days is worth $21 and $110 at 31 days is worth $22. Yet when the 30th day arrives, they are worth $100 and $105 respectively  [^inconsistent]! Yet while these magnitudes have changed, the ratios stay fixed. Indeed, the ratios between any pair of outcomes are fixed regardless of the time the exponetial discounter evaluates them. So this agent thinks that two prospects in the far future are worth little compared to similar near-term prospects (disagreeing with his future self) but he agrees with his future self about which of the two future prospects is better. [TODO mention the relevance of this to planning in MDPs -- due to time consistency you only need compute a single expected utility for each state].
 
-
-#### Discounting utility
-Rational, utility-maximizing agents are often modeled as *discounting* future utilities/rewards relative to present rewards. Researchers in Machine Learning and Robotics construct systems for MDPs/RL with infinite time horizon that discount future rewards. Economists likewise model humans or firms discounting the infinite stream of future rewards. Justifications for discounting include (a) avoiding problems with expected utilities diverging and (b) capturing human preference for the near-term (e.g. due to interest rates, vague deadlines, the chance of not being around in the future to realize gains).
-
-Discounting in these examples is *exponential*. An exponential discounting agent appears to have some kind of inconsistency over time. With a discount rate of 0.95 per day, $100 after 30 days is worth $21 and $110 at 31 days is $22. (assuming linear utility in money). Yet when the 30th day arrives, they are worth $100 and $105 respectively! (If instead the magnitudes were fixed from a starting time, the agent would have an overwhelming preference to travel back in time to get higher rewards!). Yet while these magnitudes have changed, the ratios stay fixed. Indeed, the ratios between any pair of outcomes are fixed regardless of the time the exponetial discounter evaluates them. So this agent thinks that two prospects in the far future are worth little compared to similar near-term prospects (disagreeing with his future self) but he agrees with his future self about which of the two future prospects is better. [TODO mention the relevance of this to planning in MDPs -- due to time consistency you only need compute a single expected utility for each state]. 
+[^inconsistent]: If instead the magnitudes were fixed from a starting time, the agent would have an overwhelming preference to travel back in time to get higher rewards!
 
 Any smooth discount function other than an exponential will result in preferences that reverse over time [cite]. So it's not so suprising that untutored humans should be subject to such reversals. (Without computational aids, human representations of numbers are systematically inaccurate. See refp:dehaene). Various functional forms for human discounting have been explored in the literature. We will describe the *hyperbolic discounting* model refp:ainslie2001breakdown because it is simple and well-studied. Any other functional form can easily be substituted into our models. 
 
