@@ -325,6 +325,7 @@ var makeAgent = function (params, world) {
     
   var act = dp.cache( 
     function(state, delay){
+      var delay = delay ? delay : 0; //make sure delay is never undefined
       return Enumerate(function(){
         var action = uniformDraw(stateToActions(state));
         var eu = expectedUtility(state, action, delay);    
@@ -335,6 +336,7 @@ var makeAgent = function (params, world) {
   
   var expectedUtility = dp.cache(
     function(state, action, delay){
+
       var u = discountFunction(delay) * utility(state, action);
       if (state.terminateAfterAction){
         return u; 
@@ -353,21 +355,6 @@ var makeAgent = function (params, world) {
     expectedUtility : expectedUtility,
     act: act
   };
-};
-
-var simulate = function(startState, world, agent) {
-  var act = agent.act;
-  var expectedUtility = agent.expectedUtility;
-  var transition = world.transition;
-
-  var sampleSequence = function (state) {
-    var delay = 0;
-    var action = sample(act(state, delay));
-    var nextState = transition(state, action);
-    return state.terminateAfterAction ?
-      [state] : [state].concat(sampleSequence(nextState));
-  };
-  return sampleSequence(startState);
 };
 
 
@@ -399,7 +386,7 @@ print('Sophisticated hyperbolic trajectory:');
 Gridworld.draw(world, { trajectory : trajectory, paths : plans });
 
 var naiveHyperbolicAgent = makeAgent({sophisticatedOrNaive: 'naive', utility : restaurantUtility }, world) 
-var trajectory = simulate(startState, world,
+var trajectory = simulateMDP(startState, world,
 	                  naiveHyperbolicAgent);
 
 var plans = plannedTrajectories(trajectory, world, naiveHyperbolicAgent);
@@ -412,7 +399,7 @@ var sophisticatedExponentialAgent = makeAgent(
 			   discountFunction: exponentialDiscount}),
   world
 );
-var trajectory = simulate(startState, world,
+var trajectory = simulateMDP(startState, world,
 	                  sophisticatedExponentialAgent);
 
 var plans = plannedTrajectories(trajectory, world, sophisticatedExponentialAgent);
@@ -426,7 +413,7 @@ var naiveExponentialAgent = makeAgent(
   world
 );
 
-var trajectory = simulate(startState, world,
+var trajectory = simulateMDP(startState, world,
 	                  naiveExponentialAgent);
 
 var plans = plannedTrajectories(trajectory, world, naiveExponentialAgent);
