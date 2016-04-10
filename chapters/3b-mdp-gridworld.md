@@ -65,14 +65,22 @@ var makeMDPAgent = function(params, world) {
   };
 };
 
-var simulateMDP = function(startState, world, agent) {
+var simulateMDP = function(startState, world, agent, outputType) {
+  // if outputType is undefined, default to stateAction
   var act = agent.act;
   var transition = world.transition;
+
+  var selectOutput = function(state, action) {
+    var table = {states: state,
+		         actions: action,
+				 stateAction: [state, action]};
+    return outputType ? table[outputType] : table.stateAction;
+  };
 
   var sampleSequence = function(state) {
     var action = sample(act(state));
     var nextState = transition(state, action);
-    var out = [state, action];
+    var out = selectOutput(state, action);
     return state.terminateAfterAction ? [out]
       : [out].concat(sampleSequence(nextState));
   };
@@ -91,10 +99,10 @@ var startState = {loc: [0,1],
 var utilityTable = {East: 10, West: 1, Hill: -10, timeCost: -.1};
 var utility = makeHikeUtilityFunction(world, utilityTable);
 var agent = makeMDPAgent({utility: utility, alpha: 1000}, world);
-var trajectory = simulateMDP(startState, world, agent);
+var trajectory = simulateMDP(startState, world, agent, 'states');
 
 
-GridWorld.draw(world, {trajectory: map(first,trajectory)});
+GridWorld.draw(world, {trajectory: trajectory});
 ~~~~
 
 >**Exercise**: Adjust the parameters `utilityTable` in order to produce the following behaviors:
@@ -122,12 +130,12 @@ var startState = {loc: [0,1],
 				  terminateAfterAction: false};
 
 // parameters for agent
-var utilityTable = { east: 10, west: 1, hill: -10, timeCost: -.1 };
+var utilityTable = { East: 10, West: 1, Hill: -10, timeCost: -.1 };
 var utility = makeHikeUtilityFunction(world, utilityTable);
 var agent = makeMDPAgent({utility: utility, alpha: 1000}, world);
-var trajectory = simulateMDP(startState, world, agent);
+var trajectory = simulateMDP(startState, world, agent, 'states');
 
-GridWorld.draw(world, {trajectory: map(first,trajectory)});
+GridWorld.draw(world, {trajectory: trajectory});
 ~~~~
 
 >**Exercise:**
@@ -155,13 +163,13 @@ var startState = {loc: [0,1],
 
 // parameters for agent
 var alpha = 1;
-var utilityTable = { east: 10, west: 1, hill: -10, timeCost: -.1 };
+var utilityTable = { East: 10, West: 1, Hill: -10, timeCost: -.1 };
 var utility = makeHikeUtilityFunction(world, utilityTable);
 var agent = makeMDPAgent({utility: utility, alpha: alpha}, world);
 
 // generate a single trajectory
-var trajectory = simulateMDP(startState, world, agent);
-GridWorld.draw(world, {trajectory: map(first,trajectory)});
+var trajectory = simulateMDP(startState, world, agent, 'states');
+GridWorld.draw(world, {trajectory: trajectory});
 
 // run 100 iid samples of the function *lengthTrajectory*
 var lengthTrajectory = function(){return simulateMDP(startState, world, agent).length;};
@@ -190,12 +198,12 @@ var startState = {loc: [1,1],
 				  terminateAfterAction: false};
 
 // parameters for agent
-var utilityTable = { east: 10, west: 1, hill: -10, timeCost: -.1 };
+var utilityTable = { East: 10, West: 1, Hill: -10, timeCost: -.1 };
 var utility = makeHikeUtilityFunction(world, utilityTable);
 var agent = makeMDPAgent({utility: utility, alpha: 1000}, world);
-var trajectory = simulateMDP(startState, world, agent);
+var trajectory = simulateMDP(startState, world, agent, 'states');
 
-GridWorld.draw(world, {trajectory: map(first,trajectory)});
+GridWorld.draw(world, {trajectory: trajectory});
 ~~~~
 
 Extending this idea, we can return and visualize the expected values of each action the agent *could have taken* during their trajectory. For each state in a trajectory, we compute the expected value of each possible action (given the state and remaining time). The resulting numbers are analogous to Q-values in infinite-horizon MDPs. 
@@ -213,7 +221,7 @@ var getExpectedUtilitiesMDP = function(stateTrajectory, world, agent) {
   var getAllExpectedUtilities = function(state) {
     var availableActions = stateToActions(state);
     return [state, map(function(action){return eu(state, action);},
-		       availableActions)];
+		           availableActions)];
   };
   return map(getAllExpectedUtilities, stateTrajectory);
 };
@@ -230,9 +238,10 @@ var utility = mdpTableToUtilityFunction(utilityTable, feature);
 var agent = makeMDPAgent({utility: utility, alpha: alpha}, world);
 
 var startState = {loc: [1,1],
-		  timeLeft: 12,
-		  terminateAfterAction: false,
-		  timeAtRestaurant: 1};
+		          timeLeft: 12,
+		          terminateAfterAction: false
+		          // COMMENT OUT FOR TESTING timeAtRestaurant: 1
+			     };
 
 var trajectory = simulateMDP(startState, world, agent, 'states');
 var locs1 = map(function(state){return state.loc;}, trajectory);
