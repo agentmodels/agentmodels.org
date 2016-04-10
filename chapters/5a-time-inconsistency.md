@@ -31,9 +31,7 @@ Aside from mathematical convenience, there is an additional justification for ex
 
 [^exponential]: There are arguments that exponential discounting is the uniquely rational mode of discounting for agents with time preference. See X and Y for critical discussion (toby, dasgupta, wolfgang schwarz). 
 
-It is straightforward to add exponential discounting to our existing agent models. We explain this in detail below. Before that we illustrate the effects of exponential discounting. 
-
-We return to the deterministic Bandit problem from Chapter III.3. Suppose a person decides every year where to go on vacation. There is a fixed list of options and a finite time horizon [^bandit]. The person discounts exponentially and so they prefer a good vacation now to an even better one in the future. This means they are less likely to *explore*, since exploration takes time to pay off.
+It is straightforward to add exponential discounting to our existing agent models. We explain this in detail below. Before that we illustrate the effects of exponential discounting. We return to the deterministic Bandit problem from Chapter III.3. Suppose a person decides every year where to go on vacation. There is a fixed list of options and a finite time horizon [^bandit]. The person discounts exponentially and so they prefer a good vacation now to an even better one in the future. This means they are less likely to *explore*, since exploration takes time to pay off.
 
 [^bandit]: As noted above, exponential discounting is usually combined with an *unbounded* time horizon. However, if a human makes a series of decisions over a long time scale, then it makes sense to include their time preference. For this particular example, imagine the person is looking for the best skiing or sports facilities and doesn't care about variety. There could be a known finite time horizon because they won't anymore be able to take a long vacation or they are too old for the sport. 
 
@@ -299,8 +297,6 @@ TODO: graph like this:
 
 ![diagram](/assets/img/diagram_procrastinate.jpg)
 
-TODO would be cool to show changing expected utilities on the graph as we have for gridworld. 
-
 We simulate the behavior of hyperbolic discounters on the Procrastination Problem. We vary the discount rate $$k$$ while holding the other parameters fixed. The agent's behavior can be summarized by its final state (`"wait_state"` or `"reward_state:`) and by how much time elapses before termination. When $$k$$ is sufficiently high, the agent will not even complete the task on the last day. 
 
 
@@ -341,3 +337,8 @@ map( function(discount){
 Run the codebox above with a Sophisticated agent. Explain the results. 
 
 With discount 3, the sophisticated agent will start work after waiting 3 times, while the naive agent will never start. This is because at every point, the agent prefers doing it next step to this step, but after waiting 3 times, the sophisticated agent will prefer doing the task now to doing it at the last moment. Since at the start, the agent prefers doing the task after waiting 3 times to doing it immediately, the sophisticated agent will wait 3 times, and then do the task. In contrast, the naive agent will always plan to procrastinate now and do the task immediately afterwards, until the last timestep when it will prefer to get the task done to never doing it.
+
+
+-----------
+
+### Footnotes
