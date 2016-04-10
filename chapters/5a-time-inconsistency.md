@@ -9,18 +9,9 @@ description: Hyperbolic discounting, Naive and Sophisticated Agents, Formal Defi
 ### Introduction
 Time inconsistency is part of everyday human experience. In the night you wish to rise early; in the morning you prefer to sleep in. There is an inconsistency between what you prefer your future self to do and what your future self prefers to do. Forseeing this inconsistency, you take actions in the night to bind your morning self to get up. These range from setting an alarm clock to having someone drag you out of bed.
 
-Similar examples abound. People pay upfront for gym subscriptions they rarely use. People procrastinate on writing papers: they plan to start the paper early but then delay until the last minute. The practical consequences of time inconsistency are substantial in different domains Cite:
-
-- "Highbrow films gather dust: Time-inconsistent preferences and online DVD rentals"
-
-- "Can Behavioral Tools Improve Online Student Outcomes? Experimental Evidence from a Massive Open Online Course" (patterson)
-
-- experiment where state (AZ, NM?) offers free IUD and has big effect on teen pregnancy 
-
-Time inconsistency has been used to explain not just quotidian laziness but also addiction, procrastination, impulsive behavior as well an array of "pre-commitment" behaviors refp:ainslie2001breakdown. Lab experiments of time inconsistency often use simple quantitative questions such as:
+Similar examples abound. People pay upfront for gym subscriptions they rarely use. People procrastinate on writing papers: they plan to start the paper early but then delay until the last minute. The practical consequences of time inconsistency are substantial in different domains Cite: ("Highbrow films gather dust: Time-inconsistent preferences and online DVD rentals"), ("Can Behavioral Tools Improve Online Student Outcomes? Experimental Evidence from a Massive Open Online Course" (patterson)). Time inconsistency has been used to explain not just quotidian laziness but also addiction, procrastination, impulsive behavior as well an array of "pre-commitment" behaviors refp:ainslie2001breakdown. Lab experiments of time inconsistency often use simple quantitative questions such as:
 
 >**Question**: Would you prefer to get $100 after 30 days or $110 after 31 days?
-
 
 Most people prefer the $110. But a significant proportion of people reverse their earlier preference once the 30th day comes around and they contemplate getting $100 immediately. This chapter describes a formal model of time inconsistency that predicts this reversal. We incorporate this model into our MDP agent and implement it in WebPPL.
 
@@ -30,19 +21,21 @@ This chapter explores the model time inconsistency as resulting from *hyperbolic
 
 #### Exponential discounting for optimal agents
 
-The examples of decision problems in previous chapters have had a *known*, *finite* time horizon. However, in modeling long-term human decision problems, a known time horizon will often be unrealistic. First, human life spans have uncertain duration. Second, humans care about things (e.g. their descendants and friends) which persist being their life span. So it is common in both Machine Learning and Economics to consider decision problems with an unbounded time horizon.
+The examples of decision problems in previous chapters have a *known*, *finite* time horizon. Yet there are practical decision problems that are better modeled as having an *unbounded* or *infinite* time horizon. In Machine Learning, many RL problems have an uncertain time horizon (e.g. play a video game, drive a car from A to B). Human economic decisions have a time horizon that is both long (e.g. 50 years) and uncertain, and economists often assume unbounded time.
 
-Decision problems with unbounded time raise an immediate difficulty for the idea of an agent planning by maximizing the summed expected utility. In general, the summed expected utilities for actions will diverge. The standard solution is to model the agent as maximizing the *discounted* expected utility, where the discount function is exponential with a single free parameter. The exponential function is analytically tractable and its infinite sums converge.
+Generalizing the agent model from previous chapters to the unbounded case faces a difficulty. The *infinite* summed expected utility of an action will (for most natural sequential decision problems) not converge. The standard solution is to model the agent as maximizing the *discounted* expected utility, where the discount function is exponential and has a single free parameter. This makes the infinite sums converge and results in an agent model that is analytically and computationally tractable. 
 
-Apart from arguments of mathematical convenience, one can motivate exponential discounting as part of a general model of rational agents. Rational agents can have preferences over many kinds of property of the world. For instance, humans care about the food they eat, about the careers they enter, and about the state of the environment in fifty years' time. So a model of rationl agents should allow them to have a generalized preference for good things happening sooner rather than later. Exponential discounting models such a preference and makes the agent time consistent [^exponential].
+Aside from mathematical convenience, there is an additional justification for exponential discounting in models of rationl agents. A model of rational agents should not limit the kinds of things or properties the agents can care about [^justification]. In particular, such a model should permit a generalized preference for desirable things occurring sooner rather than later. Exponential discounting models such a preference and makes the agent time consistent [^exponential].
+
+[^justification]: Rational agents can't have inconsistent preferences but aside from this a model should not constrain the kinds of things they care about. More concretely, people care about a range of things: e.g. the food they eat daily, their careers, their families, the progress of science, the preservation of the earth's environment. Many have argued that humans have a time preference. So models that learn human preferences should allow for this possibility. 
 
 [^exponential]: There are arguments that exponential discounting is the uniquely rational mode of discounting for agents with time preference. See X and Y for critical discussion (toby, dasgupta, wolfgang schwarz). 
 
-It is straightforward to add exponential discounting to our existing agent models. We explain this in detail below. First, we show some simple illustrates of the effects of exponential discounting. 
+It is straightforward to add exponential discounting to our existing agent models. We explain this in detail below. Before that we illustrate the effects of exponential discounting. 
 
-Consider the deterministic Bandit problem from Chapter III.3. We imagine a person decides every year where to go on vacation. There is a fixed list of options and a finite time horizon [^bandit]. The person discounts exponentially and so they prefer a good vacation now to an even better one in the future. This means they are less likely to *explore*, since exploration takes time to pay off.
+We return to the deterministic Bandit problem from Chapter III.3. Suppose a person decides every year where to go on vacation. There is a fixed list of options and a finite time horizon [^bandit]. The person discounts exponentially and so they prefer a good vacation now to an even better one in the future. This means they are less likely to *explore*, since exploration takes time to pay off.
 
-[^bandit]: Imagine the person is looking for the best skiing or sports facilities and doesn't care about variety. There could be a known finite time horizon because they won't anymore be able to take a long vacation or they are too old for the sport. 
+[^bandit]: As noted above, exponential discounting is usually combined with an *unbounded* time horizon. However, if a human makes a series of decisions over a long time scale, then it makes sense to include their time preference. For this particular example, imagine the person is looking for the best skiing or sports facilities and doesn't care about variety. There could be a known finite time horizon because they won't anymore be able to take a long vacation or they are too old for the sport. 
 
 TODO: Show deterministic bandits with say 5 arms. agent is certain about some but many are uncertain. Agent will explore the one's with fairly high EV but not the ones with high variance. [Alternatively, could do a gridworld example and show the agent who prefers veg goes to donuth south. Or could do some simple numerical computations for bandits.]
 
