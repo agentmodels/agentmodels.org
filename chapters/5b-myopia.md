@@ -31,6 +31,115 @@ In this example, we show the performance of Greedy agents with varying softmax n
 
 TODO: Bandit example. Stochastic bandits. Try the agent with high softmax noise and bound 1. It will need more trials to do well but should be not that far from the optimal agent. We can compare its total score to that of an agent who knows the arm expected utilities from the start (i.e. compute the Regret). With two-arms, with bound 2 or 3, the myopic agent should perform quite well. Show that it does reasonable things with more arms. 
 
+NOTES: In following example, can vary latent state, softmax noise, and greediness bound (for large greediness bound, should reduce the number of timesteps dramatically).
+
+Random agent gets regret ratio 0.5, alpha = 1 gets about 0.6, alpha = 10 gets about 1 (on setting where the agent must explore).
+
+~~~~
+// noisy_greedy_regret_ratio
+
+var world = makeStochasticBanditWorld(2);
+var latentState = {
+  // with this setting, the agent must explore to find the best arm
+  0: deltaERP('nothing'),
+  // with this setting, the agent need not explore to find the best arm
+  // 0: categoricalERP([0.75, 0.25], ['champagne', 'nothing']),
+  1: categoricalERP([0.5, 0.5], ['chocolate', 'nothing'])
+};
+var utilityTable = {start: 0, nothing: 0, chocolate: 1, champagne: 3};
+var startState = buildStochasticBanditStartState(200, latentState);
+var priorBelief = Enumerate(function(){
+  var probChampagne = uniformDraw([0, 0.25, 0.5, 0.75, 1]);
+  var probChocolate = uniformDraw([0, 0.25, 0.5, 0.75, 1]);
+  var latentState = {0: categoricalERP([probChampagne, 1 - probChampagne],
+				                       ['champagne', 'nothing']),
+		             1: categoricalERP([probChocolate, 1 - probChocolate],
+				                       ['chocolate', 'nothing'])};
+  return buildState(startState.manifestState, latentState);
+});
+var utility = makeStochasticBanditUtility(utilityTable);
+
+var greedyNoisyAgentParams = {
+  alpha: 10,
+  utility: utility,
+  priorBelief: priorBelief,
+  myopia: {on: true, bound: 1},
+  boundVOI: {on: false, bound: 0},
+  noDelays: false,
+  discount: 0,
+  sophisticatedOrNaive: 'naive',
+  fastUpdateBelief: false
+};
+var greedyNoisyAgent = makeBeliefDelayAgent(greedyNoisyAgentParams, world);
+
+var trajectory = simulateBeliefDelayAgent(startState, world, greedyNoisyAgent,
+					                      'stateAction');
+
+var averageUtility = listMean(map(function(stateAction){
+  return utility(stateAction[0], stateAction[1]);
+}, trajectory));
+
+var expectedUtilityArm = function(arm) {
+  var transition = world.transition;
+  var utilityERP = Enumerate(function(){
+    var nextState = transition(startState, arm);
+    var utilityGained = utility(nextState);
+    return utilityGained;
+  });
+  return expectation(utilityERP);
+};
+
+var maxEU = Math.max.apply(null, map(expectedUtilityArm, [0,1]));
+
+print('Regret ratio: ' + averageUtility/maxEU);
+~~~~
+
+
+NOTES: should see initial exploration, then settling on arm 2
+
+~~~~
+// noisy_greedy_3_arms
+
+var world = makeStochasticBanditWorld(3);
+var latentState = {0: categoricalERP([0.1, 0.9], ['champagne', 'nothing']),
+		           1: categoricalERP([0.5, 0.5], ['chocolate', 'nothing']),
+		           2: categoricalERP([0.5, 0.5], ['cherry', 'nothing'])};
+var utilityTable = {start: 0, nothing: 0, chocolate: 1, champagne: 3, cherry: 2};
+var startState = buildStochasticBanditStartState(30, latentState);
+var priorBelief = Enumerate(function(){
+  var probChampagne = uniformDraw([0.1, 0.5, 0.9]);
+  var probChocolate = uniformDraw([0.1, 0.5, 0.9]);
+  var probCherry = uniformDraw([0.1, 0.5, 0.9]);
+  var latentState = {0: categoricalERP([probChampagne, 1 - probChampagne],
+				                       ['champagne', 'nothing']),
+		             1: categoricalERP([probChocolate, 1 - probChocolate],
+				                       ['chocolate', 'nothing']),
+		             2: categoricalERP([probCherry, 1 - probCherry],
+				                       ['cherry', 'nothing'])};
+  return buildState(startState.manifestState, latentState);
+});
+var utility = makeStochasticBanditUtility(utilityTable);
+
+var greedyNoisyAgentParams = {
+  alpha: 10,
+  utility: utility,
+  priorBelief: priorBelief,
+  myopia: {on: true, bound: 1},
+  boundVOI: {on: false, bound: 0},
+  noDelays: false,
+  discount: 0,
+  sophisticatedOrNaive: 'naive',
+  fastUpdateBelief: false
+};
+var greedyNoisyAgent = makeBeliefDelayAgent(greedyNoisyAgentParams, world);
+
+
+var trajectory = simulateBeliefDelayAgent(startState, world, greedyNoisyAgent,
+					                      'actions');
+
+print(trajectory);
+~~~~
+
 TODO: Gridworld example: show the myopic agent can end up at veg but only if the cutoff is high enough.
 
 
