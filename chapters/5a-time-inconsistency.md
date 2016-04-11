@@ -94,29 +94,64 @@ The only difference from previous versions of Restaurant Choice is that restaura
 
 **Exercise:** Before scrolling down, predict how Naive and Sophisticated hyperbolic discounters with identical preferences could differ for the Restaurant Choice problem shown in the codebox immediately below.
 
-[TODO codebox: bigGridworld. draw with agent starting in 3,1.]
+~~~~
+// draw_choice
+var world = makeRestaurantChoiceMDP();
+var startState = restaurantChoiceStart;
+print('starting state is: ' + JSON.stringify(startState) );
+GridWorld.draw(world, {trajectory:[startState]});
+~~~~
 
-We now consider two hyperbolic discounting agents with the same preferences and discounting function but where one is Naive and the other Sophisticated.
+The next two codeboxes show the behavior of two hyperbolic discounters. Each agent has the same preferences and discount function. They differ only in that the first is Naive and the second is Sophisticated.
 
-[TODO codeboxes with both Naive and Soph. Or one codebox with both and some parameter to control Naive/Soph easily.]
+~~~~
+// draw_naive
+var world = makeRestaurantChoiceMDP();
+var observedStateAction = restaurantNameToObservationTime11['naive'];
+print('Observations for Naive agent loaded from library function: \n' 
+       + JSON.stringify(observedStateAction) + ' \n');
+var path = map(first,observedStateAction);
+GridWorld.draw(world, {trajectory:path});
+~~~~
 
-**Exercise:** Before reading further, your goal is to do preference inference from the observed actions in the codebox above (using only a pen and paper). The discount function is the hyperbola $$D=\frac{1}{1+kt}$$, where $$t$$ is the time from the present, $$D$$ is the discount factor (multiplied by the utility) and $$k$$ is a positive constant. Work out a full set of parameters for the agent that predict the observed behavior. This includes utilities for the restaurants (both *immediate* and *delayed*) and for the `timeCost`, as well as the discount constant $$k$$. (Assume there is no softmax noise). 
+~~~~
+// draw_sophisticated
+var world = makeRestaurantChoiceMDP();
+var observedStateAction = restaurantNameToObservationTime11['sophisticated'];
+print('Observations for Naive agent loaded from library function: \n' 
+       + JSON.stringify(observedStateAction) + ' \n');
+var path = map(first,observedStateAction);
+GridWorld.draw(world, {trajectory:path});
+~~~~
 
-The Naive agent goes to Donut North, even though Donut South (which has identical utility) is closer to the agent's starting point. One explanation is that the Naive agent prefers Veg (ignoring discounting). At the start, no restaurants can be reached quickly and so the agent's discount factor is nearly flat when evaluating each one of them. This makes Veg look most attractive. But going to Veg means getting closer to Donut North, which becomes more attractive than Veg once the agent is close to it. (Taking an inefficient path -- one that is dominated by another path -- is typical of time inconsistent agents). 
+>**Exercise:** (Try this exercise *before* reading further). Your goal is to do preference inference from the observed actions in the codeboxes above (using only a pen and paper). The discount function is the hyperbola $$D=1/(1+kt)$$, where $$t$$ is the time from the present, $$D$$ is the discount factor (to be multiplied by the utility) and $$k$$ is a positive constant. Find a single setting for the utilities and discount function that produce the behavior in both the codeboxes above. This includes utilities for the restaurants (both *immediate* and *delayed*) and for the `timeCost` (the negative utility for each additional step walked), as well as the discount constant $$k$$. Assume there is no softmax noise. 
 
-The Sophisticated agent, when considering its actions from the starting point, can accurately model what it *would* do if it ended up adjacent to Donut North. So it avoids temptation by taking the long, inefficient route to Veg. 
+------
 
-In this simple example, the Naive and Sophisticated agents each take paths that optimal time-consistent MDP agents never take. While a time-consistent agent with high softmax noise would take the Naive agent's path with low probability, the Sophisticated path has massively lower probability for such an agent. So this is an example where a bias leads to a *systematic* deviation from optimality and behavior that is not predicted by an optimal model. In a later chapter we explore inference of inferences for time inconsistent agents.
+The Naive agent goes to Donut North, even though Donut South (which has identical utility) is closer to the agent's starting point. One possible explanation is that the Naive agent has a higher utility for Veg but gets "tempted" by Donut North on their way to Veg[^naive_path].
+
+[^naive_path]: At the start, no restaurants can be reached quickly and so the agent's discount function is nearly flat when evaluating each one of them. This makes Veg look most attractive (given its higher overall utility). But going to Veg means getting closer to Donut North, which becomes more attractive than Veg once the agent is close to it (because of the discount function). Taking an inefficient path -- one that is dominated by another path -- is typical of time-inconsistent agents. 
+
+The Sophisticated agent can accurately model what it *would* do if it ended up in location [3,5] (adjacent to Donut North). So it avoids temptation by taking the long, inefficient route to Veg. 
+
+In this simple example, the Naive and Sophisticated agents each take paths that optimal time-consistent MDP agents (without softmax noise) would never take. So this is an example where a bias leads to a *systematic* deviation from optimality and behavior that is not predicted by an optimal model. In Chapter V.III we explore inference of preferences for time inconsistent agents.
+
+-------
+## ADD CHAPTER BREAK HERE
+--------
+
+# Formal Model and Implementation of Hyperbolic Discounting
+
 
 ### Formal Model of Naive and Sophisticated Hyperbolic Discounters
 
-To formalize Naive and Sophisticated hyperbolic discounting, we make a small modificiation to the MDP agent model. The key idea is to add an additional variable for measuring time, the *delay*, which is distinct from the objective time index (called `timeLeft` our implementation). Although the environment is stationary, the objective time remaining is important in planning for finite-horizon MDPs because it determines how far the agent can travel or explore before time is up. The delays are *subjective*: they are used by the agent in *evaluating* possible future rewards but they are not an independent feature of the decision problem.
+To formalize Naive and Sophisticated hyperbolic discounting, we make a small modificiation to the MDP agent model. The key idea is to add an additional variable for measuring time, the *delay*, which is distinct from the objective time-index (called `timeLeft` in our implementation). The objective time-index is important in planning for finite-horizon MDPs because it determines how far the agent can travel or explore before time is up. By contrast, the delays are *subjective*. They are used by the agent in *evaluating* possible future rewards but they are not an independent feature of the decision problem. (The objective time is part of the problem definition, while delays are an internal representation employed by a subset of agents). 
 
-We use delays because discounting agents have time preference. When evaluating future rewards, they need to keep track of how far ahead in time that reward occurs, i.e. keep track of the time-delay in getting the reward. Naive and Sophisticated agents evaluate future rewards in the same way. They differ in how they simulate their future actions.
+We use delays because discounting agents have preferences over when they receive rewards. When evaluating future prospects, they need to keep track of how far ahead in time that reward occurs, i.e. keep track of the time-delay in getting the reward. Naive and Sophisticated agents *evaluate* future rewards in the same way. They differ in how they simulate their future actions.
 
-The Naive agent at objective time $$t$$ assumes his future self at objective time $$t+c$$ (where $$c>0$$) shares his time preference. So he simulates the $$(t+c)$$-agent as evaluating a reward at time $$t+c$$ with delay $$d=c$$ (hence discount factor $$\frac{1}{1+kc}$$) rather than the true delay $$d=0$$. The Sophisticated agent correctly models his $$(t+c)$$-agent future self as evaluating an immediate reward with delay $$d=0$$ and hence a discount factor of one (i.e. no discounting). 
+The Naive agent at objective time $$t$$ assumes his future self at objective time $$t+c$$ (where $$c>0$$) shares his time preference. So he simulates the $$(t+c)$$-agent as evaluating a reward at time $$t+c$$ with delay $$d=c$$ (hence discount factor $$1/1+kc$$) rather than the true delay $$d=0$$. The Sophisticated agent correctly models his $$(t+c)$$-agent future self as evaluating an immediate reward with delay $$d=0$$ and hence a discount factor of one (i.e. no discounting). 
 
-Adding delays to our model is straightforward. In defining the MDP agent, we presented Bellman-style recursions for the expected utility of state-action pairs. Discounting agents evaluate states and actions differently depending on their *delay* from the present. So we now define expected utilities of state-action-delay triples:
+Adding delays to our model is straightforward. In defining the MDP agent, we presented Bellman-style recursions for the expected utility of state-action pairs [TODO reference]. Discounting agents evaluate states and actions differently depending on their *delay* from the present. So we now define expected utilities of state-action-delay triples:
 
 $$
 EU[s,a,d] = \delta(d)U(s, a) + \mathbb{E}_{s', a'}(EU[s', a',d+1])
@@ -147,13 +182,11 @@ As with the MDP and POMDP agents, our WebPPL implementation directly translates 
 
 - The function $$\delta$$ is named `discountFunction`
 
-- The "perceived delay", which is the delay from which the agent's simulate future self evaluates rewards, is $$d_P$$ in the math and `perceivedDelay` below. 
+- The "perceived delay", which is the delay from which the agent's simulate future self evaluates rewards, is $$d$$ in the math and `perceivedDelay` below. 
 
 - $$s'$$, $$a'$$, $$d+1$$ correspond to `nextState`, `nextAction` and `delay+1` respectively. 
 
-[TODO: add John's changing expected utilities, with an explanation of them]
 
-<!--code from src/hyperbolic.wppl]-->
 ~~~~
 
 
