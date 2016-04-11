@@ -199,6 +199,8 @@ We can animate these expected paths by passing the optional `paths` argument to 
 Watch the simulation and notice how the naive agent changes its plan to go to Veg as it passes by Donut N. It failed to anticipate that it would be sidetracked by Donut N. The sophisticated agent, on the other hand anticipates this and routes around Donut N. 
 
 ~~~~
+//simulate_hyperbolic_agent
+///fold: 
 var makeAgent = function (params, world) {
   var defaultParams = {
     alpha : 500, 
@@ -248,7 +250,7 @@ var makeAgent = function (params, world) {
     act: act
   };
 };
-
+///
 
 var world = restaurantChoiceMDP; 
 var start = restaurantChoiceStart;
@@ -260,7 +262,6 @@ var restaurantUtility = makeRestaurantUtilityFunction(world, {
     'Noodle': [0, 0],
     'timeCost': -.01  // cost of taking a single action 
 });
-
 
 // Construct Sophisticated and Naive agents
 var sophisticatedAgent = makeAgent({sophisticatedOrNaive: 'sophisticated', utility : restaurantUtility }, world);
