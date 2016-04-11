@@ -324,52 +324,53 @@ Hyperbolic discounting provides an elegant model of this behavior. On Day 1, a h
 
 In this problem, the behavior of optimal and time-inconsistent agents with identical preferences (i.e. utility functions) diverges. If the deadline is $$T$$ days from the start, the optimal agent will do the task immediately and the Naive agent will do the task on Day $$T$$. [TODO: state Kleinberg result informally.]
 
-We formalize the Procrastination Problem in terms of a deterministic graph. Suppose the *deadline* is $$T$$ steps from the start. Assume that after $$t<T$$ steps the agent has not yet completed the task. Then the agent can take the action `"work"` (which has *work cost* $$-w$$) or the action `"wait"` with zero cost. After the `"work"` action the agent transitions to the `"reward"` state and receives $$R - t \epsilon$$, where $$R$$ is the *reward* for the task and $$\epsilon$$ is how much the reward diminishes for every day of waiting (the *wait cost*). 
+We formalize the Procrastination Problem in terms of a deterministic graph. Suppose the **deadline** is $$T$$ steps from the start. Assume that after $$t$$ < $$T$$ steps the agent has not yet completed the task. Then the agent can take the action `"work"` (which has **work cost** $$-w$$) or the action `"wait"` with zero cost. After the `"work"` action the agent transitions to the `"reward"` state and receives $$+(R - t \epsilon)$$, where $$R$$ is the **reward** for the task and $$\epsilon$$ is how much the reward diminishes for every day of waiting (the **wait cost**). 
 
 TODO: graph like this:
 
 ![diagram](/assets/img/diagram_procrastinate.jpg)
 
-We simulate the behavior of hyperbolic discounters on the Procrastination Problem. We vary the discount rate $$k$$ while holding the other parameters fixed. The agent's behavior can be summarized by its final state (`"wait_state"` or `"reward_state:`) and by how much time elapses before termination. When $$k$$ is sufficiently high, the agent will not even complete the task on the last day. 
-
-
-TODO: add as exercise an example that uses exponential discounting and shows that it never procrastinates.
+We simulate the behavior of hyperbolic discounters on the Procrastination Problem. We vary the discount rate $$k$$ while holding the other parameters fixed. The agent's behavior can be summarized by its final state (`"wait_state"` or `"reward_state`) and by how much time elapses before termination. When $$k$$ is sufficiently high, the agent will not even complete the task on the last day. 
 
 ~~~~
+// procrastinate
 
 // Construct Procrastinate world 
 var deadline = 10;
-var world = makeProcrastinationMDP2(deadline);
+var world = makeProcrastinationMDP(deadline);
 
 // Agent params
 var utilityTable = {reward: 5,
     waitCost: -0.1,
     workCost: -1};
 
-var params = {utility: makeProcrastinationUtility2(utilityTable),
+var params = {utility: makeProcrastinationUtility(utilityTable),
 	      alpha: 1000,
 	      discount: null,
-	      sophisticatedOrNaive: 'naive'};
+	      sophisticatedOrNaive: 'sophisticated'};
 
 var getLastState = function(discount){
-  var agent = makeHyperbolicDiscounter(update(params, {discount: discount}), world);
+  var agent = makeHyperbolicDiscounter(update(params, {discount: discount}), 
+                                       world);
   var stateActions = simulateHyperbolic(world.startState, world, agent);
   var states = map(first,stateActions);
   return [last(states).loc, stateActions.length];
 };
 
+// TODO use vegaPrint to display as table
 map( function(discount){
     var lastState = getLastState(discount);
     print('Discount: ' + discount + '. Last state: ' + lastState[0] +
     '. Time: ' + lastState[1] + '\n')
-}, range(11) );
-// consider doing as table also
+}, range(8) );
 ~~~~
 
-#### Exercise
-Run the codebox above with a Sophisticated agent. Explain the results. 
 
-With discount 3, the sophisticated agent will start work after waiting 3 times, while the naive agent will never start. This is because at every point, the agent prefers doing it next step to this step, but after waiting 3 times, the sophisticated agent will prefer doing the task now to doing it at the last moment. Since at the start, the agent prefers doing the task after waiting 3 times to doing it immediately, the sophisticated agent will wait 3 times, and then do the task. In contrast, the naive agent will always plan to procrastinate now and do the task immediately afterwards, until the last timestep when it will prefer to get the task done to never doing it.
+>**Exercise:**
+> 1. Explain how an exponential discounter would behave on this task. Assume their utilities are the same as above and consider different discount rates.  
+
+> 2. Run the codebox above with a Sophisticated agent. Explain the results. 
+
 
 
 -----------
