@@ -217,11 +217,10 @@ TODO: fix this codebox. There is an example in John's examples/hyperbolic/genera
 // *simulateMDP* with an additional final argument 'states'.
 var getExpectedUtilitiesMDP = function(stateTrajectory, world, agent) {
   var eu = agent.expectedUtility;
-  var stateToActions = world.stateToActions;
+  var actions = world.actions;
   var getAllExpectedUtilities = function(state) {
-    var availableActions = stateToActions(state);
     return [state, map(function(action){return eu(state, action);},
-		           availableActions)];
+		           actions)];
   };
   return map(getAllExpectedUtilities, stateTrajectory);
 };
@@ -239,48 +238,17 @@ var agent = makeMDPAgent({utility: utility, alpha: alpha}, world);
 
 var startState = {loc: [1,1],
 		          timeLeft: 12,
-		          terminateAfterAction: false
-		          // COMMENT OUT FOR TESTING timeAtRestaurant: 1
-			     };
+		          terminateAfterAction: false};
 
 var trajectory = simulateMDP(startState, world, agent, 'states');
 var locs1 = map(function(state){return state.loc;}, trajectory);
 var eus = getExpectedUtilitiesMDP(trajectory, world, agent);
-// figure out nice way to display locations and expected utilities
 
+GridWorld.draw(world, { 
+  trajectory: trajectory,
+  actionExpectedUtilities: eus
+});
 
-// GridWorld.draw(params, { 
-//   labels: params.labels,
-//   trajectory: trajectoryExpUtilities, 
-//   expUtilities: trajectoryExpUtilities
-// });
-
-
-// TODO FIX: stochastic expUtilities and doesnt take highest EU
-// action despite low noise.
-
-// note that this problem persists with the new gridworld mdp functions
-
-var noiseProb = .04;
-var world = makeHike(noiseProb, {big: true});
-var feature = world.feature;
-
-var alpha = 100;
-var utilityTable = { East: 15, West: 7, Hill: -40, timeCost: -.8 };
-var utility = mdpTableToUtilityFunction(utilityTable, feature);
-var agent = makeMDPAgent({utility: utility, alpha: alpha}, world);
-
-var startState = {loc: [1,1],
-		          timeLeft: 14,
-				  terminateAfterAction: false,
-				  timeAtRestaurant: 1};
-
-var trajectory = simulateMDP(startState, world, agent, 'states');
-var eus = getExpectedUtilitiesMDP(trajectory, world, agent);
-
-var locs2 = map(function(state){return state.loc;}, trajectory);
-// locs1;
-locs2;
 ~~~~
 
 
