@@ -40,7 +40,7 @@ TODO: Show deterministic bandits with say 5 arms. agent is certain about some bu
 
  
 #### Discounting and time inconsistency
-Exponential discounting is typically thought of as a *relative* time preference. A fixed reward will be discounted by a factor of $$\delta^{-30}$$ if received on Day 30 rather than Day 0. On Day 30, the same reward is discounted by $$\delta^{-30}$$ if received on Day 60 and not at all if received on Day 30. This is how exponential discounting is implemented in Reinforcement Learning. This relative time preference is "inconsistent" in a certain superficial sense. With $$\delta=0.95$$ per day (and linear utility in money), $100 after 30 days is worth $21 and $110 at 31 days is worth $22. Yet when the 30th day arrives, they are worth $100 and $105 respectively [^inconsistent]! Yet while these magnitudes have changed, the ratios stay fixed. Indeed, the ratios between any pair of outcomes are fixed regardless of the time the exponetial discounter evaluates them. So this agent thinks that two prospects in the far future are worth little compared to similar near-term prospects (disagreeing with his future self) but he agrees with his future self about which of the two future prospects is better.
+Exponential discounting is typically thought of as a *relative* time preference. A fixed reward will be discounted by a factor of $$\delta^{-30}$$ if received on Day 30 rather than Day 0. On Day 30, the same reward is discounted by $$\delta^{-30}$$ if received on Day 60 and not at all if received on Day 30. This is how exponential discounting is implemented in Reinforcement Learning. This relative time preference is "inconsistent" in a certain superficial sense. With $$\delta=0.95$$ per day (and linear utility in money), $100 after 30 days is worth $21 and $110 at 31 days is worth $22. Yet when the 30th day arrives, they are worth $100 and $105 respectively[^inconsistent]! Yet while these magnitudes have changed, the ratios stay fixed. Indeed, the ratios between any pair of outcomes are fixed regardless of the time the exponetial discounter evaluates them. So this agent thinks that two prospects in the far future are worth little compared to similar near-term prospects (disagreeing with his future self) but he agrees with his future self about which of the two future prospects is better.
 
 [^inconsistent]: One can think of exponential discounting in a non-relative way by choosing a fixed staring time in the past (e.g. the agent's birth) and discounting everything relative to that. This results in an agent with a preference to travel back in time to get higher rewards!
 
@@ -67,6 +67,7 @@ TODO: add Figure 1 label, put the function forms 1/2^t and 1/(1+2t) in the legen
 ![Figure 1](/assets/img/hyperbolic_no_label.jpg)
 
 >**Exercise:** We return to our running example but with slightly different numbers. The agent chooses between receiving $100 after 4 days or $110 after 5 days. The goal is to compute the preferences over each option for both exponential and hyperbolic discounters, using the discount curves shown in Figure 1. Compute the following:
+
 > 1. The discounted utility of the $100 and $110 rewards relative to Day 0 (i.e. how much the agent values each option when the rewards are 4 or 5 days away).
 >2. The discounted utility of the $100 and $110 rewards relative to Day 4 (i.e. how much each option is valued when the rewards are 0 or 1 day away).
 
@@ -79,21 +80,19 @@ Returning to the previous example (see exercise above), imagine you have time in
 
 - **Sophisticated agent**: has the correct model of his future self's time preference. A Sophisticated hyperbolic discounter has a nearly flat discount curve for the far future but is aware that his future self does not share this discount curve.
 
-Both kinds of agents will value rewards differently at different times. We refer to a hyperbolic discounter's valuations at time $$t_i$$ as the *preferences of the $$t_i$$-agent*. A Sophisticated agent, unlike a Naive agent, has an accurate model of his future self. This enables a Sophisticated agent, acting at time $$t_0$$, to pre-commit his future self at times $$t>t_0$$, to outcomes that the $$t_0$$-agent prefers.
+Both kinds of agents will value rewards differently at different times. To distinguish a hyperbolic discounter's current and future selves, we refer to the agent acting at time $$t_i$$ as the $$t_i$$-agent. A Sophisticated agent, unlike a Naive agent, has an accurate model of his future selves. The Sophisticated $$t_0$$-agent predicts the actions of the $$t$$-agents (for $$t>t_0$$) that would conflict with his preferences. To prevent these actions, the $$t_0$$-agent tries to take actions that *pre-commit* the future agents to outcomes the $$t_0$$-agent prefers[^sophisticated].
 
-So if pre-commitment actions are available at time $$t_0$$, we expect the $$t_0$$-agent to do better (by its own $$t_0$$ lights) if it's Sophisticated rather than Naive -- since if Sophisticated it has identical preferences and more knowledge of the world. This means that being Naive at $$t_0$$ is better for the preferences of the $$t>t_0$$ agents.
+[^sophisticated]: As has been pointed out previously, there is a kind of "inter-generational" conflict between agent's future selves. If pre-commitment actions are available at time $$t_0$$, the $$t_0$$-agent does better in expectation if it is Sophisticated rather than Naive. Equivalently, the $$t_0$$-agent's future selves will do better if the agent is Naive.
 
 
 ### Naive and Sophisticated Agents: Gridworld Example
 Before describing our formal model and implementation of Naive and Sophisticated hyperbolic discounters, we illustrate their contrasting behavior using the Restaurant Choice example. We use the MDP version, where the agent has full knowledge of the locations of restaurants and of which restaurants are open. Recall the problem setup: 
 
-<blockquote>
-Bob is looking for a place to eat. His decision problem is to take a sequence of actions such that (a) he eats at a restaurant he likes and (b) he does not spend too much time walking. The restaurant options are: the Donut Store, the Vegetarian Salad Bar, and the Noodle Shop. The Donut Store is a chain with two local branches. We assume each branch has identical utility for Bob. We abbreviate the restaurant names as "Donut South", "Donut North", "Veg" and "Noodle".
-</blockquote>
+>Bob is looking for a place to eat. His decision problem is to take a sequence of actions such that (a) he eats at a restaurant he likes and (b) he does not spend too much time walking. The restaurant options are: the Donut Store, the Vegetarian Salad Bar, and the Noodle Shop. The Donut Store is a chain with two local branches. We assume each branch has identical utility for Bob. We abbreviate the restaurant names as "Donut South", "Donut North", "Veg" and "Noodle".
 
-The only difference from previous versions of Restaurant Choice is that we model the restaurants as providing *two* utilities. The agent first receives the *immediate reward* (e.g. how good the food tastes) and then (at some fixed time delay) receives the *delayed reward* (e.g. how good the person feels after eating it). Here is the code that uses the Gridworld library to construct the MDP.
+The only difference from previous versions of Restaurant Choice is that restaurants now have *two* utilities. On entering a restaurant, the agent first receives the *immediate reward* (i.e. how good the food tastes) and at the next timestep receives the *delayed reward* (i.e. how good the person feels after eating it).
 
-**Exercise:** Before scrolling down, predict how Naive and Sophisticated hyperbolic discounters with identical preferences could differ in their actions on this problem.
+**Exercise:** Before scrolling down, predict how Naive and Sophisticated hyperbolic discounters with identical preferences could differ for the Restaurant Choice problem shown in the codebox immediately below.
 
 [TODO codebox: bigGridworld. draw with agent starting in 3,1.]
 
