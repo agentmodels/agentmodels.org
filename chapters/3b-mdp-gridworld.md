@@ -66,7 +66,7 @@ var makeMDPAgent = function(params, world) {
 };
 
 var simulateMDP = function(startState, world, agent, outputType) {
-  // if outputType is undefined, default to stateAction
+  // if outputType is undefined, default to states
   var act = agent.act;
   var transition = world.transition;
 
@@ -74,7 +74,7 @@ var simulateMDP = function(startState, world, agent, outputType) {
     var table = {states: state,
 		         actions: action,
 				 stateAction: [state, action]};
-    return outputType ? table[outputType] : table.stateAction;
+    return outputType ? table[outputType] : table.states;
   };
 
   var sampleSequence = function(state) {
@@ -99,7 +99,7 @@ var startState = {loc: [0,1],
 var utilityTable = {East: 10, West: 1, Hill: -10, timeCost: -.1};
 var utility = makeHikeUtilityFunction(world, utilityTable);
 var agent = makeMDPAgent({utility: utility, alpha: 1000}, world);
-var trajectory = simulateMDP(startState, world, agent, 'states');
+var trajectory = simulateMDP(startState, world, agent);
 
 
 GridWorld.draw(world, {trajectory: trajectory});
