@@ -25,64 +25,63 @@ The examples of decision problems in previous chapters have a *known*, *finite* 
 
 Generalizing the agent model from previous chapters to the unbounded case faces a difficulty. The *infinite* summed expected utility of an action will (for most natural sequential decision problems) not converge. The standard solution is to model the agent as maximizing the *discounted* expected utility, where the discount function is exponential and has a single free parameter. This makes the infinite sums converge and results in an agent model that is analytically and computationally tractable. 
 
-Aside from mathematical convenience, there is an additional justification for exponential discounting in models of rationl agents. A model of rational agents should not limit the kinds of things or properties the agents can care about [^justification]. In particular, such a model should permit a generalized preference for desirable things occurring sooner rather than later. Exponential discounting models such a preference and makes the agent time consistent [^exponential].
+Aside from mathematical convenience, there is an additional justification for exponential discounting in models of rationl agents. A model of rational agents should not limit the kinds of things or properties the agents can care about[^justification]. In particular, such a model should permit a generalized preference for desirable things occurring sooner rather than later. Exponential discounting models such a preference and makes the agent time consistent[^exponential].
 
 [^justification]: Rational agents can't have inconsistent preferences but aside from this a model should not constrain the kinds of things they care about. More concretely, people care about a range of things: e.g. the food they eat daily, their careers, their families, the progress of science, the preservation of the earth's environment. Many have argued that humans have a time preference. So models that learn human preferences should allow for this possibility. 
 
 [^exponential]: There are arguments that exponential discounting is the uniquely rational mode of discounting for agents with time preference. See X and Y for critical discussion (toby, dasgupta, wolfgang schwarz). 
 
-It is straightforward to add exponential discounting to our existing agent models. We explain this in detail below. Before that we illustrate the effects of exponential discounting. We return to the deterministic Bandit problem from Chapter III.3. Suppose a person decides every year where to go on vacation. There is a fixed list of options and a finite time horizon [^bandit]. The person discounts exponentially and so they prefer a good vacation now to an even better one in the future. This means they are less likely to *explore*, since exploration takes time to pay off.
+It is straightforward to add exponential discounting to our existing agent models. We explain this in detail below. Before that we illustrate the effects of exponential discounting. We return to the deterministic Bandit problem from Chapter III.3. Suppose a person decides every year where to go on vacation. There is a fixed list of options and a finite time horizon[^bandit]. The person discounts exponentially and so they prefer a good vacation now to an even better one in the future. This means they are less likely to *explore*, since exploration takes time to pay off.
 
 [^bandit]: As noted above, exponential discounting is usually combined with an *unbounded* time horizon. However, if a human makes a series of decisions over a long time scale, then it makes sense to include their time preference. For this particular example, imagine the person is looking for the best skiing or sports facilities and doesn't care about variety. There could be a known finite time horizon because they won't anymore be able to take a long vacation or they are too old for the sport. 
 
-TODO: Show deterministic bandits with say 5 arms. agent is certain about some but many are uncertain. Agent will explore the one's with fairly high EV but not the ones with high variance. [Alternatively, could do a gridworld example and show the agent who prefers veg goes to donuth south. Or could do some simple numerical computations for bandits.]
+TODO: Show deterministic bandits with say 5 arms. agent is certain about some but many are uncertain. Agent will explore the one's with fairly high EV but not the ones with high variance.[Alternatively, could do a gridworld example and show the agent who prefers veg goes to donuth south. Or could do some simple numerical computations for bandits.]
 
 
  
 #### Discounting and time inconsistency
-Exponential discounting is typically thought of as an *indexical* or *relative* time preference. A fixed reward will be discounted by a factor of $$\delta^{-30}$$ if received on Day 30 rather than Day 0. However, when Day 30 comes around, the reward will be discounted by $$\delta^{-30}$$ if received on Day 60 rather than Day 30. This is how exponential discounting is implemented in Reinforcement Learning. This indexical time preference is "inconsistent" in a certain superficial sense. With $$\delta=0.95$$ per day (and linear utility in money), $100 after 30 days is worth $21 and $110 at 31 days is worth $22. Yet when the 30th day arrives, they are worth $100 and $105 respectively  [^inconsistent]! Yet while these magnitudes have changed, the ratios stay fixed. Indeed, the ratios between any pair of outcomes are fixed regardless of the time the exponetial discounter evaluates them. So this agent thinks that two prospects in the far future are worth little compared to similar near-term prospects (disagreeing with his future self) but he agrees with his future self about which of the two future prospects is better.
+Exponential discounting is typically thought of as a *relative* time preference. A fixed reward will be discounted by a factor of $$\delta^{-30}$$ if received on Day 30 rather than Day 0. On Day 30, the same reward is discounted by $$\delta^{-30}$$ if received on Day 60 and not at all if received on Day 30. This is how exponential discounting is implemented in Reinforcement Learning. This relative time preference is "inconsistent" in a certain superficial sense. With $$\delta=0.95$$ per day (and linear utility in money), $100 after 30 days is worth $21 and $110 at 31 days is worth $22. Yet when the 30th day arrives, they are worth $100 and $105 respectively [^inconsistent]! Yet while these magnitudes have changed, the ratios stay fixed. Indeed, the ratios between any pair of outcomes are fixed regardless of the time the exponetial discounter evaluates them. So this agent thinks that two prospects in the far future are worth little compared to similar near-term prospects (disagreeing with his future self) but he agrees with his future self about which of the two future prospects is better.
 
 [^inconsistent]: One can think of exponential discounting in a non-relative way by choosing a fixed staring time in the past (e.g. the agent's birth) and discounting everything relative to that. This results in an agent with a preference to travel back in time to get higher rewards!
 
-Any smooth discount function other than an exponential will result in preferences that reverse over time [TODO: cite a good statement and explanation of this result]. So it's not so suprising that untutored humans should be subject to such reversals [^reversal]. Various functional forms for human discounting have been explored in the literature. We will describe the *hyperbolic discounting* model refp:ainslie2001breakdown because it is simple and well-studied. Any other functional form can easily be substituted into our models.
+Any smooth discount function other than an exponential will result in preferences that reverse over time [TODO: cite a good statement and explanation of this result]. So it's not so suprising that untutored humans should be subject to such reversals[^reversal]. Various functional forms for human discounting have been explored in the literature. We will describe the *hyperbolic discounting* model refp:ainslie2001breakdown because it is simple and well-studied. Any other functional form can easily be substituted into our models.
 
 [^reversal]: Without computational aids, human representations of discrete and continuous quantities (including durations in time and dollar values) are systematically inaccurate. See refp:dehaene. 
 
-Hyperbolic and exponential discounting curves are illustrated in Figure 1. We plot the discount factor $$D$$ as a function of time $$t$$ in days. The exponential is:
+Hyperbolic and exponential discounting curves are illustrated in Figure 1. We plot the discount factor $$D$$ as a function of time $$t$$ in days, with constants $$\delta$$ and $$k$$ controlling the slope of the function. In this example, each constant is set to 2. The exponential is:
 
 $$
-D=\frac{1}{2^t}
+D=\frac{1}{\delta^t}
 $$
 
 The hyperbolic function is:
 
 $$
-D=\frac{1}{1+2t}
+D=\frac{1}{1+kt}
 $$
 
-These are not realistic discount rates. The important difference is that the hyperbola is initially steep and then becomes almost flat, while the exponential continues to be steep. 
+The crucial difference between the curves is that the hyperbola is initially steep and then becomes almost flat, while the exponential continues to be steep. This means that exponential discounting is time consistent and hyperbolic discounting is not. 
 
-![Figure 1](/assets/img/hyperbolic_no_label.jpg). 
+TODO: add Figure 1 label, put the function forms 1/2^t and 1/(1+2t) in the legend. maybe label the parts that are steep / shallow. 
 
-Consider the example above but with different numbers. You are offered $100 after 4 days or $110 after 5 days. The discount factors for 4 and 5 days from the present are labeled in Figure 2. The change in $$D$$ from day 4 to 5 is small for the hyperbola (so waiting for $110 is preferred) and big for the exponential. When Day 4 arrives, you can get $100 immediately or $110 after one day. The difference between the curves is labeled on the left. The hyperbola is now steep and leads to you taking the $100 -- reversing your earlier preference.
+![Figure 1](/assets/img/hyperbolic_no_label.jpg)
 
-**Exercise**: Calculate the discounted utilities for the two options ($100 vs. $110) for both hyperbolic and exponential discounting. First compute them when the $100 is 4 days from the present, then when it's 3 days from the present and so on (up to when it's 0 days from the present). 
-
-![Figure 2](/assets/img/hyperbolic_label.jpg). 
-
+>**Exercise:** We return to our running example but with slightly different numbers. The agent chooses between receiving $100 after 4 days or $110 after 5 days. The goal is to compute the preferences over each option for both exponential and hyperbolic discounters, using the discount curves shown in Figure 1. Compute the following:
+> 1. The discounted utility of the $100 and $110 rewards relative to Day 0 (i.e. how much the agent values each option when the rewards are 4 or 5 days away).
+>2. The discounted utility of the $100 and $110 rewards relative to Day 4 (i.e. how much each option is valued when the rewards are 0 or 1 day away).
 
 ### Time inconsistency and sequential decision problems
-We have shown that hyperbolic discounters have different preferences over the $100 and $110 depending on when they make the evaluation. This conflict in preferences leads to complexities in planning that don't occur in the optimal, non-discounting (PO)MDP agents from previous chapters (or in exponential discounters in infinite horizon problems).
+We have shown that hyperbolic discounters have different preferences over the $100 and $110 depending on when they make the evaluation. This conflict in preferences leads to complexities in planning that don't occur in the optimal (PO)MDP agents which either discount exponentially or do not discount at all.
 
-Imagine you are in the situation of Question (1) and have the time inconsistent preferences. You get to write down your preference but after 30 days you'll be free to change your mind. If you know your future self will choose the $100 immediately, you will pay a small cost now to pre-commit your future self. (Maybe you re-schedule an important meeting to 30 from now so you can't go and get the money). However, if you believe your future self will share your preferences, you won't pay this cost (and so you'll end up taking the $100). This illustrates a key distinction between time inconsistent agents solving sequential problems:
+Returning to the previous example (see exercise above), imagine you have time inconsistent preferences. On Day 0, you write down your preference but on Day 4 you'll be free to change your mind. If you know your future self would choose the $100 immediately, you'd pay a small cost now to *pre-commit* your future self. However, if you believe your future self will share your current preferences, you won't pay this cost (and so you'll end up taking the $100). This illustrates a key distinction between Naive and Sophisticated agents:
 
-- **Naive agent**: assumes his future self shares his current time preference exactly. So a Naive hyperbolic discounter assumes his far future self has a nearly flat discount curve (when in reality his future self has "steep then flat" discount curve). 
+- **Naive agent**: assumes his future self shares his current time preference. For example, a Naive hyperbolic discounter assumes his far future self has a nearly flat discount curve (rather than the "steep then flat" discount curve he actually has). 
 
-- **Sophisticated agent**: has the correct model of his future self's time preference. So a Sophisticated hyperbolic discounter has a nearly flat discount curve for the far future but is aware that his future self does not share this discount curve. 
+- **Sophisticated agent**: has the correct model of his future self's time preference. A Sophisticated hyperbolic discounter has a nearly flat discount curve for the far future but is aware that his future self does not share this discount curve.
 
-The Naive agent chooses actions based on the false assumption that his future selves share his time preference. POMDP agents are *uncertain* about some features of the environment but this uncertainty can be corrected. Naive have a fundamentally wrong model of the environment (due to an inaccurate model of themselves) that they don't correct by observation.
+Both kinds of agents will value rewards differently at different times. We refer to a hyperbolic discounter's valuations at time $$t_i$$ as the *preferences of the $$t_i$$-agent*. A Sophisticated agent, unlike a Naive agent, has an accurate model of his future self. This enables a Sophisticated agent, acting at time $$t_0$$, to pre-commit his future self at times $$t>t_0$$, to outcomes that the $$t_0$$-agent prefers.
 
-Sophisticated agents have an accurate model of their future selves. This enables a Sophisticated agent, acting at time $$t_0$$, to pre-commit his future self at times $$t>t_0$$, to actions that the $$t_0$$-agent prefers. So if pre-commitment actions are available at time $$t_0$$, we expect the $$t_0$$-agent to do better (by its own $$t_0$$ lights) if it's Sophisticated rather than Naive -- since if Sophisticated it has identical preferences and more knowledge of the world. This means that being Naive at $$t_0$$ is better for the preferences of the $$t>t_0$$ agents.
+So if pre-commitment actions are available at time $$t_0$$, we expect the $$t_0$$-agent to do better (by its own $$t_0$$ lights) if it's Sophisticated rather than Naive -- since if Sophisticated it has identical preferences and more knowledge of the world. This means that being Naive at $$t_0$$ is better for the preferences of the $$t>t_0$$ agents.
 
 
 ### Naive and Sophisticated Agents: Gridworld Example
