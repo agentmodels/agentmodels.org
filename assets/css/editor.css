@@ -1,4 +1,6 @@
-/* these two styles prevent the ~300px empty space below editor; HT customized styling section of http://codemirror.net/2/doc/manual.html */
+.wpedit {
+    font-family: Menlo, Courier;
+}
 
 .wpedit .progress {
     font-size: 11px;
@@ -21,6 +23,8 @@
     width: 0;
     height: 100%;
 }
+
+/* these two styles prevent the ~300px empty space below editor; HT customized styling section of http://codemirror.net/2/doc/manual.html */
 
 .wpedit .CodeMirror {
     height: auto;
