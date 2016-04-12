@@ -542,3 +542,7 @@ GridWorld.draw(gridworld, {trajectory: manifestStates});
 
 
 
+------
+
+![myopia gridworld](/assets/img/5b-myopia-gridworld.png)
+
