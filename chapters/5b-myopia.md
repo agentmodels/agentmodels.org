@@ -202,7 +202,10 @@ The implementation of the Myopic agent in WebPPL is a direct translation of the 
 
 We show the performance of the Myopic agent on Multi-Arm bandits.
 
+TODO:
+- Myopic agent is equivalent. We give some evidence. Exercise: test this in more detail. Maybe should remove the repeat thing and just let people test it?
 
+- Use a diagram to illustrate the bandit problem. Then we can use same diagrams throughout. 
 
 ~~~~
 // myopia_bandit_performance
@@ -331,9 +334,8 @@ map( function(name){
 
 ~~~~
 
-blah blah
-
-scaling
+TODO:
+- myopia will scale much better. note that neither agent has been optimized for the bandit problem in any way. very easy to hand optimize myopia to be much more efficient than here because the exploit is completely predictable. but this version indicates the general speed up from myopia. 
 
 ~~~~
 // myopia_bandit_scaling
@@ -460,8 +462,9 @@ print('\nMyopic Agent runtime in s:  ' + totalTimeValues + '\n' + myopicTimes);
 ~~~~
 
 
+### Restaurant search problem
 
-Restaurant search problem
+TODO: explain the example
 
 ~~~~
 // optimal_agent_restaurant_search
