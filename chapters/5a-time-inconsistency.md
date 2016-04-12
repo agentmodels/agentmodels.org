@@ -38,6 +38,68 @@ It is straightforward to add exponential discounting to our existing agent model
 TODO: Show deterministic bandits with say 5 arms. agent is certain about some but many are uncertain. Agent will explore the one's with fairly high EV but not the ones with high variance.[Alternatively, could do a gridworld example and show the agent who prefers veg goes to donuth south. Or could do some simple numerical computations for bandits.]
 
 
+~~~~
+// exponential_discount_vs_optimal_bandits
+
+var armToPrize = {
+  0: 'chocolate',
+  1: 'nothing',
+  2: 'chewingGum'
+};
+var worldAndStart = makeIRLBanditWorldAndStart(3, armToPrize, 10);
+var world = worldAndStart.world;
+var startState = worldAndStart.startState;
+
+var utilityTable = {nothing: 0, chocolate: 1, champagne: 5,
+		            cheerios: 1.5, chewingGum: 0.5};
+
+var priorBelief = Enumerate(function(){
+  var latentState = {
+	// arm 0 has a certain payoff
+    0: 'chocolate',
+	// arms 1 has low expected utility but high variance
+    1: categorical([0.1, 0.9], ['champagne', 'nothing']),
+	// arm 2 has high expected utility but low variance
+    2: uniformDraw(['cheerios', 'chewingGum'])
+  };
+  return buildState(startState.manifestState, latentState);
+});
+
+var exponentialDiscount = function(delay) {
+  return Math.pow(0.5, delay);
+};
+
+var agentParams = {
+  alpha: 10000,
+  priorBelief: priorBelief,
+  myopia: {on: false, bound: 0},
+  boundVOI: {on: false, bound: 0},
+  noDelays: false,
+  discount: 0,
+  discountFunction: exponentialDiscount,
+  sophisticatedOrNaive: 'naive'
+};
+var exponentialDiscounter = makeIRLBanditAgent(utilityTable, agentParams,
+					                           worldAndStart, 'beliefDelay');
+
+var optimalAgent = makeIRLBanditAgent(utilityTable, agentParams, worldAndStart,
+				                      'belief');
+
+var discounterTrajectory = simulateBeliefDelayAgent(startState, world,
+						                            exponentialDiscounter,
+													'actions');
+
+print('discounting trajectory:');
+
+print(most(discounterTrajectory));
+
+var optimalTrajectory = simulateBeliefAgent(startState, world, optimalAgent,
+					                        'actions');
+
+print('optimal trajectory:');
+print(most(optimalTrajectory));
+~~~~
+
  
 #### Discounting and time inconsistency
 Exponential discounting is typically thought of as a *relative* time preference. A fixed reward will be discounted by a factor of $$\delta^{-30}$$ if received on Day 30 rather than Day 0. On Day 30, the same reward is discounted by $$\delta^{-30}$$ if received on Day 60 and not at all if received on Day 30. This is how exponential discounting is implemented in Reinforcement Learning. This relative time preference is "inconsistent" in a certain superficial sense. With $$\delta=0.95$$ per day (and linear utility in money), $100 after 30 days is worth $21 and $110 at 31 days is worth $22. Yet when the 30th day arrives, they are worth $100 and $105 respectively[^inconsistent]! Yet while these magnitudes have changed, the ratios stay fixed. Indeed, the ratios between any pair of outcomes are fixed regardless of the time the exponetial discounter evaluates them. So this agent thinks that two prospects in the far future are worth little compared to similar near-term prospects (disagreeing with his future self) but he agrees with his future self about which of the two future prospects is better.
