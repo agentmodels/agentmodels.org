@@ -461,16 +461,7 @@ print('\nMyopic Agent runtime in s:  ' + totalTimeValues + '\n' + myopicTimes);
 
 
 
-
-TODO
-We make a Gridworld version of the "Restaurant Search" problem. The agent is uncertain of the quality of all of the restaurants and has an independent uniform prior on each one, in particular `uniformDraw( _.range(1,11) )'. By moving adjacent to a restaurant, the agent observes the quality (e.g. by seeing how full the restaurant is or how good it looks from the menu). An image of the grid, which includes the true latent restaurant utilities and disiderata for where the agent should end up is in: /assets/img/5b-myopia-gridworld.png.
-
-Cell references are spreadsheet-style: [A, B, C, ... ] for columns and [1,2,3 ...] for rows. 
-
-![myopia gridworld](/assets/img/5b-myopia-gridworld.png)
-
-Assuming we want to stick with "no uncertainty over utilities" and "utilities depend only on state", we would have to implement this by having extra states associated with the utility values in range(1,11). The latent state is the table {restaurantA:utilityRestaurantA}. The transition function is the normal gridworld transition, with an extra condition s.t. when the agent goes to a restaurant they get sent to state corresponding to the restaurant's utility. (Whatever solution is used need not be general. We don't need to show the code, we just need to make the example work).
-
+Restaurant search problem
 
 ~~~~
 // optimal_agent_restaurant_search
