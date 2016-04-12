@@ -202,245 +202,265 @@ The implementation of the Myopic agent in WebPPL is a direct translation of the 
 
 We show the performance of the Myopic agent on Multi-Arm bandits.
 
-For 2-arms, Myopic with D=1 is optimal. Verify this and compare runtime.
+
 
 ~~~~
-var world = makeStochasticBanditWorld(2);
-var worldObserve = world.observe;
-var observe = getFullObserve(worldObserve);
-var transition = world.transition;
+// myopia_bandit_performance
 
-var probablyChampagneERP = categoricalERP([0.4, 0.6], ['nothing', 'champagne']);
-var probablyNothingERP = categoricalERP([0.6, 0.4], ['nothing', 'champagne']);
+// Helper functions for Bandits:
+///fold:
 
-var trueLatent = {0: probablyNothingERP,
-		          1: probablyChampagneERP};
+// HELPERS FOR CONSTRUCTING AGENT
 
-var timeLeft = 7;
-
-var startState = buildStochasticBanditStartState(timeLeft, trueLatent);
-
-var prior = Enumerate(function(){
-  var latentState = {0: uniformDraw([probablyChampagneERP, probablyNothingERP]),
-		             1: categorical([0.6, 0.4], [probablyChampagneERP,
-					                        	 probablyNothingERP])};
-  return buildStochasticBanditStartState(timeLeft, latentState);
-});
-
-var prizeToUtility = {start: 0, nothing: 0, champagne: 2};
+var prizeToUtility = {start: 0, 0: 0, 1: 1}; // Utility linear in the reward
 var utility = makeStochasticBanditUtility(prizeToUtility);
 
-var optimalAgentParams = {utility: utility,
-			              alpha: 100,
-						  priorBelief: prior,
-						  fastUpdateBelief: false};
-var optimalAgent = makeBeliefAgent(optimalAgentParams, world);
-
-var myopicAgentParams = {utility: utility,
-			             alpha: 100,
-						 priorBelief: prior,
-						 sophisticatedOrNaive: 'naive',
-						 boundVOI: {on: true, bound: 1},
-						 noDelays: false,
-						 discount: 0,
-						 myopia: {on: false, bound: 0},
-						 fastUpdateBelief: false};
-var myopicAgent = makeBeliefDelayAgent(myopicAgentParams, world);
-
-var nearlyEqualActionERPs = function(erp1, erp2) {
-  var nearlyEqual = function(float1, float2) {
-    return Math.abs(float1 - float2) < 0.05;
-  };
-  return nearlyEqual(erp1.score([], 0), erp2.score([], 0))
-    && nearlyEqual(erp1.score([], 1), erp2.score([], 1));
+var baseParams = {
+  utility: utility,
+  alpha: 1000,
+  fastUpdateBelief: false,
+  noDelays: false,
+  sophisticatedOrNaive: 'naive',
+  myopia: {on: false, bound: 0},
+  discount: 0
 };
 
-// it's important that we simulate the two agents such that they get the same
-// prizes when pulling the same arms, so that we can check if their
-// actions are the same. We could not ensure this by simply simulating one agent
-// and then the other.
-var sampleTwoSequences = function(states, priorBeliefs, actions) {
+var getParams = function(agentPrior, options){
+  var params = update(baseParams, {priorBelief: agentPrior});
+  return update(params, options);
+};
+
+var getAgentPrior = function(totalTime, priorArm0, priorArm1){
+  return Enumerate(function(){
+    var latentState = {0: priorArm0(), 1: priorArm1()};
+    return buildStochasticBanditStartState(totalTime, latentState);
+  });
+};
+
+// HELPERS FOR CONSTRUCTING WORLD
+
+// Possible distributions for arms
+var probably1ERP = categoricalERP([0.4, 0.6], ['0', '1']);
+var probably0ERP = categoricalERP([0.6, 0.4], ['0', '1']);
+
+
+// Construct Bandit POMDP
+var getBanditWorld = function(totalTime){
+  var numberArms = 2;
+  var world = makeStochasticBanditWorld(numberArms);
+  
+  // Arm to distribution
+  var trueLatent = {0: probably0ERP,
+		    1: probably1ERP};
+  
+  var start = buildStochasticBanditStartState(totalTime, trueLatent);
+
+  return {world:world, start:start};
+};
+
+// Get score for a single episode of bandits
+var score = function(out){
+  var total = sum(map(function(x){
+  return prizeToUtility[x.observation.manifestState.loc];}, out));
+  return total / out.length;
+  };
+
+var output = 'stateObservationAction';
+///
+
+
+// Agent prior on arm rewards
+
+// Possible distributions for arms
+var probably0ERP = categoricalERP([0.6, 0.4], ['0', '1']);
+var probably1ERP = categoricalERP([0.4, 0.6], ['0', '1']);
+
+// True latentState:
+// arm0 is probably0ERP, arm1 is probably1ERP (and so is better)
+
+// Agent prior on arms: arm1 (better arm) has higher EV
+var priorArm0 = function(){
+  return categorical([0.5, 0.5], [probably1ERP, probably0ERP])
+};
+var priorArm1 = function(){
+  return categorical([0.6, 0.4], [probably1ERP, probably0ERP])
+};
+
+
+var runAgents = function(totalTime){
+  
+  // Construct world and agents
+  var banditWorld = getBanditWorld(totalTime);
+  var world = banditWorld.world;
+  var start = banditWorld.start;
+  
+  var agentPrior = getAgentPrior(totalTime, priorArm0, priorArm1);
+
+  var optimalAgent = makeBeliefAgent(getParams(agentPrior), world);
+  var myopicParams = getParams(agentPrior, {boundVOI: {on:true, bound:1}});
+  var myopicAgent = makeBeliefDelayAgent(myopicParams, world);
+
+  // Get average score across totalTime for both agents
+  var runOptimal = function(){
+    return score(simulateBeliefAgent(start, world, optimalAgent, output)); 
+  };
+  
+  var runMyopic = function(){
+    return score(simulateBeliefDelayAgent(start, world, myopicAgent, output));                                          
+  };
+
+  return [timeit(runOptimal), timeit(runMyopic)];
+};
+
+
+// Show performance is similar for Optimal and Myopic
+var runAgents5 = function(){
+  var out = runAgents(5);
+  return [out[0].value, out[1].value];
+};
+
+var repeat10 = repeat(10, runAgents5);
+var optimalScore = map(first, repeat10);
+var myopicScore = map(second, repeat10);
+
+map( function(name){
+  var score = name=='Optimal' ? optimalScore : myopicScore;
+  print( name + ' Agent mean score for each of 10 episodes of Bandits: \n' + 
+        JSON.stringify(score) + '\n Overall Mean: ' + listMean(score) );
+}, ['Optimal', 'Myopic'] );
+
+~~~~
+
+blah blah
+
+scaling
+
+~~~~
+// myopia_bandit_scaling
+// Same helper functions as above codebox
 ///fold:
-  var optimalState = states[0];
-  var optimalPriorBelief = priorBeliefs[0];
-  var optimalAction = actions[0];
 
-  var optimalAct = optimalAgent.act;
-  var optimalUpdateBelief = optimalAgent.updateBelief;
-  
-  var myopicState = states[1];
-  var myopicPriorBelief = priorBeliefs[1];
-  var myopicAction = actions[1];
-  
-  var myopicAct = myopicAgent.act;
-  var myopicUpdateBelief = myopicAgent.updateBelief;
+// HELPERS FOR CONSTRUCTING AGENT
 
-  var optimalObservation = observe(optimalState);
-  var myopicObservation = observe(myopicState);
-  
-  var delay = 0;
-  var newMyopicBelief = myopicUpdateBelief(myopicPriorBelief, myopicObservation,
-					                       myopicAction, delay);
-  var newOptimalBelief = optimalUpdateBelief(optimalPriorBelief,
-					                         optimalObservation, optimalAction);
+var prizeToUtility = {start: 0, 0: 0, 1: 1}; // Utility linear in the reward
+var utility = makeStochasticBanditUtility(prizeToUtility);
 
-  var newMyopicActionERP = myopicAct(newMyopicBelief, delay);
-  var newOptimalActionERP = optimalAct(newOptimalBelief);
-
-  var newMyopicAction = sample(newMyopicActionERP);
-  // if ERPs over actions are almost the same, have the agents pick the same
-  // action
-  var newOptimalAction = nearlyEqualActionERPs(newMyopicActionERP,
-					       newOptimalActionERP)
-	? newMyopicAction : sample(newOptimalActionERP);
-
-  var optimalLocAction = [optimalState.manifestState.loc, newOptimalAction];
-  var myopicLocAction = [myopicState.manifestState.loc, newMyopicAction];
-
-  var output = [optimalLocAction, myopicLocAction];
-
-  if (optimalState.manifestState.terminateAfterAction) {
-    return output;
-  } else {
-    var nextPriorBeliefs = [newOptimalBelief, newMyopicBelief];
-    var nextActions = [newOptimalAction, newMyopicAction];
-    if (_.isEqual(optimalState, myopicState) && _.isEqual(newOptimalAction,
-							                              newMyopicAction)) {
-      // if actions are the same, transition to the same state
-      var nextState = transition(optimalState, newOptimalAction);
-      var nextStates = [nextState, nextState];
-      var recurse = sampleTwoSequences(nextStates, nextPriorBeliefs,
-			                	       nextActions);
-      return [optimalLocAction.concat(recurse[0]),
-	          myopicLocAction.concat(recurse[1])];
-    } else {
-      var nextOptimalState = transition(optimalState, newOptimalAction);
-      var nextMyopicState = transition(myopicState, newMyopicAction);
-      var nextStates = [nextOptimalState, nextMyopicState];
-      var recurse = sampleTwoSequences(nextStates, nextPriorBeliefs,
-			                	       nextActions);
-      return [optimalLocAction.concat(recurse[0]),
-	          myopicLocAction.concat(recurse[1])];
-    }
-  }
-///	
+var baseParams = {
+  utility: utility,
+  alpha: 1000,
+  fastUpdateBelief: false,
+  noDelays: false,
+  sophisticatedOrNaive: 'naive',
+  myopia: {on: false, bound: 0},
+  discount: 0
 };
 
-var startAction = 'noAction';
+var getParams = function(agentPrior, options){
+  var params = update(baseParams, {priorBelief: agentPrior});
+  return update(params, options);
+};
 
-var trajectories = sampleTwoSequences([startState, startState], [prior, prior],
-                                      [startAction, startAction]);
-var length = trajectories[0].length;
-print('Trajectory of optimal agent: ' + trajectories[0].slice(1, length - 1));
-print('Trajectory of myopic agent: ' + trajectories[1].slice(1, length - 1));
-~~~~
-
-Scaling of myopic agent:
-
-~~~~
-var varyTime = function(n) {
-  var world = makeStochasticBanditWorld(2);
-
-  var probablyChampagneERP = categoricalERP([0.2, 0.8], ['nothing', 'champagne']);
-  var probablyNothingERP = categoricalERP([0.8, 0.2], ['nothing', 'champagne']);
-
-  var trueLatent = {0: deltaERP('chocolate'),
-  		            1: probablyChampagneERP};
-  var falseLatent = update(trueLatent, {1: probablyNothingERP});
-
-  var startState = buildStochasticBanditStartState(n, trueLatent);
-
-  var prior = Enumerate(function(){
-    var latent = uniformDraw([trueLatent, falseLatent]);
-    return buildStochasticBanditStartState(n, latent);
+var getAgentPrior = function(totalTime, priorArm0, priorArm1){
+  return Enumerate(function(){
+    var latentState = {0: priorArm0(), 1: priorArm1()};
+    return buildStochasticBanditStartState(totalTime, latentState);
   });
-
-  var prizeToUtility = {start: 0, nothing: 0, chocolate: 1, champagne: 1.5};
-  var utility = makeStochasticBanditUtility(prizeToUtility);
-
-  var agentParams = {utility: utility,
-	                 alpha: 100,
-					 priorBelief: prior,
-					 sophisticatedOrNaive: 'naive',
-					 boundVOI: {on: true, bound: 1},
-					 noDelays: false,
-					 discount: 0,
-					 myopia: {on: false, bound: 0},
-					 fastUpdateBelief: false};
-  var agent = makeBeliefDelayAgent(agentParams, world);
-
-  var f = function() {
-    return simulateBeliefDelayAgent(startState, world, agent, 'stateAction');
-  };
-
-  return timeit(f).runtimeInMilliseconds.toPrecision(3) * 0.001;
 };
 
-var lifetimes = _.range(16).slice(2);
-var runtimes = map(varyTime, lifetimes);
+// HELPERS FOR CONSTRUCTING WORLD
 
-print('Runtime in sec for lifetimes ' + lifetimes + '\n' + runtimes);
+// Possible distributions for arms
+var probably1ERP = categoricalERP([0.4, 0.6], ['0', '1']);
+var probably0ERP = categoricalERP([0.6, 0.4], ['0', '1']);
 
-viz.line(lifetimes, runtimes);
-~~~~
 
-~~~~
-var varyArms = function(n) {
-  var world = makeStochasticBanditWorld(n);
-
-  var probablyChampagneERP = categoricalERP([0.2, 0.8], ['nothing', 'champagne']);
-  var probablyNothingERP = categoricalERP([0.8, 0.2], ['nothing', 'champagne']);
+// Construct Bandit POMDP
+var getBanditWorld = function(totalTime){
+  var numberArms = 2;
+  var world = makeStochasticBanditWorld(numberArms);
   
-  var makeLatentState = function(numArms) {
-    return map(function(x){return probablyChampagneERP;}, _.range(numArms));
-  };
+  // Arm to distribution
+  var trueLatent = {0: probably0ERP,
+		    1: probably1ERP};
+  
+  var start = buildStochasticBanditStartState(totalTime, trueLatent);
 
-  var startState = buildStochasticBanditStartState(4, makeLatentState(n));
-
-  var latentSampler = function(numArms) {
-    return map(function(x){return uniformDraw([probablyNothingERP,
-                    					       probablyChampagneERP]);},
-	           _.range(numArms));
-  };
-  var prior = Enumerate(function(){
-    var latentState = latentSampler(n);
-    return buildStochasticBanditStartState(4, latentState);
-  });
-
-  var prizeToUtility = {start: 0, nothing: 0, champagne: 1};
-
-  var utility = makeStochasticBanditUtility(prizeToUtility);
-  var agentParams = {utility: utility,
-		             alpha: 100,
-					 priorBelief: prior,
-					 sophisticatedOrNaive: 'naive',
-					 boundVOI: {on: true, bound: 1},
-					 noDelays: false,
-					 discount: 0,
-					 myopia: {on: false, bound: 0},
-					 fastUpdateBelief: false};
-  var agent = makeBeliefDelayAgent(agentParams, world);
-
-  var f = function() {
-    var trajectory = simulateBeliefDelayAgent(startState, world, agent, 'stateAction');
-    return trajectory;
-  };
-
-  return timeit(f).runtimeInMilliseconds.toPrecision(3) * 0.001;
-
+  return {world:world, start:start};
 };
 
-var arms = [1,2,3];
-var runtimes = map(varyArms, arms);
+// Get score for a single episode of bandits
+var score = function(out){
+  var total = sum(map(function(x){
+  return prizeToUtility[x.observation.manifestState.loc];}, out));
+  return total / out.length;
+};
 
-print('Runtime in sec for arms ' + arms + '\n' + runtimes);
+var output = 'stateObservationAction';
 
-viz.bar(arms, runtimes);
+
+
+// Agent prior on arm rewards
+
+// Possible distributions for arms
+var probably0ERP = categoricalERP([0.6, 0.4], ['0', '1']);
+var probably1ERP = categoricalERP([0.4, 0.6], ['0', '1']);
+
+// True latentState:
+// arm0 is probably0ERP, arm1 is probably1ERP (and so is better)
+
+// Agent prior on arms: arm1 (better arm) has higher EV
+var priorArm0 = function(){
+  return categorical([0.5, 0.5], [probably1ERP, probably0ERP])
+};
+var priorArm1 = function(){
+  return categorical([0.6, 0.4], [probably1ERP, probably0ERP])
+};
+
+
+var runAgents = function(totalTime){
+  
+  // Construct world and agents
+  var banditWorld = getBanditWorld(totalTime);
+  var world = banditWorld.world;
+  var start = banditWorld.start;
+  
+  var agentPrior = getAgentPrior(totalTime, priorArm0, priorArm1);
+
+  var optimalAgent = makeBeliefAgent(getParams(agentPrior), world);
+  var myopicParams = getParams(agentPrior, {boundVOI: {on:true, bound:1}});
+  var myopicAgent = makeBeliefDelayAgent(myopicParams, world);
+
+  // Get average score across totalTime for both agents
+  var runOptimal = function(){
+    return score(simulateBeliefAgent(start, world, optimalAgent, output)); 
+  };
+  
+  var runMyopic = function(){
+    return score(simulateBeliefDelayAgent(start, world, myopicAgent, output));                                          
+  };
+
+  return [timeit(runOptimal), timeit(runMyopic)];
+};
+
+///
+
+// Show scaling in number of trials is better for Myopic
+
+var totalTimeValues = range(9).slice(2);
+var allTimes = map( runAgents, totalTimeValues )
+var optimalTimes = map( function(time){
+  return (.001*time[0].runtimeInMilliseconds).toPrecision(2);
+}, allTimes );
+var myopicTimes = map( function(time){
+  return (.001*time[1].runtimeInMilliseconds).toPrecision(2);
+}, allTimes );
+
+print('Optimal Agent runtime in s:  ' + totalTimeValues + '\n' + optimalTimes);
+print('\nMyopic Agent runtime in s:  ' + totalTimeValues + '\n' + myopicTimes);
 ~~~~
 
-For >2 arms, I believe Myopic D=1 is not optimal. Verify this. It should be much faster as the number of arms grows. (One easy way to speed it up is to have a special *updateBelief* in *beliefDelayAgent* for stochastic bandits. the only difference is that once delay>=C, you should just directly update the timeLeft, assuming you have belief in *ERPOverLatentState*. This will avoid the Enumerate for *nextBelief*.)
 
-Probably: we should have an example of the agent that's myopic in utilities. We'd like examples that distinguish it from both the optimal agent and the boundVOI agent. 
+
 
 TODO
 We make a Gridworld version of the "Restaurant Search" problem. The agent is uncertain of the quality of all of the restaurants and has an independent uniform prior on each one, in particular `uniformDraw( _.range(1,11) )'. By moving adjacent to a restaurant, the agent observes the quality (e.g. by seeing how full the restaurant is or how good it looks from the menu). An image of the grid, which includes the true latent restaurant utilities and disiderata for where the agent should end up is in: /assets/img/5b-myopia-gridworld.png.
