@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+plt.style.use('ggplot')
 
 ax = plt.subplot(111)
 
