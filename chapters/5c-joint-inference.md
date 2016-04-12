@@ -294,11 +294,6 @@ The graphs show that as the agent's time horizon increases the inferences of the
 
 -------
 
-### Restaurant in Foreign City example
-TODO: Model without myopia assumes a preference for the restaurants that are close (i.e. a prior that prefers them). If we add more restaurants, or make the variance higher and timecost lower, we can accentuate this effect. We can also make the game repeated (problem of tractability). 
-
---------
---------
 
 ## Restaurant Choice Inference
 
