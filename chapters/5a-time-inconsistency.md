@@ -250,16 +250,16 @@ As with the MDP and POMDP agents, our WebPPL implementation directly translates 
 
 
 ~~~~
-
-
 var makeAgent = function (params, world) {
   var stateToActions = world.stateToActions;
   var transition = world.transition;
   var utility = params.utility;
+  var paramsDiscountFunction = params.discountFunction;
 
-  var discountFunction = function(delay){
-    return 1/(1 + params.discount*delay);
-  };
+  var discountFunction = paramsDiscountFunction ? paramsDiscountFunction
+	: function(delay){
+	  return 1/(1 + params.discount*delay);
+	};
 
   var isNaive = params.sophisticatedOrNaive=='naive';
     
@@ -303,10 +303,9 @@ var simulate = function(startState, world, agent) {
   var sampleSequence = function (state) {
     var delay = 0;
     var action = sample(act(state, delay));
-    var nextState = transition(state, action); 
-    var out = [state,action]
+    var nextState = transition(state, action);
     return state.terminateAfterAction ?
-      [out] : [out].concat(sampleSequence(nextState));
+      [state] : [state].concat(sampleSequence(nextState));
   };
   return sampleSequence(startState);
 };
@@ -323,19 +322,18 @@ var makeRestaurantUtilityFunction = function (world, rewards) {
   };
 };
 
-
 // Construct MDP, i.e. world
 var startState = { 
   loc : [3,0],
   terminateAfterAction : false,
-  timeLeft : 13
+  timeLeft : 14
 };
 
-var world = makeDonutWorld2({ big : true, maxTimeAtRestaurant : 2});
-
-
-// Construct hyperbolic discounting agent
-
+var world = makeDonutWorld2({ big : true,
+			                  maxTimeAtRestaurant : 2,
+							  noReverse: true});
+				  
+// Construct hyperbolic discounting agent and exponential discounting agent
 
 // Utilities for restaurants: [immediate reward, delayed reward]
 // Also *timeCost*, cost of taking a single action.
@@ -348,27 +346,69 @@ var restaurantUtility = makeRestaurantUtilityFunction(world, {
     'timeCost': -.01
 });
 
+// exponential discount function
+// try varying the discount factor from 0.8
+var exponentialDiscount = function(delay) {
+  return Math.pow(0.8, delay);
+};
+
 var baseAgentParams = {
   utility : restaurantUtility,
   alpha : 500, 
   discount : 1
 };
 
-// Construct Sophisticated and Naive agents
-var sophisticatedAgent = makeAgent(
+// Construct Sophisticated and Naive hyperbolic agents
+var sophisticatedHyperbolicAgent = makeAgent(
   update(baseAgentParams, {sophisticatedOrNaive: 'sophisticated'}), 
   world
 );
 
-var naiveAgent = makeAgent( 
+var sophisticatedHyperbolicTrajectory = simulate(startState, world,
+	                                             sophisticatedHyperbolicAgent);
+
+var naiveHyperbolicAgent = makeAgent( 
   update(baseAgentParams, {sophisticatedOrNaive: 'naive'}), 
   world
 );
 
-// TODO: draw these trajectories. 
-print('Soph traj' +  simulate(startState, world, sophisticatedAgent));
-print('Naive trajectory' + 
-            simulate(startState, world, naiveAgent));
+var naiveHyperbolicTrajectory = simulate(startState, world,
+                                         naiveHyperbolicAgent);
+
+var sophisticatedExponentialAgent = makeAgent(
+  update(baseAgentParams, {sophisticatedOrNaive: 'sophisticated',
+			   discountFunction: exponentialDiscount}),
+  world
+);
+
+var sophisticatedExponentialTrajectory = simulate(startState, world,
+                                                  sophisticatedExponentialAgent);
+
+var naiveExponentialAgent = makeAgent(
+  update(baseAgentParams, {sophisticatedOrNaive: 'naive',
+			   discountFunction: exponentialDiscount}),
+  world
+);
+
+var naiveExponentialTrajectory = simulate(startState, world,
+                                          naiveExponentialAgent);
+
+print('Sophisticated hyperbolic trajectory:');
+
+GridWorld.draw(world, {trajectory: sophisticatedHyperbolicTrajectory});
+
+print('Naive hyperbolic trajectory:');
+
+GridWorld.draw(world, {trajectory: naiveHyperbolicTrajectory});
+
+print('Sophisticated exponential trajectory:');
+
+GridWorld.draw(world, {trajectory: sophisticatedExponentialTrajectory});
+
+print('Naive exponential trajectory:');
+
+GridWorld.draw(world, {trajectory: naiveExponentialTrajectory});
+  
 ~~~~
             
 
