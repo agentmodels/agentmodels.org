@@ -294,7 +294,7 @@ var makeAgent = function (params, world) {
     act: act
   };
 };
-
+1
 ~~~~
 
 
@@ -377,50 +377,29 @@ var exponentialDiscount = function(delay) {
   return Math.pow(0.8, delay);
 };
 
-
-// Construct Sophisticated and Naive agents
-var sophisticatedHyperbolicAgent = makeAgent({sophisticatedOrNaive: 'sophisticated', utility : restaurantUtility }, world);
-var trajectory = simulate(startState, world,
-	                  sophisticatedHyperbolicAgent);
-
-var plans = plannedTrajectories(trajectory, world, sophisticatedHyperbolicAget);
-print('Sophisticated hyperbolic trajectory:');
-Gridworld.draw(world, { trajectory : trajectory, paths : plans });
-
-var naiveHyperbolicAgent = makeAgent({sophisticatedOrNaive: 'naive', utility : restaurantUtility }, world) 
-var trajectory = simulateMDP(startState, world,
-	                  naiveHyperbolicAgent);
-
-var plans = plannedTrajectories(trajectory, world, naiveHyperbolicAgent);
-print('Naive hyperbolic trajectory:');
-Gridworld.draw(world, { trajectory : trajectory, paths : plans });
+var runAndGraph = function(description, agent) { 
+  var trajectory = simulateMDP(start, world, agent);
+  var plans = plannedTrajectories(trajectory, world, agent);
+  print(description + ' trajectory:');
+  GridWorld.draw(world, { trajectory : trajectory, dynamicActionExpectedUtilities : plans });
+};
 
 
-var sophisticatedExponentialAgent = makeAgent(
-  update(baseAgentParams, {sophisticatedOrNaive: 'sophisticated',
-			   discountFunction: exponentialDiscount}),
-  world
+// Construct Sophisticated and Naive Hyperbolic agents
+runAndGraph('Sophisticated Hyperbolic', 
+            makeAgent({sophisticatedOrNaive: 'sophisticated', utility : restaurantUtility }, world)
 );
-var trajectory = simulateMDP(startState, world,
-	                  sophisticatedExponentialAgent);
-
-var plans = plannedTrajectories(trajectory, world, sophisticatedExponentialAgent);
-print('Sophisticated exponential trajectory:');
-Gridworld.draw(world, { trajectory : trajectory, paths : plans });
-
-
-var naiveExponentialAgent = makeAgent(
-  update(baseAgentParams, {sophisticatedOrNaive: 'naive',
-			   discountFunction: exponentialDiscount}),
-  world
+runAndGraph('Naive Hyperbolic', 
+            makeAgent({sophisticatedOrNaive: 'naive'        , utility : restaurantUtility }, world)
 );
 
-var trajectory = simulateMDP(startState, world,
-	                  naiveExponentialAgent);
-
-var plans = plannedTrajectories(trajectory, world, naiveExponentialAgent);
-print('Naive exponential trajectory:');
-Gridworld.draw(world, { trajectory : trajectory, paths : plans });
+// Construct Sophisticated and Naive Exponential agents
+runAndGraph('Sophisticated Exponential', 
+            makeAgent({sophisticatedOrNaive: 'sophisticated', discountFunction: exponentialDiscount, utility : restaurantUtility }, world)
+);
+runAndGraph('Naive Exponential', 
+            makeAgent({sophisticatedOrNaive: 'naive'        , discountFunction: exponentialDiscount, utility : restaurantUtility }, world)
+);
 ~~~~
             
 
