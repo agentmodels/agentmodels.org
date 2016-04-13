@@ -294,56 +294,81 @@ var makeAgent = function (params, world) {
     act: act
   };
 };
+1
+~~~~
 
-var simulate = function(startState, world, agent) {
-  var act = agent.act;
-  var expectedUtility = agent.expectedUtility;
+
+Next we simulate both the naive and sophisticated versions of our hyperbolic discounter. 
+
+To better understand the behavior of the discounter, we use the `plannedTrajectories` function to compute the agent's current plan at each timestep. `plannedTrajectories` computes what full path the agent currently expects its future self to take. The naive agent, the plan is systematically wrong; the naive agent thinks in the future it will value rewards the same way it does now, but in reality it will discount them differently. The sophisticated agent on the other hand, correctly anticipates its future actions, the agent knows that in the future it will value rewards differently that it does now. 
+
+We can animate these expected paths by passing the optional `paths` argument to `GridWorld.draw`.
+
+Watch the simulation and notice how the naive agent changes its plan to go to Veg as it passes by Donut N. It failed to anticipate that it would be sidetracked by Donut N. The sophisticated agent, on the other hand anticipates this and routes around Donut N. 
+
+~~~~
+//simulate_hyperbolic_agent
+///fold: 
+var makeAgent = function (params, world) {
+  var defaultParams = {
+    alpha : 500, 
+    discount : 1
+  };
+  var params = update(defaultParams, params);
+  var stateToActions = world.stateToActions;
   var transition = world.transition;
+  var utility = params.utility;
 
-  var sampleSequence = function (state) {
-    var delay = 0;
-    var action = sample(act(state, delay));
-    var nextState = transition(state, action);
-    return state.terminateAfterAction ?
-      [state] : [state].concat(sampleSequence(nextState));
+  var discountFunction = function(delay){
+    return 1/(1 + params.discount*delay);
   };
-  return sampleSequence(startState);
-};
 
+  var isNaive = params.sophisticatedOrNaive=='naive';
+    
+  var act = dp.cache( 
+    function(state, delay){
+      var delay = delay ? delay : 0; //make sure delay is never undefined
+      return Enumerate(function(){
+        var action = uniformDraw(stateToActions(state));
+        var eu = expectedUtility(state, action, delay);    
+        factor(params.alpha * eu);
+        return action;
+      });      
+    });
+  
+  var expectedUtility = dp.cache(
+    function(state, action, delay){
 
-// TODO - move this to a library?
-var makeRestaurantUtilityFunction = function (world, rewards) { 
-  return function(state, action) {
-    var getFeature = world.feature;
-    var feature = getFeature(state);
-
-    if (feature.name) { return rewards[feature.name][state.timeAtRestaurant]; }
-    return rewards.timeCost;
+      var u = discountFunction(delay) * utility(state, action);
+      if (state.terminateAfterAction){
+        return u; 
+      } else {                     
+        return u + expectation( Enumerate(function(){
+          var nextState = transition(state, action); 
+          var perceivedDelay = isNaive ? delay + 1 : 0;
+          var nextAction = sample(act(nextState, perceivedDelay));
+          return expectedUtility(nextState, nextAction, delay+1);  
+        }));
+      }                      
+    });
+  
+  return {
+    params : params,
+    expectedUtility : expectedUtility,
+    act: act
   };
 };
+///
 
-// Construct MDP, i.e. world
-var startState = { 
-  loc : [3,0],
-  terminateAfterAction : false,
-  timeLeft : 14
-};
-
-var world = makeDonutWorld2({ big : true,
-			                  maxTimeAtRestaurant : 2,
-							  noReverse: true});
-				  
-// Construct hyperbolic discounting agent and exponential discounting agent
-
-// Utilities for restaurants: [immediate reward, delayed reward]
-// Also *timeCost*, cost of taking a single action.
+var world = restaurantChoiceMDP; 
+var start = restaurantChoiceStart;
 
 var restaurantUtility = makeRestaurantUtilityFunction(world, {
-    'Donut N' : [10, -10],
+    'Donut N' : [10, -10],  //[immediate reward, delayed reward]
     'Donut S' : [10, -10],
     'Veg'   : [-10, 20],
     'Noodle': [0, 0],
-    'timeCost': -.01
+    'timeCost': -.01  // cost of taking a single action 
 });
 
 // exponential discount function
@@ -352,63 +377,29 @@ var exponentialDiscount = function(delay) {
   return Math.pow(0.8, delay);
 };
 
-var baseAgentParams = {
-  utility : restaurantUtility,
-  alpha : 500, 
-  discount : 1
+var runAndGraph = function(description, agent) { 
+  var trajectory = simulateMDP(start, world, agent);
+  var plans = plannedTrajectories(trajectory, world, agent);
+  print(description + ' trajectory:');
+  GridWorld.draw(world, { trajectory : trajectory, dynamicActionExpectedUtilities : plans });
 };
 
-// Construct Sophisticated and Naive hyperbolic agents
-var sophisticatedHyperbolicAgent = makeAgent(
-  update(baseAgentParams, {sophisticatedOrNaive: 'sophisticated'}), 
-  world
+
+// Construct Sophisticated and Naive Hyperbolic agents
+runAndGraph('Sophisticated Hyperbolic', 
+            makeAgent({sophisticatedOrNaive: 'sophisticated', utility : restaurantUtility }, world)
+);
+runAndGraph('Naive Hyperbolic', 
+            makeAgent({sophisticatedOrNaive: 'naive'        , utility : restaurantUtility }, world)
 );
 
-var sophisticatedHyperbolicTrajectory = simulate(startState, world,
-	                                             sophisticatedHyperbolicAgent);
-
-var naiveHyperbolicAgent = makeAgent( 
-  update(baseAgentParams, {sophisticatedOrNaive: 'naive'}), 
-  world
+// Construct Sophisticated and Naive Exponential agents
+runAndGraph('Sophisticated Exponential', 
+            makeAgent({sophisticatedOrNaive: 'sophisticated', discountFunction: exponentialDiscount, utility : restaurantUtility }, world)
 );
-
-var naiveHyperbolicTrajectory = simulate(startState, world,
-                                         naiveHyperbolicAgent);
-
-var sophisticatedExponentialAgent = makeAgent(
-  update(baseAgentParams, {sophisticatedOrNaive: 'sophisticated',
-			   discountFunction: exponentialDiscount}),
-  world
+runAndGraph('Naive Exponential', 
+            makeAgent({sophisticatedOrNaive: 'naive'        , discountFunction: exponentialDiscount, utility : restaurantUtility }, world)
 );
-
-var sophisticatedExponentialTrajectory = simulate(startState, world,
-                                                  sophisticatedExponentialAgent);
-
-var naiveExponentialAgent = makeAgent(
-  update(baseAgentParams, {sophisticatedOrNaive: 'naive',
-			   discountFunction: exponentialDiscount}),
-  world
-);
-
-var naiveExponentialTrajectory = simulate(startState, world,
-                                          naiveExponentialAgent);
-
-print('Sophisticated hyperbolic trajectory:');
-
-GridWorld.draw(world, {trajectory: sophisticatedHyperbolicTrajectory});
-
-print('Naive hyperbolic trajectory:');
-
-GridWorld.draw(world, {trajectory: naiveHyperbolicTrajectory});
-
-print('Sophisticated exponential trajectory:');
-
-GridWorld.draw(world, {trajectory: sophisticatedExponentialTrajectory});
-
-print('Naive exponential trajectory:');
-
-GridWorld.draw(world, {trajectory: naiveExponentialTrajectory});
-  
 ~~~~
             
 
@@ -454,9 +445,8 @@ var params = {utility: makeProcrastinationUtility(utilityTable),
 var getLastState = function(discount){
   var agent = makeHyperbolicDiscounter(update(params, {discount: discount}), 
                                        world);
-  var stateActions = simulateHyperbolic(world.startState, world, agent);
-  var states = map(first,stateActions);
-  return [last(states).loc, stateActions.length];
+  var states = simulateMDP(world.startState, world, agent);
+  return [last(states).loc, states.length];
 };
 
 // TODO use vegaPrint to display as table
@@ -478,4 +468,3 @@ map( function(discount){
 -----------
 
 ### Footnotes
-
