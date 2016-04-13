@@ -198,7 +198,7 @@ The implementation of the Myopic agent in WebPPL is a direct translation of the 
 >**Exercise:** Modify the code for the POMDP agent [TODO link to codebox] to represent a Myopic agent.
 
 
-### Myopic Exploration for Bandits and Gridworld
+### Myopic Exploration for Bandits
 
 The Myopic agent performs well on a variety of Bandit problems. These codeboxes compares the Myopic agent to the Optimal POMDP agent on average score and runtime. For binary, two-arm Bandits, these agents are actually equivalent (as the first codebox suggests).
 
@@ -314,7 +314,7 @@ print('Overall means for [Optimal,Myopic]: ' + means);
 
 >**Exercise**: The above codebox shows that performance for the two agents is similar. Try varying the priors and the `latentState` and verify that performance remains similar. How would you provide stronger empirical evidence that the two algorithms are equivalent for this problem.
 
-The following codebox computes the runtime for Myopic and Optimal agents as a function of the number of bandit trials. We see that the Myopic agent has better scaling even on small numbers of trials. Note that neither agent has been optimized for Bandit problems. As an **exercise**, consider how to optimize the Myopic agent with $$C_m=1$$ for binary Bandit problems. 
+The following codebox computes the runtime for Myopic and Optimal agents as a function of the number of bandit trials. We see that the Myopic agent has better scaling even on a small number of trials. Note that neither agent has been optimized for Bandit problems. As an **exercise**, consider how to optimize the Myopic agent with $$C_m=1$$ for binary Bandit problems. 
 
 ~~~~
 // myopia_bandit_scaling
@@ -438,64 +438,76 @@ map( function(totalTime){
           }, totalTimeValues );
 ~~~~
 
-### Restaurant search problem
 
-TODO: explain the example
+### Myopic Exploration for the Restaurant Search Problem
+The limitations of Myopic exploration are straightforward. The Myopic agent assumes they will not update beliefs after the bound at $$C_m$$. As a result, they won't make plans that involve learning something after the bound.
+
+We illustrate this limitation with a new problem:
+
+>**Restaurant Seach:** You are looking for a good restaurant in a foreign city without the aid of a smartphone. You know the quality of some restaurants already and you are uncertain about the others. If you walk right up to a restaurant, you can tell its quality by seeing how busy it is inside. You care about the quality of the restaurant (a scalar) and about minimizing the time spent walking.
+
+How does the Myopic agent fail? Suppose that a few blocks from agent is a great restaurant next to a bad restaurant and the agent doesn't know which is which. If the agent checked inside each restaurant, they would pick out the great one. But if they are Myopic, they assume they'd be unable to tell between them.
+
+The codebox below depicts a toy version of this problem in Gridworld. The restaurants vary in quality between 0 and 5. The agent knows the quality of Restaurant A and is unsure about the other restaurants. One of Restaurants D and E is great and the other is bad. The Optimal POMDP agent will go right up to each restaurant and find out which is great. The Myopic agent, with low enough bound $$C_m$$, will either go to the known good restaurant A or check out a closer restaurant. 
+
+TODO: Extend the x-axis to make D and E further away. Consider how to make the myopic agent faster in this context. (Would also be nice to illustrate observations or the agent's belief state somehow).
+
+TODO: gridworld draw should take pomdp trajectories. 
 
 ~~~~
 // optimal_agent_restaurant_search
-var gridworld = makeRestaurantSearchMDP({noReverse: true});
-var world = makeBanditGridworld(gridworld);
-var feature = world.feature;
-var startState = restaurantSearchStartState;
+var pomdp = makeRestaurantSearchPOMDP();
+var world = pomdp.world
+var startState = pomdp.startState;
+var makeUtility = pomdp.makeUtility;
 
 var agentPrior = Enumerate(function(){
-  var rewardE = flip() ? 5 : 0;
+  var rewardD = uniformDraw([0,5]); // D is bad or great (E is opposite)
   var latentState = {A: 3,
 		             B: uniformDraw(range(6)),
 		             C: uniformDraw(range(6)),
-		             D: 5 - rewardE,
-		             E: rewardE};
-  return buildState(startState.manifestState, latentState);
+		             D: rewardD,
+		             E: 5 - rewardD};
+  return buildState(pomdp.startState.manifestState, latentState);
 });
 
 var params = {
-  utility: makeBanditGridworldUtility(feature, -0.01),
+  utility: makeUtility(-0.01), // timeCost is -.01
   alpha: 1000,
   priorBelief: agentPrior
 };
 
 var agent = makeBeliefAgent(params, world);
-
-var trajectory = simulateBeliefAgent(startState, world, agent, 'states');
-
+var trajectory = simulateBeliefAgent(pomdp.startState, world, agent, 'states');
 var manifestStates = map(function(state){return state.manifestState;},
                          trajectory);
 print('Rewards for each restaurant: ' + JSON.stringify(startState.latentState));
-GridWorld.draw(gridworld, {trajectory: manifestStates})
+GridWorld.draw(pomdp.mdp, {trajectory: manifestStates})
 ~~~~
 
 ~~~~
 // myopic_agent_restaurant_search
 
-// try varying the boundVOI bound!
-var gridworld = makeRestaurantSearchMDP({noReverse: true});
-var world = makeBanditGridworld(gridworld);
-var feature = world.feature;
-var startState = restaurantSearchStartState;
+// Construct world and agent prior as above
+///fold: 
+var pomdp = makeRestaurantSearchPOMDP();
+var world = pomdp.world
+var startState = pomdp.startState;
+var makeUtility = pomdp.makeUtility;
 
 var agentPrior = Enumerate(function(){
-  var rewardE = flip() ? 5 : 0;
+  var rewardD = uniformDraw([0,5]); // D is bad or great (E is opposite)
   var latentState = {A: 3,
 		             B: uniformDraw(range(6)),
 		             C: uniformDraw(range(6)),
-		             D: 5 - rewardE,
-		             E: rewardE};
-  return buildState(startState.manifestState, latentState);
-});
+		             D: rewardD,
+		             E: 5 - rewardD};
+  return buildState(pomdp.startState.manifestState, latentState);
+  });
+///
 
 var params = {
-  utility: makeBanditGridworldUtility(feature, -0.01),
+  utility: makeUtility(-0.01),
   alpha: 1000,
   priorBelief: agentPrior,
   noDelays: false,
@@ -503,19 +515,15 @@ var params = {
   sophisticatedOrNaive: 'naive',
   myopia: {on: false, bound: 0},
   boundVOI: {on: true, bound: 1},
-  recurseOnStateOrBelief: 'belief',
-  fastUpdateBelief: true
 };
 
 var agent = makeBeliefDelayAgent(params, world);
-
 var trajectory = simulateBeliefDelayAgent(startState, world, agent, 'states');
-
 var manifestStates = map(function(state){return state.manifestState},
                          trajectory);
 
 print('Rewards for each restaurant: ' + JSON.stringify(startState.latentState));
-GridWorld.draw(gridworld, {trajectory: manifestStates});
+GridWorld.draw(pomdp.mdp, {trajectory: manifestStates});
 ~~~~
 
 
