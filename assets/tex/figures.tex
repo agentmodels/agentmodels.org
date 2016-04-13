@@ -60,4 +60,28 @@
   \path[->] (at) edge (ot+1);
 \end{tikzpicture}
 \vspace{1cm}
+
+\section{IRL Bandits}
+\label{sec:irl-bandits}
+
+\subsection{3c, first todo}
+\label{sec:3c-first-todo}
+
+
+\vspace{1cm}
+
+\begin{tikzpicture}
+  \node[draw, rectangle] (arm0) at (0,1.5) {Arm 0};
+  \node[draw, rectangle] (arm1) at (0,0) {Arm 1};
+  \node[align=center] (prize1) at (4,0) {Champagne \\ $u = 1.5$};
+  \node[align=center] (prize0) at (4,1.5) {Chocolate \\ $u = 0$};
+
+  \path[->] (arm0) edge (prize0);
+  \path[->] (arm1) edge (prize1);
+\end{tikzpicture}
+
 \end{document}
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

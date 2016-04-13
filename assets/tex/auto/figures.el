@@ -10,5 +10,7 @@
     "amssymb")
    (LaTeX-add-labels
     "sec:procrastination-mdp"
-    "sec:pomdp-model")))
+    "sec:pomdp-model"
+    "sec:irl-bandits"
+    "sec:3c-first-todo")))
 
