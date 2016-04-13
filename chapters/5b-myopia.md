@@ -200,12 +200,9 @@ The implementation of the Myopic agent in WebPPL is a direct translation of the 
 
 ### Myopic Exploration for Bandits and Gridworld
 
-We show the performance of the Myopic agent on Multi-Arm bandits.
+The Myopic agent performs well on a variety of Bandit problems. These codeboxes compares the Myopic agent to the Optimal POMDP agent on average score and runtime. For binary, two-arm Bandits, these agents are actually equivalent (as the first codebox suggests).
 
-TODO:
-- Myopic agent is equivalent. We give some evidence. Exercise: test this in more detail. Maybe should remove the repeat thing and just let people test it?
-
-- Use a diagram to illustrate the bandit problem. Then we can use same diagrams throughout. 
+The Bandit problem is a binary, two-arm problem where the agent only considers four possible hypotheses. It's shown in Figure X: TODO add figure. 
 
 ~~~~
 // myopia_bandit_performance
@@ -271,7 +268,6 @@ var score = function(out){
 var output = 'stateObservationAction';
 ///
 
-
 // Agent prior on arm rewards
 
 // Possible distributions for arms
@@ -290,56 +286,39 @@ var priorArm1 = function(){
 };
 
 
-var runAgents = function(totalTime){
-  
+var runAgent = function(totalTime, optimal){
   // Construct world and agents
   var banditWorld = getBanditWorld(totalTime);
   var world = banditWorld.world;
   var start = banditWorld.start;
+  var prior = getAgentPrior(totalTime, priorArm0, priorArm1);
+
+  var agent = optimal? makeBeliefAgent(getParams(prior), world) :
+   makeBeliefDelayAgent(getParams(prior, {boundVOI:{on:true, bound:1}}), world);
+
+  var simulate = optimal? simulateBeliefAgent : simulateBeliefDelayAgent;
   
-  var agentPrior = getAgentPrior(totalTime, priorArm0, priorArm1);
-
-  var optimalAgent = makeBeliefAgent(getParams(agentPrior), world);
-  var myopicParams = getParams(agentPrior, {boundVOI: {on:true, bound:1}});
-  var myopicAgent = makeBeliefDelayAgent(myopicParams, world);
-
-  // Get average score across totalTime for both agents
-  var runOptimal = function(){
-    return score(simulateBeliefAgent(start, world, optimalAgent, output)); 
-  };
-  
-  var runMyopic = function(){
-    return score(simulateBeliefDelayAgent(start, world, myopicAgent, output));                                          
-  };
-
-  return [timeit(runOptimal), timeit(runMyopic)];
+  return score(simulate(start, world, agent, output)); 
 };
 
-
-// Show performance is similar for Optimal and Myopic
-var runAgents5 = function(){
-  var out = runAgents(5);
-  return [out[0].value, out[1].value];
-};
-
-var repeat10 = repeat(10, runAgents5);
-var optimalScore = map(first, repeat10);
-var myopicScore = map(second, repeat10);
-
-map( function(name){
-  var score = name=='Optimal' ? optimalScore : myopicScore;
-  print( name + ' Agent mean score for each of 10 episodes of Bandits: \n' + 
-        JSON.stringify(score) + '\n Overall Mean: ' + listMean(score) );
-}, ['Optimal', 'Myopic'] );
-
+// Run each agent 10 times and take average of scores
+var means = map( function(optimal){
+  var scores = repeat(10, function(){return runAgent(5,optimal)});
+  var st = optimal? 'Optimal: ' : 'Myopic: ';
+  print(st + 'Mean scores on 10 repeats of 5-trial bandits\n' + scores)
+  return listMean(scores);
+  }, [true,false]);
+  
+print('Overall means for [Optimal,Myopic]: ' + means);
 ~~~~
 
-TODO:
-- myopia will scale much better. note that neither agent has been optimized for the bandit problem in any way. very easy to hand optimize myopia to be much more efficient than here because the exploit is completely predictable. but this version indicates the general speed up from myopia. 
+>**Exercise**: The above codebox shows that performance for the two agents is similar. Try varying the priors and the `latentState` and verify that performance remains similar. How would you provide stronger empirical evidence that the two algorithms are equivalent for this problem.
+
+The following codebox computes the runtime for Myopic and Optimal agents as a function of the number of bandit trials. We see that the Myopic agent has better scaling even on small numbers of trials. Note that neither agent has been optimized for Bandit problems. As an **exercise**, consider how to optimize the Myopic agent with $$C_m=1$$ for binary Bandit problems. 
 
 ~~~~
 // myopia_bandit_scaling
-// Same helper functions as above codebox
+// Similar helper functions as above codebox
 ///fold:
 
 // HELPERS FOR CONSTRUCTING AGENT
@@ -420,7 +399,6 @@ var priorArm1 = function(){
 
 
 var runAgents = function(totalTime){
-  
   // Construct world and agents
   var banditWorld = getBanditWorld(totalTime);
   var world = banditWorld.world;
@@ -444,23 +422,21 @@ var runAgents = function(totalTime){
   return [timeit(runOptimal), timeit(runMyopic)];
 };
 
+var getTime = function(x){
+  return (.001*x.runtimeInMilliseconds).toPrecision(2);
+};
 ///
 
-// Show scaling in number of trials is better for Myopic
-
+// Compute runtime as # Bandit trials increases
 var totalTimeValues = range(9).slice(2);
-var allTimes = map( runAgents, totalTimeValues )
-var optimalTimes = map( function(time){
-  return (.001*time[0].runtimeInMilliseconds).toPrecision(2);
-}, allTimes );
-var myopicTimes = map( function(time){
-  return (.001*time[1].runtimeInMilliseconds).toPrecision(2);
-}, allTimes );
 
-print('Optimal Agent runtime in s:  ' + totalTimeValues + '\n' + optimalTimes);
-print('\nMyopic Agent runtime in s:  ' + totalTimeValues + '\n' + myopicTimes);
+print('Runtime in s for [Optimal,Myopic] agents:');
+
+map( function(totalTime){
+    print( totalTime + ': ' +
+          map( function(out){return getTime(out);}, runAgents(totalTime)) );
+          }, totalTimeValues );
 ~~~~
-
 
 ### Restaurant search problem
 
