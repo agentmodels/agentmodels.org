@@ -425,6 +425,7 @@ TODO: graph like this:
 
 We simulate the behavior of hyperbolic discounters on the Procrastination Problem. We vary the discount rate $$k$$ while holding the other parameters fixed. The agent's behavior can be summarized by its final state (`"wait_state"` or `"reward_state`) and by how much time elapses before termination. When $$k$$ is sufficiently high, the agent will not even complete the task on the last day. 
 
+~~~~
 // procrastinate
 
 // Construct Procrastinate world 
@@ -444,9 +445,8 @@ var params = {utility: makeProcrastinationUtility(utilityTable),
 var getLastState = function(discount){
   var agent = makeHyperbolicDiscounter(update(params, {discount: discount}), 
                                        world);
-  var stateActions = simulateHyperbolic(world.startState, world, agent);
-  var states = map(first,stateActions);
-  return [last(states).loc, stateActions.length];
+  var states = simulateMDP(world.startState, world, agent);
+  return [last(states).loc, states.length];
 };
 
 // TODO use vegaPrint to display as table
