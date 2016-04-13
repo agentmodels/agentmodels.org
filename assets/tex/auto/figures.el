@@ -12,5 +12,6 @@
     "sec:procrastination-mdp"
     "sec:pomdp-model"
     "sec:irl-bandits"
-    "sec:3c-first-todo")))
+    "sec:3c-first-todo"
+    "sec:5c")))
 
