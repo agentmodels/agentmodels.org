@@ -142,7 +142,9 @@ To illustrate the POMDP agent in action, we implement a simplified variant of th
 
 In our implementation of this problem, we label the two arms with numbers in `[0,1]`, and use the same labels for the actions of pulling the arms. After taking action `0`, the agent transitions to a state with whatever prize is associated with `Arm0` (and gets to observe that prize). States contain properties for counting down the time (as before), as well as a `prize` property. States also contain the "latent" mapping from arms to prizes (called `armToPrize`) that determines how an agent transitions on pulling an arm. The structure of this bandit problem is displayed in Figure 2 below. TODO: show graph of bandit problem here. 
 
-If the agent only has one timestep in total (i.e. one bandit trial), then they will take the arm with highest expected utility (given their prior on `armToPrize`). If there are multiple trials, the agent might *explore* the lower expected utility arm (e.g. if it's maximum possible utility is higher). You should try changing the number trials to see how it affects the agent's choice on the first trial. 
+If the agent only has one timestep in total (i.e. one bandit trial), then they will take the arm with highest expected utility (given their prior on `armToPrize`). If there are multiple trials, the agent might *explore* the lower expected utility arm (e.g. if it's maximum possible utility is higher). You should try changing the number trials to see how it affects the agent's choice on the first trial.
+
+<img src="/assets/img/3c-irl-bandit.png" alt="diagram" style="width: 300px;"/>
 
 ~~~~
 
