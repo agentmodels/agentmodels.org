@@ -31,6 +31,8 @@ The next codeboxes show the performance of the Greedy agent on Bandit problems. 
 
 TODO: insert Figure 1.
 
+<img src="/assets/img/5b-greedy-bandit.png" alt="diagram" style="width: 600px;"/>
+
 ~~~~
 // noisy_greedy_regret_ratio
 

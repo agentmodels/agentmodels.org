@@ -273,6 +273,30 @@
 
 \vspace{1cm}
 
+\subsection{5b greedy}
+\label{sec:5b-greedy}
+
+\vspace{1cm}
+
+\begin{tikzpicture}
+  \node[draw, rectangle] (arm0) at (1,1.5) {Arm 0};
+  \node (u0good) at (7,2) {$u = 1.5$};
+  \node (u0bad) at (7,1) {$u = 0$};
+
+  \path[->] (arm0) edge node[below] {$\{0, 0.25, 0.5, \mathbf{0.75}, 1\}$} (u0bad);
+  \path[->] (arm0) edge node[above] {$\{0, \mathbf{0.25}, 0.5, 0.75, 1\}$} (u0good);
+
+  \node[draw, rectangle] (arm1bad) at (1,-0.25) {Arm 1};
+  \node (u11bad) at (7,0.25) {$u = 1$};
+  \node (u10bad) at (7,-0.75) {$u = 0$};
+
+  \path[->] (arm1bad) edge node[above] {$\{0, 0.25, \mathbf{0.5}, 0.75, 1\}$} (u11bad);
+  \path[->] (arm1bad) edge node[below] {$\{0, 0.25, \mathbf{0.5}, 0.75, 1\}$} (u10bad);
+  
+\end{tikzpicture}
+
+\vspace{1cm}
+
 \subsection{5b myopic}
 \label{sec:5b-myopic}
 

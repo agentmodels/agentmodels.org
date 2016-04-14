@@ -17,5 +17,6 @@
     "sec:5c"
     "sec:stochastic-bandits"
     "sec:3c"
+    "sec:5b-greedy"
     "sec:5b-myopic")))
 
