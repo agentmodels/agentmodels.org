@@ -291,13 +291,11 @@ var buildStochasticBanditStartState = function(timeLeft, latent) {
 	      latentState: latent};
 };
 
-// part of the webppl language. takes a table of the form {start: 0,
-// chocolate: 10, wine: -20} and returns a utility function
-var makeStochasticBanditUtility = function(table) {
-  return function(state, action) {
-    var prize = state.manifestState.loc;
-    return table[prize];
-  };
+// part of the webppl language. is a generic utility function for stochastic
+// bandit POMDPs.
+var stochasticBanditUtility = function(state, action) {
+  var reward = state.manifestState.loc;
+  return reward === 'start' ? 0 : reward;
 };
 
 // takes a trajectory containing states and actions and returns one containing
@@ -323,10 +321,10 @@ var displayStochasticBanditTrajectory = function(trajectory) {
 ///
 var world = makeStochasticBanditWorld(2);
 
-var probably1ERP = categoricalERP([0.2, 0.8], ['0', '1']);
-var probably0ERP = categoricalERP([0.8, 0.2], ['0', '1']);
+var probably1ERP = categoricalERP([0.2, 0.8], [0, 1]);
+var probably0ERP = categoricalERP([0.8, 0.2], [0, 1]);
 
-var trueLatent = {0: deltaERP('chocolate'),
+var trueLatent = {0: deltaERP(0.7),
 		          1: probably1ERP};
 var falseLatent = update(trueLatent, {1: probably0ERP});
 var timeLeft = 10;
@@ -338,10 +336,7 @@ var prior = Enumerate(function(){
   return buildStochasticBanditStartState(timeLeft, latent);
 });
 
-var prizeToUtility = {start: 0, 0: 0, 1: 1};
-var utility = makeStochasticBanditUtility(prizeToUtility);
-
-var agentParams = {utility: utility,
+var agentParams = {utility: stochasticBanditUtility,
 		           alpha: 100,
 		           priorBelief: prior,
 		           fastUpdateBelief: false};
@@ -360,10 +355,10 @@ Scaling:
 var varyTime = function(n) {
   var world = makeStochasticBanditWorld(2);
 
-  var probably1ERP = categoricalERP([0.2, 0.8], ['0', '1']);
-  var probably0ERP = categoricalERP([0.8, 0.2], ['0', '1']);
+  var probably1ERP = categoricalERP([0.2, 0.8], [0, 1]);
+  var probably0ERP = categoricalERP([0.8, 0.2], [0, 1]);
 
-  var trueLatent = {0: deltaERP('chocolate'),
+  var trueLatent = {0: deltaERP(0.7),
   		            1: probably1ERP};
   var falseLatent = update(trueLatent, {1: probably0ERP});
 
@@ -374,10 +369,7 @@ var varyTime = function(n) {
     return buildStochasticBanditStartState(n, latent);
   });
 
-  var prizeToUtility = {start: 0, 0: 0, 1: 1};
-  var utility = makeStochasticBanditUtility(prizeToUtility);
-
-  var agentParams = {utility: utility,
+  var agentParams = {utility: stochasticBanditUtility,
 	                 alpha: 100,
 		             priorBelief: prior,
 		             fastUpdateBelief: false};
@@ -409,8 +401,8 @@ var varyArms = function(n) {
 
   var world = makeStochasticBanditWorld(n);
 
-  var probably1ERP = categoricalERP([0.2, 0.8], ['0', '1']);
-  var probably0ERP = categoricalERP([0.8, 0.2], ['0', '1']);
+  var probably1ERP = categoricalERP([0.2, 0.8], [0, 1]);
+  var probably0ERP = categoricalERP([0.8, 0.2], [0, 1]);
   
   var makeLatentState = function(numArms) {
     return map(function(x){return probably1ERP;}, _.range(numArms));
@@ -428,10 +420,7 @@ var varyArms = function(n) {
     return buildStochasticBanditStartState(5, latentState);
   });
 
-  var prizeToUtility = {start: 0, 0: 0, 1: 1};
-
-  var utility = makeStochasticBanditUtility(prizeToUtility);
-  var agentParams = {utility: utility,
+  var agentParams = {utility: stochasticBanditUtility,
 		             alpha: 100,
 		             priorBelief: prior,
 		             fastUpdateBelief: false};
