@@ -73,14 +73,16 @@ var params = {
 var agent = makeBeliefDelayAgent(params, world);
 var trajectory = simulateBeliefDelayAgent(startState, world, agent, 'states');
 var averageUtility = listMean(map(stochasticBanditUtility, trajectory));
-print('Arm1 is best arm and has expected utility 0.5.\n + 
+print('Arm1 is best arm and has expected utility 0.5.\n' + 
       'So ideal performance gives average score of: 0.5 \n' + 
       'The average score over 100 trials for greedy agent: '
       + averageUtility);
 ~~~~
 
+The next codebox is a three-arm Bandit problem show in Figure 2. Given the agent's prior, Arm0 has the highest prior expectation. So the agent will try that before exploring other arms. We show the agent's actions and their average score over 50 trials.
 
-NOTES: should see initial exploration, then settling on arm 2
+TODO insert Figure 2 here
+
 
 ~~~~
 // noisy_greedy_3_arms
@@ -107,7 +109,7 @@ var latentState = {0: categoricalERP([0.1, 0.9], [3, 0]),
 		           1: categoricalERP([0.5, 0.5], [1, 0]),
 		           2: categoricalERP([0.5, 0.5], [2, 0])};
 
-var numberTrials = 30;
+var numberTrials = 50;
 var startState = buildStochasticBanditStartState(numberTrials, latentState);
 
 var agentPrior = Enumerate(function(){
@@ -127,12 +129,12 @@ var trajectory = simulateBeliefDelayAgent(startState, world, agent,
 
 print("Agent's first 10 actions (during exploration phase): " + 
       map(second,trajectory))
-print("Agent's mean score in 30 trials (where EU of best arm is 1):"
+      
+print('Arm2 is best arm and has expected utility 1.\n' + 
+      'So ideal performance gives average score of: 1 \n' + 
+      'The average score over 50 trials for greedy agent: '     
       + listMean(map(stochasticBanditUtility, map(first,trajectory))))
 ~~~~
-
-TODO: Gridworld example: show the myopic agent can end up at veg but only if the cutoff is high enough.
-
 
 
 -------
