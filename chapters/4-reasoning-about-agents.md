@@ -112,8 +112,6 @@ The expression for the joint posterior (above) shows that it is straightforward 
 
 For this example, we condition on the agent making a single step from $$[3,1]$$ to $$[2,1]$$ by moving left. For an agent with low noise, this provides almost as much evidence as the agent going all the way to Donut South. 
 
-[TODO Codebox showing trajectory with only a single step]
-
 ~~~~
 // show_single_step_trajectory
 
@@ -374,7 +372,7 @@ To learn the preferences and beliefs of a POMDP agent we translate Equation (2) 
 
 In the IRL Bandit problems we considered, there is an unknown mapping from arms to prizes (or distributions on prizes) and the agent has preferences over these prizes. The agent will try out arms to discover the mapping and then exploit the arm that seems best. In the inverse problem, we already know the mapping from arms to prizes and we need to infer the agent's preferences over prizes and their initial belief about the mapping.
 
-Often the agent's choices admit of multiple explanations. Recall the deterministic example in the previous chapter when (according to the agent's belief) `arm0` had the prize "chocolate" and `arm1` either had either "champagne" or "nothing". Suppose we observe the agent chosing `arm0` on the first of five trials. If we don't know the agent's utilities or beliefs, then this choice could be explained by either:
+Often the agent's choices admit of multiple explanations. Recall the deterministic example in the previous chapter when (according to the agent's belief) `arm0` had the prize "chocolate" and `arm1` either had either "champagne" or "nothing" (see also Figure 2 below). Suppose we observe the agent chosing `arm0` on the first of five trials. If we don't know the agent's utilities or beliefs, then this choice could be explained by either:
 
 (a) the agent's preference for chocolate over champagne, or
 
@@ -426,9 +424,13 @@ var agentModelsIRLBanditInfer = function(baseAgentParams, priorPrizeToUtility,
 };
 ~~~~
 
-We start with a very simple example. The agent is observed pulling `arm1` five times. The agent's prior is known and assigns equal weight to `arm1` yielding "champagne" and to it yielding "nothing". The true prize for `arm1` is "champagne". From the observation, it's obvious that the agent prefers champagne. This is what we infer below:
+We start with a very simple example. The agent is observed pulling `arm1` five times. The agent's prior is known and assigns equal weight to `arm1` yielding "champagne" and to it yielding "nothing". The true prize for `arm1` is "champagne" (see Figure 1). 
 
 <img src="/assets/img/4-irl-bandit-1.png" alt="diagram" style="width: 500px;"/>
+
+> **Figure 1:** IRL Bandits where agent's prior is known. (The true state has the bold outline). 
+
+From the observation, it's obvious that the agent prefers champagne. This is what we infer below:
 
 ~~~~
 // true prizes for arms
@@ -440,7 +442,7 @@ var fullObserve = getFullObserve(observe);
 var transition = worldAndStart.world.transition;
  
 // TODO Instead of this function, can we just do simulate? 
-// Or else just store the observation somewhere.
+// Or else just store the observed sequence somewhere
 
 var makeTrajectory = function(state) {
   var observation = fullObserve(state);
@@ -486,12 +488,13 @@ print('Posterior on agent utilities:')
 print(getMarginal(posterior,'prizeToUtility'))
 ~~~~
 
-
-
-
-- Then do example mentioned above where we condition on the agent taking arm0 for the first action. In this example, if the agent doesn't explore first time, then they won't explore at all. So additional observations wouldn't make a difference.
+In the codebox above, the agent's preferences are identified by the observations. This won't hold for the next example, which we introduced previously. The agent's utilities for prizes are still unknown and now the agent's prior is also unknown. Either the agent is "informed" and knows the truth that `arm1` yields "champagne". Or the agent is misinformed and believes `arm1` is likely to yield "nothing". These two possibilities are depicted in Figure 2.  
 
 <img src="/assets/img/4-irl-bandit-2.png" alt="diagram" style="width: 600px;"/>
+
+> **Figure 2:** IRL Bandits where agent's prior is unknown. The two large boxes depict the prior on the agent's initial belief. Each possibility for the agent's initial belief has probability 0.5. 
+
+We observe the agent's first action, which is pulling `arm0`. Our inference approach is the same as above:
 
 ~~~~
 var armToPrize = {0: 'chocolate', 1: 'champagne'};
@@ -555,9 +558,12 @@ viz.auto(utilityBeliefPosterior);
 
 ~~~~
 
-- If we increase the total time and leave everything else fixed, then we'll get a stronger inference about the preference for chocolate over champagne. (Because if agent prefers champagne, then even a low prior on arm1 yielding chocolate will make exploration worth it as the total time gets long enough). Show a graph of how the preference increases with timeLeft.
+Exploration is more valuable if there are more Bandit trials in total. If we observe the agent choosing the arm they already know about (`arm0`) then we get stronger inferences about their preference for chocolate over champagne as the total trials increases.
 
 ~~~~
+// TODO simplify the code here or merge with previous example. 
+
+
 var probLikesChocolate = function(timeLeft){
   var armToPrize = {0: 'chocolate',
 		            1: 'champagne'};
@@ -620,11 +626,6 @@ print('Probability of liking chocolate for lifetimes ' + lifetimes + '\n'
 
 viz.bar(lifetimes, probsLikesChoc)
 ~~~~
-
-]
-
-We include an inference function which is based on `factorOffPolicy` in irlBandits.wppl. We specialize this to the beliefAgent and add observations to the `observedStateAction`. The function is currently in irlBandits.wppl as *agentModelsIRLBanditInfer*].
-
 
 This example of inferring an agent's utilities from a bandit problem may seem contrived. However, there are more practical problems that have a similar structure. Consider a domain where $$k$$ *sources* (arms) produce a stream of content, with each piece of content having a *category* (prizes). At each timestep, a human is observed choosing a source. The human has uncertainty about the stochastic mapping from sources to categories. Our goal is to infer the human's beliefs about the sources and their preferences over categories. The sources could be blogs or feeds that tag posts/tweets using the same set of tags. Alternatively, the sources could be channels for TV shows or songs. In this kind of application, the same issue of identifiability arises. An agent may choose a source either because they know it produces content in the best categories or because they have a strong prior belief that it does.
 
