@@ -197,6 +197,8 @@ The Myopic agent performs well on a variety of Bandit problems. These codeboxes 
 
 The Bandit problem is a binary, two-arm problem where the agent only considers four possible hypotheses. It's shown in Figure X: TODO add figure. 
 
+<img src="/assets/img/5b-myopic-bandit.png" alt="diagram" style="width: 600px;"/>
+
 ~~~~
 // myopia_bandit_performance
 
