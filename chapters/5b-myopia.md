@@ -25,7 +25,7 @@ You will notice the similarity between the Greedy agent and the hyperbolic disco
 
 ------
 
-The Greedy agent will do well if good short-term actions produce good long-term consequences. In Bandit problems, elaborate long-terms plans are not needed to reach particular desirable future states. It turns out that a maximally Greedy agent, who only cares about the immediate reward ($$C_g = 1$$), often does well on the standard stochastic Multi-arm bandit problem --  provided that it has some noise in its actions refp:sutton119xreinforcement.
+The Greedy agent will do well if good short-term actions produce good long-term consequences. In Bandit problems, elaborate long-terms plans are not needed to reach particular desirable future states. It turns out that a maximally Greedy agent, who only cares about the immediate reward ($$C_g = 1$$), does well on the standard Multi-arm bandit problem -- provided that it has some noise in its actions TODO add sutton barto cite refp:sutton119xreinforcement.
 
 In this example, we show the performance of Greedy agents with varying softmax noise and varying bound $$C_g$$. 
 
