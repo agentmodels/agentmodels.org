@@ -137,8 +137,8 @@ var simulate = function(startState, priorBelief) {
 
 ## Applying the POMDP agent model
 
-### Two-arm deterministic bandits
-To illustrate the POMDP agent in action, we implement a simplified variant of the Multi-arm Bandit Problem. In this variant, there are just two arms. Pulling an arm produces a prize (deterministically). The agent does not know initially the mapping from arms to prizes but can learn by trying the arms. In our concrete example, the first arm is known to have the prize "chocolate" and the second arm either has "champagne" or has no prize at all ("nothing").  
+### Two-arm, deterministic, IRL bandits
+To illustrate the POMDP agent in action, we implement a simplified variant of the Multi-arm Bandit Problem. In this variant, there are just two arms. Pulling an arm produces a *prize* (deterministically). The agent does not know initially the mapping from arms to prizes but can learn by trying the arms. In our concrete example, the first arm is known to have the prize "chocolate" and the second arm either has "champagne" or has no prize at all ("nothing"). We refer to Bandit problems with prizes (e.g. chocolate) as "IRL Bandits" to distinguish them from the standard Bandit problems with numerical rewards (which are a special case). 
 
 In our implementation of this problem, we label the two arms with numbers in `[0,1]`, and use the same labels for the actions of pulling the arms. After taking action `0`, the agent transitions to a state with whatever prize is associated with `Arm0` (and gets to observe that prize). States contain properties for counting down the time (as before), as well as a `prize` property. States also contain the "latent" mapping from arms to prizes (called `armToPrize`) that determines how an agent transitions on pulling an arm. The structure of this bandit problem is displayed in Figure 2 below.
 
@@ -266,11 +266,11 @@ displayTrajectory(simulate(startState, priorBelief));
 ~~~~
 
 ### Bandits with stochastic observations
-The bandit problem above is especially simple because pulling an arm *deterministically* results in a prize (which the agent directly observes). So there is a fixed, finite number of beliefs about the `armToPrize` mapping that the agent can have. This number depends on the number of arms but not on the number of trials. [TODO: exact complexity of the two-arm case? Show our code achieves it.]
+The Bandit problem above is especially simple because pulling an arm *deterministically* results in a prize (which the agent directly observes). So there is a fixed, finite number of beliefs about the `armToPrize` mapping that the agent can have. This number depends on the number of arms but not on the number of trials.
 
-We can generalize this bandit problem to the more standard *stochastic* multi-arm bandits. In this case, pulling an arm yields a distribution on prizes and the agent does not know the distribution. In the example below, we suppose that there are only two prizes "zero" and "one" which yield utilities 0 and 1. Each arm $$i$$ yields the prize "one" with probability $$p_i$$ and "zero" with probability $$1-p_i$$. This is known as *binary* or *Bernoulli* bandits and has been studied extensively (refp:kaelbling1996reinforcement -- kaelbling, littman, moore 1996 reinforcement learning). In this problem, the number of possible beliefs about $$p_i$$ will increase with the number of trials. More generally, this problem takes time exponential in the number of trials. [Show our code has this property -- maybe add some more detail or references.]
+We can generalize this IRL Bandit problem to *stochastic* multi-arm bandits. In this case, pulling an arm yields a distribution on prizes and the agent does not know the distribution. We discuss stochastic IRL Bandits later. For now, we consider the special case where the prizes are simply numerical rewards. Concretely, each arm $$i$$ yields the prize "one" with probability $$p_i$$ and "zero" with probability $$1-p_i$$. This is known as *binary* or *Bernoulli* bandits and has been studied extensively refp:kaelbling1996reinforcement )kaelbling, littman, moore 1996 reinforcement learning). In this problem, the number of possible beliefs about $$p_i$$ will increase with the number of trials. More generally, this problem takes time exponential in the number of trials and arms [TODO be more precise here and ideally cite the relevant page of the papers].
 
-The structure of the Bandit problems and the agent's prior beliefs about each arm is shown Figure 3. TODO: add figure. OE still needs to finalize whether example will have prizes chocolate and champagne or zero and one.
+The structure of the Bandit problems and the agent's prior beliefs about each arm is shown Figure 3.
 
 <img src="/assets/img/3c-stochastic-bandit.png" alt="diagram" style="width: 600px;"/>
 
@@ -464,7 +464,7 @@ In this POMDP version of Restaurant Choice, a rational agent can exhibit behavio
 
 [Add these two examples using library functions].
 
-donut example:
+TODO: add draw, remove world.feature thing is possible. 
 
 ~~~~
 var world = getRestaurantChoicePOMDP();

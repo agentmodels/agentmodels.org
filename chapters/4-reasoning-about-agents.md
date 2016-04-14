@@ -372,7 +372,7 @@ $$
 
 To learn the preferences and beliefs of a POMDP agent we translate Equation (2) into WebPPL. In later chapters, we apply this to the Restaurant Choice problem. Here we focus on the Bandit problems introduced in the [previous chapter](/chapters/3c-pomdp).
 
-In the bandit problems we considered, there is an unknown mapping from arms to prizes (or distributions on prizes) and the agent has preferences over these prizes. The agent will try out arms to discover the mapping and then exploit the arm that seems best. In the inverse problem ("IRL bandits"), we already know the mapping from arms to prizes and we need to infer the agent's preferences over prizes and their initial belief about the mapping.
+In the Bandit problems we considered, there is an unknown mapping from arms to prizes (or distributions on prizes) and the agent has preferences over these prizes. The agent will try out arms to discover the mapping and then exploit the arm that seems best. In the inverse problem ("IRL bandits"), we already know the mapping from arms to prizes and we need to infer the agent's preferences over prizes and their initial belief about the mapping.
 
 Often the agent's choices admit of multiple explanations. Recall the deterministic example in the previous chapter when (according to the agent's belief) `arm0` had the prize "chocolate" and `arm1` either had either "champagne" or "nothing". Suppose we observe the agent chosing `arm0` on the first of five trials. If we don't know the agent's utilities or beliefs, then this choice could be explained by either:
 
@@ -396,15 +396,12 @@ The codebox below implements this example. The translation of Equation (2) is in
 var agentModelsIRLBanditInfer = function(baseAgentParams, priorPrizeToUtility,
                                          priorInitialBelief, worldAndStart,
 										 observedSequence){
-
   return Enumerate(function(){
     var prizeToUtility = sample(priorPrizeToUtility);
     var initialBelief = sample(priorInitialBelief);
-    
-    var agent = makeIRLBanditAgent(prizeToUtility,
-	                               update(baseAgentParams,
-								          {priorBelief:initialBelief}),
-								   worldAndStart, 'belief');
+    var params = update(baseAgentParams, {priorBelief:initialBelief});
+    var agent = makeIRLBanditAgent(prizeToUtility,params,worldAndStart,'belief')
+	                      
     var agentAct = agent.act;
     var agentUpdateBelief = agent.updateBelief;
     
