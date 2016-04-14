@@ -191,7 +191,7 @@ var posterior = function(observedStateAction) {
   });
 };
 
-viz.vegaPrint(posterior(observedStateAction));
+viz.auto(posterior(observedStateAction));
 ~~~~
 -->
 
@@ -384,9 +384,9 @@ var displayResults = function(erp, label){
   var utility = erp.MAP().val.utility;
   print('MAP utility for Veg: ' + utility['Veg'] + 
   '. Donut: ' + utility['Donut N'] + ' \n')
-  viz.vegaPrint(getMarginalObject(erp,'sophisticatedOrNaive'));
-  viz.vegaPrint(getMarginalObject(erp,'vegMinusDonut'));
-  viz.vegaPrint(getMarginalObject(erp,'donutTempting'));
+  viz.auto(getMarginalObject(erp,'sophisticatedOrNaive'));
+  viz.auto(getMarginalObject(erp,'vegMinusDonut'));
+  viz.auto(getMarginalObject(erp,'donutTempting'));
 };
 ///
 
@@ -455,9 +455,9 @@ var displayResults = function(erp, label){
   var utility = erp.MAP().val.utility;
   print('MAP utility for Veg: ' + utility['Veg'] + 
   '. Donut: ' + utility['Donut N'] + ' \n')
-  viz.vegaPrint(getMarginalObject(erp,'sophisticatedOrNaive'));
-  viz.vegaPrint(getMarginalObject(erp,'vegMinusDonut'));
-  viz.vegaPrint(getMarginalObject(erp,'donutTempting'));
+  viz.auto(getMarginalObject(erp,'sophisticatedOrNaive'));
+  viz.auto(getMarginalObject(erp,'vegMinusDonut'));
+  viz.auto(getMarginalObject(erp,'donutTempting'));
 };
   
 // Prior on agent's utility function
@@ -515,9 +515,9 @@ var displayResults = function(erp, label){
   var utility = erp.MAP().val.utility;
   print('MAP utility for Veg: ' + utility['Veg'] + 
   '. Donut: ' + utility['Donut N'] + ' \n')
-  viz.vegaPrint(getMarginalObject(erp,'sophisticatedOrNaive'));
-  viz.vegaPrint(getMarginalObject(erp,'vegMinusDonut'));
-  viz.vegaPrint(getMarginalObject(erp,'donutTempting'));
+  viz.auto(getMarginalObject(erp,'sophisticatedOrNaive'));
+  viz.auto(getMarginalObject(erp,'vegMinusDonut'));
+  viz.auto(getMarginalObject(erp,'donutTempting'));
   };
 
 
@@ -566,11 +566,11 @@ var displayResults = function(erp, label){
   var utility = erp.MAP().val.utility;
   print('MAP utility for Veg: ' + utility['Veg'] + 
   '. Donut: ' + utility['Donut N'] + ' \n')
-  viz.vegaPrint(getMarginalObject(erp,'vegMinusDonut'));
+  viz.auto(getMarginalObject(erp,'vegMinusDonut'));
   var alphaPrint = Enumerate(function(){
     return {alpha: JSON.stringify(sample(erp).alpha) };
   });                          
-  viz.vegaPrint(alphaPrint);
+  viz.auto(alphaPrint);
 };
 ///
 
@@ -634,11 +634,11 @@ var displayResults = function(erp, label){
   var utility = erp.MAP().val.utility;
   print('MAP utility for Veg: ' + utility['Veg'] + 
   '. Donut: ' + utility['Donut N'] + ' \n')
-  viz.vegaPrint(getMarginalObject(erp,'vegMinusDonut'));
+  viz.auto(getMarginalObject(erp,'vegMinusDonut'));
   var alphaPrint = Enumerate(function(){
     return {alpha: JSON.stringify(sample(erp).alpha) };
   });                          
-  viz.vegaPrint(alphaPrint);
+  viz.auto(alphaPrint);
 };
 
 // Prior on agent's utility function
@@ -696,13 +696,13 @@ var displayResults = function(erp, label){
   var utility = erp.MAP().val.utility;
   print('MAP utility for Veg: ' + utility['Veg'] + 
   '. Donut: ' + utility['Donut N'] + ' \n')
-  viz.vegaPrint(getMarginalObject(erp,'sophisticatedOrNaive'));
-  viz.vegaPrint(getMarginalObject(erp,'vegMinusDonut'));
-  viz.vegaPrint(getMarginalObject(erp,'donutTempting'));
+  viz.auto(getMarginalObject(erp,'sophisticatedOrNaive'));
+  viz.auto(getMarginalObject(erp,'vegMinusDonut'));
+  viz.auto(getMarginalObject(erp,'donutTempting'));
   var alphaPrint = Enumerate(function(){
     return {alpha: JSON.stringify(sample(erp).alpha) };
   });                          
-  viz.vegaPrint(alphaPrint);
+  viz.auto(alphaPrint);
 };
 
 ///
@@ -776,10 +776,10 @@ var displayResults = function(erp, label){
   var alphaPrint = Enumerate(function(){
     return {alpha: JSON.stringify(sample(erp).alpha) };
   });                          
-  viz.vegaPrint(alphaPrint);
-  viz.vegaPrint(getMarginalObject(erp, 'donutTempting'));
-  viz.vegaPrint(getMarginalObject(erp, 'discount'));
-  viz.vegaPrint(getMarginalObject(erp, 'donutNGreaterDonutS'));
+  viz.auto(alphaPrint);
+  viz.auto(getMarginalObject(erp, 'donutTempting'));
+  viz.auto(getMarginalObject(erp, 'discount'));
+  viz.auto(getMarginalObject(erp, 'donutNGreaterDonutS'));
 };
 ///
 
@@ -834,13 +834,13 @@ var displayResults = function(erp, label){
   var alphaPrint = Enumerate(function(){
     return {alpha: JSON.stringify(sample(erp).alpha) };
   });                          
-  viz.vegaPrint(alphaPrint);
-  viz.vegaPrint(getMarginalObject(erp, 'donutTempting'));
-  viz.vegaPrint(getMarginalObject(erp, 'discount'));
+  viz.auto(alphaPrint);
+  viz.auto(getMarginalObject(erp, 'donutTempting'));
+  viz.auto(getMarginalObject(erp, 'discount'));
    var timePrint = Enumerate(function(){
     return {timeCost: JSON.stringify(sample(erp).utility.timeCost) };
   });   
-  viz.vegaPrint(timePrint);
+  viz.auto(timePrint);
 };
 ///
 

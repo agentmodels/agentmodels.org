@@ -174,7 +174,7 @@ GridWorld.draw(world, {trajectory: trajectory});
 // run 100 iid samples of the function *lengthTrajectory*
 var lengthTrajectory = function(){return simulateMDP(startState, world, agent).length;};
 var trajectoryERP = Rejection( lengthTrajectory, 100);
-viz.vegaPrint(trajectoryERP);
+viz.auto(trajectoryERP);
 
 ~~~~
 
