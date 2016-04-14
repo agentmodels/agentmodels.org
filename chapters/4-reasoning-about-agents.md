@@ -441,9 +441,8 @@ var worldAndStart = makeIRLBanditWorldAndStart(2, armToPrize, 5);
 var observe = worldAndStart.world.observe;
 var fullObserve = getFullObserve(observe);
 var transition = worldAndStart.world.transition;
-
-// TODO: we only need to condition on a single action. 
-// TODO Instead of this function, can we just do simulate for a single step? 
+ 
+// TODO Instead of this function, can we just do simulate? 
 // Or else just store the observation somewhere.
 
 var makeTrajectory = function(state) {
@@ -485,7 +484,7 @@ var posterior = agentModelsIRLBanditInfer(baseParams, priorPrizeToUtility,
 					                      priorInitialBelief, worldAndStart,
 										  observedSequence);
 
-print("After observing agent choose arm1, what are agent's utilities?");
+print("After observing agent choose arm1, what are agent's utilities?")
 print('Posterior on agent utilities:')
 print(getMarginal(posterior,'prizeToUtility'))
 ~~~~
