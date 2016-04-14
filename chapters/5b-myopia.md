@@ -27,10 +27,9 @@ You will notice the similarity between the Greedy agent and the hyperbolic disco
 
 The Greedy agent will do well if good short-term actions produce good long-term consequences. In Bandit problems, elaborate long-terms plans are not needed to reach particular desirable future states. It turns out that a maximally Greedy agent, who only cares about the immediate reward ($$C_g = 1$$), does well on the standard Multi-arm bandit problem -- provided that it has some noise in its actions TODO add sutton barto cite refp:sutton119xreinforcement.
 
-In this example, we show the performance of Greedy agents with varying softmax noise and varying bound $$C_g$$. 
+The next codeboxes show the performance of the Greedy agent on Bandit problems. The first codebox is a two-arm Bandit problem, illustrated in Figure 1. We use a Greedy agent with high softmax noise: $$C_g=1$$ and $$\alpha=10$$. The Greedy agent's average reward over 100 trials is close to expected average reward given perfect knowledge of the arms.
 
-
-Random agent gets regret ratio 0.5, alpha = 1 gets about 0.6, alpha = 10 gets about 1 (on setting where the agent must explore).
+TODO: insert Figure 1.
 
 ~~~~
 // noisy_greedy_regret_ratio
@@ -74,7 +73,8 @@ var params = {
 var agent = makeBeliefDelayAgent(params, world);
 var trajectory = simulateBeliefDelayAgent(startState, world, agent, 'states');
 var averageUtility = listMean(map(stochasticBanditUtility, trajectory));
-print('Arm1 is best arm and has expected utility: 0.5 \n' + 
+print('Arm1 is best arm and has expected utility 0.5.\n + 
+      'So ideal performance gives average score of: 0.5 \n' + 
       'The average score over 100 trials for greedy agent: '
       + averageUtility);
 ~~~~
