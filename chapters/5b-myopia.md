@@ -41,20 +41,20 @@ Random agent gets regret ratio 0.5, alpha = 1 gets about 0.6, alpha = 10 gets ab
 var world = makeStochasticBanditWorld(2);
 var latentState = {
   // with this setting, the agent must explore to find the best arm
-  0: deltaERP('nothing'),
+  0: deltaERP('0'),
   // with this setting, the agent need not explore to find the best arm
-  // 0: categoricalERP([0.75, 0.25], ['champagne', 'nothing']),
-  1: categoricalERP([0.5, 0.5], ['chocolate', 'nothing'])
+  // 0: categoricalERP([0.75, 0.25], ['3', '0']),
+  1: categoricalERP([0.5, 0.5], ['1', 'nothing'])
 };
-var utilityTable = {start: 0, nothing: 0, chocolate: 1, champagne: 3};
+var utilityTable = {start: 0, 0: 0, 1: 1, 3: 3};
 var startState = buildStochasticBanditStartState(200, latentState);
 var priorBelief = Enumerate(function(){
-  var probChampagne = uniformDraw([0, 0.25, 0.5, 0.75, 1]);
-  var probChocolate = uniformDraw([0, 0.25, 0.5, 0.75, 1]);
-  var latentState = {0: categoricalERP([probChampagne, 1 - probChampagne],
-				                       ['champagne', 'nothing']),
-		             1: categoricalERP([probChocolate, 1 - probChocolate],
-				                       ['chocolate', 'nothing'])};
+  var prob3 = uniformDraw([0, 0.25, 0.5, 0.75, 1]);
+  var prob1 = uniformDraw([0, 0.25, 0.5, 0.75, 1]);
+  var latentState = {0: categoricalERP([prob3, 1 - prob3],
+				                       ['3', '0']),
+		             1: categoricalERP([prob1, 1 - prob1],
+				                       ['1', '0'])};
   return buildState(startState.manifestState, latentState);
 });
 var utility = makeStochasticBanditUtility(utilityTable);
@@ -101,21 +101,21 @@ NOTES: should see initial exploration, then settling on arm 2
 // noisy_greedy_3_arms
 
 var world = makeStochasticBanditWorld(3);
-var latentState = {0: categoricalERP([0.1, 0.9], ['champagne', 'nothing']),
-		           1: categoricalERP([0.5, 0.5], ['chocolate', 'nothing']),
-		           2: categoricalERP([0.5, 0.5], ['cherry', 'nothing'])};
-var utilityTable = {start: 0, nothing: 0, chocolate: 1, champagne: 3, cherry: 2};
+var latentState = {0: categoricalERP([0.1, 0.9], ['3', '0']),
+		           1: categoricalERP([0.5, 0.5], ['1', '0']),
+		           2: categoricalERP([0.5, 0.5], ['2', '0'])};
+var utilityTable = {start: 0, 0: 0, 1: 1, 3: 3, 2: 2};
 var startState = buildStochasticBanditStartState(30, latentState);
 var priorBelief = Enumerate(function(){
-  var probChampagne = uniformDraw([0.1, 0.5, 0.9]);
-  var probChocolate = uniformDraw([0.1, 0.5, 0.9]);
-  var probCherry = uniformDraw([0.1, 0.5, 0.9]);
-  var latentState = {0: categoricalERP([probChampagne, 1 - probChampagne],
-				                       ['champagne', 'nothing']),
-		             1: categoricalERP([probChocolate, 1 - probChocolate],
-				                       ['chocolate', 'nothing']),
-		             2: categoricalERP([probCherry, 1 - probCherry],
-				                       ['cherry', 'nothing'])};
+  var prob3 = uniformDraw([0.1, 0.5, 0.9]);
+  var prob1 = uniformDraw([0.1, 0.5, 0.9]);
+  var prob2 = uniformDraw([0.1, 0.5, 0.9]);
+  var latentState = {0: categoricalERP([prob3, 1 - prob3],
+				                       ['3', '0']),
+		             1: categoricalERP([prob1, 1 - prob1],
+				                       ['1', '0']),
+		             2: categoricalERP([prob2, 1 - prob2],
+				                       ['2', '0'])};
   return buildState(startState.manifestState, latentState);
 });
 var utility = makeStochasticBanditUtility(utilityTable);
@@ -251,7 +251,7 @@ var getBanditWorld = function(totalTime){
   
   // Arm to distribution
   var trueLatent = {0: probably0ERP,
-		    1: probably1ERP};
+		            1: probably1ERP};
   
   var start = buildStochasticBanditStartState(totalTime, trueLatent);
 
@@ -263,7 +263,7 @@ var score = function(out){
   var total = sum(map(function(x){
   return prizeToUtility[x.observation.manifestState.loc];}, out));
   return total / out.length;
-  };
+};
 
 var output = 'stateObservationAction';
 ///
@@ -362,7 +362,7 @@ var getBanditWorld = function(totalTime){
   
   // Arm to distribution
   var trueLatent = {0: probably0ERP,
-		    1: probably1ERP};
+		            1: probably1ERP};
   
   var start = buildStochasticBanditStartState(totalTime, trueLatent);
 
@@ -416,7 +416,7 @@ var runAgents = function(totalTime){
   };
   
   var runMyopic = function(){
-    return score(simulateBeliefDelayAgent(start, world, myopicAgent, output));                                          
+    return score(simulateBeliefDelayAgent(start, world, myopicAgent, output));
   };
 
   return [timeit(runOptimal), timeit(runMyopic)];
@@ -487,8 +487,6 @@ GridWorld.draw(pomdp.mdp, {trajectory: manifestStates})
 ~~~~
 
 >**Exercise:** The codebox below shows the behavior the Myopic agent. Try different values for the `myopiaBound` parameter. For values in $$[1,2,3]$$, explain the behavior of the Myopic agent. 
-
-TODO: something is going wrong here. 
 
 ~~~~
 // myopic_agent_restaurant_search
