@@ -207,7 +207,7 @@ For this example, we consider the deterministic bandit-style problem from earlie
 
 - `arm0`: yields chocolate
 
-- `arm1`: yields either champagne or no prize at all (agent's prior is $$0.7$$ for champagne)
+- `arm1`: yields either champagne or no prize at all (agent's prior is $$0.7$$ for nothing)
 
 <img src="/assets/img/5c-irl-bandit-diagram.png" alt="diagram" style="width: 400px;"/>
 
