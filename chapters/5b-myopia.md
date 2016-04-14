@@ -448,17 +448,17 @@ We illustrate this limitation with a new problem:
 
 How does the Myopic agent fail? Suppose that a few blocks from agent is a great restaurant next to a bad restaurant and the agent doesn't know which is which. If the agent checked inside each restaurant, they would pick out the great one. But if they are Myopic, they assume they'd be unable to tell between them.
 
-The codebox below depicts a toy version of this problem in Gridworld. The restaurants vary in quality between 0 and 5. The agent knows the quality of Restaurant A and is unsure about the other restaurants. One of Restaurants D and E is great and the other is bad. The Optimal POMDP agent will go right up to each restaurant and find out which is great. The Myopic agent, with low enough bound $$C_m$$, will either go to the known good restaurant A or check out a closer restaurant. 
+The codebox below depicts a toy version of this problem in Gridworld. The restaurants vary in quality between 0 and 5. The agent knows the quality of Restaurant A and is unsure about the other restaurants. One of Restaurants D and E is great and the other is bad. The Optimal POMDP agent will go right up to each restaurant and find out which is great. The Myopic agent, with low enough bound $$C_m$$, will either go to the known good restaurant A or investigate one of restaurants that is closer than D and E.
 
 TODO: Extend the x-axis to make D and E further away. Consider how to make the myopic agent faster in this context. (Would also be nice to illustrate observations or the agent's belief state somehow).
 
-TODO: gridworld draw should take pomdp trajectories. 
+TODO: gridworld draw should take pomdp trajectories. they should also take POMDP as "world". 
 
 ~~~~
 // optimal_agent_restaurant_search
+
 var pomdp = makeRestaurantSearchPOMDP();
 var world = pomdp.world
-var startState = pomdp.startState;
 var makeUtility = pomdp.makeUtility;
 
 var agentPrior = Enumerate(function(){
@@ -471,6 +471,7 @@ var agentPrior = Enumerate(function(){
   return buildState(pomdp.startState.manifestState, latentState);
 });
 
+// Construct optimal agent
 var params = {
   utility: makeUtility(-0.01), // timeCost is -.01
   alpha: 1000,
@@ -481,9 +482,13 @@ var agent = makeBeliefAgent(params, world);
 var trajectory = simulateBeliefAgent(pomdp.startState, world, agent, 'states');
 var manifestStates = map(function(state){return state.manifestState;},
                          trajectory);
-print('Rewards for each restaurant: ' + JSON.stringify(startState.latentState));
+print('Quality of restaurants: \n'+JSON.stringify(startState.latentState));
 GridWorld.draw(pomdp.mdp, {trajectory: manifestStates})
 ~~~~
+
+>**Exercise:** The codebox below shows the behavior the Myopic agent. Try different values for the `myopiaBound` parameter. For values in $$[1,2,3]$$, explain the behavior of the Myopic agent. 
+
+TODO: something is going wrong here. 
 
 ~~~~
 // myopic_agent_restaurant_search
@@ -492,7 +497,6 @@ GridWorld.draw(pomdp.mdp, {trajectory: manifestStates})
 ///fold: 
 var pomdp = makeRestaurantSearchPOMDP();
 var world = pomdp.world
-var startState = pomdp.startState;
 var makeUtility = pomdp.makeUtility;
 
 var agentPrior = Enumerate(function(){
@@ -506,6 +510,8 @@ var agentPrior = Enumerate(function(){
   });
 ///
 
+var myopiaBound = 1;
+
 var params = {
   utility: makeUtility(-0.01),
   alpha: 1000,
@@ -514,22 +520,16 @@ var params = {
   discount: 0,
   sophisticatedOrNaive: 'naive',
   myopia: {on: false, bound: 0},
-  boundVOI: {on: true, bound: 1},
+  boundVOI: {on: true, bound: myopiaBound},
 };
 
 var agent = makeBeliefDelayAgent(params, world);
-var trajectory = simulateBeliefDelayAgent(startState, world, agent, 'states');
+var trajectory = simulateBeliefDelayAgent(pomdp.startState, world, agent, 'states');
 var manifestStates = map(function(state){return state.manifestState},
                          trajectory);
 
-print('Rewards for each restaurant: ' + JSON.stringify(startState.latentState));
+print('Rewards for each restaurant: ' + JSON.stringify(pomdp.startState.latentState));
+print('Myopia bound: ' + myopiaBound);
 GridWorld.draw(pomdp.mdp, {trajectory: manifestStates});
 ~~~~
-
-
-
-
-------
-
-![myopia gridworld](/assets/img/5b-myopia-gridworld.png)
 
