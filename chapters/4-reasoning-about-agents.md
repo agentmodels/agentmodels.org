@@ -434,12 +434,17 @@ var agentModelsIRLBanditInfer = function(baseAgentParams, priorPrizeToUtility,
 - Start with an easier example than the one mentioned in the main text. The agent decides to explore (takes arm1), gets champagne and then takes arm1 thereafter. So we know the agent must prefer champagne to chocolate. Do this just with a prior on agent's utilities and a delta on his beliefs.
 
 ~~~~
+// true prizes for arms
 var armToPrize = {0: 'chocolate',
 		          1: 'champagne'};
 var worldAndStart = makeIRLBanditWorldAndStart(2, armToPrize, 5);
 var observe = worldAndStart.world.observe;
 var fullObserve = getFullObserve(observe);
 var transition = worldAndStart.world.transition;
+
+// TODO: we only need to condition on a single action. 
+// TODO Instead of this function, can we just do simulate for a single step? 
+// Or else just store the observation somewhere.
 
 var makeTrajectory = function(state) {
   var observation = fullObserve(state);
@@ -454,41 +459,39 @@ var makeTrajectory = function(state) {
     return cons(out, makeTrajectory(nextState));
   }
 };
-
 var observedSequence = makeTrajectory(worldAndStart.startState);
 
-var baseParams = {
-  alpha: 100
-};
 
-var agentPrior = Enumerate(function(){
-  var latent = flip(0.5) ? armToPrize : update(armToPrize, {1: 'nothing'});
+// Priors for inference
+
+// We know agent's prior, which is that either arm1 yields
+// nothing or it yields champagne.
+var priorInitialBelief = deltaERP(Enumerate(function(){
+  var latent = uniformDraw([armToPrize, {0:'chocolate', 1:'nothing'}]);
   return buildState(worldAndStart.startState.manifestState, latent);
-});
-var priorInitialBelief = deltaERP(agentPrior);
+}));
 
+// Agent either prefers chocolate or champagne.
 var likesChampagne = {nothing: 0,
 		              champagne: 5,
 					  chocolate: 3};
 var likesChocolate = {nothing: 0,
 		              champagne: 3,
 					  chocolate: 5};
-
-var priorPrizeToUtility = categoricalERP([0.5, 0.5], [likesChampagne,
-						                              likesChocolate]);
-
+var priorPrizeToUtility = categoricalERP([0.5, 0.5], 
+                                         [likesChampagne, likesChocolate]);
+var baseParams = {alpha:1000};
 var posterior = agentModelsIRLBanditInfer(baseParams, priorPrizeToUtility,
 					                      priorInitialBelief, worldAndStart,
 										  observedSequence);
 
-var chocolateUtilityPosterior = Enumerate(function(){
-  var utilityBelief = sample(posterior);
-  var likesChocolate = utilityBelief.prizeToUtility.chocolate > 3;
-  return {likesChocolate: likesChocolate};
-});
-  
-viz.auto(chocolateUtilityPosterior);
+print("After observing agent choose arm1, what are agent's utilities?");
+print('Posterior on agent utilities:')
+print(getMarginal(posterior,'prizeToUtility'))
 ~~~~
+
+
+
 
 - Then do example mentioned above where we condition on the agent taking arm0 for the first action. In this example, if the agent doesn't explore first time, then they won't explore at all. So additional observations wouldn't make a difference.
 
