@@ -496,7 +496,7 @@ TODO: something is going wrong here.
 // Construct world and agent prior as above
 ///fold: 
 var pomdp = makeRestaurantSearchPOMDP();
-var world = pomdp.world
+var world = pomdp.world;
 var makeUtility = pomdp.makeUtility;
 
 var agentPrior = Enumerate(function(){
