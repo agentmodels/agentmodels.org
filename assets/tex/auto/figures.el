@@ -13,6 +13,8 @@
     "sec:pomdp-model"
     "sec:irl-bandits"
     "sec:3c-first-todo"
-    "sec:5b-myopic"
-    "sec:5c")))
+    "sec:5c"
+    "sec:stochastic-bandits"
+    "sec:3c"
+    "sec:5b-myopic")))
 

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.10.3)  14 APR 2016 17:25
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.10.3)  14 APR 2016 18:52
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -579,10 +579,10 @@ Overfull \hbox (40.83488pt too wide) in paragraph at lines 43--45
 {/usr/local/texlive/2015/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
 [2] [3] (./figures.aux) ) 
 Here is how much of TeX's memory you used:
- 14429 strings out of 493089
- 303410 string characters out of 6134842
- 370784 words of memory out of 5000000
- 17646 multiletter control sequences out of 15000+600000
+ 14445 strings out of 493089
+ 303698 string characters out of 6134842
+ 374935 words of memory out of 5000000
+ 17662 multiletter control sequences out of 15000+600000
  6717 words of font info for 27 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  55i,8n,67p,418b,696s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -594,7 +594,7 @@ fonts/cm/cmr7.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfon
 ts/cm/cmsy10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfont
 s/cm/cmsy7.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/
 cm/cmtt10.pfb>
-Output written on figures.pdf (3 pages, 75057 bytes).
+Output written on figures.pdf (3 pages, 76606 bytes).
 PDF statistics:
  45 PDF objects out of 1000 (max. 8388607)
  32 compressed objects within 1 object stream

@@ -77,19 +77,113 @@
 \vspace{1cm}
 
 \begin{tikzpicture}
-  \node[draw, rectangle] (arm0) at (0,1.5) {Arm 0};
+  \node[draw, rectangle] (arm0) at (0,1) {Arm 0};
   \node[draw, rectangle] (arm1) at (0,0) {Arm 1};
   \node[align=center] (prize1) at (4,0) {Champagne \\ $u = 1.5$};
-  \node[align=center] (prize0) at (4,1.5) {Chocolate \\ $u = 1$};
+  \node[align=center] (prize0) at (4,1) {Chocolate \\ $u = 1$};
 
   \path[->] (arm0) edge (prize0);
   \path[->] (arm1) edge (prize1);
+
+  \node[draw, rectangle] (arm0') at (0,3.5) {Arm 0};
+  \node[draw, rectangle] (arm1') at (0,2.5) {Arm 1};
+  \node[align=center] (prize1') at (4,2.5) {Nothing \\ $u = 0$};
+  \node[align=center] (prize0') at (4,3.5) {Chocolate \\ $u = 1$};
+
+  \path[->] (arm0') edge (prize0');
+  \path[->] (arm1') edge (prize1');
+
+  \draw[thick] ($(arm0'.north west)+(-0.25,0.3)$) rectangle ($(prize1'.south east)+(0.25,-0.15)$);
+
+  \draw[thick, dotted] ($(arm0.north west)+(-0.25,0.3)$) rectangle ($(prize1.south east)+(0.15,-0.15)$);
+
+  \node (probChamp) at (6, 0.5) {$b_0 = 0.5$};
+  \node (probChoc) at (6, 3) {$b_0 = 0.5$};
 \end{tikzpicture}
+
+\vspace{1cm}
+
+\subsection{5c}
+\label{sec:5c}
+
+\vspace{1cm}
+
+\begin{tikzpicture}
+  \node[draw, rectangle] (arm0) at (0,1) {Arm 0};
+  \node[draw, rectangle] (arm1) at (0,0) {Arm 1};
+  \node[align=center] (prize1) at (4,0) {Champagne};
+  \node[align=center] (prize0) at (4,1) {Chocolate};
+
+  \path[->] (arm0) edge (prize0);
+  \path[->] (arm1) edge (prize1);
+
+  \node[draw, rectangle] (arm0') at (0,3.5) {Arm 0};
+  \node[draw, rectangle] (arm1') at (0,2.5) {Arm 1};
+  \node[align=center] (prize1') at (4,2.5) {Nothing};
+  \node[align=center] (prize0') at (4,3.5) {Chocolate};
+
+  \path[->] (arm0') edge (prize0');
+  \path[->] (arm1') edge (prize1');
+
+  \draw[thick] ($(arm0'.north west)+(-0.25,0.15)$) rectangle ($(prize1'.south east)+(0.25,-0.15)$);
+
+  \draw[thick, dotted] ($(arm0.north west)+(-0.25,0.15)$) rectangle ($(prize1.south east)+(0.15,-0.15)$);
+
+  \node (probChamp) at (6, 0.5) {$b_0 = 0.3$};
+  \node (probChoc) at (6, 3) {$b_0 = 0.7$};
+\end{tikzpicture}
+
+
+\vspace{1cm}
+
+\section{Stochastic bandits}
+\label{sec:stochastic-bandits}
+
+\subsection{3c}
+\label{sec:3c}
+
+\vspace{1cm}
+
+\begin{tikzpicture}
+  \node[draw, rectangle] (arm01bad) at (1,1) {Arm 0};
+  \node (u01bad) at (3.5,1) {$u = 0.7$};
+
+  \path[->] (arm01bad) edge node[above] {1} (u01bad);
+
+  \node[draw, rectangle] (arm01good) at (5.5,1) {Arm 0};
+  \node (u01good) at (8,1) {$u = 0.7$};
+
+  \path[->] (arm01good) edge node[above] {1} (u01good);
+
+  \node[draw, rectangle] (arm1bad) at (1,-0.25) {Arm 1};
+  \node (u11bad) at (3.5,0.25) {$u = 1$};
+  \node (u10bad) at (3.5,-0.75) {$u = 0$};
+
+  \path[->] (arm1bad) edge node[above] {0.2} (u11bad);
+  \path[->] (arm1bad) edge node[below] {0.8} (u10bad);
+
+  \draw[thick, dotted] ($(arm01bad.north west)+(-0.25,0.3)$) rectangle ($(u10bad.south east)+(0.25,-0.15)$);
+
+  \node (probarm1bad) at (-0.75,0.2) {$b_0 = 0.5$};
+
+  \node[draw, rectangle] (arm1good) at (5.5,-0.25) {Arm 1};
+  \node (u11good) at (8,0.25) {$u = 1$};
+  \node (u10good) at (8,-0.75) {$u = 0$};
+
+  \path[->] (arm1good) edge node[above] {0.8} (u11good);
+  \path[->] (arm1good) edge node[below] {0.2} (u10good);
+
+  \draw[thick] ($(arm01good.north west)+(-0.25,0.3)$) rectangle ($(u10good.south east)+(0.25,-0.15)$);
+
+  \node (probarm1good) at (9.75,0.2) {$b_0 = 0.5$};
+\end{tikzpicture}
+
 
 \vspace{1cm}
 
 \subsection{5b myopic}
 \label{sec:5b-myopic}
+
 
 \vspace{1cm}
 
@@ -139,37 +233,6 @@
   \node (probarm1good) at (9.75,-0.25) {$b_0 = 0.6$};
 \end{tikzpicture}
 
-\vspace{1cm}
-
-\subsection{5c}
-\label{sec:5c}
-
-\vspace{1cm}
-
-\begin{tikzpicture}
-  \node[draw, rectangle] (arm0) at (0,1) {Arm 0};
-  \node[draw, rectangle] (arm1) at (0,0) {Arm 1};
-  \node[align=center] (prize1) at (4,0) {Champagne};
-  \node[align=center] (prize0) at (4,1) {Chocolate};
-
-  \path[->] (arm0) edge (prize0);
-  \path[->] (arm1) edge (prize1);
-
-  \node[draw, rectangle] (arm0') at (0,3.5) {Arm 0};
-  \node[draw, rectangle] (arm1') at (0,2.5) {Arm 1};
-  \node[align=center] (prize1') at (4,2.5) {Nothing};
-  \node[align=center] (prize0') at (4,3.5) {Chocolate};
-
-  \path[->] (arm0') edge (prize0');
-  \path[->] (arm1') edge (prize1');
-
-  \draw[thick] ($(arm0'.north west)+(-0.25,0.15)$) rectangle ($(prize1'.south east)+(0.25,-0.15)$);
-
-  \draw[thick, dotted] ($(arm0.north west)+(-0.25,0.15)$) rectangle ($(prize1.south east)+(0.15,-0.15)$);
-
-  \node (probChamp) at (6, 0.5) {$b_0 = 0.3$};
-  \node (probChoc) at (6, 3) {$b_0 = 0.7$};
-\end{tikzpicture}
 
 \end{document}
 %%% Local Variables:
