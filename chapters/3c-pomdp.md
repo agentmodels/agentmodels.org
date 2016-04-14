@@ -79,6 +79,9 @@ $$
 
 where $$s'$$, $$o$$, $$a'$$ and $$b'$$ are distributed as in the Expected Utility of State Recursion.
 
+<img src="/assets/img/pomdp_graph.png" alt="diagram" style="width: 400px;"/>
+
+A graph of the dependency structure of the various variables of a POMDP. First, the agent chooses an action $$a$$ based on belief $$b$$. Then, it gets utility $$u = U(s,a)$$, and transitions to state $$s' \sim T(s,a)$$, where it gets observation $$o \sim O(s',a)$$ and updates its belief to $$b'$$ by updating $$b$$ on the observation $$o$$.
 
 ### Implementation of the Model
 As with the agent model for MDPs, we provide a direct translation of the equations above into an agent model for solving POMDPs. The variables `nextState`, `nextObservation`, `nextBelief`, and `nextAction` correspond to $$s'$$,  $$o$$, $$b'$$ and $$a'$$ respectively, and we use the Expected Utility of Belief Recursion. The following codebox defines the `act` and `expectedUtility` functions, without defining `updateBelief`, `transition`, `observe` or `utility`. 

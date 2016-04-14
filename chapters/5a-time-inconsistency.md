@@ -421,7 +421,7 @@ We formalize the Procrastination Problem in terms of a deterministic graph. Supp
 
 TODO: graph like this:
 
-![diagram](/assets/img/diagram_procrastinate.jpg)
+<img src="/assets/img/procrastination_mdp.png" alt="diagram" style="width: 700px;"/>
 
 We simulate the behavior of hyperbolic discounters on the Procrastination Problem. We vary the discount rate $$k$$ while holding the other parameters fixed. The agent's behavior can be summarized by its final state (`"wait_state"` or `"reward_state`) and by how much time elapses before termination. When $$k$$ is sufficiently high, the agent will not even complete the task on the last day. 
 

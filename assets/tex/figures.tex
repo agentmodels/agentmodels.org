@@ -47,18 +47,23 @@
 
 \vspace{1cm}
 \begin{tikzpicture}
-  \node[draw, circle] (st) at (0,3) {$s_t$};
-  \node[draw, rectangle] (at) at (3,3) {$a_t$};
-  \node[draw, circle] (ut) at (1.5,1.5) {$u_{t+1}$};
-  \node[draw, circle] (st+1) at (0,0) {$s_{t+1}$};
-  \node[draw, circle] (ot+1) at (3,0) {$o_{t+1}$};
+  \node[draw, circle] (st) at (1,3) {$s$};
+  \node[draw, circle] (bt) at (4,3) {$b$};
+  \node[draw, circle] (at) at (2.5,2) {$a$};
+  \node[draw, circle] (ut) at (0,1) {$u$};
+  \node[draw, circle] (st+1) at (1,0) {$s'$};
+  \node[draw, circle] (ot+1) at (2.5,0) {$o$};
+  \node[draw, circle] (bt+1) at (4,0) {$b'$};
 
   \path[->] (st) edge (st+1);
+  \path[->] (bt) edge (at);
   \path[->] (at) edge (ut);
   \path[->] (st) edge (ut);
-  \path[->] (at) edge[bend left] (st+1);
+  \path[->] (at) edge (st+1);
   \path[->] (st+1) edge (ot+1);
   \path[->] (at) edge (ot+1);
+  \path[->] (ot+1) edge (bt+1);
+  \path[->] (bt) edge (bt+1);
 \end{tikzpicture}
 \vspace{1cm}
 
