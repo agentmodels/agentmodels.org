@@ -372,17 +372,17 @@ $$
 
 To learn the preferences and beliefs of a POMDP agent we translate Equation (2) into WebPPL. In later chapters, we apply this to the Restaurant Choice problem. Here we focus on the Bandit problems introduced in the [previous chapter](/chapters/3c-pomdp).
 
-In the Bandit problems we considered, there is an unknown mapping from arms to prizes (or distributions on prizes) and the agent has preferences over these prizes. The agent will try out arms to discover the mapping and then exploit the arm that seems best. In the inverse problem ("IRL bandits"), we already know the mapping from arms to prizes and we need to infer the agent's preferences over prizes and their initial belief about the mapping.
+In the IRL Bandit problems we considered, there is an unknown mapping from arms to prizes (or distributions on prizes) and the agent has preferences over these prizes. The agent will try out arms to discover the mapping and then exploit the arm that seems best. In the inverse problem, we already know the mapping from arms to prizes and we need to infer the agent's preferences over prizes and their initial belief about the mapping.
 
 Often the agent's choices admit of multiple explanations. Recall the deterministic example in the previous chapter when (according to the agent's belief) `arm0` had the prize "chocolate" and `arm1` either had either "champagne" or "nothing". Suppose we observe the agent chosing `arm0` on the first of five trials. If we don't know the agent's utilities or beliefs, then this choice could be explained by either:
 
 (a) the agent's preference for chocolate over champagne, or
 
-(b) the agent's belief that `arm1` is very likely (e.g. 95%) to deterministically yield the "nothing" prize
+(b) the agent's belief that `arm1` is very likely (e.g. 95%) to yield the "nothing" prize deterministically
 
-Given this choice by the agent, we won't be able to identify which of (a) and (b) is true (since exploration becomes less valuable every trial).
+Given this choice by the agent, we won't be able to identify which of (a) and (b) is true because exploration becomes less valuable every trial (and there's only 5 trials total).
 
-The codebox below implements this example. The translation of Equation (2) is in the function `factorSequence`. This function iterates through the observed state-observation-action triples, updating the agent's belief at each timestep. Thus it interleaves conditioning on an action (via `factor`) with computing the sequence of belief functions $$b_i$$. The variable names correspond as follows:
+The codeboxes below implements this example. The translation of Equation (2) is in the function `factorSequence`. This function iterates through the observed state-observation-action triples, updating the agent's belief at each timestep. It interleaves conditioning on an action (via `factor`) with computing the sequence of belief functions $$b_i$$. The variable names correspond as follows:
 
 - $$b_0$$ is `initialBelief` (an argument to `factorSequence`)
 
@@ -426,9 +426,7 @@ var agentModelsIRLBanditInfer = function(baseAgentParams, priorPrizeToUtility,
 };
 ~~~~
 
-- Need to generate the state-observation-action triples for this example. They should have structure {state:, observation:, action:} as indicated in the code. 
-
-- Start with an easier example than the one mentioned in the main text. The agent decides to explore (takes arm1), gets champagne and then takes arm1 thereafter. So we know the agent must prefer champagne to chocolate. Do this just with a prior on agent's utilities and a delta on his beliefs.
+We start with a very simple example. The agent is observed pulling `arm1` five times. The agent's prior is known and assigns equal weight to `arm1` yielding "champagne" and to it yielding "nothing". The true prize for `arm1` is "champagne". From the observation, it's obvious that the agent prefers champagne. This is what we infer below:
 
 <img src="/assets/img/4-irl-bandit-1.png" alt="diagram" style="width: 500px;"/>
 
