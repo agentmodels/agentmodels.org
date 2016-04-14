@@ -297,6 +297,32 @@
 
 \vspace{1cm}
 
+\begin{tikzpicture}
+  \node[draw, rectangle] (arm0) at (1,1.5) {Arm 0};
+  \node (u0good) at (6,2) {$u = 3$};
+  \node (u0bad) at (6,1) {$u = 0$};
+
+  \path[->] (arm0) edge node[below] {$\{0.1, 0.5, \mathbf{0.9} \}$} (u0bad);
+  \path[->] (arm0) edge node[above] {$\{\mathbf{0.1}, 0.5, 0.9 \}$} (u0good);
+
+  \node[draw, rectangle] (arm1bad) at (1,-0.5) {Arm 1};
+  \node (u11bad) at (6,0) {$u = 1$};
+  \node (u10bad) at (6,-1) {$u = 0$};
+
+  \path[->] (arm1bad) edge node[above] {$\{0.1, \mathbf{0.5}, 0.9 \}$} (u11bad);
+  \path[->] (arm1bad) edge node[below] {$\{0.1, \mathbf{0.5}, 0.9 \}$} (u10bad);
+
+  \node[draw, rectangle] (arm1bad) at (1,-2.5) {Arm 2};
+  \node (u11bad) at (6,-2) {$u = 2$};
+  \node (u10bad) at (6,-3) {$u = 0$};
+
+  \path[->] (arm1bad) edge node[above] {$\{0.1, \mathbf{0.5}, 0.9 \}$} (u11bad);
+  \path[->] (arm1bad) edge node[below] {$\{0.1, \mathbf{0.5}, 0.9 \}$} (u10bad);
+  
+\end{tikzpicture}
+
+\vspace{1cm}
+
 \subsection{5b myopic}
 \label{sec:5b-myopic}
 

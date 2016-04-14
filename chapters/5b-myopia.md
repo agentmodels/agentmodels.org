@@ -85,6 +85,7 @@ The next codebox is a three-arm Bandit problem show in Figure 2. Given the agent
 
 TODO insert Figure 2 here
 
+<img src="/assets/img/5b-greedy-bandit-2.png" alt="diagram" style="width: 400px;"/>
 
 ~~~~
 // noisy_greedy_3_arms
