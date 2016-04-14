@@ -433,6 +433,8 @@ var agentModelsIRLBanditInfer = function(baseAgentParams, priorPrizeToUtility,
 
 - Start with an easier example than the one mentioned in the main text. The agent decides to explore (takes arm1), gets champagne and then takes arm1 thereafter. So we know the agent must prefer champagne to chocolate. Do this just with a prior on agent's utilities and a delta on his beliefs.
 
+<img src="/assets/img/4-irl-bandit-1.png" alt="diagram" style="width: 500px;"/>
+
 ~~~~
 // true prizes for arms
 var armToPrize = {0: 'chocolate',
@@ -493,6 +495,8 @@ print(getMarginal(posterior,'prizeToUtility'))
 
 
 - Then do example mentioned above where we condition on the agent taking arm0 for the first action. In this example, if the agent doesn't explore first time, then they won't explore at all. So additional observations wouldn't make a difference.
+
+<img src="/assets/img/4-irl-bandit-2.png" alt="diagram" style="width: 600px;"/>
 
 ~~~~
 var armToPrize = {0: 'chocolate', 1: 'champagne'};
