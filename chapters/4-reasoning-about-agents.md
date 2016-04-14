@@ -495,13 +495,13 @@ print(getMarginal(posterior,'prizeToUtility'))
 - Then do example mentioned above where we condition on the agent taking arm0 for the first action. In this example, if the agent doesn't explore first time, then they won't explore at all. So additional observations wouldn't make a difference.
 
 ~~~~
-var armToPrize = {0: 'chocolate',
-		          1: 'champagne'};
+var armToPrize = {0: 'chocolate', 1: 'champagne'};
 var worldAndStart = makeIRLBanditWorldAndStart(2, armToPrize, 5);
 var observe = worldAndStart.world.observe;
 var fullObserve = getFullObserve(observe);
 var transition = worldAndStart.world.transition;
 
+// TODO remove this (see above codebox)
 var makeTrajectory = function(state) {
   var observation = fullObserve(state);
   var action = 0; // agent always pulls arm 0
@@ -513,18 +513,21 @@ var makeTrajectory = function(state) {
 
 var observedSequence = makeTrajectory(worldAndStart.startState);
 
-var baseParams = {
-  alpha: 100
-};
 
+// Agent either knows that arm1 has prize "champagne"
+// or agent thinks prize is probably "nothing"
+
+var informedPrior = deltaERP(worldAndStart.startState);
 var noChampagnePrior = Enumerate(function(){
-  var latent = flip(0.05) ? armToPrize : update(armToPrize, {1: 'nothing'});
+  var latent = categorical( [0.05, 0.95],
+                           [armToPrize, {0:'chocolate', 1:'nothing'}]);
   return buildState(worldAndStart.startState.manifestState, latent);
 });
-var informedPrior = deltaERP(worldAndStart.startState);
-var priorInitialBelief = categoricalERP([0.5, 0.5], [noChampagnePrior,
-						                             informedPrior]);
 
+var priorInitialBelief = categoricalERP([0.5, 0.5], 
+                                        [informedPrior, noChampagnePrior]);
+
+// We are still uncertain about whether agent prefers chocolate or champagne
 var likesChampagne = {nothing: 0,
 		              champagne: 5,
 					  chocolate: 3};
@@ -532,12 +535,14 @@ var likesChocolate = {nothing: 0,
 		              champagne: 3,
 					  chocolate: 5};
 
-var priorPrizeToUtility = categoricalERP([0.5, 0.5], [likesChampagne,
-						                              likesChocolate]);
+var priorPrizeToUtility = categoricalERP([0.5, 0.5],
+                                         [likesChampagne,likesChocolate]);
 
+var baseParams = {alpha: 1000};
 var posterior = agentModelsIRLBanditInfer(baseParams, priorPrizeToUtility,
 					                      priorInitialBelief, worldAndStart,
 										  observedSequence);
+
 var utilityBeliefPosterior = Enumerate(function(){
   var utilityBelief = sample(posterior);
   var chocolateUtility = utilityBelief.prizeToUtility.chocolate;
@@ -546,7 +551,9 @@ var utilityBeliefPosterior = Enumerate(function(){
   return {likesChocolate: likesChocolate,
 	      isInformed: isInformed};
 });
+
 viz.auto(utilityBeliefPosterior);
+
 ~~~~
 
 - If we increase the total time and leave everything else fixed, then we'll get a stronger inference about the preference for chocolate over champagne. (Because if agent prefers champagne, then even a low prior on arm1 yielding chocolate will make exploration worth it as the total time gets long enough). Show a graph of how the preference increases with timeLeft.
