@@ -205,7 +205,7 @@ In this Bandit problem the agent considers only four possible hypotheses for the
 <img src="/assets/img/5b-myopic-bandit.png" alt="diagram" style="width: 600px;"/>
 
 >**Figure 3**: TODO (think about what exactly to say here). 
-
+<br>
 
 ~~~~
 // myopia_bandit_performance
