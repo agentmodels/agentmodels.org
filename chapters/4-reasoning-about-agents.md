@@ -75,7 +75,7 @@ var posterior = Enumerate( function(){
   return {favourite: favourite};
 });
 
-viz.vegaPrint(posterior);
+viz.auto(posterior);
 ~~~~
 
 ## Learning about an agent from their actions: formalization
@@ -176,7 +176,7 @@ var posterior = Enumerate( function(){
   return {favourite: favourite};
 });
 
-viz.vegaPrint(posterior);
+viz.auto(posterior);
 ~~~~
 
 Note that utility functions where Vegetarian Cafe or Noodle Shop are most preferred have almost the same posterior probability. Since they had the same prior, this means that we haven't received evidence about which the agent prefers. Moreover, assuming the agent's `timeCost` really is negligible (and the agent always has enough total timesteps), then no matter where the agent is placed on the grid, they will choose Donut North or South. So we'd never get any information about whether they prefer the Vegetarian Cafe or Noodle Shop!
@@ -237,19 +237,19 @@ var observedStateActionSequence = restaurantNameToObservationTime11['donutSouth'
 
 print('Conditioning on one action:');
 var posterior1 = posterior(observedStateActionSequence.slice(0,1));
-viz.vegaPrint(getMarginalObject(posterior1, 'donutBest'));
-viz.vegaPrint(getMarginalObject(posterior1, 'logAlpha'));
-viz.vegaPrint(getMarginalObject(posterior1, 'timeCost'));
+viz.auto(getMarginalObject(posterior1, 'donutBest'));
+viz.auto(getMarginalObject(posterior1, 'logAlpha'));
+viz.auto(getMarginalObject(posterior1, 'timeCost'));
 print('Conditioning on two actions:');
 var posterior2 = posterior(observedStateActionSequence.slice(0,2));
-viz.vegaPrint(getMarginalObject(posterior2, 'donutBest'));
-viz.vegaPrint(getMarginalObject(posterior2, 'logAlpha'));
-viz.vegaPrint(getMarginalObject(posterior2, 'timeCost'));
+viz.auto(getMarginalObject(posterior2, 'donutBest'));
+viz.auto(getMarginalObject(posterior2, 'logAlpha'));
+viz.auto(getMarginalObject(posterior2, 'timeCost'));
 print('Conditioning on three actions:');
 var posterior3 = posterior(observedStateActionSequence.slice(0,3));
-viz.vegaPrint(getMarginalObject(posterior3, 'donutBest'));
-viz.vegaPrint(getMarginalObject(posterior3, 'logAlpha'));
-viz.vegaPrint(getMarginalObject(posterior3, 'timeCost'));
+viz.auto(getMarginalObject(posterior3, 'donutBest'));
+viz.auto(getMarginalObject(posterior3, 'logAlpha'));
+viz.auto(getMarginalObject(posterior3, 'timeCost'));
 ~~~~
 
 The posterior shows that taking a step towards Donut South can now be explained in terms of a high `timeCost`. If the agent has a low value for $$\alpha$$, then this step to the left is fairly likely even if the agent prefers the Noodle Store or Vegetarian Cafe. So including softmax noise in the inference makes inferences about other parameters closer to the prior. However, once we observe three steps towards Donut South, the inferences about preferences become fairly strong. 
@@ -318,9 +318,9 @@ var posterior = function(observedStateActionSequence){
 var observedSequence1 = restaurantNameToObservationTime11['naive'];
 var observedSequence2 = restaurantNameToObservationTime11['donutSouth'];
 var posteriorERP = posterior(observedSequence1.concat(observedSequence2));
-viz.vegaPrint(getMarginalObject(posteriorERP, 'donutBest'));
-viz.vegaPrint(getMarginalObject(posteriorERP, 'logAlpha'));
-viz.vegaPrint(getMarginalObject(posteriorERP, 'timeCost'));
+viz.auto(getMarginalObject(posteriorERP, 'donutBest'));
+viz.auto(getMarginalObject(posteriorERP, 'logAlpha'));
+viz.auto(getMarginalObject(posteriorERP, 'timeCost'));
   // TODO: alternatively: can we run *score* on an array for more efficient computation of likelihoods
   // e.g. score([],[x1,x2]), where the function computes sufficient statistics of the input 
   
@@ -487,7 +487,7 @@ var chocolateUtilityPosterior = Enumerate(function(){
   return {likesChocolate: likesChocolate};
 });
   
-viz.vegaPrint(chocolateUtilityPosterior);
+viz.auto(chocolateUtilityPosterior);
 ~~~~
 
 - Then do example mentioned above where we condition on the agent taking arm0 for the first action. In this example, if the agent doesn't explore first time, then they won't explore at all. So additional observations wouldn't make a difference.
@@ -544,7 +544,7 @@ var utilityBeliefPosterior = Enumerate(function(){
   return {likesChocolate: likesChocolate,
 	      isInformed: isInformed};
 });
-viz.vegaPrint(utilityBeliefPosterior);
+viz.auto(utilityBeliefPosterior);
 ~~~~
 
 - If we increase the total time and leave everything else fixed, then we'll get a stronger inference about the preference for chocolate over champagne. (Because if agent prefers champagne, then even a low prior on arm1 yielding chocolate will make exploration worth it as the total time gets long enough). Show a graph of how the preference increases with timeLeft.
