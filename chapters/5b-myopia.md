@@ -27,11 +27,13 @@ You will notice the similarity between the Greedy agent and the hyperbolic disco
 
 The Greedy agent will do well if good short-term actions produce good long-term consequences. In Bandit problems, elaborate long-terms plans are not needed to reach particular desirable future states. It turns out that a maximally Greedy agent, who only cares about the immediate reward ($$C_g = 1$$), does well on the standard Multi-arm bandit problem -- provided that it has some noise in its actions TODO add sutton barto cite refp:sutton119xreinforcement.
 
-The next codeboxes show the performance of the Greedy agent on Bandit problems. The first codebox is a two-arm Bandit problem, illustrated in Figure 1. We use a Greedy agent with high softmax noise: $$C_g=1$$ and $$\alpha=10$$. The Greedy agent's average reward over 100 trials is close to expected average reward given perfect knowledge of the arms.
-
-TODO: insert Figure 1.
+The next codeboxes show the performance of the Greedy agent on Bandit problems. The first codebox is a two-arm Bandit problem, illustrated in Figure 1. We use a Greedy agent with high softmax noise: $$C_g=1$$ and $$\alpha=10$$. The Greedy agent's average reward over 100 trials is close to the expected average reward given perfect knowledge of the arms.
 
 <img src="/assets/img/5b-greedy-bandit.png" alt="diagram" style="width: 600px;"/>
+
+>**Figure 1:** Bandit problem. The curly brackets contain possible probabilities according to the agent's prior (the bolded number is the true probability). For `arm0`, the agent has a uniform prior on the values $$\{0, 0.25, 0.5, 0.75, 1\}$$ for the probability the arm yields the reward 1.5.
+
+<br>
 
 ~~~~
 // noisy_greedy_regret_ratio
@@ -81,11 +83,11 @@ print('Arm1 is best arm and has expected utility 0.5.\n' +
       + averageUtility);
 ~~~~
 
-The next codebox is a three-arm Bandit problem show in Figure 2. Given the agent's prior, Arm0 has the highest prior expectation. So the agent will try that before exploring other arms. We show the agent's actions and their average score over 50 trials.
-
-TODO insert Figure 2 here
+The next codebox is a three-arm Bandit problem show in Figure 2. Given the agent's prior, `arm0` has the highest prior expectation. So the agent will try that before exploring other arms. We show the agent's actions and their average score over 40 trials.
 
 <img src="/assets/img/5b-greedy-bandit-2.png" alt="diagram" style="width: 400px;"/>
+
+>**Figure 2:** Bandit problem where `arm0` has highest prior expectation for the agent but where `arm2` is actually the best arm.
 
 ~~~~
 // noisy_greedy_3_arms
@@ -112,7 +114,7 @@ var latentState = {0: categoricalERP([0.1, 0.9], [3, 0]),
 		           1: categoricalERP([0.5, 0.5], [1, 0]),
 		           2: categoricalERP([0.5, 0.5], [2, 0])};
 
-var numberTrials = 50;
+var numberTrials = 40;
 var startState = buildStochasticBanditStartState(numberTrials, latentState);
 
 var agentPrior = Enumerate(function(){
@@ -130,12 +132,12 @@ var agent = makeBeliefDelayAgent(params, world);
 var trajectory = simulateBeliefDelayAgent(startState, world, agent,
 					                      'stateAction');
 
-print("Agent's first 10 actions (during exploration phase): " + 
-      map(second,trajectory))
+print("Agent's first 20 actions (during exploration phase): \n" + 
+      map(second,trajectory.slice(0,20)))
       
 print('Arm2 is best arm and has expected utility 1.\n' + 
       'So ideal performance gives average score of: 1 \n' + 
-      'The average score over 50 trials for greedy agent: '     
+      'The average score over 40 trials for greedy agent: '     
       + listMean(map(stochasticBanditUtility, map(first,trajectory))))
 ~~~~
 
@@ -198,9 +200,12 @@ The implementation of the Myopic agent in WebPPL is a direct translation of the 
 
 The Myopic agent performs well on a variety of Bandit problems. These codeboxes compares the Myopic agent to the Optimal POMDP agent on average score and runtime. For binary, two-arm Bandits, these agents are actually equivalent (as the first codebox suggests).
 
-The Bandit problem is a binary, two-arm problem where the agent only considers four possible hypotheses. It's shown in Figure X: TODO add figure. 
+In this Bandit problem the agent considers only four possible hypotheses for the rewards for each arm. 
 
 <img src="/assets/img/5b-myopic-bandit.png" alt="diagram" style="width: 600px;"/>
+
+>**Figure 3**: TODO (think about what exactly to say here). 
+
 
 ~~~~
 // myopia_bandit_performance
@@ -307,7 +312,9 @@ print('Overall means for [Optimal,Myopic]: ' + means);
 
 >**Exercise**: The above codebox shows that performance for the two agents is similar. Try varying the priors and the `latentState` and verify that performance remains similar. How would you provide stronger empirical evidence that the two algorithms are equivalent for this problem.
 
-The following codebox computes the runtime for Myopic and Optimal agents as a function of the number of bandit trials. We see that the Myopic agent has better scaling even on a small number of trials. Note that neither agent has been optimized for Bandit problems. As an **exercise**, consider how to optimize the Myopic agent with $$C_m=1$$ for binary Bandit problems. 
+The following codebox computes the runtime for Myopic and Optimal agents as a function of the number of bandit trials. We see that the Myopic agent has better scaling even on a small number of trials. Note that neither agent has been optimized for Bandit problems.
+
+>**Exercise:** think of ways to optimize the Myopic agent with $$C_m=1$$ for binary Bandit problems.
 
 ~~~~
 // myopia_bandit_scaling
@@ -431,7 +438,7 @@ The limitations of Myopic exploration are straightforward. The Myopic agent assu
 
 We illustrate this limitation with a new problem:
 
->**Restaurant Seach:** You are looking for a good restaurant in a foreign city without the aid of a smartphone. You know the quality of some restaurants already and you are uncertain about the others. If you walk right up to a restaurant, you can tell its quality by seeing how busy it is inside. You care about the quality of the restaurant (a scalar) and about minimizing the time spent walking.
+>**Restaurant Search:** You are looking for a good restaurant in a foreign city without the aid of a smartphone. You know the quality of some restaurants already and you are uncertain about the others. If you walk right up to a restaurant, you can tell its quality by seeing how busy it is inside. You care about the quality of the restaurant (a scalar) and about minimizing the time spent walking.
 
 How does the Myopic agent fail? Suppose that a few blocks from agent is a great restaurant next to a bad restaurant and the agent doesn't know which is which. If the agent checked inside each restaurant, they would pick out the great one. But if they are Myopic, they assume they'd be unable to tell between them.
 
