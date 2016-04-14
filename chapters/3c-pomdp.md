@@ -323,12 +323,12 @@ var displayStochasticBanditTrajectory = function(trajectory) {
 ///
 var world = makeStochasticBanditWorld(2);
 
-var probablyChampagneERP = categoricalERP([0.2, 0.8], ['nothing', 'champagne']);
-var probablyNothingERP = categoricalERP([0.8, 0.2], ['nothing', 'champagne']);
+var probably1ERP = categoricalERP([0.2, 0.8], ['0', '1']);
+var probably0ERP = categoricalERP([0.8, 0.2], ['0', '1']);
 
 var trueLatent = {0: deltaERP('chocolate'),
-		          1: probablyChampagneERP};
-var falseLatent = update(trueLatent, {1: probablyNothingERP});
+		          1: probably1ERP};
+var falseLatent = update(trueLatent, {1: probably0ERP});
 var timeLeft = 10;
 
 var startState = buildStochasticBanditStartState(timeLeft, trueLatent);
@@ -338,7 +338,7 @@ var prior = Enumerate(function(){
   return buildStochasticBanditStartState(timeLeft, latent);
 });
 
-var prizeToUtility = {start: 0, nothing: 0, chocolate: 1, champagne: 1.5};
+var prizeToUtility = {start: 0, 0: 0, 1: 1};
 var utility = makeStochasticBanditUtility(prizeToUtility);
 
 var agentParams = {utility: utility,
@@ -360,12 +360,12 @@ Scaling:
 var varyTime = function(n) {
   var world = makeStochasticBanditWorld(2);
 
-  var probablyChampagneERP = categoricalERP([0.2, 0.8], ['nothing', 'champagne']);
-  var probablyNothingERP = categoricalERP([0.8, 0.2], ['nothing', 'champagne']);
+  var probably1ERP = categoricalERP([0.2, 0.8], ['0', '1']);
+  var probably0ERP = categoricalERP([0.8, 0.2], ['0', '1']);
 
   var trueLatent = {0: deltaERP('chocolate'),
-  		            1: probablyChampagneERP};
-  var falseLatent = update(trueLatent, {1: probablyNothingERP});
+  		            1: probably1ERP};
+  var falseLatent = update(trueLatent, {1: probably0ERP});
 
   var startState = buildStochasticBanditStartState(n, trueLatent);
 
@@ -374,7 +374,7 @@ var varyTime = function(n) {
     return buildStochasticBanditStartState(n, latent);
   });
 
-  var prizeToUtility = {start: 0, nothing: 0, chocolate: 1, champagne: 1.5};
+  var prizeToUtility = {start: 0, 0: 0, 1: 1};
   var utility = makeStochasticBanditUtility(prizeToUtility);
 
   var agentParams = {utility: utility,
@@ -409,18 +409,18 @@ var varyArms = function(n) {
 
   var world = makeStochasticBanditWorld(n);
 
-  var probablyChampagneERP = categoricalERP([0.2, 0.8], ['nothing', 'champagne']);
-  var probablyNothingERP = categoricalERP([0.8, 0.2], ['nothing', 'champagne']);
+  var probably1ERP = categoricalERP([0.2, 0.8], ['0', '1']);
+  var probably0ERP = categoricalERP([0.8, 0.2], ['0', '1']);
   
   var makeLatentState = function(numArms) {
-    return map(function(x){return probablyChampagneERP;}, _.range(numArms));
+    return map(function(x){return probably1ERP;}, _.range(numArms));
   };
 
   var startState = buildStochasticBanditStartState(5, makeLatentState(n));
 
   var latentSampler = function(numArms) {
-    return map(function(x){return uniformDraw([probablyNothingERP,
-					                           probablyChampagneERP]);},
+    return map(function(x){return uniformDraw([probably0ERP,
+					                           probably1ERP]);},
 	           _.range(numArms));
   };
   var prior = Enumerate(function(){
@@ -428,7 +428,7 @@ var varyArms = function(n) {
     return buildStochasticBanditStartState(5, latentState);
   });
 
-  var prizeToUtility = {start: 0, nothing: 0, chocolate: 1, champagne: 1.5};
+  var prizeToUtility = {start: 0, 0: 0, 1: 1};
 
   var utility = makeStochasticBanditUtility(prizeToUtility);
   var agentParams = {utility: utility,
