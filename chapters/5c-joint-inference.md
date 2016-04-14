@@ -209,6 +209,8 @@ For this example, we consider the deterministic bandit-style problem from earlie
 
 - `arm1`: yields either champagne or no prize at all (agent's prior is $$0.7$$ for champagne)
 
+<img src="/assets/img/5c-irl-bandit-diagram.png" alt="diagram" style="width: 400px;"/>
+
 The inference problem is to infer the agent's preference over chocolate. While this problem with only two deterministic arms may seem overly simple, the same kind of structure is shared by realistic problems. For example, we can imagine observing people choosing between different cuisines, restaurants or menu options. Usually people will know some options (arms) well but be uncertain about others. When inferring their preferences, we (as outside observers) need to distinguish between options chosen for exploration vs. exploitation The same applies to the example of people choosing media sources. Someone might try out a channel just in case it shows their favorite genre.
 
 As with the Procrastination example above, we compare the inferences of two models. The *Optimal Model* assumes an agent solving the POMDP optimally. The *Possibly Greedy Model* includes both the optimal agent and Greedy agents with different values for the bound $$C_g$$. The models know the agent's utility for champagne and their prior about how likely champagne is from `arm1`. The models have a fixed prior on the agent's utility for chocolate. We vary the agent's time horizon between 2 and 10 timesteps and plot posterior expectations for the utility of chocolate. For the Possibly Greedy model, we also plot the expectation for $$C_g$$. 
