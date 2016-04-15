@@ -7,11 +7,30 @@ is_section: true
 
 
 ## Introduction
-The previous chapters have shown how to compute optimal actions for agents in MDPs and POMDPs. In many practical applications, this is all we want to compute. For example, if we are controlling a robot, we would want the robot to act optimally given the utility function we have designed for it. If we want to come up with an optimal gambling strategy, we might use a POMDP agent model like that used for bandits in the [previous chapter](/chapters/3c-pomdp).
+The previous chapters have shown how to compute optimal actions for agents in MDPs and POMDPs. In many practical applications, this is all we want to compute. For example, if we are controlling a robot, we would want the robot to act optimally given the utility function we have designed for it. If we want to come up with an optimal gambling strategy, we might use a POMDP agent model like that used for the Bandit problems in the [previous chapter](/chapters/3c-pomdp).
 
-In other settings, however, our goal is to learn or reason about an agent based on their behavior. For example, in social science or psychology, researchers would like to learn about people's preferences (e.g. for spending vs. saving money, for one environmental policy vs. another) and people's beliefs. The relevant *data* is usually observations of human choices, sometimes under experimental settings. In this setting, models of optimal action are *generative models* or ("forward" models) of human behavior. The human's beliefs or utilities can be inferred from their actions by *inverting* the model using an array of statistical inference techniques. For concrete examples from economics and artificial intelligence, see refp:aguirregabiria2010dynamic, refp:darden2010smoking, and refp:ermon2014learning. 
+In other settings, however, the goal is to *learn* or *reason about* an agent based on their behavior. For example, in social science or psychology researchers often seek to learn about people's preferences (denoted $$U$$) and beliefs (denoted $$b$$). The relevant *data* (denoted $$\{a_i\}$$) are usually observations of human actions. In this situation, models of optimal action can be used as *generative models* of human actions. The generative model predicts the behavior *given* preferences and beliefs. That is:
 
-Agent models are also used as generative models in Machine Learning, under the label "Inverse Reinforcement Learning" (IRL). One motivation for learning human preferences and beliefs is to give humans helpful recommendations (e.g. for products they are likely to enjoy). A different motivation for IRL on humans is as a technique for mimicking human expert performance on a specific task (refp:abbeel2004apprenticeship).
+$$
+P( \{a_i\} \vert U, b) = \texttt{Generative model of optimal action}
+$$
+
+Statistical inference infers the preferences $$U$$ and beliefs $$b$$ *given* the observed actions $$\{a_i\}$$. That is:
+
+$$
+P( U, b \vert \{a_i\}) = \texttt{Invert generative model via stat inference}
+$$
+
+TODO: fix latex here. 
+This approach, using generative models of sequential decision making, has used to learn preferences and beliefs about education, work, health, and many other topics[^generative].
+
+[^generative]: The approach in economics closest to the one we outline here (with models of action based on sequential decision making) is called "Structural Estimation". TODO: citations. Some particular examples are: refp:aguirregabiria2010dynamic, refp:darden2010smoking. A related piece of work in AI or computational social science is: refp:ermon2014learning. 
+
+Agent models are also used as generative models in Machine Learning, under the label "Inverse Reinforcement Learning" (IRL). One motivation for learning human preferences and beliefs is to give humans helpful recommendations (e.g. for products they are likely to enjoy). A different goal is to build systems that mimic human expert performance. For some tasks, it is hard for humans to directly specify a utility/reward function that is both correct and that can be tractably optimized. An alternative is to *learn* the human's utility function by watching them perform the task. Once learned, the system can use standard RL techniques to optimize the function. This has been applied to building systems to park cars, to fly helicopters, to control human-like bots in videogames, and to play table-tennis[^inverse].
+
+[^inverse]: See TODO citations. 
+
+<!-- TODO: potentially add a bit more discussion about the promise of IRL. Or maybe this should go somewhere later -->
 
 This chapter provides an array of illustrative examples of learning about agents from their actions. We begin with a concrete example and then provide a general formalization of the inference problem. A virtue of using WebPPL is that doing inference over our existing agent models requires very little extra code. 
 
