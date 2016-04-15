@@ -5,11 +5,12 @@ description: Hyperbolic discounting, Naive and Sophisticated Agents, Formal Defi
 
 ---
 
-
 ### Introduction
 Time inconsistency is part of everyday human experience. In the night you wish to rise early; in the morning you prefer to sleep in. There is an inconsistency between what you prefer your future self to do and what your future self prefers to do. Forseeing this inconsistency, you take actions in the night to bind your morning self to get up. These range from setting an alarm clock to having someone drag you out of bed.
 
-Similar examples abound. People pay upfront for gym subscriptions they rarely use. People procrastinate on writing papers: they plan to start the paper early but then delay until the last minute. The practical consequences of time inconsistency are substantial in different domains Cite: ("Highbrow films gather dust: Time-inconsistent preferences and online DVD rentals"), ("Can Behavioral Tools Improve Online Student Outcomes? Experimental Evidence from a Massive Open Online Course" (patterson)). Time inconsistency has been used to explain not just quotidian laziness but also addiction, procrastination, impulsive behavior as well an array of "pre-commitment" behaviors refp:ainslie2001breakdown. Lab experiments of time inconsistency often use simple quantitative questions such as:
+This pattern is not limited to waking up early. People plan to go to gym but then rarely turn up (and spending lots of membership fees often doesn't help). Students procrastinate on writing papers: they plan to start the paper early but delay until the last minute. Empirical studies have highlighted the practical import of time inconsistency both to completing online courses refp:patterson2015can and to watching highbrow movies refp:milkman2009highbrow. Time inconsistency has been used to explain not just quotidian laziness but also addiction, procrastination, impulsive behavior as well an array of "pre-commitment" behaviors refp:ainslie2001breakdown.
+
+Lab experiments of time inconsistency often use simple quantitative questions such as:
 
 >**Question**: Would you prefer to get $100 after 30 days or $110 after 31 days?
 
@@ -31,7 +32,7 @@ Aside from mathematical convenience, there is an additional justification for ex
 
 [^exponential]: There are arguments that exponential discounting is the uniquely rational mode of discounting for agents with time preference. The seminal paper by refp:strotz1955myopia proves that, "in the continuous time setting, the only discount function such that the optimal policy doesn't vary in time is exponential discounting". In the discrete-time setting, refp:lattimore2014general prove the same result, as well as discussing optimal strategies for sophisticated time-inconsistent agents.
 
-It is straightforward to add exponential discounting to our existing agent models. We explain this in detail below. Before that we illustrate the effects of exponential discounting. We return to the deterministic Bandit problem from Chapter III.3 (see Figure 1). Suppose a person decides every year where to go on a skiing vacation. There is a fixed list of options (Tahoe, Chile, Switzerland) and a finite time horizon[^bandit]. The person discounts exponentially and so they prefer a good vacation now to an even better one in the future. This means they are less likely to *explore*, since exploration takes time to pay off.
+It is straightforward to add exponential discounting to our existing agent models. We explain this in detail below. Before that we illustrate the effects of exponential discounting. We return to the deterministic Bandit problem from Chapter III.3 (see Figure 1). Suppose a person decides every year where to go on a skiing vacation. There is a fixed set of options {Tahoe, Chile, Switzerland} and a finite time horizon[^bandit]. The person discounts exponentially and so they prefer a good vacation now to an even better one in the future. This means they are less likely to *explore*, since exploration takes time to pay off.
 
 TODO_daniel: Add a diagram with arms labeled Tahoe, Chile, Switzerland (or "Switz." for short).
 
@@ -470,6 +471,8 @@ runAndGraph(agent);
 
 >**Exercise**: What would an exponential discounter with identical preferences to the agents above do on the Restaurant Choice problem? Implement an exponential discounter in the codebox above by adding a `discountFunction` property to the `params` argument to `makeAgent`. 
 <br>
+
+--------
 
 ### Example: Procrastinating on a task
 
