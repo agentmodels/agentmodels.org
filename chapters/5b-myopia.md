@@ -198,13 +198,11 @@ The implementation of the Myopic agent in WebPPL is a direct translation of the 
 
 ### Myopic Exploration for Bandits
 
-The Myopic agent performs well on a variety of Bandit problems. These codeboxes compares the Myopic agent to the Optimal POMDP agent on average score and runtime. For binary, two-arm Bandits, these agents are actually equivalent (as the first codebox suggests).
-
-In this Bandit problem the agent considers only four possible hypotheses for the rewards for each arm. 
+The Myopic agent performs well on a variety of Bandit problems. The following codeboxes compare the Myopic agent to the Optimal POMDP agent on binary, two-arm Bandits (see the specific example in Figure 3). TODO: add statement about equivalent performance. 
 
 <img src="/assets/img/5b-myopic-bandit.png" alt="diagram" style="width: 600px;"/>
 
->**Figure 3**: TODO (think about what exactly to say here). 
+>**Figure 3**: Bandit problem. The agent's prior includes two hypotheses for the rewards of each arm, with the prior probability of each labeled to the left and right of the boxes. The priors on each arm are independent and so there are four hypotheses overall. Boxes with actual rewards have a bold border. 
 <br>
 
 ~~~~
@@ -310,11 +308,11 @@ var means = map( function(optimal){
 print('Overall means for [Optimal,Myopic]: ' + means);
 ~~~~
 
->**Exercise**: The above codebox shows that performance for the two agents is similar. Try varying the priors and the `latentState` and verify that performance remains similar. How would you provide stronger empirical evidence that the two algorithms are equivalent for this problem.
+>**Exercise**: The above codebox shows that performance for the two agents is similar. Try varying the priors and the `latentState` and verify that performance remains similar. How would you provide stronger empirical evidence that the two algorithms are equivalent for this problem?
 
-The following codebox computes the runtime for Myopic and Optimal agents as a function of the number of bandit trials. We see that the Myopic agent has better scaling even on a small number of trials. Note that neither agent has been optimized for Bandit problems.
+The following codebox computes the runtime for Myopic and Optimal agents as a function of the number of Bandit trials. We see that the Myopic agent has better scaling even on a small number of trials. Note that neither agent has been optimized for Bandit problems.
 
->**Exercise:** think of ways to optimize the Myopic agent with $$C_m=1$$ for binary Bandit problems.
+>**Exercise:** Think of ways to optimize the Myopic agent with $$C_m=1$$ for binary Bandit problems.
 
 ~~~~
 // myopia_bandit_scaling
@@ -430,6 +428,8 @@ map( function(totalTime){
     print( totalTime + ': ' +
           map( function(out){return getTime(out);}, runAgents(totalTime)) );
           }, totalTimeValues );
+
+//TODO graph these.
 ~~~~
 
 
