@@ -145,7 +145,7 @@ TODO_daniel: add Figure 1 label, put the function forms 1/2^t and 1/(1+2t) in th
 
 >**Figure 2:** Graph comparing exponential and hyperbolic discount curves. 
 
->**Exercise:** We return to our running example but with slightly different numbers. The agent chooses between receiving $100 after 4 days or $110 after 5 days. The goal is to compute the preferences over each option for both exponential and hyperbolic discounters, using the discount curves shown in Figure 1. Compute the following:
+>**Exercise:** We return to our running example but with slightly different numbers. The agent chooses between receiving $100 after 4 days or $110 after 5 days. The goal is to compute the preferences over each option for both exponential and hyperbolic discounters, using the discount curves shown in Figure 2. Compute the following:
 
 > 1. The discounted utility of the $100 and $110 rewards relative to Day 0 (i.e. how much the agent values each option when the rewards are 4 or 5 days away).
 >2. The discounted utility of the $100 and $110 rewards relative to Day 4 (i.e. how much each option is valued when the rewards are 0 or 1 day away).
@@ -172,6 +172,8 @@ Before describing our formal model and implementation of Naive and Sophisticated
 The only difference from previous versions of Restaurant Choice is that restaurants now have *two* utilities. On entering a restaurant, the agent first receives the *immediate reward* (i.e. how good the food tastes) and at the next timestep receives the *delayed reward* (i.e. how good the person feels after eating it).
 
 **Exercise:** Before scrolling down, predict how Naive and Sophisticated hyperbolic discounters with identical preferences could differ for the Restaurant Choice problem shown in the codebox immediately below.
+
+----------
 
 ~~~~
 // draw_choice
@@ -255,31 +257,20 @@ The Naive agent simulates his future actions by computing $$C(s';d+1)$$; the Sop
 
 
 ### Implementing the hyperbolic discounter
-TODO: implement exponential discounting and show that naive/soph doesn't make a difference and agent never does the Naive path. 
-
+ 
 As with the MDP and POMDP agents, our WebPPL implementation directly translates the mathematical formulation of Naive and Sophisticated hyperbolic discounting. The variable names correspond as follows:
 
 - The function $$\delta$$ is named `discountFunction`
 
-- The "perceived delay", which is the delay from which the agent's simulate future self evaluates rewards, is $$d$$ in the math and `perceivedDelay` below. 
+- The "perceived delay", which is the delay from which the agent's simulated future self evaluates rewards, is referred to as $$d$$ in the math and as `perceivedDelay` below. 
 
 - $$s'$$, $$a'$$, $$d+1$$ correspond to `nextState`, `nextAction` and `delay+1` respectively. 
 
+This codebox simplifies the code by ommitting definitions of `transition`, `utility` and so on:
 
 ~~~~
 var makeAgent = function (params, world) {
-  var stateToActions = world.stateToActions;
-  var transition = world.transition;
-  var utility = params.utility;
-  var paramsDiscountFunction = params.discountFunction;
 
-  var discountFunction = paramsDiscountFunction ? paramsDiscountFunction
-	: function(delay){
-	  return 1/(1 + params.discount*delay);
-	};
-
-  var isNaive = params.sophisticatedOrNaive=='naive';
-    
   var act = dp.cache( 
     function(state, delay){
       return Enumerate(function(){
@@ -311,7 +302,7 @@ var makeAgent = function (params, world) {
     act: act
   };
 };
-1
+null;
 ~~~~
 
 
@@ -335,10 +326,10 @@ var makeAgent = function (params, world) {
   var stateToActions = world.stateToActions;
   var transition = world.transition;
   var utility = params.utility;
+  var paramsDiscountFunction = params.discountFunction;
 
-  var discountFunction = function(delay){
-    return 1/(1 + params.discount*delay);
-  };
+  var discountFunction = paramsDiscountFunction ? paramsDiscountFunction : 
+      function(delay){return 1/(1+params.discount*delay);};
 
   var isNaive = params.sophisticatedOrNaive=='naive';
     
@@ -355,7 +346,6 @@ var makeAgent = function (params, world) {
   
   var expectedUtility = dp.cache(
     function(state, action, delay){
-
       var u = discountFunction(delay) * utility(state, action);
       if (state.terminateAfterAction){
         return u; 
@@ -377,7 +367,7 @@ var makeAgent = function (params, world) {
 };
 ///
 
-var world = restaurantChoiceMDP; 
+var world = makeRestaurantChoiceMDP();
 var start = restaurantChoiceStart;
 
 var restaurantUtility = makeRestaurantUtilityFunction(world, {
@@ -389,7 +379,6 @@ var restaurantUtility = makeRestaurantUtilityFunction(world, {
 });
 
 // exponential discount function
-// try varying the discount factor from 0.8
 var exponentialDiscount = function(delay) {
   return Math.pow(0.8, delay);
 };
@@ -398,32 +387,31 @@ var runAndGraph = function(description, agent) {
   var trajectory = simulateMDP(start, world, agent);
   var plans = plannedTrajectories(trajectory, world, agent);
   print(description + ' trajectory:');
-  GridWorld.draw(world, { trajectory : trajectory, dynamicActionExpectedUtilities : plans });
+  GridWorld.draw(world,{trajectory : trajectory, 
+                        dynamicActionExpectedUtilities : plans});
 };
-
 
 // Construct Sophisticated and Naive Hyperbolic agents
 runAndGraph('Sophisticated Hyperbolic', 
-            makeAgent({sophisticatedOrNaive: 'sophisticated', utility : restaurantUtility }, world)
-);
-runAndGraph('Naive Hyperbolic', 
-            makeAgent({sophisticatedOrNaive: 'naive'        , utility : restaurantUtility }, world)
-);
+            makeAgent({sophisticatedOrNaive:'sophisticated',
+                       utility : restaurantUtility }, world));
 
-// Construct Sophisticated and Naive Exponential agents
-runAndGraph('Sophisticated Exponential', 
-            makeAgent({sophisticatedOrNaive: 'sophisticated', discountFunction: exponentialDiscount, utility : restaurantUtility }, world)
-);
-runAndGraph('Naive Exponential', 
-            makeAgent({sophisticatedOrNaive: 'naive'        , discountFunction: exponentialDiscount, utility : restaurantUtility }, world)
-);
+runAndGraph('Naive Hyperbolic', 
+            makeAgent({sophisticatedOrNaive: 'naive', 
+                       utility : restaurantUtility }, world));
+
+// Construct Exponential agent
+runAndGraph('Exponential', 
+            makeAgent({sophisticatedOrNaive: 'sophisticated', 
+                       discountFunction: exponentialDiscount, 
+                       utility : restaurantUtility }, world));
 ~~~~
             
 
 
 ### Example: Procrastinating on a task
 
-In the examples above, time-inconsistency leads to behavior that optimal agents never exhibit. However, given enough softmax noise (or some other random noise model), the Naive path will occur with non-trivial probability. If the agent goes "up" instead of "left" at $$[3,1]$$, then they will continue on to Donut North if they prefer Donuts. As we discuss in Chapter V.3, the explanation of this behavior in terms of noise becomes less likely if we see this behavior repeatedly. However, it might be unlikely that a human repeatedly (e.g. on multiple different days) takes the Naive path. So we turn to an example from everyday life where time inconsistency leads to behavior that  becomes arbitrarily unlikely on the softmax model (see refp:kleinberg2015time):
+In the examples above, time-inconsistency leads to behavior that optimal agents never exhibit. However, given enough softmax noise (or some other random noise model), the Naive path will occur with non-trivial probability. If the agent goes "up" instead of "left" at $$[3,1]$$, then they will continue on to Donut North if they prefer Donuts. As we discuss in Chapter 3.3, the explanation of this behavior in terms of noise becomes less likely if we see this behavior repeatedly. However, it might be unlikely that a human would repeatedly (e.g. on multiple different days) take the Naive path. So we turn to an example from everyday life where time inconsistency leads to behavior that becomes arbitrarily unlikely on the softmax model.
 
 > **The Procrastination Problem**
 > <br>You have a hard deadline of ten days to complete a task (e.g. write a paper for a class, complete an application or tax return). Completing the task takes a full day and has a *cost* (e.g. it's unpleasant work). After the task is complete you get a *reward* (typically exceeding the cost). There is an incentive to finish early: every day you delay finishing, your reward gets slightly smaller. (Imagine that it's good for your reputation to complete tasks early or that early applicants are considered first).
@@ -432,15 +420,15 @@ Note that if the task is worth doing at the last minute, then you should do it i
 
 Hyperbolic discounting provides an elegant model of this behavior. On Day 1, a hyperbolic discounter will prefer that they complete the task tomorrow rather than today. Moreover, a Naive agent wrongly predicts they will complete the task tomorrow and so puts off the task till Day 2. When Day 2 arrives, the Naive agent reasons in the same way -- telling themself that they can avoid the work today by putting it off till tomorrow. This continues until the last possible day, when the Naive agent finally completes the task.
 
-In this problem, the behavior of optimal and time-inconsistent agents with identical preferences (i.e. utility functions) diverges. If the deadline is $$T$$ days from the start, the optimal agent will do the task immediately and the Naive agent will do the task on Day $$T$$.
+In this problem, the behavior of optimal and time-inconsistent agents with identical preferences (i.e. utility functions) diverges. If the deadline is $$T$$ days from the start, the optimal agent will do the task immediately and the Naive agent will do the task on Day $$T$$. (Any problem where a time-inconsistent agent receives exponentially lower reward than an optimal agent contains a close variant of our Procrastination Problem[^kleinberg]). 
 
-Kleinberg and Oren consider a variant of this problem where the cost of procrastinating is borne when the choice to procrastinate is made, and the agent must eventually complete the task. They also consider semi-myopic agents who do not discount their next reward, but discount all future rewards by $$\beta < 1$$. They then show that in any problem where a semimyopic agent receives exponentially lower reward than an optimal agent, the problem must contain a copy of their variant of the procrastination problem.
+[^kleinberg]: refp:kleinberg2014time considers a variant problem where the each cost/penalty for waiting is received immediately (rather than being delayed until the time the task is done). In this variant, the agent must eventually complete the task. The authors consider "semi-myopic" time-inconsistent agents, i.e. agents who do not discount their next reward, but discount all future rewards by $$\beta < 1$$. They show that in any problem where a semi-myopic agent receives exponentially lower reward than an optimal agent, the problem must contain a copy of their variant of the Procrastination Problem.
 
-We formalize the Procrastination Problem in terms of a deterministic graph. Suppose the **deadline** is $$T$$ steps from the start. Assume that after $$t$$ < $$T$$ steps the agent has not yet completed the task. Then the agent can take the action `"work"` (which has **work cost** $$-w$$) or the action `"wait"` with zero cost. After the `"work"` action the agent transitions to the `"reward"` state and receives $$+(R - t \epsilon)$$, where $$R$$ is the **reward** for the task and $$\epsilon$$ is how much the reward diminishes for every day of waiting (the **wait cost**). 
-
-TODO: graph like this:
+We formalize the Procrastination Problem in terms of a deterministic graph. Suppose the **deadline** is $$T$$ steps from the start. Assume that after $$t$$ < $$T$$ steps the agent has not yet completed the task. Then the agent can take the action `"work"` (which has **work cost** $$-w$$) or the action `"wait"` with zero cost. After the `"work"` action the agent transitions to the `"reward"` state and receives $$+(R - t \epsilon)$$, where $$R$$ is the **reward** for the task and $$\epsilon$$ is how much the reward diminishes for every day of waiting (the **wait cost**). See Figure 3 below.  
 
 <img src="/assets/img/procrastination_mdp.png" alt="diagram" style="width: 700px;"/>
+
+>**Figure 3:** Transition graph for Procrastination Problem. States are represented by nodes. Edges are transitions between states, labeled with the action name and the utility of the state-action pair. Terminal nodes have a bold border and their utility is labeled below. Day 3 up to Day $$T-1$$ have the same form as Day 2. 
 
 We simulate the behavior of hyperbolic discounters on the Procrastination Problem. We vary the discount rate $$k$$ while holding the other parameters fixed. The agent's behavior can be summarized by its final state (`"wait_state"` or `"reward_state`) and by how much time elapses before termination. When $$k$$ is sufficiently high, the agent will not even complete the task on the last day. 
 
@@ -478,6 +466,7 @@ map( function(discount){
 
 
 >**Exercise:**
+
 > 1. Explain how an exponential discounter would behave on this task. Assume their utilities are the same as above and consider different discount rates.  
 
 > 2. Run the codebox above with a Sophisticated agent. Explain the results. 
