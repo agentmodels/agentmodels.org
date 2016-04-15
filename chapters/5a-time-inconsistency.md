@@ -262,11 +262,11 @@ As with the MDP and POMDP agents, our WebPPL implementation directly translates 
 
 - The function $$\delta$$ is named `discountFunction`
 
-- The "perceived delay", which is the delay from which the agent's simulated future self evaluates rewards, is referred to as $$d$$ in the math and as `perceivedDelay` below. 
+- The "perceived delay", which controls how the agent's simulated future-self evaluates rewards, is $$d$$ in the math as `perceivedDelay` below. 
 
 - $$s'$$, $$a'$$, $$d+1$$ correspond to `nextState`, `nextAction` and `delay+1` respectively. 
 
-This codebox simplifies the code by ommitting definitions of `transition`, `utility` and so on:
+This codebox simplifies the code for the hyperbolic discounter by omitting definitions of `transition`, `utility` and so on:
 
 ~~~~
 var makeAgent = function (params, world) {
@@ -305,15 +305,10 @@ var makeAgent = function (params, world) {
 null;
 ~~~~
 
+The next codebox shows the Naive agent on the Restaurant Choice problem. In our earlier discussion we claimed that it's possible for the Naive agent to end up at Donut North, despite this being dominated by other options for any set of (rational) preferences. We now give concrete parameters that lead to this behavior.
 
-Next we simulate both the naive and sophisticated versions of our hyperbolic discounter. 
-
-To better understand the behavior of the discounter, we use the `plannedTrajectories` function to compute the agent's current plan at each timestep. `plannedTrajectories` computes what full path the agent currently expects its future self to take. The naive agent, the plan is systematically wrong; the naive agent thinks in the future it will value rewards the same way it does now, but in reality it will discount them differently. The sophisticated agent on the other hand, correctly anticipates its future actions, the agent knows that in the future it will value rewards differently that it does now. 
-
-We can animate these expected paths by passing the optional `paths` argument to `GridWorld.draw`.
-
-Watch the simulation and notice how the naive agent changes its plan to go to Veg as it passes by Donut N. It failed to anticipate that it would be sidetracked by Donut N. The sophisticated agent, on the other hand anticipates this and routes around Donut N. 
-
+The display below shows the agent's trajectory along with a visualization of the agent's planning process. The agent first moves in the direction of Veg (which looks better than Donut South when viewed from a distance). Once the agent is right outside Donut North, discounting makes it look more attractive than Veg. We can show this precisely by pulling out the agent's expected utility calculations at different steps along it's trajectory. The crucial values are the `expectedValue` of going left at [3,5] when `delay=0` (when the agent is right there) compared with `delay=4` (when the agent is starting out). The function `plannedTrajectories` uses `expectedValue` to pull out all of these values. For each timestep, we plot the agent's position and the expected utility of each action they might perform in the future. 
+ 
 ~~~~
 //simulate_hyperbolic_agent
 ///fold: 
@@ -383,28 +378,18 @@ var exponentialDiscount = function(delay) {
   return Math.pow(0.8, delay);
 };
 
-var runAndGraph = function(description, agent) { 
+var runAndGraph = function(agent) { 
   var trajectory = simulateMDP(start, world, agent);
   var plans = plannedTrajectories(trajectory, world, agent);
-  print(description + ' trajectory:');
   GridWorld.draw(world,{trajectory : trajectory, 
                         dynamicActionExpectedUtilities : plans});
 };
 
-// Construct Sophisticated and Naive Hyperbolic agents
-runAndGraph('Sophisticated Hyperbolic', 
-            makeAgent({sophisticatedOrNaive:'sophisticated',
-                       utility : restaurantUtility }, world));
+var agent = makeAgent({sophisticatedOrNaive:'naive', 
+                      utility: restaurantUtility }, world);
 
-runAndGraph('Naive Hyperbolic', 
-            makeAgent({sophisticatedOrNaive: 'naive', 
-                       utility : restaurantUtility }, world));
-
-// Construct Exponential agent
-runAndGraph('Exponential', 
-            makeAgent({sophisticatedOrNaive: 'sophisticated', 
-                       discountFunction: exponentialDiscount, 
-                       utility : restaurantUtility }, world));
+print('Naive agent: \n\n');
+runAndGraph(agent);
 ~~~~
             
 
@@ -428,7 +413,7 @@ We formalize the Procrastination Problem in terms of a deterministic graph. Supp
 
 <img src="/assets/img/procrastination_mdp.png" alt="diagram" style="width: 700px;"/>
 
->**Figure 3:** Transition graph for Procrastination Problem. States are represented by nodes. Edges are transitions between states, labeled with the action name and the utility of the state-action pair. Terminal nodes have a bold border and their utility is labeled below. Day 3 up to Day $$T-1$$ have the same form as Day 2. 
+>**Figure 3:** Transition graph for Procrastination Problem. States are represented by nodes. Edges are state-transitions and are labeled with the action name and the utility of the state-action pair. Terminal nodes have a bold border and their utility is labeled below.
 
 We simulate the behavior of hyperbolic discounters on the Procrastination Problem. We vary the discount rate $$k$$ while holding the other parameters fixed. The agent's behavior can be summarized by its final state (`"wait_state"` or `"reward_state`) and by how much time elapses before termination. When $$k$$ is sufficiently high, the agent will not even complete the task on the last day. 
 
@@ -468,7 +453,6 @@ map( function(discount){
 >**Exercise:**
 
 > 1. Explain how an exponential discounter would behave on this task. Assume their utilities are the same as above and consider different discount rates.  
-
 > 2. Run the codebox above with a Sophisticated agent. Explain the results. 
 
 
