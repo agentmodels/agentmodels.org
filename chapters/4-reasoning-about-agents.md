@@ -12,23 +12,22 @@ The previous chapters have shown how to compute optimal actions for agents in MD
 In other settings, however, the goal is to *learn* or *reason about* an agent based on their behavior. For example, in social science or psychology researchers often seek to learn about people's preferences (denoted $$U$$) and beliefs (denoted $$b$$). The relevant *data* (denoted $$\{a_i\}$$) are usually observations of human actions. In this situation, models of optimal action can be used as *generative models* of human actions. The generative model predicts the behavior *given* preferences and beliefs. That is:
 
 $$
-P( \{a_i\} \vert U, b) = \texttt{Generative model of optimal action}
+P( \{a_i\} \vert U, b) = \text{Generative model of optimal action}
 $$
 
 Statistical inference infers the preferences $$U$$ and beliefs $$b$$ *given* the observed actions $$\{a_i\}$$. That is:
 
 $$
-P( U, b \vert \{a_i\}) = \texttt{Invert generative model via stat inference}
+P( U, b \vert \{a_i\}) = \text{Invert generative model via stat inference}
 $$
 
-TODO: fix latex here. 
 This approach, using generative models of sequential decision making, has used to learn preferences and beliefs about education, work, health, and many other topics[^generative].
 
 [^generative]: The approach in economics closest to the one we outline here (with models of action based on sequential decision making) is called "Structural Estimation". TODO: citations. Some particular examples are: refp:aguirregabiria2010dynamic, refp:darden2010smoking. A related piece of work in AI or computational social science is: refp:ermon2014learning. 
 
 Agent models are also used as generative models in Machine Learning, under the label "Inverse Reinforcement Learning" (IRL). One motivation for learning human preferences and beliefs is to give humans helpful recommendations (e.g. for products they are likely to enjoy). A different goal is to build systems that mimic human expert performance. For some tasks, it is hard for humans to directly specify a utility/reward function that is both correct and that can be tractably optimized. An alternative is to *learn* the human's utility function by watching them perform the task. Once learned, the system can use standard RL techniques to optimize the function. This has been applied to building systems to park cars, to fly helicopters, to control human-like bots in videogames, and to play table-tennis[^inverse].
 
-[^inverse]: See TODO citations. 
+[^inverse]:  TODO add citations. 
 
 <!-- TODO: potentially add a bit more discussion about the promise of IRL. Or maybe this should go somewhere later -->
 
@@ -120,7 +119,7 @@ P(U,\alpha | (s,a)_{0:n}) \propto P(U, \alpha) \prod_{i=0}^n P( a_i | s_i, U, \a
 $$
 
 
-The term $$P( a_i \vert s_i, U, \alpha)$$ can be rewritten as the softmax choice function (which corresponds to the function `act` in our MDP agent models). This equation holds for the case where we observe a sequence of actions from timestep 0 to $$n \leq N$$ (with no gaps). This tutorial focuses mostly on this case. It is trivial to extend the equation to observing multiple independently drawn such sequences (as we show below). However, if there are gaps in the sequence or if we observe only the agent's states (not the actions), then we need to marginalize over actions that were unobserved.
+The term $$P( a_i \vert s_i, U, \alpha)$$ can be rewritten as the softmax choice function (which corresponds to the function `act` in our MDP agent models). This equation holds for the case where we observe a sequence of actions from timestep $$0$$ to $$n \leq N$$ (with no gaps). This tutorial focuses mostly on this case. It is trivial to extend the equation to observing multiple independently drawn such sequences (as we show below). However, if there are gaps in the sequence or if we observe only the agent's states (not the actions), then we need to marginalize over actions that were unobserved.
 
 
 ## Examples of learning about agents in MDPs
