@@ -307,7 +307,7 @@ null;
 
 The next codebox shows the Naive agent on the Restaurant Choice problem. In our earlier discussion we claimed that it's possible for the Naive agent to end up at Donut North, despite this being dominated by other options for any set of (rational) preferences. We now give concrete parameters that lead to this behavior.
 
-The display below shows the agent's trajectory along with a visualization of the agent's planning process. The agent first moves in the direction of Veg (which looks better than Donut South when viewed from a distance). Once the agent is right outside Donut North, discounting makes it look more attractive than Veg. We can show this precisely by pulling out the agent's expected utility calculations at different steps along it's trajectory. The crucial values are the `expectedValue` of going left at [3,5] when `delay=0` (when the agent is right there) compared with `delay=4` (when the agent is starting out). The function `plannedTrajectories` uses `expectedValue` to pull out all of these values. For each timestep, we plot the agent's position and the expected utility of each action they might perform in the future. 
+The display below shows the agent's trajectory along with a visualization of the agent's planning process. The agent first moves in the direction of Veg, which initially looks better than Donut South. Once the agent is right outside Donut North, discounting makes it look better than Veg. We show this precisely by pulling out the agent's expected utility calculations at different steps along its trajectory. The crucial values are the `expectedValue` of going left at [3,5] when `delay=0` compared with `delay=4`. The function `plannedTrajectories` uses `expectedValue` to pull out all of these values. For each timestep, we plot the agent's position and the expected utility of each action they might perform in the future. 
  
 ~~~~
 //simulate_hyperbolic_agent
@@ -373,11 +373,6 @@ var restaurantUtility = makeRestaurantUtilityFunction(world, {
     'timeCost': -.01  // cost of taking a single action 
 });
 
-// exponential discount function
-var exponentialDiscount = function(delay) {
-  return Math.pow(0.8, delay);
-};
-
 var runAndGraph = function(agent) { 
   var trajectory = simulateMDP(start, world, agent);
   var plans = plannedTrajectories(trajectory, world, agent);
@@ -391,8 +386,90 @@ var agent = makeAgent({sophisticatedOrNaive:'naive',
 print('Naive agent: \n\n');
 runAndGraph(agent);
 ~~~~
-            
 
+We run the Sophisticated agent with the same parameters and visualization. 
+
+~~~~
+//simulate_hyperbolic_agent_sophisticated
+///fold: 
+var makeAgent = function (params, world) {
+  var defaultParams = {
+    alpha : 500, 
+    discount : 1
+  };
+  var params = update(defaultParams, params);
+  var stateToActions = world.stateToActions;
+  var transition = world.transition;
+  var utility = params.utility;
+  var paramsDiscountFunction = params.discountFunction;
+
+  var discountFunction = paramsDiscountFunction ? paramsDiscountFunction : 
+      function(delay){return 1/(1+params.discount*delay);};
+
+  var isNaive = params.sophisticatedOrNaive=='naive';
+    
+  var act = dp.cache( 
+    function(state, delay){
+      var delay = delay ? delay : 0; //make sure delay is never undefined
+      return Enumerate(function(){
+        var action = uniformDraw(stateToActions(state));
+        var eu = expectedUtility(state, action, delay);    
+        factor(params.alpha * eu);
+        return action;
+      });      
+    });
+  
+  var expectedUtility = dp.cache(
+    function(state, action, delay){
+      var u = discountFunction(delay) * utility(state, action);
+      if (state.terminateAfterAction){
+        return u; 
+      } else {                     
+        return u + expectation( Enumerate(function(){
+          var nextState = transition(state, action); 
+          var perceivedDelay = isNaive ? delay + 1 : 0;
+          var nextAction = sample(act(nextState, perceivedDelay));
+          return expectedUtility(nextState, nextAction, delay+1);  
+        }));
+      }                      
+    });
+  
+  return {
+    params : params,
+    expectedUtility : expectedUtility,
+    act: act
+  };
+};
+
+var world = makeRestaurantChoiceMDP();
+var start = restaurantChoiceStart;
+
+var restaurantUtility = makeRestaurantUtilityFunction(world, {
+    'Donut N' : [10, -10],  //[immediate reward, delayed reward]
+    'Donut S' : [10, -10],
+    'Veg'   : [-10, 20],
+    'Noodle': [0, 0],
+    'timeCost': -.01  // cost of taking a single action 
+});
+
+
+var runAndGraph = function(agent) { 
+  var trajectory = simulateMDP(start, world, agent);
+  var plans = plannedTrajectories(trajectory, world, agent);
+  GridWorld.draw(world,{trajectory : trajectory, 
+                        dynamicActionExpectedUtilities : plans});
+};
+///
+
+var agent = makeAgent({sophisticatedOrNaive:'sophisticated', 
+                      utility: restaurantUtility }, world);
+
+print('Sophisticated agent: \n\n');
+runAndGraph(agent);
+~~~~
+
+>**Exercise**: What would an exponential discounter with identical preferences to the agents above do on the Restaurant Choice problem? Implement an exponential discounter in the codebox above by adding a `discountFunction` property to the `params` argument to `makeAgent`. 
+<br>
 
 ### Example: Procrastinating on a task
 
