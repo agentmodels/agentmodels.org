@@ -29,75 +29,90 @@ Aside from mathematical convenience, there is an additional justification for ex
 
 [^justification]: Rational agents can't have inconsistent preferences but aside from this a model should not constrain the kinds of things they care about. More concretely, people care about a range of things: e.g. the food they eat daily, their careers, their families, the progress of science, the preservation of the earth's environment. Many have argued that humans have a time preference. So models that learn human preferences should allow for this possibility. 
 
-[^exponential]: There are arguments that exponential discounting is the uniquely rational mode of discounting for agents with time preference. The seminal paper by refp:strotz1955myopia proves that, "in the continuous time setting, the only discount function such that the optimal policy doesn't vary in time is exponential discounting". In the discrete-time setting, refp:lattimpre2014 prove the same result, as well as discussing optimal strategies for sophisticated time-inconsistent agents.
+[^exponential]: There are arguments that exponential discounting is the uniquely rational mode of discounting for agents with time preference. The seminal paper by refp:strotz1955myopia proves that, "in the continuous time setting, the only discount function such that the optimal policy doesn't vary in time is exponential discounting". In the discrete-time setting, refp:lattimore2014general prove the same result, as well as discussing optimal strategies for sophisticated time-inconsistent agents.
 
-It is straightforward to add exponential discounting to our existing agent models. We explain this in detail below. Before that we illustrate the effects of exponential discounting. We return to the deterministic Bandit problem from Chapter III.3. Suppose a person decides every year where to go on a skiing vacation. There is a fixed list of options and a finite time horizon[^bandit]. The person discounts exponentially and so they prefer a good vacation now to an even better one in the future. This means they are less likely to *explore*, since exploration takes time to pay off.
+It is straightforward to add exponential discounting to our existing agent models. We explain this in detail below. Before that we illustrate the effects of exponential discounting. We return to the deterministic Bandit problem from Chapter III.3 (see Figure 1). Suppose a person decides every year where to go on a skiing vacation. There is a fixed list of options (Tahoe, Chile, Switzerland) and a finite time horizon[^bandit]. The person discounts exponentially and so they prefer a good vacation now to an even better one in the future. This means they are less likely to *explore*, since exploration takes time to pay off.
+
+TODO_daniel: Add a diagram with arms labeled Tahoe, Chile, Switzerland (or "Switz." for short).
+
+>**Figure 1**: Deterministic Bandit problem. The agent tries different arms/destinations and receives rewards. The reward for Tahoe is known but Chile and Switzerland are both unknown. The actual best option is Tahoe. 
+<br>
 
 [^bandit]: As noted above, exponential discounting is usually combined with an *unbounded* time horizon. However, if a human makes a series of decisions over a long time scale, then it makes sense to include their time preference. For this particular example, imagine the person is looking for the best skiing or sports facilities and doesn't care about variety. There could be a known finite time horizon because they won't anymore be able to take a long vacation or they are too old for the sport. 
-
-TODO: Show deterministic bandits with say 5 arms. agent is certain about some but many are uncertain. Agent will explore the one's with fairly high EV but not the ones with high variance.[Alternatively, could do a gridworld example and show the agent who prefers veg goes to donuth south. Or could do some simple numerical computations for bandits.]
 
 
 ~~~~
 // exponential_discount_vs_optimal_bandits
 
-var armToPrize = {
-  0: 'chocolate',
-  1: 'nothing',
-  2: 'chewingGum'
-};
-var worldAndStart = makeIRLBanditWorldAndStart(3, armToPrize, 10);
-var world = worldAndStart.world;
-var startState = worldAndStart.startState;
-
-var utilityTable = {nothing: 0, chocolate: 1, champagne: 5,
-		            cheerios: 1.5, chewingGum: 0.5};
-
-var priorBelief = Enumerate(function(){
-  var latentState = {
-	// arm 0 has a certain payoff
-    0: 'chocolate',
-	// arms 1 has low expected utility but high variance
-    1: categorical([0.1, 0.9], ['champagne', 'nothing']),
-	// arm 2 has high expected utility but low variance
-    2: uniformDraw(['cheerios', 'chewingGum'])
-  };
-  return buildState(startState.manifestState, latentState);
-});
-
-var exponentialDiscount = function(delay) {
-  return Math.pow(0.5, delay);
-};
-
-var agentParams = {
-  alpha: 10000,
-  priorBelief: priorBelief,
+///fold:
+var baseParams = {
+  alpha: 1000,
   myopia: {on: false, bound: 0},
   boundVOI: {on: false, bound: 0},
   noDelays: false,
   discount: 0,
-  discountFunction: exponentialDiscount,
   sophisticatedOrNaive: 'naive'
 };
-var exponentialDiscounter = makeIRLBanditAgent(utilityTable, agentParams,
-					                           worldAndStart, 'beliefDelay');
 
-var optimalAgent = makeIRLBanditAgent(utilityTable, agentParams, worldAndStart,
-				                      'belief');
+var armToPlace = function(arm){
+  return {0: "Tahoe",
+          1: "Chile",
+          2: "Switzerland"}[arm];
+};
 
-var discounterTrajectory = simulateBeliefDelayAgent(startState, world,
-						                            exponentialDiscounter,
-													'actions');
+var utilityTable = {0:0, 0.5:0.5, 1:1, 1.5:1.5, 5:5};
 
-print('discounting trajectory:');
+var display = function(trajectory){
+  return map( armToPlace, most(trajectory) );
+};
+///
 
-print(most(discounterTrajectory));
+// Arms are skiing destinations:
+// 0: "Tahoe", 1: "Chile", 2: "Switzerland"
 
-var optimalTrajectory = simulateBeliefAgent(startState, world, optimalAgent,
-					                        'actions');
+// Actual utility for each destination
+var armToPrize = {
+  0: "1",
+  1: "0",
+  2: "0.5"
+};
 
-print('optimal trajectory:');
-print(most(optimalTrajectory));
+// Constuct Bandit world
+var numberTrials = 10;
+var worldAndStart = makeIRLBanditWorldAndStart(3, armToPrize, numberTrials);
+var world = worldAndStart.world;
+var start = worldAndStart.startState;
+
+// Agent prior for utility of each destination
+var priorBelief = Enumerate(function(){
+  var latentState = {
+    0: "1", // Tahoe has known utility 1
+    1: categorical([0.9, 0.1], ["0", "5"]), // Chile has high variance
+    2: uniformDraw(["0.5", "1.5"]) // Switzerland has high expected value
+  };
+  return buildState(start.manifestState, latentState);
+});
+
+var discountFunction = function(delay) {
+  return Math.pow(0.5, delay);
+};
+
+var exponentialParams = update(baseParams, {discountFunction: discountFunction,
+                                           priorBelief: priorBelief});
+var exponentialAgent = makeIRLBanditAgent(utilityTable, exponentialParams, worldAndStart,
+                                          'beliefDelay');
+var exponentialTrajectory = simulateBeliefDelayAgent(start, world, exponentialAgent,
+						     'actions');
+
+var optimalParams = update(baseParams, {priorBelief: priorBelief});
+var optimalAgent = makeIRLBanditAgent(utilityTable, optimalParams, worldAndStart,
+				      'belief');
+var optimalTrajectory = simulateBeliefAgent(start, world, optimalAgent, 'actions');
+
+
+print('exponential discounting trajectory: ' + display(exponentialTrajectory));
+print('\noptimal trajectory: ' + display(optimalTrajectory));
+
 ~~~~
 
  
@@ -106,11 +121,11 @@ Exponential discounting is typically thought of as a *relative* time preference.
 
 [^inconsistent]: One can think of exponential discounting in a non-relative way by choosing a fixed staring time in the past (e.g. the agent's birth) and discounting everything relative to that. This results in an agent with a preference to travel back in time to get higher rewards!
 
-Any smooth discount function other than an exponential will result in preferences that reverse over time [TODO: cite a good statement and explanation of this result]. So it's not so suprising that untutored humans should be subject to such reversals[^reversal]. Various functional forms for human discounting have been explored in the literature. We will describe the *hyperbolic discounting* model refp:ainslie2001breakdown because it is simple and well-studied. Any other functional form can easily be substituted into our models.
+Any smooth discount function other than an exponential will result in preferences that reverse over time refp:strotz1955myopia. So it's not so suprising that untutored humans should be subject to such reversals[^reversal]. Various functional forms for human discounting have been explored in the literature. We will describe the *hyperbolic discounting* model refp:ainslie2001breakdown because it is simple and well-studied. Any other functional form can easily be substituted into our models.
 
-[^reversal]: Without computational aids, human representations of discrete and continuous quantities (including durations in time and dollar values) are systematically inaccurate. See refp:dehaene. 
+[^reversal]: Without computational aids, human representations of discrete and continuous quantities (including durations in time and dollar values) are systematically inaccurate. See refp:dehaene2011number. 
 
-Hyperbolic and exponential discounting curves are illustrated in Figure 1. We plot the discount factor $$D$$ as a function of time $$t$$ in days, with constants $$\delta$$ and $$k$$ controlling the slope of the function. In this example, each constant is set to 2. The exponential is:
+Hyperbolic and exponential discounting curves are illustrated in Figure 2. We plot the discount factor $$D$$ as a function of time $$t$$ in days, with constants $$\delta$$ and $$k$$ controlling the slope of the function. In this example, each constant is set to 2. The exponential is:
 
 $$
 D=\frac{1}{\delta^t}
@@ -124,9 +139,11 @@ $$
 
 The crucial difference between the curves is that the hyperbola is initially steep and then becomes almost flat, while the exponential continues to be steep. This means that exponential discounting is time consistent and hyperbolic discounting is not. 
 
-TODO: add Figure 1 label, put the function forms 1/2^t and 1/(1+2t) in the legend. maybe label the parts that are steep / shallow. 
+TODO_daniel: add Figure 1 label, put the function forms 1/2^t and 1/(1+2t) in the legend. maybe label the parts that are steep / shallow. 
 
-![Figure 1](/assets/img/hyperbolic_no_label.jpg)
+![Figure 2](/assets/img/hyperbolic_no_label.jpg)
+
+>**Figure 2:** Graph comparing exponential and hyperbolic discount curves. 
 
 >**Exercise:** We return to our running example but with slightly different numbers. The agent chooses between receiving $100 after 4 days or $110 after 5 days. The goal is to compute the preferences over each option for both exponential and hyperbolic discounters, using the discount curves shown in Figure 1. Compute the following:
 
@@ -150,7 +167,7 @@ Both kinds of agents will value rewards differently at different times. To disti
 ### Naive and Sophisticated Agents: Gridworld Example
 Before describing our formal model and implementation of Naive and Sophisticated hyperbolic discounters, we illustrate their contrasting behavior using the Restaurant Choice example. We use the MDP version, where the agent has full knowledge of the locations of restaurants and of which restaurants are open. Recall the problem setup: 
 
->Bob is looking for a place to eat. His decision problem is to take a sequence of actions such that (a) he eats at a restaurant he likes and (b) he does not spend too much time walking. The restaurant options are: the Donut Store, the Vegetarian Salad Bar, and the Noodle Shop. The Donut Store is a chain with two local branches. We assume each branch has identical utility for Bob. We abbreviate the restaurant names as "Donut South", "Donut North", "Veg" and "Noodle".
+>**Restaurant Choice**: Bob is looking for a place to eat. His decision problem is to take a sequence of actions such that (a) he eats at a restaurant he likes and (b) he does not spend too much time walking. The restaurant options are: the Donut Store, the Vegetarian Salad Bar, and the Noodle Shop. The Donut Store is a chain with two local branches. We assume each branch has identical utility for Bob. We abbreviate the restaurant names as "Donut South", "Donut North", "Veg" and "Noodle".
 
 The only difference from previous versions of Restaurant Choice is that restaurants now have *two* utilities. On entering a restaurant, the agent first receives the *immediate reward* (i.e. how good the food tastes) and at the next timestep receives the *delayed reward* (i.e. how good the person feels after eating it).
 
