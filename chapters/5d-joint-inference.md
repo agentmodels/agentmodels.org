@@ -10,11 +10,11 @@ In the opening [chapter](/chapters/5-biases-intro) of this section, we argued th
 
 If human behavior in some decision problem always conforms exactly to a particular sub-optimal planning model, then it would be surprising if using the true generative model for inference did not help with accurate recovery of preferences. Biases will only affect some of the humans some of the time. In a narrow domain, experts can learn to avoid biases and they can use specialized approximation algorithms that achieve near-optimal performance in the domain. So our approach is to do *joint inference* over preferences, beliefs and biases and cognitive bounds. If the agent's behavior is consistent with optimal (PO)MDP solving, we will infer this fact and infer preferences accordingly. On the other hand, if there's evidence of biases, this will alter inferences about preferences. We test our approach by comparing to a model that has a fixed assumption of optimality. We show that in simple, intuitive decision problems, assuming optimality leads to mistaken inferences about preferences.
 
-As we discussed in Chapter IV, the identifiability of preferences is a ubiquitous issue in IRL. Our approach, which does inference over a broader space of agents (with different combinations of biases), makes identification from a particular decision problem less likely in general. Yet the lack of identifiability of preferences is not something that undermines our approach. For some decision problems, the best an inference system can do is rule out preferences that are inconsistent with the behavior and accurately maintain posterior uncertainty over those that are consistent. Some of the examples below provide behavior that is ambiguous about preferences in this way. Yet we also show simple examples in which biases and bounds *can* be identified. 
+As we discussed in Chapter 4, the identifiability of preferences is a ubiquitous issue in IRL. Our approach, which does inference over a broader space of agents (with different combinations of biases), makes identification from a particular decision problem less likely in general. Yet the lack of identifiability of preferences is not something that undermines our approach. For some decision problems, the best an inference system can do is rule out preferences that are inconsistent with the behavior and accurately maintain posterior uncertainty over those that are consistent. Some of the examples below provide behavior that is ambiguous about preferences in this way. Yet we also show simple examples in which biases and bounds *can* be identified. 
 
 
 ### Formalization of Joint Inference
-We formalize joint inference over beliefs, preferences and biases by extending the approach developing in Chapter IV. In Equation (2) of that chapter, an agent was characterized by parameters $$  \left\langle U, \alpha, b_0 \right\rangle$$. To include the possibility of time-inconsistent and Myopic agents, an agent $$\theta$$ is now characterized by a tuple of parameters as follows:
+We formalize joint inference over beliefs, preferences and biases by extending the approach developing in Chapter IV. In Equation (2) of that chapter, an agent was characterized by parameters $$  \left\langle U, \alpha, b_0 \right\rangle$$. To include the possibility of time-inconsistent and Greedy/Myopic agents, an agent $$\theta$$ is now characterized by a tuple of parameters as follows:
 
 $$
 \theta = \left\langle U, \alpha, b_0, k, \nu, C \right\rangle
@@ -33,7 +33,7 @@ where:
 
 - $$\nu$$ is an indicator for Naive or Sophisticated hyperbolic discounting
 
-- $$C \in [1,\infty]$$ is the integer cutoff point for Myopic Exploration. 
+- $$C \in [1,\infty]$$ is the integer cutoff or bound for Greedy or Myopic Agents[^bound] 
 
 As in Equation (2), we condition on state-action-observation triples:
 
@@ -50,12 +50,12 @@ $$
 
 The likelihood term on the RHS of this equation is simply the softmax probability that the agent with given parameters chooses $$a_i$$ in state $$s_i$$. This equation for inference does not make use of the *delay* indices used by time-inconsistent and Myopic agents. This is because the delays figure only in their internal simulations. In order to compute the likelihood the agent takes an action, we don't need to keep track of delay values. 
 
+[^bound]: To simplify the presentation, we assume here that one does inference either about whether the agent is Myopic or about whether the agent is Greedy (but not both). It's actually straightforward to include both kinds of agents in the hypothesis space and infer both $$C_m$$ and $$C_g$$. 
 
 
+## Learning from Procrastinators
 
-## Learning from Procrastinators: "Lazy or just doesn't care"
-
-The Procrastination Problem from Chapter V.1. illustrates how agents with identical preferences can deviate *systematically* in their behavior due to time inconsistency. Suppose two agents care equally about finishing the task and assign the same cost to doing the hard work. The optimal agent will complete the task immediately. The Naive hyperbolic discounter will delay every day until the deadline, which could be (say) thirty days away!
+The Procrastination Problem from Chapter 5.1. illustrates how agents with identical preferences can deviate *systematically* in their behavior due to time inconsistency. Suppose two agents care equally about finishing the task and assign the same cost to doing the hard work. The optimal agent will complete the task immediately. The Naive hyperbolic discounter will delay every day until the deadline, which could be (say) thirty days away!
 
 This kind of systematic deviation between agents is also significant for inferring preferences. We consider the problem of *online* inference, where we observe the agent's behavior each day and produce an estimate of their preferences. Suppose the agent has a deadline $$T$$ days into the future and leaves the work till the last day. As we discussed earlier, this is just the kind of behavior we see in people every day -- and so is a good test for a model of inference. We compare the online inferences of two models. The *Optimal Model* assumes the agent is time-consistent with softmax parameter $$\alpha$$. The *Possibly Discounting* model includes both optimal and Naive hyperbolic discounting agents in the prior.
 
@@ -70,6 +70,10 @@ where `"work"` is the final action. We fix the utilities for doing the work (the
 - The agent's discount rate (for the Possibly Discounting model): $$k$$ or `discount`
 
 For each parameter, we plot a time-series showing the posterior expectation of the variable on each day. We also plot the model's posterior predictive probability that the agent would do the work on the last day (assuming the agent gets to the last day without having done the work). This feature is called `predictWorkLastMinute` in the codebox.
+
+TODO: ideally we would do this as actual online inference.
+
+TODO_daniel: plot both optimal and discounting model on same axis. 
 
 ~~~~ 
 // infer_procrastination
@@ -155,45 +159,8 @@ When evaluating the two models, it's worth keeping in mind that the behavior we 
 
 With two days left, the Optimal model has almost complete confidence that the agent doesn't care about the task enough to do the work (`reward < workCost`). Hence it assigns probability $$0.005$$ to the agent doing the task at the last minute (`predictWorkLastMinute`). By contrast, the Possibly Discounting model predicts the agent will do the task with probability around $$0.2$$. This probability is much higher because the model maintains the hypothesis that the agent values the reward enough to do it at the last minute (expectation for `reward` is 2.9 vs. 0.5). The probability is no higher than $$0.2$$ because the agent might be optimal (`discount==0`) or the agent might be too lazy to do the work even at the last minute (`discount` is high enough to overwhelm `reward`).
 
-Suppose you now observe the person doing the task on the final day. What do you infer about them? The Optimal Model has to explain the action by massively revising its inference about `reward` and $$\alpha$$. It suddenly infers that the agent is extremely noisy and that `reward > workCost` by a big margin. The extreme noise is needed to explain why the agent would miss a good option nine out of ten times. By contrast, the Possibly Discounting Model does not change its inference about the agent's noise level very much at all (in terms of pratical significance). It infers a much higher value for `reward`, which is plausible in this context. [Point that Optimal Model predicts the agent will finish early on a similar problem, while Discounting Model will predict waiting till last minute.]
+Suppose you now observe the person doing the task on the final day. What do you infer about them? The Optimal Model has to explain the action by massively revising its inference about `reward` and $$\alpha$$. It suddenly infers that the agent is extremely noisy and that `reward > workCost` by a big margin. The extreme noise is needed to explain why the agent would miss a good option nine out of ten times. By contrast, the Possibly Discounting Model does not change its inference about the agent's noise level very much at all (in terms of pratical significance). It infers a much higher value for `reward`, which is plausible in this context. <!--[Point that Optimal Model predicts the agent will finish early on a similar problem, while Discounting Model will predict waiting till last minute.]-->
 
-<!--  SOPHISTICATED AGENT INFERENCE
-~~~~
-// infer_sophistication
-
-var world = makeProcrastinationMDP();
-var observedStateAction = workInMiddle10;
-
-var posterior = function(observedStateAction) {
-  return Enumerate(function(){
-    var utilityTable = {reward: uniformDraw([0.5, 2, 3, 4, 5, 6, 7, 8]),
-			            waitCost: -0.1,
-			            workCost: -1};
-    
-    var params = {
-      utility: makeProcrastinationUtility(utilityTable),
-      alpha: 1000,
-      discount: uniformDraw([0, .5, 1, 2, 3, 4]),
-      sophisticatedOrNaive: uniformDraw(['sophisticated', 'naive'])
-    };
-    
-    var agent = makeHyperbolicDiscounter(params, world);
-    var act = agent.act;
-    
-    map(function(stateAction){
-      var state = stateAction[0];
-      var action = stateAction[1];
-      factor( act(state, 0).score([], action) );
-    }, observedStateAction);
-
-    return {sophisticatedOrNaive: params.sophisticatedOrNaive};
-
-  });
-};
-
-viz.auto(posterior(observedStateAction));
-~~~~
--->
 
 ----------
 
@@ -213,9 +180,11 @@ For this example, we consider the deterministic bandit-style problem from earlie
 
 The inference problem is to infer the agent's preference over chocolate. While this problem with only two deterministic arms may seem overly simple, the same kind of structure is shared by realistic problems. For example, we can imagine observing people choosing between different cuisines, restaurants or menu options. Usually people will know some options (arms) well but be uncertain about others. When inferring their preferences, we (as outside observers) need to distinguish between options chosen for exploration vs. exploitation The same applies to the example of people choosing media sources. Someone might try out a channel just in case it shows their favorite genre.
 
-As with the Procrastination example above, we compare the inferences of two models. The *Optimal Model* assumes an agent solving the POMDP optimally. The *Possibly Greedy Model* includes both the optimal agent and Greedy agents with different values for the bound $$C_g$$. The models know the agent's utility for champagne and their prior about how likely champagne is from `arm1`. The models have a fixed prior on the agent's utility for chocolate. We vary the agent's time horizon between 2 and 10 timesteps and plot posterior expectations for the utility of chocolate. For the Possibly Greedy model, we also plot the expectation for $$C_g$$. 
+As with the Procrastination example above, we compare the inferences of two models. The *Optimal Model* assumes the agent solving the POMDP optimally. The *Possibly Greedy Model* includes both the optimal agent and Greedy agents with different values for the bound $$C_g$$. The models know the agent's utility for champagne and his prior about how likely champagne is from `arm1`. The models have a fixed prior on the agent's utility for chocolate. We vary the agent's time horizon between 2 and 10 timesteps and plot posterior expectations for the utility of chocolate. For the Possibly Greedy model, we also plot the expectation for $$C_g$$. 
 
 <!--(With stochastic bandits you could have arms which are known to have high variance and with uncertain expectation. In this case you might get less exploration even if the myopia bound is higher or discounting is weaker. It'd be nice to include such an example but it's not neccesary).--> 
+
+TODO_daniel: Put graphs on same axis. (Also would be great to simplify and shorten this code).
 
 ~~~~
 // infer_utility_from_no_exploration
@@ -255,7 +224,7 @@ var getPosterior = function(timeLeft, useOptimalModel) {
 			             myopia: {on: false, bound:0},
 						 boundVOI: {on: false, bound: 0},
 						 sophisticatedOrNaive: 'naive',
-						 discount: 0, //agentType === 'hyperbolic' ? 1 : 0,
+						 discount: 0
 						 noDelays: useOptimalModel};
 
   var observations = [[startState, 0]];
@@ -292,5 +261,5 @@ viz.line(timeHorizonValues, map(second, possiblyMyopicExpectations));
 
 The graphs show that as the agent's time horizon increases the inferences of the two models diverge. For the Optimal agent, the longer time horizon makes exploration more valuable. So the Optimal model infers a higher utility for the known option as the time horizon increases. By contrast, the Possibly Greedy model can explain away the lack of exploration by the agent being Greedy. This latter model infers slightly lower values for $$C_g$$ as the horizon increases. 
 
->**Exercise**: Suppose that instead of allowing the agent to be greedy, we allowed the agent to be a hyperbolic discounter. Think about how this would affect inferences from the observations above and for other sequences of observation. Change the code above to test out your predictions. [TODO: could add Myopic agent and stochastic bandits].
-
+>**Exercise**: Suppose that instead of allowing the agent to be greedy, we allowed the agent to be a hyperbolic discounter. Think about how this would affect inferences from the observations above and for other sequences of observation. Change the code above to test out your predictions.
+<br>
