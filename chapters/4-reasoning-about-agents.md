@@ -271,22 +271,22 @@ map( function(variableName){
   viz.auto(getMarginalObject(posterior, variableName));
 }, ['donutFavorite', 'alpha', 'timeCost'] );
 
-The posterior shows that taking a step towards Donut South can now be explained in terms of a high `timeCost`. If the agent has a low value for $$\alpha$$, then this step to the left is fairly likely even if the agent prefers the Noodle Store or Vegetarian Cafe. So including softmax noise in the inference makes inferences about other parameters closer to the prior. However, once we observe three steps towards Donut South, the inferences about preferences become fairly strong. 
+The posterior shows that taking a step towards Donut South can now be explained in terms of a high `timeCost`. If the agent has a low value for $$\alpha$$, this step to the left is fairly likely even if the agent prefers Noodle or Veg. So including softmax noise in the inference makes inferences about other parameters closer to the prior.
 
-As noted above, it is simple to extend our approach to inference to conditioning on multiple sequences of actions. Consider the two sequences below:
+>**Exercise:** Suppose the agent is observed going all the way to Veg. What would the posteriors on $$\alpha$$ and `timeCost` look like? Check your answer by conditioning on the state-action sequence `restaurantNameToObservationTime11.vegDirect`. You will need to modify other parts of the codebox above to make this work.
+
+As we noted previously, it is simple to extend our approach to inference to conditioning on multiple sequences of actions. Consider the two sequences below:
 
 ~~~~
 // display_multiple_trajectories
 
-var world = restaurantChoiceMDPWithReverse;
+var world = makeRestaurantChoiceMDP();
+var observedSequence1 = restaurantNameToObservationTime11['naive'];
+var observedSequence2 = restaurantNameToObservationTime11['donutSouth'];
 
-var observedPath1 =  restaurantNameToPath.donutSouth;
-var observedTrajectory1 = locationsToManifestStates(observedPath1);
-var observedPath2 =  restaurantNameToPath.donutNorth;
-var observedTrajectory2 = locationsToManifestStates(observedPath2);
-
-GridWorld.draw(world, {trajectory: observedTrajectory1});
-GridWorld.draw(world, {trajectory: observedTrajectory2});
+map( function(trajectory){
+  GridWorld.draw(world, {trajectory: locationsToManifestStates(trajectory)});
+}, [observedSequence1, observedSequence2])
 ~~~~
 
 inference happens here
@@ -294,12 +294,15 @@ inference happens here
 ~~~~
 // infer_from_multiple_trajectories
 
-var world = restaurantChoiceMDPWithReverse;
+// World and agent are exactly as above
+///fold:
+
+var world = makeRestaurantChoiceMDP()
 var feature = world.feature;
 
 var utilityTablePrior = function(){
-  var foodValues = [0,1,2,3];
-  var timeCostValues = [-0.1, -0.3, -0.6, -1];
+  var foodValues = [0,1,2];
+  var timeCostValues = [-0.1, -0.3, -0.6];
   var donut = uniformDraw(foodValues);
 
   return {'Donut N': donut,
@@ -308,6 +311,7 @@ var utilityTablePrior = function(){
           Noodle: uniformDraw(foodValues),
           timeCost: uniformDraw(timeCostValues)};
 };
+
 var alphaPrior = function(){return uniformDraw([.1,1,10,100]);};
 
 var posterior = function(observedStateActionSequence){
@@ -322,26 +326,30 @@ var posterior = function(observedStateActionSequence){
     var donutBest = utilityTable['Donut N'] >= utilityTable['Veg']
 	  && utilityTable['Donut N'] >= utilityTable['Noodle'];
 
+    // For each observed state-action pair, compute likekihood of action
     map( function(stateAction){
       factor( act(stateAction[0]).score( [], stateAction[1]) );
-    }, observedStateActionSequence );
+      }, observedStateActionSequence );
 
-	var logAlpha = Math.log10(alpha);
-	var timeCost = JSON.stringify(utilityTable.timeCost);
+    // Compute whether Donut is preferred to Veg and Noodle
+    var donut = utilityTable['Donut N'];
+    var donutFavorite = donut > utilityTable.Veg && donut > utilityTable.Noodle;
 
-    return {donutBest: donutBest, logAlpha: logAlpha,
-	        timeCost: timeCost};
+    return {donutFavorite: donutFavorite,
+            alpha: JSON.stringify(alpha),
+		    timeCost: JSON.stringify(utilityTable.timeCost)} 
   });
 };
-  
+///  
 var observedSequence1 = restaurantNameToObservationTime11['naive'];
 var observedSequence2 = restaurantNameToObservationTime11['donutSouth'];
-var posteriorERP = posterior(observedSequence1.concat(observedSequence2));
-viz.auto(getMarginalObject(posteriorERP, 'donutBest'));
-viz.auto(getMarginalObject(posteriorERP, 'logAlpha'));
-viz.auto(getMarginalObject(posteriorERP, 'timeCost'));
-  // TODO: alternatively: can we run *score* on an array for more efficient computation of likelihoods
-  // e.g. score([],[x1,x2]), where the function computes sufficient statistics of the input 
+
+// TODO_daniel plot prior vs posterior
+var prior = posterior([]);
+var posterior = posterior(observedSequence1.concat(observedSequence2));
+map( function(variableName){
+  viz.auto(getMarginalObject(posterior, variableName));
+}, ['donutFavorite', 'alpha', 'timeCost'] );
   
 ~~~~
 
