@@ -216,12 +216,12 @@ The previous examples assumed that the agent's `timeCost` (the negative utility 
 ~~~~
 // infer_utilities_timeCost_softmax_noise
 
-var world = restaurantChoiceMDPWithReverse;
+var world = makeRestaurantChoiceMDP()
 var feature = world.feature;
 
 var utilityTablePrior = function(){
-  var foodValues = [0,1,2,3];
-  var timeCostValues = [-0.1, -0.3, -0.6, -1];
+  var foodValues = [0,1,2];
+  var timeCostValues = [-0.1, -0.3, -0.6];
   var donut = uniformDraw(foodValues);
 
   return {'Donut N': donut,
@@ -230,6 +230,7 @@ var utilityTablePrior = function(){
           Noodle: uniformDraw(foodValues),
           timeCost: uniformDraw(timeCostValues)};
 };
+
 var alphaPrior = function(){return uniformDraw([.1,1,10,100]);};
 
 var posterior = function(observedStateActionSequence){
@@ -249,32 +250,26 @@ var posterior = function(observedStateActionSequence){
       factor( act(stateAction[0]).score( [], stateAction[1]) );
       }, observedStateActionSequence );
 
-	var logAlpha = Math.log10(alpha);
-	var timeCost = JSON.stringify(utilityTable.timeCost);
+    // Compute whether Donut is preferred to Veg and Noodle
+    var donut = utilityTable['Donut N'];
+    var donutFavorite = donut > utilityTable.Veg && donut > utilityTable.Noodle;
 
-    return {donutBest: donutBest, logAlpha: logAlpha,
-		    timeCost: timeCost};
+    return {donutFavorite: donutFavorite,
+            alpha: JSON.stringify(alpha),
+		    timeCost: JSON.stringify(utilityTable.timeCost)} 
   });
 };
 
-var observedStateActionSequence = restaurantNameToObservationTime11['donutSouth'];
+var observedStateActionSequence = restaurantNameToObservationTime11.donutSouth;
+
+// TODO_daniel plot prior vs posterior
+var prior = posterior([]);
 
 print('Conditioning on one action:');
-var posterior1 = posterior(observedStateActionSequence.slice(0,1));
-viz.auto(getMarginalObject(posterior1, 'donutBest'));
-viz.auto(getMarginalObject(posterior1, 'logAlpha'));
-viz.auto(getMarginalObject(posterior1, 'timeCost'));
-print('Conditioning on two actions:');
-var posterior2 = posterior(observedStateActionSequence.slice(0,2));
-viz.auto(getMarginalObject(posterior2, 'donutBest'));
-viz.auto(getMarginalObject(posterior2, 'logAlpha'));
-viz.auto(getMarginalObject(posterior2, 'timeCost'));
-print('Conditioning on three actions:');
-var posterior3 = posterior(observedStateActionSequence.slice(0,3));
-viz.auto(getMarginalObject(posterior3, 'donutBest'));
-viz.auto(getMarginalObject(posterior3, 'logAlpha'));
-viz.auto(getMarginalObject(posterior3, 'timeCost'));
-~~~~
+var posterior = posterior(observedStateActionSequence.slice(0,1));
+map( function(variableName){
+  viz.auto(getMarginalObject(posterior, variableName));
+}, ['donutFavorite', 'alpha', 'timeCost'] );
 
 The posterior shows that taking a step towards Donut South can now be explained in terms of a high `timeCost`. If the agent has a low value for $$\alpha$$, then this step to the left is fairly likely even if the agent prefers the Noodle Store or Vegetarian Cafe. So including softmax noise in the inference makes inferences about other parameters closer to the prior. However, once we observe three steps towards Donut South, the inferences about preferences become fairly strong. 
 
