@@ -360,7 +360,13 @@ map( function(variableName){
 ### Formalization
 We can extend our approach to inference to deal with agents that solve POMDPs. One approach to inference is simply to generate full state-action sequences and compare them to the observed data. As we mentioned above, this approach becomes intractable in cases where noise (in transitions and actions) is high and sequences are long.
 
-Instead, we extend the approach in Equation (1) above. The first thing to notice is that Equation (1) has to be amended for POMDPs. In an MDP, actions are independent given $$U$$, $$\alpha$$ and the state; while in a POMDP, actions are only independent if we also condition on the *belief*. So Equation (1) can only be extended to the case where we know the agent's belief at each timestep. This will be realistic in some applications and not others. This depends on whether we observe the agent's observations (as well as their states and actions). If so, we can compute the agent's belief at each timestep (up to knowledge of their prior). If not, we have to marginalize over the possible observations, making for a more complex inference computation. 
+Instead, we extend the approach in Equation (1) above. The first thing to notice is that Equation (1) has to be amended for POMDPs. In an MDP, actions are conditionally independent given the agent's parameters $$U$$ and $$\alpha$$ and the state. For any pair of actions $$a_{i}$$ and $$a_j$$ and state $$s_i$$:
+
+$$
+P(a_i \vert a_j, s_i, U,\alpha) = P(a_j \vert s_i, U,\alpha)
+$$
+
+In a POMDP, actions are only rendered conditionally independent if we also condition on the agent's *belief*. So Equation (1) can only be extended to the case where we know the agent's belief at each timestep. This will be realistic in some applications and not others. It depends on whether the agent's *observations* are part of the data that is conditioned on. If so, the agent's belief can be computed at each timestep (assuming the agent's initial belief is known). If not, we have to marginalize over the possible observations, making for a more complex inference computation. 
 
 Here is the extension of Equation (1) to the POMDP case, where we assume access to the agent's observations. Our goal is to compute a posterior on the parameters of the agent. These include $$U$$ and $$\alpha$$ as before but also the agent's initial belief $$b_0$$. 
 
@@ -376,7 +382,7 @@ $$
 P(U,\alpha, b_0 | (s,o,a)_{0:n}) \propto P( (s,o,a)_{0:n} | U, \alpha, b_0)P(U, \alpha, b_0)
 $$
 
-To produce a factorized form of this posterior analogous to Equation (1), we compute the sequence of agent beliefs. This is given by the recursive Bayesian belief update described in [Chapter III.3](/chapters/3c-pomdp):
+To produce a factorized form of this posterior analogous to Equation (1), we compute the sequence of agent beliefs. This is given by the recursive Bayesian belief update described in [Chapter 3.3](/chapters/3c-pomdp):
 
 $$
 b_i = b_{i-1} \vert s_i, o_i, a_{i-1}
@@ -397,17 +403,19 @@ $$
 
 ### Application: IRL Bandits
 
-To learn the preferences and beliefs of a POMDP agent we translate Equation (2) into WebPPL. In later chapters, we apply this to the Restaurant Choice problem. Here we focus on the Bandit problems introduced in the [previous chapter](/chapters/3c-pomdp).
+To learn the preferences and beliefs of a POMDP agent we translate Equation (2) into WebPPL. In a later [chapter](/chapters/5e-joint-inference.md), we apply this to the Restaurant Choice problem. Here we focus on the Bandit problems introduced in the [previous chapter](/chapters/3c-pomdp).
 
-In the IRL Bandit problems we considered, there is an unknown mapping from arms to prizes (or distributions on prizes) and the agent has preferences over these prizes. The agent will try out arms to discover the mapping and then exploit the arm that seems best. In the inverse problem, we already know the mapping from arms to prizes and we need to infer the agent's preferences over prizes and their initial belief about the mapping.
+In the IRL Bandit problems there is an unknown mapping from arms to prizes (or distributions on prizes) and the agent has preferences over these prizes. The agent tries out arms to discover the mapping and exploits the most promising arms. In the *inverse* problem, we get to observe the agent's actions. Unlike the agent, we already know the mapping from arms to prizes. However, we don't know the agent's preferences or the agent's prior about the mapping[^bandit].
+
+[^bandit]: If we did not know the mapping from arms to prizes, the inference problem would not change fundamentally. We get information about this mapping by observing the prizes the agent receives when pulling different arms. 
 
 Often the agent's choices admit of multiple explanations. Recall the deterministic example in the previous chapter when (according to the agent's belief) `arm0` had the prize "chocolate" and `arm1` either had either "champagne" or "nothing" (see also Figure 2 below). Suppose we observe the agent chosing `arm0` on the first of five trials. If we don't know the agent's utilities or beliefs, then this choice could be explained by either:
 
-(a) the agent's preference for chocolate over champagne, or
+(1). the agent's preference for chocolate over champagne, or
 
-(b) the agent's belief that `arm1` is very likely (e.g. 95%) to yield the "nothing" prize deterministically
+(2). the agent's belief that `arm1` is very likely (e.g. 95%) to yield the "nothing" prize deterministically
 
-Given this choice by the agent, we won't be able to identify which of (a) and (b) is true because exploration becomes less valuable every trial (and there's only 5 trials total).
+Given this choice by the agent, we won't be able to identify which of (1) and (2) is true because exploration becomes less valuable every trial (and there's only 5 trials total).
 
 The codeboxes below implements this example. The translation of Equation (2) is in the function `factorSequence`. This function iterates through the observed state-observation-action triples, updating the agent's belief at each timestep. It interleaves conditioning on an action (via `factor`) with computing the sequence of belief functions $$b_i$$. The variable names correspond as follows:
 
