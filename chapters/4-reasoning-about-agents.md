@@ -293,7 +293,7 @@ map( function(trajectory){
 }, [observedSequence1, observedSequence2])
 ~~~~
 
-inference happens here
+To perform inference, we just condition on both sequences. (We use concatenation but we could have taken the union of all state-action pairs). 
 
 ~~~~
 // infer_from_multiple_trajectories
