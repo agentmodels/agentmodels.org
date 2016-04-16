@@ -478,7 +478,7 @@ var observe = worldAndStart.world.observe;
 var fullObserve = getFullObserve(observe);
 var transition = worldAndStart.world.transition;
  
-// TODO Instead of this function, can we just do simulate? 
+// TODO_daniel Instead of this function, can we just do simulate? 
 // Or else just store the observed sequence somewhere
 
 var makeTrajectory = function(state) {
@@ -590,9 +590,8 @@ var utilityBeliefPosterior = Enumerate(function(){
   return {likesChocolate: likesChocolate,
 	      isInformed: isInformed};
 });
-
+//TODO_daniel: make the visualization here better
 viz.auto(utilityBeliefPosterior);
-
 ~~~~
 
 Exploration is more valuable if there are more Bandit trials in total. If we observe the agent choosing the arm they already know about (`arm0`) then we get stronger inferences about their preference for chocolate over champagne as the total trials increases.
@@ -664,7 +663,7 @@ print('Probability of liking chocolate for lifetimes ' + lifetimes + '\n'
 viz.bar(lifetimes, probsLikesChoc)
 ~~~~
 
-This example of inferring an agent's utilities from a bandit problem may seem contrived. However, there are more practical problems that have a similar structure. Consider a domain where $$k$$ *sources* (arms) produce a stream of content, with each piece of content having a *category* (prizes). At each timestep, a human is observed choosing a source. The human has uncertainty about the stochastic mapping from sources to categories. Our goal is to infer the human's beliefs about the sources and their preferences over categories. The sources could be blogs or feeds that tag posts/tweets using the same set of tags. Alternatively, the sources could be channels for TV shows or songs. In this kind of application, the same issue of identifiability arises. An agent may choose a source either because they know it produces content in the best categories or because they have a strong prior belief that it does.
+This example of inferring an agent's utilities from a Bandit problem may seem contrived. However, there are practical problems that have a similar structure. Consider a domain where $$k$$ **sources** (arms) produce a stream of content, with each piece of content having a **category** (prizes). At each timestep, a human is observed choosing a source. The human has uncertainty about the stochastic mapping from sources to categories. Our goal is to infer the human's beliefs about the sources and their preferences over categories. The sources could be blogs or feeds that tag posts using the same set of tags. Alternatively, the sources could be channels for TV shows or songs. In this kind of application, the same issue of identifiability arises. An agent may choose a source either because they know it produces content in the best categories or because they have a strong prior belief that it does.
 
 
 
