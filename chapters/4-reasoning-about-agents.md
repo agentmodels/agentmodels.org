@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: Reasoning about agents
-description: Overview of inverse planning / IRL. WebPPL examples of inferring utilities and beliefs from choices (online and batch).
+description: Overview of Inverse Reinformcent Learning. WebPPL examples of inferring utilities and beliefs from choices in Gridworld and Bandits.
 is_section: true
 ---
 
@@ -18,12 +18,12 @@ $$
 Statistical inference infers the preferences $$U$$ and beliefs $$b$$ *given* the observed actions $$\{a_i\}$$. That is:
 
 $$
-P( U, b \vert \{a_i\}) = \text{Invert generative model via stat inference}
+P( U, b \vert \{a_i\}) = \text{Invert generative model via statistical inference}
 $$
 
 This approach, using generative models of sequential decision making, has used to learn preferences and beliefs about education, work, health, and many other topics[^generative].
 
-[^generative]: The approach in economics closest to the one we outline here (with models of action based on sequential decision making) is called "Structural Estimation". TODO: citations. Some particular examples are: refp:aguirregabiria2010dynamic, refp:darden2010smoking. A related piece of work in AI or computational social science is: refp:ermon2014learning. 
+[^generative]: The approach in economics closest to the one we outline here (with models of action based on sequential decision making) is called "Structural Estimation". TODO: citations. Some particular examples are: refp:aguirregabiria2010dynamic, refp:darden2010smoking. A related piece of work in AI or computational social science is: refp:ermon2014learning.
 
 Agent models are also used as generative models in Machine Learning, under the label "Inverse Reinforcement Learning" (IRL). One motivation for learning human preferences and beliefs is to give humans helpful recommendations (e.g. for products they are likely to enjoy). A different goal is to build systems that mimic human expert performance. For some tasks, it is hard for humans to directly specify a utility/reward function that is both correct and that can be tractably optimized. An alternative is to *learn* the human's utility function by watching them perform the task. Once learned, the system can use standard RL techniques to optimize the function. This has been applied to building systems to park cars, to fly helicopters, to control human-like bots in videogames, and to play table-tennis[^inverse].
 
@@ -36,7 +36,7 @@ This chapter provides an array of illustrative examples of learning about agents
 
 ## Learning about an agent from their actions: motivating example
 
-Consider the MDP version of Bob's Restaurant Choice problem. Bob is choosing between restaurants and has full knowledge of which restaurants are open (i.e. all of them) and knows the street layout. Previously, we discussed how to compute optimal behavior *given* Bob's utility function over restaurants. Now we get to observe Bob's behavior and our task is to infer his utility function:
+Consider the MDP version of Bob's Restaurant Choice problem. Bob is choosing between restaurants, all restaurants are open (and Bob knows this), and Bob also knows the street layout. Previously, we discussed how to compute optimal behavior *given* Bob's utility function over restaurants. Now we infer Bob's utility function *given* observations of the behavior in the codebox:
 
 ~~~~
 var world = restaurantChoiceMDP; 
@@ -46,18 +46,24 @@ var observedTrajectory = locationsToManifestStates(observedPath);
 GridWorld.draw(world,{trajectory: observedTrajectory});
 ~~~~
 
-From Bob's actions, we infer that he probably prefers the Donut Store to the other restaurants. An alternative explanation is that Bob cares most about saving time. He might prefer the Vegetarian Cafe (all things being equal) but his preference is not strong enough to spend extra time getting there.
+From Bob's actions, we infer that he probably prefers the Donut Store to the other restaurants. An alternative explanation is that Bob cares most about saving time. He might prefer Veg (the Vegetarian Cafe) but his preference is not strong enough to spend extra time getting there.
 
-In this first example of inference, Bob's preference for saving time are taken as given (with only a weak preference) and we infer (given the actions shown above) Bob's preference for the different restaurants. We model Bob using the MDP agent model from [Chapter III.1](/chapters/3a-mdp.html). We place a uniform prior over three possible utility functions for Bob: one favoring the Donut Store, one favoring Vegetarian Cafe and one favoring Noodle Shop. We use `Enumerate` to compute a Bayesian posterior over these utility functions, given Bob's observed behavior. Since the world is practically deterministic (with softmax parameter $$\alpha$$ set high), we just compare Bob's predicted states under each utility function to the states actually observed. To predict Bob's states for each utility function, we use the function `simulate` from [Chapter III.1](/chapters/3a-mdp.html). 
+In this first example of inference, Bob's preference for saving time is held fixed and we infer (given the actions shown above) Bob's preference for the different restaurants. We model Bob using the MDP agent model from [Chapter 3.1](/chapters/3a-mdp.html). We place a uniform prior over three possible utility functions for Bob: one favoring Donut, one favoring Veg and one favoring Noodle. We use `Enumerate` to compute a Bayesian posterior over these utility functions *given* Bob's observed behavior. Since the world is practically deterministic (with softmax parameter $$\alpha$$ set high), we just compare Bob's predicted states under each utility function to the states actually observed. To predict Bob's states for each utility function, we use the function `simulate` from [Chapter III.1](/chapters/3a-mdp.html). 
 
 ~~~~
-var world = restaurantChoiceMDP;
+var world = makeRestaurantChoiceMDP();
 var feature = world.feature;
 
 var observedLocs = restaurantNameToPath.donutSouth;
 var startState = {loc: [3,1],
-		          timeLeft: 15,
+		          timeLeft: 11,
 				  terminateAfterAction: false};
+
+// TODO_daniel
+// observations should be full state-actions
+// startState is then first element of observations
+// restaurant names should always be in quotes
+
 
 var utilityTablePrior = function(){
   var baseUtilityTable = {
@@ -126,25 +132,25 @@ The term $$P( a_i \vert s_i, U, \alpha)$$ can be rewritten as the softmax choice
 
 ### Example: Inference from part of a sequence of actions
 
-The expression for the joint posterior (above) shows that it is straightforward to do inference on a part of an agent's action sequence. For example, if we know an agent had a time horizon of 10, we can do inference from only the agent's first few actions.
+The expression for the joint posterior (above) shows that it is straightforward to do inference on a part of an agent's action sequence. For example, if we know an agent had a time horizon $$N=11$$, we can do inference from only the agent's first few actions.
 
-For this example, we condition on the agent making a single step from $$[3,1]$$ to $$[2,1]$$ by moving left. For an agent with low noise, this provides almost as much evidence as the agent going all the way to Donut South. 
+For this example we condition on the agent making a single step from $$[3,1]$$ to $$[2,1]$$ by moving left. For an agent with low noise, this already provides very strong evidence about the agent's preferences -- not much is added by seeing the agent go all the way to Donut South. 
 
 ~~~~
 // show_single_step_trajectory
 
-var world = restaurantChoiceMDP;
+var world = makeRestaurantChoiceMDP();
 var singleStepTrajectory = [{loc: [3,1],
-                             timeLeft: 10,
+                             timeLeft: 11,
 							 terminateAfterAction: false},
 						    {loc: [2,1],
-							 timeLeft: 9,
+							 timeLeft: 10,
 							 terminateAfterAction: false}];
 
 GridWorld.draw(world,{trajectory: singleStepTrajectory});
 ~~~~
 
-Our approach to inference is slightly different than in the example at the start of this chapter. The approach is a direct translation of the expression for the posterior in Equation (1) above. For each observed state-action pair, we compute the likelihood of the agent (with given $$U$$) choosing that action in the state. (In contrast, the simple approach above will become intractable for long, noisy action sequences -- as it will need to loop over all possible sequences). 
+Our approach to inference is slightly different than in the example at the start of this chapter. The approach is a direct translation of the expression for the posterior in Equation (1) above. For each observed state-action pair, we compute the likelihood of the agent (with given $$U$$) choosing that action in the state. In contrast, the simple approach above becomes intractable for long, noisy action sequences -- as it will need to loop over all possible sequences. 
 
 ~~~~
 // infer_from_single_step_trajectory
@@ -171,7 +177,7 @@ var utilityTablePrior = function(){
 };
 var alpha = 100;
 var observedStateAction = [[{loc: [3,1],
-			                 timeLeft: 10,
+			                 timeLeft: 11,
 							 terminateAfterAction: false}, 'l']];
 
 var posterior = Enumerate( function(){
@@ -192,14 +198,16 @@ var posterior = Enumerate( function(){
   return {favourite: favourite};
 });
 
+// TODO_daniel show posterior over veg and noodle (see paragraph immediately
+// below
 viz.auto(posterior);
 ~~~~
 
-Note that utility functions where Vegetarian Cafe or Noodle Shop are most preferred have almost the same posterior probability. Since they had the same prior, this means that we haven't received evidence about which the agent prefers. Moreover, assuming the agent's `timeCost` really is negligible (and the agent always has enough total timesteps), then no matter where the agent is placed on the grid, they will choose Donut North or South. So we'd never get any information about whether they prefer the Vegetarian Cafe or Noodle Shop!
+Note that utility functions where Veg or Noodle are most preferred have almost the same posterior probability. Since they had the same prior, this means that we haven't received evidence about which the agent prefers. Moreover, assuming the agent's `timeCost` is negligible, then no matter where the agent above starts out on the grid, they choose Donut North or South. So we never get any information about whether they prefer the Vegetarian Cafe or Noodle Shop!
 
-Actually, this is not quite right. If we wait long enough, the agent's softmax noise would eventually reveal information about which was preferred. However, the general point remains that we won't be able to *efficiently* learn the agent's preferences by repeatedly watching them choose from a random start point. If there is no softmax noise, then we can make the strong claim that even in the limit, the agent's preferences are not *identified* by draws from this space of scenarios.
+Actually, this is not quite right. If we wait long enough, the agent's softmax noise would eventually reveal information about which was preferred. However, we still won't be able to *efficiently* learn the agent's preferences by repeatedly watching them choose from a random start point. If there is no softmax noise, then we can make the stronger claim that even in the limit of arbitrarily many repeated i.i.d. observations, the agent's preferences are not *identified* by draws from this space of scenarios.
 
-This issue of *unidentifiability* is common when inferring an agent's beliefs or utilities from realistic datasets. First, an agent (even with some softmax noise) may reliably avoid inferior states (as in the present example); and so their actions may communicate little about the relative utilities *among* the inferior states. Second, richer models of agents (e.g. those with softmax noise and inaccurate beliefs) allow for more possible explanations of the same behavior. One solution to unidentifiability for IRL is *active learning*: see refp:amin2016towards. 
+Unidentifiability is a frequent problem when inferring an agent's beliefs or utilities from realistic datasets. First, agents with low noise reliably avoid inferior states (as in the present example) and so their actions provide little information about the relative utilities among the inferior states. Second, using richer agent models means there are more possible explanations of the same behavior. For example, agents with high softmax noise or with false beliefs might go to a restaurant even if they don't prefer it. One general approach to the problem of unidentifiability in IRL is **active learning*. Instead of passively observing the agent's actions, you select a sequence of environments that will be maximally informative about the agent's preferences. For recent work covering both the nature of unidentifiability in IRL as well as the active learning approach, see refp:amin2016towards. 
 
 
 ### Example: Inferring The Cost of Time and Softmax Noise
