@@ -350,25 +350,20 @@ You can change the agent's behavior by varying `numberTrials`, `armToPrize` in `
 
 
 ### Bandits with stochastic observations
-The Bandit problem above is especially simple because pulling an arm *deterministically* results in a prize (which the agent directly observes). So there is a fixed, finite number of beliefs about the `armToPrize` mapping that the agent can have. This number depends on the number of arms but not on the number of trials.
+The Bandit problem above is especially simple because pulling an arm *deterministically* results in a prize (which the agent directly observes). So there is a fixed, finite number of beliefs about the `armToPrize` mapping that the agent can have and it depends on the number of arms but not on the number of trials.
 
-We can generalize this IRL Bandit problem to *stochastic* multi-arm bandits. In this case, pulling an arm yields a distribution on prizes and the agent does not know the distribution. We discuss stochastic IRL Bandits later. For now, we consider the special case where the prizes are simply numerical rewards. Concretely, each arm $$i$$ yields the prize "one" with probability $$p_i$$ and "zero" with probability $$1-p_i$$. This is known as *binary* or *Bernoulli* bandits and has been studied extensively refp:kaelbling1996reinforcement )kaelbling, littman, moore 1996 reinforcement learning). In this problem, the number of possible beliefs about $$p_i$$ will increase with the number of trials. More generally, this problem takes time exponential in the number of trials and arms [TODO be more precise here and ideally cite the relevant page of the papers].
+The next codebox considers the stochastic version of Bandits. Each arm has a distribution on outcomes and the agent is uncertain about the distribution. To keep things simple, the arms yield numerical rewards rather than prizes like champagne and chocolate. So this is a simple instance of the standard Bandit problem from ML and Control Theory refp:kaelbling1996reinforcement. For this standard Bandit problem, the number of possible beliefs for the agent grows with the number of trials. [TODO_daniel be more precise here and ideally cite the relevant page of the papers].
 
-The structure of the Bandit problems and the agent's prior beliefs about each arm is shown Figure 3.
+The codebox has an especially simple Bandit problem, where the agent already knows the reward for `Arm0` and only considers to possible distributions on reward for `Arm1`. This is depicted in Figure 3.
 
 <img src="/assets/img/3c-stochastic-bandit.png" alt="diagram" style="width: 600px;"/>
 
-<!--
-[TODO:
-- For this codebox and the ones for scaling, I'd like the code to be short and simple -- basically just for viewing the results and varying the input parameters. So the code should construct the bandit world, the agent prior and then do the output / graph visualization. So you should try to move every helper function with *manifestState* or *loc* in it to stochasticBandits.wppl. For instance, you can have a `buildStartState(timeLeft,armToERP)`, `getStochasticBanditPrior(startState, armToPrior)`, `getUtilityFunction`, `displayBanditTrajectory`. The names should be specific to stochastic bandits -- so pick whatever seems sensible.
+>**Figure 3:** Structure of Bandit problem where `Arm1` is stochastic. 
+<br>
 
-We could also put these helper functions above the 'fold', following DIPPL:
-http://dippl.org/chapters/05-particlefilter.html
+For the following codebox, we use library functions for the environment (`makeStochasticBanditWorld`), for constructing the agent (`makeBeliefAgent`) and for simulating the agent (`simulateBeliefAgent`):
 
-- Compare scaling to exponential or poly function that upper bounds it. 
-
-- Part of the slowness is presumably that we don't have fastUpdate for stochastic bandits. But we could write a special version. We would get some saving by separating out the manifest state (i.e. which prize agent is at) from the latent state. Probably the saving is fairly small.
--->
+TODO_daniel: remove "stochastic" from names and just call them bandits. why doesn't agent explore with timeLeft==10?
 
 ~~~~
 // helper functions defined here:
@@ -392,7 +387,7 @@ var stochasticBanditUtility = function(state, action) {
 // takes a trajectory containing states and actions and returns one containing
 // locs and actions, getting rid of 'start' and the final meaningless action.
 // unlike the other two, this is not part of the webppl language
-var displayStochasticBanditTrajectory = function(trajectory) {
+var display = function(trajectory) {
   var getPrizeAction = function(stateAction) {
     var state = stateAction[0];
     var action = stateAction[1];
@@ -410,76 +405,89 @@ var displayStochasticBanditTrajectory = function(trajectory) {
   return map(printOut, range((actionsPrizes.length)*0.5));
 };
 ///
+
+// Construct Bandit environment. The latent mapping
+// from arms to rewards is specified in the *startState* (below)
 var world = makeStochasticBanditWorld(2);
 
+// Possible distributions on rewards for Arm1
 var probably1ERP = categoricalERP([0.2, 0.8], [0, 1]);
 var probably0ERP = categoricalERP([0.8, 0.2], [0, 1]);
 
-var trueLatent = {0: deltaERP(0.7),
-		          1: probably1ERP};
-var falseLatent = update(trueLatent, {1: probably0ERP});
-var timeLeft = 10;
+// True latent state (NB: Arm1 is better in EV)
+var latent = {0: deltaERP(0.7), 1: probably1ERP};
 
-var startState = buildStochasticBanditStartState(timeLeft, trueLatent);
+// Alternate latent state 
+var alternateLatent = update(latent, {1: probably0ERP});
 
-var prior = Enumerate(function(){
-  var latent = uniformDraw([trueLatent, falseLatent]);
-  return buildStochasticBanditStartState(timeLeft, latent);
+// Construct startState
+var numberTrials = 10;
+var startState = buildStochasticBanditStartState(numberTrials, latent);
+
+// Construct agent's prior on the startState
+var priorBelief = Enumerate(function(){
+  var latentState = uniformDraw([latent, alternateLatent]);
+  return buildStochasticBanditStartState(numberTrials, latentState);
 });
 
-var agentParams = {utility: stochasticBanditUtility,
-		           alpha: 100,
-		           priorBelief: prior,
-		           fastUpdateBelief: false};
-var agent = makeBeliefAgent(agentParams, world);
+// Construct agent
+var params = {utility: stochasticBanditUtility,
+              alpha: 1000,
+              priorBelief: priorBelief,
+		      fastUpdateBelief: false};
+var agent = makeBeliefAgent(params, world);
 
+// Simulate agent and return state-action pairs
 var trajectory = simulateBeliefAgent(startState, world, agent, 'stateAction');
-displayStochasticBanditTrajectory(trajectory);
+display(trajectory);
 ~~~~
 
 Scaling:
 
 ~~~~
 
-// test to show the scaling properties of stochastic bandits
+// bandit_scaling
 
-var varyTime = function(n) {
-  var world = makeStochasticBanditWorld(2);
+// Construct world and agent priorBelief as above
+///fold:
+var world = makeStochasticBanditWorld(2);
 
-  var probably1ERP = categoricalERP([0.2, 0.8], [0, 1]);
-  var probably0ERP = categoricalERP([0.8, 0.2], [0, 1]);
+var probably1ERP = categoricalERP([0.2, 0.8], [0, 1]);
+var probably0ERP = categoricalERP([0.8, 0.2], [0, 1]);
 
-  var trueLatent = {0: deltaERP(0.7),
-  		            1: probably1ERP};
-  var falseLatent = update(trueLatent, {1: probably0ERP});
+var latent = {0: deltaERP(0.7), 1: probably1ERP};
+var alternateLatent = update(latent, {1: probably0ERP});
 
-  var startState = buildStochasticBanditStartState(n, trueLatent);
+var getPriorBelief = function(numberTrials){
+  return Enumerate(function(){
+    var latentState = uniformDraw([latent, alternateLatent]);
+    return buildStochasticBanditStartState(numberTrials, latentState);
+  })
+};
 
-  var prior = Enumerate(function(){
-    var latent = uniformDraw([trueLatent, falseLatent]);
-    return buildStochasticBanditStartState(n, latent);
-  });
+var baseParams = {utility: stochasticBanditUtility,
+                  alpha: 1000,
+                  fastUpdateBelief: false};
+///
 
-  var agentParams = {utility: stochasticBanditUtility,
-	                 alpha: 100,
-		             priorBelief: prior,
-		             fastUpdateBelief: false};
-  var agent = makeBeliefAgent(agentParams, world);
+// Simulate agent for a given number of Bandit trials
+var getRuntime = function(numberTrials){
+  var startState = buildStochasticBanditStartState(numberTrials, latent); 
+  var priorBelief = getPriorBelief(numberTrials)
+  var params = update(baseParams, {priorBelief: priorBelief});
+  var agent = makeBeliefAgent(params, world);
 
   var f = function() {
     return simulateBeliefAgent(startState, world, agent, 'stateAction');
   };
-
+  
   return timeit(f).runtimeInMilliseconds.toPrecision(3) * 0.001;
 };
 
 // Varying the lifetime of the agent
-var lifetimes = _.range(16).slice(2);
-var runtimes = map(varyTime, lifetimes);
-
-print('Runtime in sec for lifetimes ' + lifetimes + '\n' + runtimes);
-
-viz.line(lifetimes, runtimes);
+var numberTrialsList = range(15).slice(2);
+var runtimes = map(getRuntime, numberTrialsList);
+viz.line(numberTrialsList, runtimes);
 
 // note: this takes approximately 30 seconds to run
 ~~~~
@@ -616,7 +624,6 @@ trajectoryToLocations(trajectory);
 ### Possible additions
 - Doing belief update online vs belief doing a batch update every time. Latter is good if belief updates are rare and if we are doing approximate inference (otherwise the errors in approximations will compound in some way). Maintaining observations is also good if your ability to do good approximate inference changes over time. (Or least maintaining compressed observations or some kind of compressed summary statistic of the observation -- e.g. .jpg or mp3 form). This is related to UDT vs CDT and possibly to the episodic vs. declarative memory in human psychology. [Add a different *updateBelief* function to illustrate.]
 
-TODO: add something about webppl allowing inference to be approximate. 
 
 
 --------------
