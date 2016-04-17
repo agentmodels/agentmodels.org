@@ -132,8 +132,13 @@ var expectedUtility = function(belief, action) {
     }));
 };
 
+// To simulate the agent, need to transition
+// the state, sample an observation, then
+// get agent's action (after agent updates belief)
+
 // *startState* is agent's actual startState (unknown to agent)
 // *priorBelief* is agent's initial belief function
+
 var simulate = function(startState, priorBelief) {
     
   var sampleSequence = function(state, priorBelief, action) {
@@ -149,7 +154,7 @@ var simulate = function(startState, priorBelief) {
       return output.concat(sampleSequence(nextState, belief, action));
       }
     };
-  return sampleSequence(startState, priorBelief, 'startAction');
+  return sampleSequence(startState, priorBelief, 'noAction');
 };
 ~~~~
 
@@ -195,13 +200,13 @@ var startState = { prize: 'start',
                 
 ~~~~
 
-Having illustrated our implementation of the POMDP agent and the Bandit problem, we put the pieces together and simulate the agent's behavior.
+Having illustrated our implementation of the POMDP agent and the Bandit problem, we put the pieces together and simulate the agent's behavior. The `makeAgent` function is a simplified version of the library function `makeBeliefAgent` used throughout the tutorial. 
 
 ~~~~
-// run_agent_bandit
 
-// Definition of Bandits and of POMDP agent
+// Bandit problem is defined as above
 ///fold:
+
 // ---------------
 // Defining the Bandits decision problem
 
@@ -211,86 +216,81 @@ var actions = [0,1];
 // use latent "armToPrize" mapping in
 // state to determine which prize agent gets
 var transition = function(state, action){
+  var newTimeLeft = state.timeLeft - 1;
   return update(state, 
                 {prize: state.armToPrize[action], 
-                 timeLeft: state.timeLeft - 1,
-                 terminateAfterAction: state.timeLeft == 2})
+                 timeLeft: newTimeLeft,
+                 terminateAfterAction: newTimeLeft == 1})
 };
 
 // After pulling an arm, agent observes associated prize
 var observe = function(state){return state.prize;};
+///
 
-var startState = { prize: 'start',
-                   timeLeft:3, 
-                   terminateAfterAction:false,
-                   armToPrize: {0:'chocolate', 1:'champagne'}
-                 };
-                
+
 // ---------------
 // Defining the POMDP agent
 
-// Agent's preferences over prizes
-var utility = function(state,action){
-  var prizeToUtility = {chocolate: 1, nothing: 0, champagne: 1.5, start:0};
-  return prizeToUtility[state.prize];
-};
+// Agent params include utility function and initial belief (*priorBelief*)
 
-// Agent's prior prior includes possibility that arm1 has no prize
-// (instead of champagne)
-var alternativeStartState = update(startState, {armToPrize:{0:'chocolate', 1:'nothing'}});
+var makeAgent = function(params){
+  var utility = params.utility;
 
-var priorBelief = Enumerate(function(){
-  return categorical( [.5, .5], [startState, alternativeStartState]);
-});
-
-
-// Agent's belief update: directly translates the belief update
-// equation above
-
-var updateBelief = function(belief, observation, action){
-  return Enumerate(function(){
-    var state = sample(belief);
-    var predictedNextState = transition(state, action);
-    var predictedObservation = observe(predictedNextState);
-    condition(_.isEqual(predictedObservation, observation));
-    return predictedNextState;
-  });
-};
-
-var act = dp.cache(
-  function(belief) {
+  // Implements *Belief-update formula* in text
+  var updateBelief = function(belief, observation, action){
     return Enumerate(function(){
-      var action = uniformDraw(actions);
-      var eu = expectedUtility(belief, action);
-      factor(100 * eu);
-      return action;
+      var state = sample(belief);
+      var predictedNextState = transition(state, action);
+      var predictedObservation = observe(predictedNextState);
+      condition(_.isEqual(predictedObservation, observation));
+      return predictedNextState;
     });
-  });
+  };
 
-var expectedUtility = dp.cache(
-  function(belief, action) {
-    return expectation(
-      Enumerate(function(){
-	var state = sample(belief);
-	var u = utility(state, action);
-	if (state.terminateAfterAction) {
-	  return u;
-	} else {
-	  var nextState = transition(state, action);
-	  var nextObservation = observe(nextState);
-	  var nextBelief = updateBelief(belief, nextObservation, action);            
-	  var nextAction = sample(act(nextBelief));   
-	  return u + expectedUtility(nextBelief, nextAction);
-	}
-      }));
-  });
+  var act = dp.cache(
+    function(belief) {
+      return Enumerate(function(){
+        var action = uniformDraw(actions);
+        var eu = expectedUtility(belief, action);
+        factor(1000 * eu);
+        return action;
+      });
+    });
 
+  var expectedUtility = dp.cache(
+    function(belief, action) {
+      return expectation(
+        Enumerate(function(){
+	  var state = sample(belief);
+	  var u = utility(state, action);
+	  if (state.terminateAfterAction) {
+	    return u;
+	  } else {
+	    var nextState = transition(state, action);
+	    var nextObservation = observe(nextState);
+	    var nextBelief = updateBelief(belief, nextObservation, action);            
+	    var nextAction = sample(act(nextBelief));   
+	    return u + expectedUtility(nextBelief, nextAction);
+	  }
+        }));
+    });
 
-var simulate = function(startState, priorBelief) {
-    
+  return {params: params, 
+          act: act, 
+          expectedUtility: expectedUtility, 
+          updateBelief: updateBelief
+          };
+};
+
+var simulate = function(startState, agent){
+  var act = agent.act;
+  var updateBelief = agent.updateBelief;
+  var priorBelief = agent.params.priorBelief;
+  
   var sampleSequence = function(state, priorBelief, action) {
     var observation = observe(state);
-    var belief = action=='startAction' ? priorBelief : updateBelief(priorBelief, observation, action);
+    var belief = (action === 'noAction') ? priorBelief : 
+        updateBelief(priorBelief, observation, action);
     var action = sample(act(belief));
     var output = [ [state,action] ];
          
@@ -301,22 +301,44 @@ var simulate = function(startState, priorBelief) {
       return output.concat(sampleSequence(nextState, belief, action));
     }
   };
-  return sampleSequence(startState, priorBelief, 'startAction');
+  // Start with agent's prior and a special "null" action  
+  return sampleSequence(startState, priorBelief, 'noAction');
 };
 
 
 
-var displayTrajectory = function( trajectory ){
-  var out = map( function(state_action){
-    var previousPrize = state_action[0].prize;
-    var nextAction = state_action[1];
-    return [previousPrize, nextAction];
-  }, trajectory);  
-  var out = _.flatten(out);
-  return out.slice(1,out.length-1);
+//-----------
+// Construct the agent
+
+var utility = function(state,action){
+  var prizeToUtility = {chocolate: 1, nothing: 0, champagne: 1.5, start:0};
+  return prizeToUtility[state.prize];
 };
 
-displayTrajectory(simulate(startState, priorBelief));
+
+// Define true startState (including true *armToPrize*) and
+// alternate possibility for startState (see Figure 2)
+
+var numberTrials = 1;
+var startState = { prize: 'start',
+                   timeLeft: numberTrials + 1, 
+                   terminateAfterAction:false,
+                   armToPrize: {0:'chocolate', 1:'champagne'}
+                 };
+
+var alternateStartState = update(startState, 
+                                 {armToPrize:{0:'chocolate', 1:'nothing'}});
+
+// Agent's prior
+var priorBelief = categoricalERP([.5, .5], [startState, alternateStartState]);
+
+
+var params = {utility: utility, priorBelief:priorBelief};
+var agent = makeAgent(params);
+var trajectory = simulate(startState, agent);
+
+print('Number of trials: ' + numberTrials);
+print('Arms pulled: ' +  map(second,trajectory));
 ~~~~
 
 ### Bandits with stochastic observations
