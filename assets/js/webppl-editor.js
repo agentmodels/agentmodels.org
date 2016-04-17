@@ -21089,7 +21089,7 @@ return jQuery;
 
 },{}],33:[function(require,module,exports){
 /**
- * lodash 4.0.5 (Custom Build) <https://lodash.com/>
+ * lodash 4.0.6 (Custom Build) <https://lodash.com/>
  * Build: `lodash modularize exports="npm" -o ./`
  * Copyright jQuery Foundation and other contributors <https://jquery.org/>
  * Released under MIT license <https://lodash.com/license>
@@ -21209,12 +21209,13 @@ var now = Date.now;
 function debounce(func, wait, options) {
   var lastArgs,
       lastThis,
+      maxWait,
       result,
       timerId,
       lastCallTime = 0,
       lastInvokeTime = 0,
       leading = false,
-      maxWait = false,
+      maxing = false,
       trailing = true;
 
   if (typeof func != 'function') {
@@ -21223,7 +21224,8 @@ function debounce(func, wait, options) {
   wait = toNumber(wait) || 0;
   if (isObject(options)) {
     leading = !!options.leading;
-    maxWait = 'maxWait' in options && nativeMax(toNumber(options.maxWait) || 0, wait);
+    maxing = 'maxWait' in options;
+    maxWait = maxing ? nativeMax(toNumber(options.maxWait) || 0, wait) : maxWait;
     trailing = 'trailing' in options ? !!options.trailing : trailing;
   }
 
@@ -21251,7 +21253,7 @@ function debounce(func, wait, options) {
         timeSinceLastInvoke = time - lastInvokeTime,
         result = wait - timeSinceLastCall;
 
-    return maxWait === false ? result : nativeMin(result, maxWait - timeSinceLastInvoke);
+    return maxing ? nativeMin(result, maxWait - timeSinceLastInvoke) : result;
   }
 
   function shouldInvoke(time) {
@@ -21262,7 +21264,7 @@ function debounce(func, wait, options) {
     // trailing edge, the system time has gone backwards and we're treating
     // it as the trailing edge, or we've hit the `maxWait` limit.
     return (!lastCallTime || (timeSinceLastCall >= wait) ||
-      (timeSinceLastCall < 0) || (maxWait !== false && timeSinceLastInvoke >= maxWait));
+      (timeSinceLastCall < 0) || (maxing && timeSinceLastInvoke >= maxWait));
   }
 
   function timerExpired() {
@@ -21311,10 +21313,12 @@ function debounce(func, wait, options) {
       if (timerId === undefined) {
         return leadingEdge(lastCallTime);
       }
-      // Handle invocations in a tight loop.
-      clearTimeout(timerId);
-      timerId = setTimeout(timerExpired, wait);
-      return invokeFunc(lastCallTime);
+      if (maxing) {
+        // Handle invocations in a tight loop.
+        clearTimeout(timerId);
+        timerId = setTimeout(timerExpired, wait);
+        return invokeFunc(lastCallTime);
+      }
     }
     if (timerId === undefined) {
       timerId = setTimeout(timerExpired, wait);

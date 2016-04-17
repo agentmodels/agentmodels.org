@@ -48454,8 +48454,6 @@ module.exports = require('./lib/React');
 
 },{"./lib/React":249}],362:[function(require,module,exports){
 (function (global){
-'use strict';
-
 var _ = require('underscore');
 var d3 = require('d3');
 var $ = require('jquery');
@@ -48508,6 +48506,7 @@ function samplesToErp(xs) {
 
 // a data frame is an array of objects where
 // all objects have the same keys
+// TODO: do with underscore
 function isDataFrame(arr) {
   var first_keys = _.keys(arr[0]);
   if (first_keys.length > 0) {
@@ -48771,6 +48770,53 @@ kindPrinter.ccc = function (types, support, scores) {
   // todo
 };
 
+var renderArray = function (specs /*: array */, regularVega) {
+  var nSpecsRemaining = specs.length;
+
+  var resultContainer = wpEditor.makeResultContainer();
+
+  // div that holds selected item
+  var $zoomDiv = $("<div>").addClass("zoomDiv");
+
+  _.each(specs, function (spec) {
+
+    var vgSpec = regularVega ? spec : vl.compile(spec).spec;
+    var thumbnailContainer = $('<div>').addClass('thumbnail');
+
+    $(resultContainer).append(thumbnailContainer);
+
+    vg.parse.spec(vgSpec, function (error, chart) {
+      // TODO: current thumbnail sizing is hacky, figure out more idiomatic way
+      var view = chart({ el: thumbnailContainer[0], renderer: 'svg' }).update();
+
+      var $svg = $(view._el).find("svg");
+
+      var origHeight = $svg.attr("height");
+      var origWidth = $svg.attr("width");
+      var origTransform = $svg.children().attr("transform");
+
+      $svg.attr({ height: origHeight * 0.2,
+        width: origWidth * 0.2 });
+
+      $svg.children().attr("transform", "scale(0.2) " + origTransform);
+
+      $svg.click(function () {
+        //console.log('todo')
+
+        var $zoomSvg = $(this).clone().attr({ height: origHeight,
+          width: origWidth });
+
+        debugger;
+        $zoomSvg.children().attr("transform", origTransform);
+
+        $zoomDiv.empty().append($zoomSvg);
+      });
+    });
+  });
+
+  $(resultContainer).append($("<div>").addClass("clearboth")).append($zoomDiv);
+};
+
 kindPrinter.ccr = function (types, support, scores) {
   var typesExpanded = _.map(types, function (v, k) {
     return { name: k,
@@ -48779,6 +48825,12 @@ kindPrinter.ccr = function (types, support, scores) {
 
   var cDimNames = _(typesExpanded).chain().where({ type: 'categorical' }).pluck('name').value();
   var rDimNames = _(typesExpanded).chain().where({ type: 'real' }).pluck('name').value();
+
+  // mapping choices: {c0, c1} -> {facet, color}
+  // TODO: write cccr (use facet_row as well)
+
+  // issue with writing a forward model here: this library is javascript
+  // but we want to call webppl (i guess i precompile the inference and stick it in here)
 
   var facetDimName = cDimNames[0];
   var cDimName = cDimNames[1];
@@ -48818,7 +48870,7 @@ kindPrinter.ccr = function (types, support, scores) {
     return densityBins;
   }).flatten(1).value();
 
-  var vlSpec = {
+  var vlSpec1 = {
     "data": { "values": densityEstimatesTidied },
     "mark": "line",
     encoding: {
@@ -48829,7 +48881,108 @@ kindPrinter.ccr = function (types, support, scores) {
     }
   };
 
-  renderSpec(vlSpec);
+  var vlSpec2 = {
+    "data": { "values": densityEstimatesTidied },
+    "mark": "line",
+    encoding: {
+      x: { "type": "quantitative", "field": "item", axis: { title: rDimName } },
+      y: { "type": "quantitative", "field": "density" },
+      color: { "type": "nominal", "field": facetDimName, axis: { title: facetDimName } },
+      column: { type: 'nominal', field: cDimName }
+    }
+  };
+
+  renderSpec(vlSpec1);
+  //renderArray([vlSpec1, vlSpec2])
+};
+
+// HT http://codereview.stackexchange.com/a/59621
+function perms(data) {
+  data = data.slice(); // make a copy
+  var permutations = [],
+      stack = [];
+
+  function doPerm() {
+    if (data.length == 0) {
+      permutations.push(stack.slice());
+    }
+    for (var i = 0; i < data.length; i++) {
+      var x = data.splice(i, 1);
+      stack.push(x);
+      doPerm();
+      stack.pop();
+      data.splice(i, 0, x);
+    }
+  }
+
+  doPerm();
+  return permutations;
+}
+
+kindPrinter.cccr = function (types, support, scores) {
+  var typesExpanded = _.map(types, function (v, k) {
+    return { name: k,
+      type: v };
+  });
+
+  var cDimNames = _(typesExpanded).chain().where({ type: 'categorical' }).pluck('name').value();
+  var rDimNames = _(typesExpanded).chain().where({ type: 'real' }).pluck('name').value();
+
+  var rDimName = rDimNames[0];
+
+  // mapping choices: {c0, c1} -> {facet, color}
+  // TODO: write cccr (use facet_row as well)
+
+  // issue with writing a forward model here: this library is javascript
+  // but we want to call webppl (i guess i precompile the inference and stick it in here)
+
+  var data = _.zip(support, scores).map(function (x) {
+    return _.extend({ prob: Math.exp(x[1]) }, x[0]);
+  });
+
+  var categoricalPermutations = perms(cDimNames);
+
+  var specs = _.map(categoricalPermutations, function (perm) {
+
+    var dataGroupedByC = _.groupBy(data, function (obs) {
+      return JSON.stringify(_.pick(obs, cDimNames));
+    });
+
+    // for each group, get the density estimate and weight each bin within that estimate
+    // by the total group probability
+    var densityEstimates = _.mapObject(dataGroupedByC, function (states, k) {
+
+      var groupWeight = util.sum(_.pluck(states, 'prob'));
+
+      var rValues = _.pluck(states, rDimName);
+      var estimates = kde(rValues);
+      _.each(estimates, function (est) {
+        est.density *= groupWeight;
+      });
+      return estimates;
+    });
+
+    var densityEstimatesTidied = _.chain(densityEstimates).map(function (vs, k) {
+      var kParsed = JSON.parse(k);_.each(vs, function (v) {
+        _.extend(v, kParsed);
+      });
+      return vs;
+    }).flatten(1).value();
+
+    return {
+      "data": { "values": densityEstimatesTidied },
+      "mark": "line",
+      encoding: {
+        column: { type: 'nominal', field: perm[0] },
+        row: { type: 'nominal', field: perm[1] },
+        color: { "type": "nominal", "field": perm[2], axis: { title: perm[2] } },
+        x: { "type": "quantitative", "field": "item", axis: { title: rDimName } },
+        y: { "type": "quantitative", "field": "density" }
+      }
+    };
+  });
+
+  renderArray(specs);
 };
 
 kindPrinter.crr = function (types, support, scores) {
@@ -49178,43 +49331,71 @@ function renderSpec(spec, regularVega) {
   });
 }
 
-// TODO: maybe a better function signature is
-// bar([{<key1>: ..., <key2>: ...])
-// and we map key1 to x, key2 to y
-//.. i wish javascript had types and multiple dispatch
-function bar(xs, ys, options) {
-  options = _.defaults(options || {}, { xLabel: 'x',
-    yLabel: 'y',
-    horizontal: false,
+// TODO: groupBy defaults to the third key in df
+// TODO: clean up options stuff
+function barDfs(df, options) {
+  options = _.defaults(options || {}, { groupBy: false,
     xType: 'nominal'
   });
 
-  var data = _.zip(xs, ys).map(function (pair) {
-    return { x: pair[0], y: pair[1] };
-  });
+  var xName = _.keys(df[0])[0];
+  var yName = _.keys(df[0])[1];
 
-  var vlSpec;
-  if (options.horizontal) {
-    vlSpec = {
-      "data": { "values": data },
-      "mark": "bar",
-      encoding: {
-        x: { "type": "quantitative", "field": "y", axis: { title: options.xLabel } },
-        y: { "type": options.xType, "field": "x", axis: { title: options.yLabel } }
-      }
+  // TODO: assert that groupBy variable is actually in the df
+
+  var vlSpec = {
+    "data": { values: df },
+    "mark": "bar",
+    "encoding": {
+      "x": { "field": xName, "type": options.xType, axis: { title: options.xLabel || xName } },
+      "y": { "field": yName, "type": "quantitative", axis: { title: options.yLabel || yName } }
+    }
+  };
+
+  if (options.groupBy) {
+
+    vlSpec.encoding.column = {
+      "field": xName, "type": "ordinal",
+      "scale": { "padding": 4 },
+      "axis": { "orient": "bottom", "axisWidth": 1, "offset": -8 }
     };
-  } else {
-    vlSpec = {
-      "data": { "values": data },
-      "mark": "bar",
-      encoding: {
-        x: { "type": options.xType, "field": "x", axis: { title: options.xLabel } },
-        y: { "type": "quantitative", "field": "y", axis: { title: options.yLabel } }
-      }
+
+    vlSpec.encoding.x = {
+      "field": options.groupBy, "type": "ordinal",
+      "scale": { "bandSize": 6 },
+      "axis": false
     };
+
+    vlSpec.encoding.y.axis = { grid: false };
+
+    vlSpec.encoding.color = {
+      field: options.groupBy,
+      type: 'nominal',
+      scale: { range: "category10" }
+    };
+
+    vlSpec.config = { "facet": { "cell": { "strokeWidth": 0 } } };
   }
 
   renderSpec(vlSpec);
+}
+
+function barDispatch() {
+  var args = _.toArray(arguments);
+
+  if (isDataFrame(arguments[0])) {
+    return barDfs.apply(null, args);
+  } else {
+    var xs = args[0];
+    var ys = args[1];
+
+    var df = [];
+    for (var i = 0, ii = xs.length; i < ii; i++) {
+      df.push({ x: xs[i], y: ys[i] });
+    }
+
+    return barDfs.apply(null, [df].concat(args.slice(2)));
+  }
 }
 
 // currently hist operates on a collection of samples as well (e.g., from repeat)
@@ -49266,14 +49447,14 @@ function hist(obj, options) {
       return ((bin.upper + bin.lower) / 2).toExponential(2);
     });
 
-    bar(binLabels, binProbs, { xLabel: 'Bin mean', yLabel: 'Probability', xType: 'quantitative' });
+    barDispatch(binLabels, binProbs, { xLabel: 'Bin mean', yLabel: 'Probability', xType: 'quantitative' });
 
     return;
   }
 
   var supportStringified = support.map(stringifyIfObject);
 
-  bar(supportStringified, probs, { xLabel: 'Value', yLabel: 'Probability' });
+  barDispatch(supportStringified, probs, { xLabel: 'Value', yLabel: 'Probability' });
 };
 
 var scatter = function (xs, ys, options) {
@@ -49589,8 +49770,35 @@ function density(samples, options) {
   renderSpec(vlSpec);
 }
 
+function lineDfs(df, options) {
+  options = _.defaults(options || {}, { groupBy: false });
+
+  var xName = _.keys(df[0])[0];
+  var yName = _.keys(df[0])[1];
+
+  // TODO: assert that groupBy variable is actually in the df
+
+  var vlSpec = {
+    "data": { values: df },
+    "mark": "line",
+    "encoding": {
+      "x": { "field": xName, "type": "quantitative" },
+      "y": { "field": yName, "type": "quantitative" }
+    }
+  };
+
+  if (options.groupBy) {
+    vlSpec.encoding.color = {
+      field: options.groupBy,
+      type: 'nominal'
+    };
+  }
+
+  renderSpec(vlSpec);
+}
+
 // TODO: show points
-var line = function (xs, ys, options) {
+function line(xs, ys, options) {
   options = _.defaults(options || {}, { xLabel: 'x',
     yLabel: 'y' });
   var data = _.zip(xs, ys).map(function (pair) {
@@ -49607,6 +49815,17 @@ var line = function (xs, ys, options) {
   };
 
   renderSpec(vlSpec);
+}
+
+// mimic multiple dispatch
+var lineDispatch = function () {
+  if (isDataFrame(arguments[0])) {
+    return lineDfs.apply(null, arguments);
+  } else {
+    // TODO: convert x's and y's to dataframe, then use lineDfs
+
+    return line.apply(null, arguments);
+  }
 };
 
 // visualize an erp as a table
@@ -49656,11 +49875,11 @@ function table(obj, options) {
 global.viz = {
   d3auto: require('./old').print,
   auto: auto,
-  bar: bar,
+  bar: barDispatch,
   hist: hist,
   scatter: scatter,
   density: density,
-  line: line,
+  line: lineDispatch,
   table: table,
   heatMap: heatMap
 };

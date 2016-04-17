@@ -130,3 +130,16 @@ svg {
 .clearboth {
     clear: both
 }
+
+.thumbnail {
+    float: left;
+    margin: 0.1em;
+}
+
+.thumbnail svg {
+    border: 1px solid gray;
+}
+
+.thumbnail svg:hover {
+    background-color: LightSteelBlue;
+}
