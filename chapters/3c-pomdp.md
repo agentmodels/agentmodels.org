@@ -200,7 +200,11 @@ var startState = { prize: 'start',
                 
 ~~~~
 
-Having illustrated our implementation of the POMDP agent and the Bandit problem, we put the pieces together and simulate the agent's behavior. The `makeAgent` function is a simplified version of the library function `makeBeliefAgent` used throughout the tutorial. 
+Having illustrated our implementation of the POMDP agent and the Bandit problem, we put the pieces together and simulate the agent's behavior. The `makeAgent` function is a simplified version of the library function `makeBeliefAgent` used throughout the rest of this tutorial[^makeBelief].
+
+The <a href="#belief">Belief-Update Formula</a> is implemented by `updateBelief`. Instead of hand-coding a Bayesian belief update, we simply use WebPPL's built in inference primitives. This approach means our POMDP agent can do any kind of inference that WebPPL itself can do. For this tutorial, we use the inference function `Enumerate`, which captures exact inference over discrete belief spaces. By changing the inference function, we get a POMDP agent that does approximate inference and simulates their future selves as doing approximate inference. This inference could be over discrete or continuous belief spaces. (WebPPL includes Particle Filters, MCMC, and Hamiltonian Monte Carlo for differentiable models). 
+
+[^makeBelief]: One difference between the functions is that `makeAgent` uses the global variables `transition` and `observation`, instead of having a `world` parameter.
 
 ~~~~
 
@@ -340,6 +344,10 @@ var trajectory = simulate(startState, agent);
 print('Number of trials: ' + numberTrials);
 print('Arms pulled: ' +  map(second,trajectory));
 ~~~~
+
+You can change the agent's behavior by varying `numberTrials`, `armToPrize` in `startState` or the agent's prior. Note that the agent's final arm pull is random because the agent only gets utility when *leaving* a state.
+
+
 
 ### Bandits with stochastic observations
 The Bandit problem above is especially simple because pulling an arm *deterministically* results in a prize (which the agent directly observes). So there is a fixed, finite number of beliefs about the `armToPrize` mapping that the agent can have. This number depends on the number of arms but not on the number of trials.
