@@ -352,9 +352,9 @@ You can change the agent's behavior by varying `numberTrials`, `armToPrize` in `
 ### Bandits with stochastic observations
 The Bandit problem above is especially simple because pulling an arm *deterministically* results in a prize (which the agent directly observes). So there is a fixed, finite number of beliefs about the `armToPrize` mapping that the agent can have and it depends on the number of arms but not on the number of trials.
 
-The next codebox considers the stochastic version of Bandits. Each arm has a distribution on outcomes and the agent is uncertain about the distribution. To keep things simple, the arms yield numerical rewards rather than prizes like champagne and chocolate. So this is a simple instance of the standard Bandit problem from ML and Control Theory refp:kaelbling1996reinforcement. For this standard Bandit problem, the number of possible beliefs for the agent grows with the number of trials. [TODO_daniel be more precise here and ideally cite the relevant page of the papers].
+The next codebox considers the stochastic version of Bandits. Each arm has a distribution on outcomes and the agent is uncertain about the distribution. The arms yield numerical rewards rather than prizes like chocolate -- so this is a standard Bandit problem from ML and Control Theory refp:kaelbling1996reinforcement. For this standard Bandit problem, the number of possible beliefs for the agent grows with the number of trials. [TODO_daniel be more precise here and ideally cite the relevant page of the papers].
 
-The codebox has an especially simple Bandit problem, where the agent already knows the reward for `Arm0` and only considers to possible distributions on reward for `Arm1`. This is depicted in Figure 3.
+We consider an especially simple Bandit problem, where the agent already knows the reward for `Arm0` and only considers two possible distributions on reward for `Arm1`. This is depicted in Figure 3.
 
 <img src="/assets/img/3c-stochastic-bandit.png" alt="diagram" style="width: 600px;"/>
 
