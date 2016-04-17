@@ -31,7 +31,7 @@ For a concrete example, consider the Restaurant Choice Problem. Suppose Bob does
 
 ### Formal model
 
-TODO: add something about webppl allowing inference to be approximate. 
+
 
 We first define the class of decision probems (POMDPs) and then define an agent model for optimally solving these problems. Our definitions are based on refp:kaelbling1998planning.
 
@@ -155,17 +155,53 @@ var simulate = function(startState, priorBelief) {
 
 ## Applying the POMDP agent model
 
-### Two-arm, deterministic, IRL bandits
-We apply the POMDP agent to a simplified variant of the Multi-arm Bandit Problem. In this variant, pulling an arm produces a *prize* deterministically. The agent begins with uncertainty about the mapping from arms to prizes and learns over time by trying the arms. In our concrete example, there are only two arms. The first arm is known to have the prize "chocolate" and the second arm either has "champagne" or has no prize at all ("nothing"). We refer to Bandit problems with prizes (e.g. chocolate) as "IRL Bandits" to distinguish them from the standard Bandit problems with numerical rewards.
-
-In our implementation of this problem, the two arms are labeled "0" and "1" respectively. The *action* of pulling `Arm0` is labeled "0" (and likewise for `Arm1`). After taking action `0`, the agent transitions to a state corresponding to the prize for `Arm0` and the gets to observe this prize. States are objects that contain properties for counting down the time (as in the MDP case), as well as a `prize` property. States also contain the *latent* mapping from arms to prizes (called `armToPrize`) that determines how an agent transitions on pulling an arm. The structure of this bandit problem is displayed in Figure 2 below.
+### Two-arm, deterministic, IRL Bandits
+We apply the POMDP agent to a simplified variant of the Multi-arm Bandit Problem. In this variant, pulling an arm produces a *prize* deterministically. The agent begins with uncertainty about the mapping from arms to prizes and learns over time by trying the arms. In our concrete example, there are only two arms. The first arm is known to have the prize "chocolate" and the second arm either has "champagne" or has no prize at all ("nothing"). See Figure 2 (below) for details. We refer to Bandit problems with prizes (e.g. chocolate) as "IRL Bandits" to distinguish them from the standard Bandit problems with numerical rewards.
 
 <img src="/assets/img/3c-irl-bandit.png" alt="diagram" style="width: 500px;"/>
 
-If the agent only has one timestep in total (i.e. one bandit trial), then they will take the arm with highest expected utility (given their prior on `armToPrize`). If there are multiple trials, the agent might *explore* the lower expected utility arm (e.g. if it's maximum possible utility is higher). You should try changing the number trials to see how it affects the agent's choice on the first trial.
+>**Figure 2:** Diagram for deterministic Bandit problem used in the codebox below. The boxes represent possible deterministic mappings from arms to prizes. Each prize has a utility $$u$$. On the right are the agent's initial beliefs about the probability of each mapping. The true mapping (i.e. true *latent state*) has a solid outline.
+
+In our implementation of this problem, the two arms are labeled "0" and "1" respectively. The *action* of pulling `Arm0` is also labeled "0" (and likewise for `Arm1`). After taking action `0`, the agent transitions to a state corresponding to the prize for `Arm0` and the gets to observe this prize. States are Javascript objects that contain a property for counting down the time (as in the MDP case) as well as a `prize` property. States also contain the *latent* mapping from arms to prizes (called `armToPrize`) that determines how an agent transitions on pulling an arm.
 
 ~~~~
+// ---------------
+// Defining the Bandits decision problem
 
+// Pull arm0 or arm1
+var actions = [0,1];
+
+// use latent "armToPrize" mapping in
+// state to determine which prize agent gets
+var transition = function(state, action){
+  var newTimeLeft = state.timeLeft - 1;
+  return update(state, 
+                {prize: state.armToPrize[action], 
+                 timeLeft: newTimeLeft,
+                 terminateAfterAction: newTimeLeft == 1})
+};
+
+// After pulling an arm, agent observes associated prize
+var observe = function(state){return state.prize;};
+
+// Starting state specifies the latent state that agent tries to learn
+// (In order that *prize* is defined, we set it to 'start', which
+// has zero utilty for the agent). 
+var startState = { prize: 'start',
+                   timeLeft:3, 
+                   terminateAfterAction:false,
+                   armToPrize: {0:'chocolate', 1:'champagne'}
+                 };
+                
+~~~~
+
+Having illustrated our implementation of the POMDP agent and the Bandit problem, we put the pieces together and simulate the agent's behavior.
+
+~~~~
+// run_agent_bandit
+
+// Definition of Bandits and of POMDP agent
+///fold:
 // ---------------
 // Defining the Bandits decision problem
 
@@ -550,6 +586,7 @@ trajectoryToLocations(trajectory);
 ### Possible additions
 - Doing belief update online vs belief doing a batch update every time. Latter is good if belief updates are rare and if we are doing approximate inference (otherwise the errors in approximations will compound in some way). Maintaining observations is also good if your ability to do good approximate inference changes over time. (Or least maintaining compressed observations or some kind of compressed summary statistic of the observation -- e.g. .jpg or mp3 form). This is related to UDT vs CDT and possibly to the episodic vs. declarative memory in human psychology. [Add a different *updateBelief* function to illustrate.]
 
+TODO: add something about webppl allowing inference to be approximate. 
 
 
 --------------
