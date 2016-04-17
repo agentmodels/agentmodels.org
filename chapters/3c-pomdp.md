@@ -47,7 +47,9 @@ A Partially Observable Markov Decision Process (POMDP) is a tuple $$ \left\langl
 
 So at each timestep, the agent transitions from state $$s$$ to state $$s' \sim T(s,a)$$ (where $$s$$ and $$s'$$ are generally unknown to the agent) having performed action $$a$$. On entering $$s'$$ the agent receives an observation $$o \sim O(s',a)$$ and a utility $$U(s,a)$$. 
 
-To characterize the behavior of an expected-utility maximizing agent, we need to formalize the belief-updating process. Let $$b$$, the current belief function, be a probability distribution over the agent's current state. Then the agent's succesor belief function $$b'$$ over their next state is the result of a Bayesian update on the observation $$o \sim O(s',a)$$ where $$a$$ is the agent's action in $$s$$.  That is:
+To characterize the behavior of an expected-utility maximizing agent, we need to formalize the belief-updating process. Let $$b$$, the current belief function, be a probability distribution over the agent's current state. Then the agent's succesor belief function $$b'$$ over their next state is the result of a Bayesian update on the observation $$o \sim O(s',a)$$ where $$a$$ is the agent's action in $$s$$. That is:
+
+<a id="belief"></a>**Belief-update formula:**
 
 $$
 b'(s') \propto O(s',a,o)\sum_{s \in S}{T(s,a,s')b(s)}
@@ -65,7 +67,9 @@ Intuitively, the probability that $$s'$$ is the new state depends on the margina
 
 >(3). The agent transitions to state $$s' \sim T(s,a)$$, where it gets observation $$o \sim O(s',a)$$ and updates its belief to $$b'$$ by updating $$b$$ on the observation $$o$$.
 
-In our previous agent model for MDPs, we defined the expected utility of an action $$a$$ in a state $$s$$ recursively in terms of the expected utility of the resulting pair of state $$s'$$ and action $$a'$$. This same recursive characterization of expected utility still holds. The important difference is that the agent's action $$a'$$ in $$s'$$ depends on their updated belief $$b'(s')$$ given the observation they receive in $$s'$$. So the expected utility of $$a$$ in $$s$$ depends on the agent's belief $$b$$ over the state $$s$$. We call the following the *Expected Utility of State Recursion*, which defines the function $$EU_{b}$$. This is analogous to the characterization of the *value*, $$V_{b}$$, of a state relative to a belief (see p.109 in refp:kaelbling1998planning).
+In our previous agent model for MDPs, we defined the expected utility of an action $$a$$ in a state $$s$$ recursively in terms of the expected utility of the resulting pair of state $$s'$$ and action $$a'$$. This same recursive characterization of expected utility still holds. The important difference is that the agent's action $$a'$$ in $$s'$$ depends on their updated belief $$b'(s')$$. Hence the expected utility of $$a$$ in $$s$$ depends on the agent's belief $$b$$ over the state $$s$$. We call the following the **POMDP Expected Utility of State Recursion**. This recursion defines the function $$EU_{b}$$, which is analogous to the *value function*, $$V_{b}$$, in refp:kaelbling1998planning.
+
+<a id="pomdp_eu_state"></a>**POMDP Expected Utility of State Recursion:**
 
 $$
 EU_{b}[s,a] = U(s,a) + \mathbb{E}_{s',o,a'}(EU_{b'}[s',a'_{b'}])
@@ -75,17 +79,17 @@ where:
 
 - we have $$s' \sim T(s,a)$$ and $$o \sim O(s',a)$$
 
-- $$b'$$ is the updated belief function $$b$$ on $$o$$ (as defined above)
+- $$b'$$ is the updated belief function $$b$$ on observation $$o$$, as defined <a href="#belief">above</a>
 
 - $$a'_{b'}$$ is the softmax action the agent takes given belief $$b'$$
 
-The agent cannot use the Expected Utility of State Recursion to directly compute the best action, since the agent doesn't know the state. Instead the agent takes an expectation over their belief distribution, picking the action $$a$$ that maximizes the following:
+The agent cannot use this definition to directly compute the best action, since the agent doesn't know the state. Instead the agent takes an expectation over their belief distribution, picking the action $$a$$ that maximizes the following:
 
 $$
 EU[b,a] = \mathbb{E}_{s \sim b}(EU_{b}[s,a])
 $$
 
-We can also represent the expected utility of action $$a$$ given belief $$b$$ in terms of a recursion on the successor belief state. We call this the *Expected Utility of Belief Recursion*. It's analogous to the Bellman update rule [add reference].
+We can also represent the expected utility of action $$a$$ given belief $$b$$ in terms of a recursion on the successor belief state. We call this the **Expected Utility of Belief Recursion**, which is closely related to the Bellman Equations for POMDPs: <a id="pomdp_eu_belief"></a>
 
 $$
 EU[b,a] = \mathbb{E}_{s \sim b}( U(s,a) + \mathbb{E}_{s',o,a'}(EU[b',a']) )
@@ -96,10 +100,12 @@ where $$s'$$, $$o$$, $$a'$$ and $$b'$$ are distributed as in the Expected Utilit
 
 
 ### Implementation of the Model
-As with the agent model for MDPs, we provide a direct translation of the equations above into an agent model for solving POMDPs. The variables `nextState`, `nextObservation`, `nextBelief`, and `nextAction` correspond to $$s'$$,  $$o$$, $$b'$$ and $$a'$$ respectively, and we use the Expected Utility of Belief Recursion. The following codebox defines the `act` and `expectedUtility` functions, without defining `updateBelief`, `transition`, `observe` or `utility`. 
+As with the agent model for MDPs, we provide a direct translation of the equations above into an agent model for solving POMDPs. The variables `nextState`, `nextObservation`, `nextBelief`, and `nextAction` correspond to $$s'$$,  $$o$$, $$b'$$ and $$a'$$ respectively, and we use the Expected Utility of Belief Recursion. The following codebox defines the `act` and `expectedUtility` functions. We define the functions `updateBelief`, `transition`, `observe` and `utility` below. 
 
 
 ~~~~
+// pomdp_agent
+
 var act = function(belief) {
   return Enumerate(function(){
     var action = uniformDraw(actions);
@@ -150,9 +156,9 @@ var simulate = function(startState, priorBelief) {
 ## Applying the POMDP agent model
 
 ### Two-arm, deterministic, IRL bandits
-To illustrate the POMDP agent in action, we implement a simplified variant of the Multi-arm Bandit Problem. In this variant, there are just two arms. Pulling an arm produces a *prize* (deterministically). The agent does not know initially the mapping from arms to prizes but can learn by trying the arms. In our concrete example, the first arm is known to have the prize "chocolate" and the second arm either has "champagne" or has no prize at all ("nothing"). We refer to Bandit problems with prizes (e.g. chocolate) as "IRL Bandits" to distinguish them from the standard Bandit problems with numerical rewards (which are a special case). 
+We apply the POMDP agent to a simplified variant of the Multi-arm Bandit Problem. In this variant, pulling an arm produces a *prize* deterministically. The agent begins with uncertainty about the mapping from arms to prizes and learns over time by trying the arms. In our concrete example, there are only two arms. The first arm is known to have the prize "chocolate" and the second arm either has "champagne" or has no prize at all ("nothing"). We refer to Bandit problems with prizes (e.g. chocolate) as "IRL Bandits" to distinguish them from the standard Bandit problems with numerical rewards.
 
-In our implementation of this problem, we label the two arms with numbers in `[0,1]`, and use the same labels for the actions of pulling the arms. After taking action `0`, the agent transitions to a state with whatever prize is associated with `Arm0` (and gets to observe that prize). States contain properties for counting down the time (as before), as well as a `prize` property. States also contain the "latent" mapping from arms to prizes (called `armToPrize`) that determines how an agent transitions on pulling an arm. The structure of this bandit problem is displayed in Figure 2 below.
+In our implementation of this problem, the two arms are labeled "0" and "1" respectively. The *action* of pulling `Arm0` is labeled "0" (and likewise for `Arm1`). After taking action `0`, the agent transitions to a state corresponding to the prize for `Arm0` and the gets to observe this prize. States are objects that contain properties for counting down the time (as in the MDP case), as well as a `prize` property. States also contain the *latent* mapping from arms to prizes (called `armToPrize`) that determines how an agent transitions on pulling an arm. The structure of this bandit problem is displayed in Figure 2 below.
 
 <img src="/assets/img/3c-irl-bandit.png" alt="diagram" style="width: 500px;"/>
 
