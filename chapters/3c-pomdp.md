@@ -1,14 +1,16 @@
 ---
 layout: chapter
-title: "POMDPs and Agents Who Learn From Observation"
-description: Mathematical framework, implementation in WebPPL, Gridworld and restaurants example, bandit problems.
+title: "POMDPs- Agents Learning from Observations"
+description: Mathematical framework, implementation in WebPPL, Restaurant Choice and Bandit examples.
 ---
 
 
  
 ## Introduction: Learning about the world from observation
 
-The previous chapters included MDPs where the transition function is *stochastic*. As a consequence of stochasticity, the agent is *uncertain* about the result of taking an action in a given state. For instance, the agent in the Hiking Problem is uncertain whether choosing the move "right" will result in going right or falling down the hill. This kind of uncertainty cannot be altered or reduced observation. Transitions occur according to a fixed probability distribution with no parameters the agent can learn from experience. In terms of an agent's uncertainty, an MDP is like a "fair" casino game or lottery, where observing the winning ticket one week does not reduce the agent's uncertainty over the outcome the following week.
+The previous chapters included MDPs where the transition function is *stochastic*. As a consequence of stochasticity, the agent is *uncertain* about the result of taking an action in a given state. For instance, the agent in the Hiking Problem is uncertain whether choosing the move "right" will result in going right or falling down the hill. This kind of uncertainty cannot be altered or reduced observation. Transitions occur according to a fixed probability distribution with no parameters the agent can learn from experience. In terms of an agent's uncertainty, an MDP is like a fair lottery, where observing the winning ticket one week does not reduce the agent's uncertainty over the outcome the following week[^mdp].
+
+[^mdp]: This doesn't mean MDPs always represent real-world problems with the structure of lotteries or casino games. The MDP could represent a situation where events are deterministic but the transition function is either unknown or is too complex to include in the model. 
 
 In contrast, we often face problems where our uncertainty can be *reduced* by observation. In choosing between restaurants, we rarely have complete knowledge of restaurants in the neighborhood. We are uncertain about opening hours, the chance of getting a table, the quality of restaurants, the exact distances between locations, and so on. This uncertainty can be reduced by observation: we walk to a restaurant and see whether it's open. In other examples, the environment is stochastic but the agent can gain knowledge of the *distribution* on outcomes. For example, in Multi-arm Bandit problems, the agent learns about the distribution over rewards given by each of the arms.
 
@@ -19,29 +21,31 @@ To represent decision problems where the agent's uncertainty is altered by obser
 
 ### Informal overview
 
-The agent facing a POMDP has initial uncertainty about features of the environment. These could features could be external to the agent (e.g. whether a restaurant is open) or could concern the agent (e.g. the agent's position on a grid). These features influence the environment's transitions or utilities and hence are relevant to the agent's choices.
+The agent facing a POMDP has initial uncertainty about features of the environment. These features are either external to the agent (e.g. whether a restaurant is open) or directly involve the agent (e.g. the agent's position on a grid). The features influence the environment's transitions or the agent's utilities and so are relevant to the agent's choices.
 
-The agent does not directly observe transitions or utilities. Instead the agent learns about the unknown features of the environment *indirectly* via observations. When the agent visits a state, they receive an observation that depends on the state and their previous action (according to a fixed *observation function*). Observations can inform the agent of local, transient facts (e.g. the agent's current grid position) and of persistent features of the environment (e.g. whether a wall exists in a particular location).
+In a POMDP, the agent does not directly observe transitions or utilities. Instead they learn about the unknown features of the environment indirectly via *observations*. When the agent visits a state, they receive an observation that depends on the state and their previous action (according to a fixed *observation function*). Observations can inform the agent of local, transient facts (e.g. the agent's current grid position) and of persistent features of the environment (e.g. whether a wall exists in a particular location).
 
-In the POMDP examples we consider, the environment has the same essential MDP structure as before (save for the addition of the observation function). In an MDP, the agent is given a state and chooses an action (which causes a state transition). In a POMDP, the agent has a probability distribution over the current state. At every timestep, they (1) update this distribution on the current observation, and (2) choose an action (based on their updated distribution over states). This action causes a state transition exactly as in an MDP. 
+The environment in a POMDP has same structure as an MDP, with the additon of an observation function. In an MDP, the agent always "knows" the current state and chooses an action given that knowledge. In a POMDP, the agent has a probability distribution over the current state. At every timestep, they update this distribution on the current observation and then choose an action (based on their updated distribution over states). Their chosen action causes a state transition exactly as in an MDP. 
 
-For a concrete example, consider the Restaurant Choice Problem. Suppose Bob doesn't know whether the Noodle Shop is open. Previously, the agent's state consisted of Bob's *location* on the grid as well as the remaining time. In the POMDP case, the state also represents whether or not the Noodle Shop is open. This fact about the state determines whether Bob transitions to inside the Noodle Shop if he is adjacent. When Bob is close to the Noodle Shop, he gets to observe (via the observation function) whether or not it's open (without having to actually try it).
+For a concrete example, consider the Restaurant Choice Problem. Suppose Bob doesn't know whether the Noodle Shop is open. Previously, the agent's state consisted of Bob's *location* on the grid as well as the remaining time. In the POMDP case, the state also represents whether or not the Noodle Shop is open. This fact about the state determines whether Bob transitions to inside the Noodle Shop if he stands adjactent to it. When Bob is close to the Noodle Shop, he gets to observe (via the observation function) whether or not it's open (without having to actually try it).
 
 ### Formal model
 
 TODO: add something about webppl allowing inference to be approximate. 
 
-We first define a new class of decision probems (POMDPs) and then define an agent model for optimally solving these problems. Our definitions are based on refp:kaelbling1998planning.
+We first define the class of decision probems (POMDPs) and then define an agent model for optimally solving these problems. Our definitions are based on refp:kaelbling1998planning.
 
 A Partially Observable Markov Decision Process (POMDP) is a tuple $$ \left\langle S,A(s),T(s,a),U(s,a),\Omega,O \right\rangle$$, where:
 
-- $$S$$ (state space), $$A$$ (action space), $$T$$ (transition function), $$U$$ (utility or reward function) form an MDP as defined in [chapter III.1](/chapters/3a-mdp.html), with $$U$$ assumed to be deterministic. 
+- $$S$$ (state space), $$A$$ (action space), $$T$$ (transition function), $$U$$ (utility or reward function) form an MDP as defined in [chapter 3.1](/chapters/3a-mdp.html), with $$U$$ assumed to be deterministic[^utility]. 
 
 - $$\Omega$$ is the finite space of observations the agent can receive.
 
-- $$O$$ is a function  $$ O\colon S \times A \to \Delta \Omega $$. This is the *observation function*, which maps an action $$a$$ and the state $$s'$$ resulting from taking $$a$$ to an observation $$o \in \Omega$$ drawn from $$O(s',a')$$.
+- $$O$$ is a function  $$ O\colon S \times A \to \Delta \Omega $$. This is the *observation function*, which maps an action $$a$$ and the state $$s'$$ resulting from taking $$a$$ to an observation $$o \in \Omega$$ drawn from $$O(s',a)$$.
 
-So at each timestep, the agent transitions from state $$s$$ to state $$s' \sim T(s,a)$$ (where $$s$$ and $$s'$$ are generally unknown to the agent) having performed action $$a$$. On entering $$s'$$ the agent receives an observation $$o \sim O(s',a)$$ and a utility $$U(s,a)$$. [TODO Might be good to include influence diagram from Braziunas page 3.]. 
+[^utility]: In the RL literature, the utility or reward function is often allowed to be *stochastic*. Our agent models assume that the agent's utility function is deterministic. To represent environments with stochastic "rewards", we treat the reward as a stochastic part of the environment (i.e. the world state). So in a Bandit problem, instead of the agent receiving a (stochastic) reward $$R$$, they transition to a state to which they assign a fixed utility $$R$$. (Why do we avoid stochastic utilities? One focus of this tutorial is inferring an agent's preferences. The preferences are fixed over time and non-stochastic. We want to identify the agent's utility function with their preferences). 
+
+So at each timestep, the agent transitions from state $$s$$ to state $$s' \sim T(s,a)$$ (where $$s$$ and $$s'$$ are generally unknown to the agent) having performed action $$a$$. On entering $$s'$$ the agent receives an observation $$o \sim O(s',a)$$ and a utility $$U(s,a)$$. 
 
 To characterize the behavior of an expected-utility maximizing agent, we need to formalize the belief-updating process. Let $$b$$, the current belief function, be a probability distribution over the agent's current state. Then the agent's succesor belief function $$b'$$ over their next state is the result of a Bayesian update on the observation $$o \sim O(s',a)$$ where $$a$$ is the agent's action in $$s$$.  That is:
 
@@ -49,7 +53,17 @@ $$
 b'(s') \propto O(s',a,o)\sum_{s \in S}{T(s,a,s')b(s)}
 $$
 
-Intuitively, the probability that $$s'$$ is the new state depends on the marginal probability of transitioning to $$s'$$ (given $$b$$) and the probability of the observation $$o$$ occurring in $$s'$$. 
+Intuitively, the probability that $$s'$$ is the new state depends on the marginal probability of transitioning to $$s'$$ (given $$b$$) and the probability of the observation $$o$$ occurring in $$s'$$. The relation between the variables in a POMDP is summarized in Figure 1 (below).
+
+<img src="/assets/img/pomdp_graph.png" alt="diagram" style="width: 400px;"/>
+
+>**Figure 1:** The dependency structure between variables in a POMDP. The ordering of events is as follows:
+
+>(1). The agent chooses an action $$a$$ based on belief distribution $$b$$ over their current state (which is actually $$s$$).
+
+>(2). The agent gets utility $$u = U(s,a)$$ when leaving state $$s$$ having taken $$a$$.
+
+>(3). The agent transitions to state $$s' \sim T(s,a)$$, where it gets observation $$o \sim O(s',a)$$ and updates its belief to $$b'$$ by updating $$b$$ on the observation $$o$$.
 
 In our previous agent model for MDPs, we defined the expected utility of an action $$a$$ in a state $$s$$ recursively in terms of the expected utility of the resulting pair of state $$s'$$ and action $$a'$$. This same recursive characterization of expected utility still holds. The important difference is that the agent's action $$a'$$ in $$s'$$ depends on their updated belief $$b'(s')$$ given the observation they receive in $$s'$$. So the expected utility of $$a$$ in $$s$$ depends on the agent's belief $$b$$ over the state $$s$$. We call the following the *Expected Utility of State Recursion*, which defines the function $$EU_{b}$$. This is analogous to the characterization of the *value*, $$V_{b}$$, of a state relative to a belief (see p.109 in refp:kaelbling1998planning).
 
@@ -79,9 +93,7 @@ $$
 
 where $$s'$$, $$o$$, $$a'$$ and $$b'$$ are distributed as in the Expected Utility of State Recursion.
 
-<img src="/assets/img/pomdp_graph.png" alt="diagram" style="width: 400px;"/>
 
-A graph of the dependency structure of the various variables of a POMDP. First, the agent chooses an action $$a$$ based on belief $$b$$. Then, it gets utility $$u = U(s,a)$$, and transitions to state $$s' \sim T(s,a)$$, where it gets observation $$o \sim O(s',a)$$ and updates its belief to $$b'$$ by updating $$b$$ on the observation $$o$$.
 
 ### Implementation of the Model
 As with the agent model for MDPs, we provide a direct translation of the equations above into an agent model for solving POMDPs. The variables `nextState`, `nextObservation`, `nextBelief`, and `nextAction` correspond to $$s'$$,  $$o$$, $$b'$$ and $$a'$$ respectively, and we use the Expected Utility of Belief Recursion. The following codebox defines the `act` and `expectedUtility` functions, without defining `updateBelief`, `transition`, `observe` or `utility`. 
@@ -531,6 +543,8 @@ trajectoryToLocations(trajectory);
 
 ### Possible additions
 - Doing belief update online vs belief doing a batch update every time. Latter is good if belief updates are rare and if we are doing approximate inference (otherwise the errors in approximations will compound in some way). Maintaining observations is also good if your ability to do good approximate inference changes over time. (Or least maintaining compressed observations or some kind of compressed summary statistic of the observation -- e.g. .jpg or mp3 form). This is related to UDT vs CDT and possibly to the episodic vs. declarative memory in human psychology. [Add a different *updateBelief* function to illustrate.]
+
+
 
 --------------
 
