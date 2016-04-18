@@ -14,19 +14,45 @@ We've mentioned two uses for models of sequential decision making:
 
 (2). **Learn the preferences and beliefs of humans** (e.g. to predict future behavior or to provide useful recommendations)
 
-The first chapters of the book focused on (1). We presented agent models for solving MDPs and POMDPs optimally. We demonstrated these models on toy problems (Gridworld and simple variants of Bandits) that are closely related to practical real-world problems. The previous [chapter](/chapters/4-reasoning-about-agents), by contrast, focused on (2). This chapter used the MDP and POMDP agent models not to solve problems but as *generative models* of human behavior. But are the MDP and POMDP agent models good models of human behavior? These are models of *optimal* action for a particular decision problem. If humans deviate from optimality for such a decision problem, will these be bad generative models?
+Table 1 provides more detail about these two uses[^table]. The first chapters of the book focused on (1). We presented agent models for solving MDPs and POMDPs optimally. We demonstrated these models on toy problems (Gridworld and simple variants of Bandits) that are closely related to practical real-world problems. The previous [chapter](/chapters/4-reasoning-about-agents) (Chapter 4) by contrast, focused on (2). Chapter 4 used the MDP and POMDP agent models not to solve problems but as *generative models* of human behavior. This chapter discusses the limitations of using optimal (PO)MDP agent modes as generative models for (2). We argue that developing models of biased or bounded decision making (which might not help with (1)) will be valuable for (2).
+
+[^table]: While (1) and (2) are distinct goals, there is significant overlap in the methods of achieving them. First, a good computational model of human behavior might be helpful in constructing an optimal decision maker. Second, the applied literature on IRL exhibits an interesting interaction between (1) and (2). A problem with (1) is that it's often hard to write down an appropriate utility function to optimize. The ideal utility function is one that reflects actual human preferences or at least "human preferences with respect to the particular practical problem". So by solving (2) we can solve one of the "key tasks" in (1). This is exactly the approach taken in various applications of IRL. <!-- Maybe say something about Safe AI and the task of altruistic government -->
+
+
+TODO_daniel: Use markdown, raw html or an image to format this table. The column headers are "goal", "key tasks" and so on. There are two rows corresponding to (1) and (2) above. The cells in each row are separated by `<br>` tag. (The column headers are separated by vertical lines.) The rows contain lots of text and so they should cover multiple lines and have fairly small text. (While HTML is ideal, copying from Word/Pages or whatever would be fine). 
+
+<hr><hr>
+| Goal | Key tasks | Find optimal solution? | Subject Areas | Fields |
+<hr><hr>
+| Build optimal decision making systems | <br>
+1. Define appropriate utility function and decision problem. 2. Solve optimization problem | <br>
+If it's tractable | <br>
+RL, Control Theory, Game Theory, Decision Theory | <br>
+Machine Learning, Electrical engineering, Operations Research, Economics (normative), Finance | <br>
+
+<hr>
+
+| Model human behavior to learn preferences and beliefs | <br>
+1. Collect data by observation or experiment. 2. Infer parameters and predict future behavior | <br>
+If it fits human data | <br>
+IRL, Econometrics (Structural Estimation) | <br>
+Machine Learning, Economics (positive and behavioral), Political Science, Psychology/Neuroscience |
+<hr><hr>
+
+
 
 ### Random vs. Systematic Errors
-The agent models we've considered are models of *optimal* performance on (PO)MDPs. Nevertheless, they are flexible models. The agent can have any utility function and any initial belief distribution. We saw in the previous chapters that apparently irrational behavior can sometimes be explained in terms of inaccurate prior beliefs.
+The agent models we've considered are models of *optimal* performance on (PO)MDPs. So if humans deviate from optimality on some (PO)MDP then these models won't predict human behavior well. It's important to recognize the flexibility of the optimal models. The agent can have any utility function and any initial belief distribution. We saw in the previous chapters that apparently irrational behavior can sometimes be explained in terms of inaccurate prior beliefs.
 
-Some kinds of human behavior resist explanation in these terms. Consider a cigarette smoker who smokes every day while wanting to quit. Such people have often quit previously and relapsed multiple times. They can be well informed both about the health effects of smoking and the psychological effects of avoiding cigarettes. It's hard to explain their behavior in terms of inaccurate beliefs[^beliefs].
+Yet certain kinds of human behavior resist explanation in terms of false beliefs or unusual preferences. Consider a cigarette smoker who smokes every day while wanting to quit. Such people have often quit previously and re-started multiple times. They can be well informed both about the health effects of smoking and the cravings they'll get from abstaining. It's hard to explain their persistent smoking in terms of inaccurate beliefs[^beliefs].
 
 [^beliefs]: One could argue that the smoker has a temporary belief that smoking is high utility which causes them to smoke. This belief subsides after smoking a cigarette and is replaced with regret. To explain this in terms of a POMDP agent, there has to be an observation that triggers this change of belief via Bayesian belief-updating. But what is this observation? The smoker may have *cravings*. Yet cravings alter the smoker's desires or wants, rather than being observational evidence about the empirical world. 
 
-One standard response is to model deviations from optimal behavior using softmax noise. As we've seen above, it's easy from a computational standpoint to move between perfect maximizing behavior and soft-max behavior. Various papers doing Inverse Reinforcement Learning (IRL) on human data take this approach refp:kim2014inverse and refp:zheng2014robust. Yet the softmax model also has limited expressiveness. It's a model of *random* deviations from optimal behavior. Bigger deviations from optimal are explained by more randomness overall. Models of random error might be a good fit for certain motor or perceptual tasks (e.g. throwing a ball or locating the source of a distant sound). But the smoking example suggests that humans deviate from optimality *systematically*. That is, when not behaving optimally, their actions may still be predictable and bigger deviations from optimality do not imply more randomness.
+One standard response is to model deviations from optimal behavior using softmax noise. As we've seen above, it's easy from a computational standpoint to move between perfect maximizing behavior and soft-max behavior. Various papers doing Inverse Reinforcement Learning (IRL) on human data take this approach refp:kim2014inverse and refp:zheng2014robust. Yet the softmax model also has limited expressiveness. It's a model of *random* deviations from optimal behavior. Bigger deviations from optimality are explained by more randomness overall. Models of random error might be a good fit for certain motor or perceptual tasks (e.g. throwing a ball or locating the source of a distant sound). But the smoking example suggests that humans deviate from optimality *systematically*. That is, when not behaving optimally, humans actions remain predictable and bigger deviations from optimality do not imply more randomness.
 
 Here are some examples of systematic deviations from optimal action:
 <br>
+
 >**Systematic deviations from optimal action**
 
 - Smoking every week (i.e. systematically) while simultaneously trying to quit (e.g. using patches, throwing out cigarette packets).
@@ -39,44 +65,25 @@ Here are some examples of systematic deviations from optimal action:
 
 [^strings]: With effort people can memorize these strings and store them in mind for longer periods. The claim is that if people do not make an attempt to memorize a random string, they will systematically forget the string within a short duration. This can't be easily explained on a POMDP model, where the agent has perfect memory.
 
-This is not to say that all human deviations are systematic. 
+These examples suggest that human behavior in everyday decision problems will not be easily captured by assuming softmax optimality. In the next sections, we divide these systematics deviations from optimality into *cognitive biases* and *cognitive bounds*. After explaining each category, we discuss their relevance to learning the preferences of agents. 
+
+
+### Human deviations from optimal action: Cognitive Bounds
+
+Humans perform sub-optimally on some MDPs and POMDPs due to basic computational constraints. Such constraints have been investigated in work on *bounded rationality* and *bounded optimality*, among other places. A simple example was mentioned above: people cannot quickly memorize random strings (even if the stakes are high). Similarly, consider the real-life version of our Restaurant Choice example. If you walk around a big city for the first time, you will forget the location of most of the restaurants you see on the way. If you try a few days later to find a restaurant, you are likely to take an inefficient route. This contrasts with the optimal POMDP-solving agent: he never forgets anything.
+
+Limitations in memory are hardly unique to humans. For any AI system we might build today, there is some number of random bits that it cannot quickly place in permanent storage. So it makes sense to think about rational or optimal behave given various kinds of bounds on memory.  
+
+Just as humans and machines have limited memory, they also have limited time. The simplest POMDPs, such as Bandit problems, are <a href="/chapters/3c-pomdp.html#complexity">intractable</a> -- the time needed to solve them will grow exponentially (or worse) in the problem size. The basic difficulty here is that optimal planning requires taking into account all possible sequences of actions and states. These explode in number as the number of states, actions, and possible sequences of observations grows[^grows].
+
+[^grows]: Dynamic programming helps but does not tame the beast. There are many POMDPs that are small enough to be easily described (i.e. they don't have a very long problem description) but which we can't solve optimally -- even with the best computers. 
+
+So for any agent with limited time there will be POMDPs that they cannot solve exactly. It's plausible that humans often encounter POMDPs of this kind. For example, in lab experiments humans make systematic errors in small POMDPs that are easy to solve with computers refp:zhang2013forgetful and refp:TODO:cite zoubin and finale. For much more complex real-world problems, humans use approximate heuristics and short-cuts to get around the time-complexity of the optimal solution.
 
 
 
-| Goal | Key tasks | Find optimal solution? | Subject Areas | Fields |
-|:--------|:-------:|:--------:|--------:|
-| Build optimal decision making systems |
-1. Define appropriate utility function and decision problem. 2. Solve optimization problem |
-If it's tractable |
-RL, Control Theory, Game Theory, Decision Theory |
-Machine Learning, Electrical engineering, Operations Research, Economics (normative), Finance |
 
-| Model human behavior to learn preferences and beliefs |
-1. Collect data by observation or experiment. 2. Infer parameters and predict future behavior |
-If it fits human data |
-IRL, Econometrics (Structural Estimation) | Machine Learning, Economics (positive and behavioral), Political Science, Psychology/Neuroscience |
-|=====
-
-Don't want to over-emphasize this distinction. First, good models of human behavior may be approximations models that are tractable and so good for building approximate optimal decision makers. Second, with IRL there is an interesting interaction between the two problems. Because defining an appropriate utility function to optimize is hard, you infer a function from humans. Once you have it, you can use any technique you like to optimize it (and you could ultimately get performance on the task that's very different from human performance). 
-
-
-
-Earlier chapters describe agent models for *optimal* decision making and planning in sequential decision problems (MDPs and POMDPs). These models can serve as a guide when we build an algorithm that makes good choices. If we can write down a utility function (which is not always easy -- see below) and define the relevant state and action spaces, then we can use the kind of agent models for MDPs and POMDPs described earlier (or approximations of those models). Creating algorithms that make good choices is a common application in AI and robotics, OR and engineering and in applied economics (e.g. algorithmic trading).
-
-The previous chapter discussed the problem of learning the utility functions and beliefs of agents from their behavior. The MDP and POMDP agent models serve as *generative* models of behavior that can be inverted to learn about the agent. The models are a means to the end of modeling the agent's behavior. If the agent does not behave optimally, we'd be better off (all other things being equal) using a different model. 
-
-Our main application for learning about agents is learning about human preferences. So for a given decision problem, we should ask whether human choices will be optimal (in the MDP or POMDP sense). If not, we might consider using an alternative generative model. One common alternative model has already been discussed: the agent with softmax noise. This model has been used in various IRL papers to deal with human deviations from optimality [cite: young dialogue turn-taking paper, zheng/zhang taxi paper]. The softmax model is analytically tractable and allows one to use existing MDP and POMDP solution approaches. Yet it has limited expressiveness. Softmax is a a model of *random* deviations from optimality. By averaging over multiple draws of the agent's behavior, the agent's optimal action can be directly inferred. (In other words: even without knowing $$\alpha$$ we still have an unbiased estimator of the agent's maximizing action. Likewise for other random noise models.) However humans may deviate from optimality *systematically*. That is, they may take a sub-optimal action (relative to their own preferences) with higher probability than the optimal action.[Examples of systematic errors: smoker smokes everyday while wanting to quit, a student making persistent errors on a series of exams that reflect some misunderstanding. Optical illusions.] In that case, we will need to consider generative models other than the softmax model.
-
-
-### Human deviations from optimal action - Cognitive Bounds
-Humans deviate from optimal behavior in sequential problems in myriad ways. Our focus is not on all such deviations. We focus on cases where deviations in MDP/POMDP problems are both substantial (such that they significantly alter preferences) and systematic (so cannot be captured by the softmax model or something simiar). For practical purposes, deviations will be less important if the relevant preferences and beliefs can be learned via some other method. 
-
-A first class of deviation is cognitive or computational *bounds* (in the sense of *bounded rationality* or *bounded optimality*). Humans (and AI agents) will perform suboptimally on some MDPs and POMDPs due to basic computational constraints. For example, consider a POMDP where the agent learns about the locations of restaurants on a grid representing a large city and then navigates between them. The ideal POMDP agent will never forget a location once it has been observed. Yet a human would not recall the exact location of hundreds of restaurants from a single walk through a city. Moreover this forgetting will produce behavior that differs systematically from the optimal agent. 
-
-Even simple POMDPs are intractable as they scale up in size [cite]. So for any finite agent there will be POMDPs that they cannot solve exactly. It's plausible that humans often encounter POMDPs of this kind. For example, in lab experiments humans make systematic errors in computationally trivial bandit problems [yu, michael lee papers --- see also the paper by finale and zoubin on humans in tiger and other basic POMDPs]. Thus it's likely that humans will make errors on more complex POMDPs. (Consider the example of designing scientific experiments. This problem has a long time horizon (e.g. a lab could perform hundreds of experiment in a year). The inference from a single experiment is challenging and combining experimental results is hard.) In a chapter in this section [link], we implement the kind of computational bound (or bias) that has been used to model actual human performance in bandit problems. 
-
-
-### Human deviations from optimal action - Cognitive Biases
+### Human deviations from optimal action: Cognitive Biases
 Cognitive bounds will apply to any finite agent. Humans also have cognitive *biases* that may be more idiosyncratic (and less likely to apply to artifical agents). There is a large literature on cognitive biases in psychology and behavioral economics [cite reviews]. One particularly relevant example are the biases summarized by "Prospect Theory" (including Loss Aversion and Framing Effects). These are biases in decisions between simple one-shot lotteries over money or other prizes. We'd expect them to lead to systematics errors in real-life scenarios modeled as (PO)MDPs (assuming people don't use computers for all their expected value calculations). Another important bias is *time inconsistency*. This bias has been used to explain addiction, procrastination, impulsive behavior and the use of pre-commitment. We describe the bias and implement time-inconsistent planning in the next chapter. 
 
 
