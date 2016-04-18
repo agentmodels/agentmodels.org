@@ -333,12 +333,17 @@ var posterior = function(observedStateActionSequence){
 		    timeCost: JSON.stringify(utilityTable.timeCost)};
   });
 };
-///  
+///
 var observedSequence1 = restaurantNameToObservationTime11['naive'];
 var observedSequence2 = restaurantNameToObservationTime11['donutSouth'];
 
-// TODO_daniel plot prior vs posterior
 var prior = posterior([]);
+print('Prior:');
+map( function(variableName){
+  viz.auto(getMarginalObject(prior, variableName));
+}, ['donutFavorite', 'alpha', 'timeCost'] );
+
+print('Posterior');
 var posterior = posterior(observedSequence1.concat(observedSequence2));
 map( function(variableName){
   viz.auto(getMarginalObject(posterior, variableName));
