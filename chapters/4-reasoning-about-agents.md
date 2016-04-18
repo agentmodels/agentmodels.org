@@ -215,8 +215,8 @@ var utilityTablePrior = function(){
 
   return {'Donut N': donut,
           'Donut S': donut,
-          Veg: uniformDraw(foodValues),
-          Noodle: uniformDraw(foodValues),
+          'Veg': uniformDraw(foodValues),
+          'Noodle': uniformDraw(foodValues),
           timeCost: uniformDraw(timeCostValues)};
 };
 
@@ -472,28 +472,16 @@ From the observation, it's obvious that the agent prefers champagne. This is wha
 var armToPrize = {0: 'chocolate',
 		          1: 'champagne'};
 var worldAndStart = makeIRLBanditWorldAndStart(2, armToPrize, 5);
-var observe = worldAndStart.world.observe;
-var fullObserve = getFullObserve(observe);
-var transition = worldAndStart.world.transition;
- 
-// TODO_daniel Instead of this function, can we just do simulate? 
-// Or else just store the observed sequence somewhere
 
-var makeTrajectory = function(state) {
-  var observation = fullObserve(state);
-  var action = 1; // agent always pulls arm 1
-  var nextState = transition(state, action);
-  var out = {state: state,
-	         observation: observation,
-	         action: action};
-  if (state.manifestState.terminateAfterAction) {
-    return out;
-  } else {
-    return cons(out, makeTrajectory(nextState));
-  }
+var simpleAgent = {
+  act: function(belief){return Enumerate(function() {return 1;});},
+  updateBelief: function(belief){return belief;},
+  params: {priorBelief: deltaERP(armToPrize)}
 };
-var observedSequence = makeTrajectory(worldAndStart.startState);
 
+var observedSequence = simulateBeliefAgent(worldAndStart.startState,
+                                           worldAndStart.world, simpleAgent,
+										   'stateObservationAction');
 
 // Priors for inference
 
