@@ -419,13 +419,13 @@ var latent = {0: deltaERP(0.7), 1: probably1ERP};
 var alternateLatent = update(latent, {1: probably0ERP});
 
 // Construct startState
-var numberTrials = 10;
-var startState = buildBanditStartState(numberTrials + 1, latent);
+var numberTrials = 11;
+var startState = buildBanditStartState(numberTrials, latent);
 
 // Construct agent's prior on the startState
 var priorBelief = Enumerate(function(){
   var latentState = uniformDraw([latent, alternateLatent]);
-  return buildBanditStartState(numberTrials + 1, latentState);
+  return buildBanditStartState(numberTrials, latentState);
 });
 
 // Construct agent
@@ -446,7 +446,7 @@ TODO_daniel fit a quadratic to this data and plot the quadratic on the same axis
 
 ~~~~
 
-// bandit_scaling
+// bandit_scaling_time_left
 
 // Construct world and agent priorBelief as above
 ///fold:
@@ -497,65 +497,55 @@ Scaling is much worse in the number of arms:
 
 
 ~~~~
-// TODO_daniel: redo this codebox based on the codebox immediately above.
-// that is: put the fixed variables like probably1ERP under the fold and only put the
-// stuff that depends on the number of arms in the 'getRuntime' function.
+// bandit_scaling_num_arms
 
-// ALso: if possible reduce the number of trials to 3/4 so we can get up to 4 arms. 
+///fold:
 
+var probably1ERP = categoricalERP([0.2, 0.8], [0, 1]);
+var probably0ERP = categoricalERP([0.8, 0.2], [0, 1]);
 
-// test to show the scaling properties of stochastic bandits
+var makeLatentState = function(numberArms) {
+  return map(function(x){return probably1ERP;}, _.range(numberArms));
+};
 
-var varyArms = function(n) {
+var latentSampler = function(numberArms) {
+  return map(function(x){return uniformDraw([probably0ERP,
+					     probably1ERP]);},
+	     _.range(numberArms));
+};
 
-  var world = makeBanditWorld(n);
-
-  var probably1ERP = categoricalERP([0.2, 0.8], [0, 1]);
-  var probably0ERP = categoricalERP([0.8, 0.2], [0, 1]);
-  
-  var makeLatentState = function(numArms) {
-    return map(function(x){return probably1ERP;}, _.range(numArms));
-  };
-
-  var startState = buildBanditStartState(5, makeLatentState(n));
-
-  var latentSampler = function(numArms) {
-    return map(function(x){return uniformDraw([probably0ERP,
-					                           probably1ERP]);},
-	           _.range(numArms));
-  };
-  var prior = Enumerate(function(){
-    var latentState = latentSampler(n);
-    return buildBanditStartState(5, latentState);
+var getPriorBelief = function(numberTrials, numberArms) {
+  return Enumerate(function(){
+    var latentState = latentSampler(numberArms);
+    return buildBanditStartState(numberTrials, latentState);
   });
+};
 
-  var agentParams = {utility: banditUtility,
-		             alpha: 100,
-		             priorBelief: prior,
-		             fastUpdateBelief: false};
-  var agent = makeBeliefAgent(agentParams, world);
+var baseParams = {utility: banditUtility,
+		  alpha: 1000,
+		  fastUpdateBelief: false};
+///
+
+var getRuntime = function(numberArms){
+  var world = makeBanditWorld(numberArms);
+  var numberTrials = 5;
+  var startState = buildBanditStartState(numberTrials,
+					 makeLatentState(numberArms));
+  var priorBelief = getPriorBelief(numberTrials, numberArms);
+  var params = update(baseParams, {priorBelief: priorBelief});
+  var agent = makeBeliefAgent(params, world);
 
   var f = function() {
-    var trajectory = simulateBeliefAgent(startState, world, agent, 'stateAction');
-    return trajectory;
+    return simulateBeliefAgent(startState, world, agent, 'stateAction');
   };
 
   return timeit(f).runtimeInMilliseconds.toPrecision(3) * 0.001;
-
 };
 
-// varying the number of arms
-
-var arms = [1,2,3];
-var runtimes = map(varyArms, arms);
-
-print('Runtime in sec for arms ' + arms + '\n' + runtimes);
-
-viz.bar(arms, runtimes);
-
-// note the increase in order of magnitude. If we called this for 4 arms, the
-// increase would continue, meaning that it would take impractically long.
-
+// Runtime as a function of number of arms
+var numberArmsList = [1,2,3];
+var runtimes = map(getRuntime, numberArmsList);
+viz.line(numberArmsList, runtimes);
 ~~~~
 
 
