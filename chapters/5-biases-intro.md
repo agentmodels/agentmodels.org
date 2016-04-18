@@ -10,9 +10,9 @@ is_section: true
 
 We've mentioned two uses for models of sequential decision making:
 
-(1). Solve practical decision problems optimally (or approximately optimally) 
+(1). **Solve practical decision problems** (preferably with a fast algorithm that performs optimally)
 
-(2). Learn the preferences and beliefs of humans (e.g. to predict future behavior or to provide useful recommendations)
+(2). **Learn the preferences and beliefs of humans** (e.g. to predict future behavior or to provide useful recommendations)
 
 The first chapters of the book focused on (1). We presented agent models for solving MDPs and POMDPs optimally. We demonstrated these models on toy problems (Gridworld and simple variants of Bandits) that are closely related to practical real-world problems. The previous [chapter](/chapters/4-reasoning-about-agents), by contrast, focused on (2). This chapter used the MDP and POMDP agent models not to solve problems but as *generative models* of human behavior. But are the MDP and POMDP agent models good models of human behavior? These are models of *optimal* action for a particular decision problem. If humans deviate from optimality for such a decision problem, will these be bad generative models?
 
@@ -23,21 +23,23 @@ Some kinds of human behavior resist explanation in these terms. Consider a cigar
 
 [^beliefs]: One could argue that the smoker has a temporary belief that smoking is high utility which causes them to smoke. This belief subsides after smoking a cigarette and is replaced with regret. To explain this in terms of a POMDP agent, there has to be an observation that triggers this change of belief via Bayesian belief-updating. But what is this observation? The smoker may have *cravings*. Yet cravings alter the smoker's desires or wants, rather than being observational evidence about the empirical world. 
 
-One standard response is to model deviations from optimal behavior using softmax noise. As we've seen above, it's easy from a computational standpoint to move between perfect maximizing behavior and soft-max behavior. Various papers doing Inverse Reinforcement Learning (IRL) on human data take this approach refp:kim2014inverse and refp:zheng2014robust. Yet the softmax model also has limited expressiveness. It's a model of *random* deviations from optimal behavior. Bigger deviations from optimal are explained by more randomness overall[^softmax]. However, the smoking example suggests that humans deviate from optimality *systematically*. That is, when not behaving optimally, their actions may still be predictable. Bigger deviations from optimality do not imply more randomness. Here are some examples of systematic deviations from optimal action:
+One standard response is to model deviations from optimal behavior using softmax noise. As we've seen above, it's easy from a computational standpoint to move between perfect maximizing behavior and soft-max behavior. Various papers doing Inverse Reinforcement Learning (IRL) on human data take this approach refp:kim2014inverse and refp:zheng2014robust. Yet the softmax model also has limited expressiveness. It's a model of *random* deviations from optimal behavior. Bigger deviations from optimal are explained by more randomness overall. Models of random error might be a good fit for certain motor or perceptual tasks (e.g. throwing a ball or locating the source of a distant sound). But the smoking example suggests that humans deviate from optimality *systematically*. That is, when not behaving optimally, their actions may still be predictable and bigger deviations from optimality do not imply more randomness.
 
->**Systematic deviations from optimal action**:
+Here are some examples of systematic deviations from optimal action:
+<br>
+>**Systematic deviations from optimal action**
 
 - Smoking every week (i.e. systematically) while simultaneously trying to quit (e.g. using patches, throwing out cigarette packets).
 
 - Always completing assignments just before the deadline, while always planning to complete the assignment as early as possible. 
 
-- Forgetting random strings (passwords, ID numbers, words in a foreign language) within a few hours -- assuming they weren't explicitly memorized [^strings].
+- Forgetting random strings (passwords, ID numbers, words in a foreign language) within a few hours -- assuming they weren't explicitly memorized[^strings].
 
 - Failing frequently on the same kind of math problem (e.g. long integer division).
 
 [^strings]: People can memorize these numbers and then store them in mind for longer periods. The claim is that if people do not make an attempt to memorize a random string, they will systematically forget the string within a short duration. This can't be easily explained on a POMDP model, where the agent has perfect memory.
 
-
+This is not to say that all human deviations are systematic. 
 
 
 
