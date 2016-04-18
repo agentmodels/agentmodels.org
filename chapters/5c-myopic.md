@@ -478,6 +478,8 @@ var manifestStates = map(function(state){return state.manifestState;},
                          trajectory);
 print('Quality of restaurants: \n'+JSON.stringify(startState.latentState));
 GridWorld.draw(pomdp.mdp, {trajectory: manifestStates})
+
+// TODO fix error "startState is not defined"
 ~~~~
 
 >**Exercise:** The codebox below shows the behavior the Myopic agent. Try different values for the `myopiaBound` parameter. For values in $$[1,2,3]$$, explain the behavior of the Myopic agent. 

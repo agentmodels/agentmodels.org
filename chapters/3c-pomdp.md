@@ -592,8 +592,10 @@ var agent = makeBeliefAgent({utility: utility,
 			                 alpha: 100,
 							 priorBelief: prior}, world);
 var trajectory = simulateBeliefAgent(startState, world, agent, 'states');
+var manifestStates = map(function(state){return state.manifestState;},
+                         trajectory);
 
-trajectoryToLocations(trajectory);
+GridWorld.draw(world.restaurantChoiceMDP, {trajectory: manifestStates});
 ~~~~
 
 noodle example:
@@ -627,8 +629,10 @@ var agent = makeBeliefAgent({utility: utility,
 			                 alpha: 100,
 			                 priorBelief: prior}, world);
 var trajectory = simulateBeliefAgent(startState, world, agent, 'states');
+var manifestStates = map(function(state){return state.manifestState;},
+                         trajectory);
 
-trajectoryToLocations(trajectory);
+GridWorld.draw(world.restaurantChoiceMDP, {trajectory: manifestStates});
 ~~~~
 
 <!-- TODO
