@@ -98,6 +98,8 @@ var posterior = Enumerate( function(){
   return {favourite: favourite};
 });
 
+// TODO: fix "bar is not defined" error. Note that error does not show when
+// run in console with printERP instead of viz.auto
 viz.auto(posterior);
 ~~~~
 
@@ -199,6 +201,7 @@ var posterior = Enumerate( function(){
 // TODO_daniel show posterior over veg and noodle (see paragraph immediately
 // below
 viz.auto(posterior);
+// TODO: fix "bar is not defined" error. same situation as above codebox
 ~~~~
 
 Note that utility functions where Veg or Noodle are most preferred have almost the same posterior probability. Since they had the same prior, this means that we haven't received evidence about which the agent prefers. Moreover, assuming the agent's `timeCost` is negligible, then no matter where the agent above starts out on the grid, they choose Donut North or South. So we never get any information about whether they prefer the Vegetarian Cafe or Noodle Shop!
@@ -214,7 +217,7 @@ The previous examples assumed that the agent's `timeCost` (the negative utility 
 ~~~~
 // infer_utilities_timeCost_softmax_noise
 
-var world = makeRestaurantChoiceMDP()
+var world = makeRestaurantChoiceMDP();
 
 var utilityTablePrior = function(){
   var foodValues = [0,1,2];
@@ -267,7 +270,7 @@ var posterior = posterior(observedStateActionSequence.slice(0,1));
 map( function(variableName){
   viz.auto(getMarginalObject(posterior, variableName));
 }, ['donutFavorite', 'alpha', 'timeCost'] );
-
+// TODO "bar is not defined" error
 ~~~~
 
 The posterior shows that taking a step towards Donut South can now be explained in terms of a high `timeCost`. If the agent has a low value for $$\alpha$$, this step to the left is fairly likely even if the agent prefers Noodle or Veg. So including softmax noise in the inference makes inferences about other parameters closer to the prior.
@@ -298,7 +301,7 @@ To perform inference, we just condition on both sequences. (We use concatenation
 // World and agent are exactly as above
 ///fold:
 
-var world = makeRestaurantChoiceMDP()
+var world = makeRestaurantChoiceMDP();
 
 var utilityTablePrior = function(){
   var foodValues = [0,1,2];
@@ -337,7 +340,7 @@ var posterior = function(observedStateActionSequence){
 
     return {donutFavorite: donutFavorite,
             alpha: JSON.stringify(alpha),
-		    timeCost: JSON.stringify(utilityTable.timeCost)} 
+		    timeCost: JSON.stringify(utilityTable.timeCost)};
   });
 };
 ///  
