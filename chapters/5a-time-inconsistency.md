@@ -34,7 +34,8 @@ Aside from mathematical convenience, there is an additional justification for ex
 
 It is straightforward to add exponential discounting to our existing agent models. We explain this in detail below. Before that we illustrate the effects of exponential discounting. We return to the deterministic Bandit problem from Chapter III.3 (see Figure 1). Suppose a person decides every year where to go on a skiing vacation. There is a fixed set of options {Tahoe, Chile, Switzerland} and a finite time horizon[^bandit]. The person discounts exponentially and so they prefer a good vacation now to an even better one in the future. This means they are less likely to *explore*, since exploration takes time to pay off.
 
-TODO_daniel: Add a diagram with arms labeled Tahoe, Chile, Switzerland (or "Switz." for short).
+
+<img src="/assets/img/5a-irl-bandit.png" alt="diagram" style="width: 600px;"/>
 
 >**Figure 1**: Deterministic Bandit problem. The agent tries different arms/destinations and receives rewards. The reward for Tahoe is known but Chile and Switzerland are both unknown. The actual best option is Tahoe. 
 <br>
@@ -99,9 +100,9 @@ var discountFunction = function(delay) {
 };
 
 var exponentialParams = update(baseParams, {discountFunction: discountFunction,
-                                           priorBelief: priorBelief});
-var exponentialAgent = makeIRLBanditAgent(utilityTable, exponentialParams, worldAndStart,
-                                          'beliefDelay');
+                                            priorBelief: priorBelief});
+var exponentialAgent = makeIRLBanditAgent(utilityTable, exponentialParams,
+										  worldAndStart, 'beliefDelay');
 var exponentialTrajectory = simulateBeliefDelayAgent(start, world, exponentialAgent,
 						     'actions');
 

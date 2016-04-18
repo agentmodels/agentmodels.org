@@ -14,6 +14,7 @@
     "sec:irl-bandits"
     "sec:3c-first-todo"
     "sec:4-near-end"
+    "sec:5a"
     "sec:5c"
     "sec:stochastic-bandits"
     "sec:3c"

@@ -195,6 +195,79 @@
 
 \vspace{1cm}
 
+\subsection{5a}
+\label{sec:5a}
+
+\vspace{1cm}
+
+\begin{tikzpicture}
+  \node[draw, rectangle] (t1) at (0,2) {Tahoe};
+  \node[draw, rectangle] (c1) at (0,1) {Chile};
+  \node[draw, rectangle] (s1) at (0,0) {Switz.};
+
+  \node (ut1) at (2,2) {$u = 1$};
+  \node (uc1) at (2,1) {$u = 0$};
+  \node (us1) at (2,0) {$u = 1.5$};
+
+  \path[->] (t1) edge (ut1);
+  \path[->] (c1) edge (uc1);
+  \path[->] (s1) edge (us1);
+
+  \draw[thick, dotted] ($(t1.north west)+(-0.25,+0.15)$) rectangle ($(us1.south east)+(0.25, -0.15)$);
+
+  \node (prob1) at (-2, 1) {$b_0 = 0.45$};
+
+  \node[draw, rectangle] (t2) at (4,2) {Tahoe};
+  \node[draw, rectangle] (c2) at (4,1) {Chile};
+  \node[draw, rectangle] (s2) at (4,0) {Switz.};
+
+  \node (ut2) at (6,2) {$u = 1$};
+  \node (uc2) at (6,1) {$u = 5$};
+  \node (us2) at (6,0) {$u = 1.5$};
+
+  \path[->] (t2) edge (ut2);
+  \path[->] (c2) edge (uc2);
+  \path[->] (s2) edge (us2);
+
+  \draw[thick, dotted] ($(t2.north west)+(-0.25,+0.15)$) rectangle ($(us2.south east)+(0.25, -0.15)$);
+
+  \node (prob2) at (8, 1) {$b_0 = 0.05$};
+
+  \node[draw, rectangle] (t3) at (0,5) {Tahoe};
+  \node[draw, rectangle] (c3) at (0,4) {Chile};
+  \node[draw, rectangle] (s3) at (0,3) {Switz.};
+
+  \node (ut3) at (2,5) {$u = 1$};
+  \node (uc3) at (2,4) {$u = 0$};
+  \node (us3) at (2,3) {$u = 0.5$};
+
+  \path[->] (t3) edge (ut3);
+  \path[->] (c3) edge (uc3);
+  \path[->] (s3) edge (us3);
+
+  \draw[thick] ($(t3.north west)+(-0.25,+0.15)$) rectangle ($(us3.south east)+(0.25, -0.15)$);
+
+  \node (prob3) at (-2, 4) {$b_0 = 0.45$};
+
+  \node[draw, rectangle] (t4) at (4,5) {Tahoe};
+  \node[draw, rectangle] (c4) at (4,4) {Chile};
+  \node[draw, rectangle] (s4) at (4,3) {Switz.};
+
+  \node (ut4) at (6,5) {$u = 1$};
+  \node (uc4) at (6,4) {$u = 5$};
+  \node (us4) at (6,3) {$u = 0.5$};
+
+  \path[->] (t4) edge (ut4);
+  \path[->] (c4) edge (uc4);
+  \path[->] (s4) edge (us4);
+
+  \draw[thick, dotted] ($(t4.north west)+(-0.25,+0.15)$) rectangle ($(us4.south east)+(0.25, -0.15)$);
+
+  \node (prob4) at (8, 4) {$b_0 = 0.05$};
+\end{tikzpicture}
+
+\vspace{1cm}
+
 \subsection{5c}
 \label{sec:5c}
 
