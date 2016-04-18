@@ -208,14 +208,14 @@ var makeAgent = function (params, world) {
       var u = discountFunction(delay) * utility(state, action);
       if (state.terminateAfterAction){
         return u; 
-      } else {                     
+      } else {
         return u + expectation( Enumerate(function(){
           var nextState = transition(state, action); 
           var perceivedDelay = isNaive ? delay + 1 : 0;
           var nextAction = sample(act(nextState, perceivedDelay));
-          return expectedUtility(nextState, nextAction, delay+1);  
+          return expectedUtility(nextState, nextAction, delay+1);
         }));
-      }                      
+      }
     });
   
   return {

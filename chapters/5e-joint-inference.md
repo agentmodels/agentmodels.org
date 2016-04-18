@@ -51,7 +51,7 @@ var exampleGetPosterior = function(world, prior, observedStateAction){
     var priorAlpha = prior.priorAlpha;
     // Create agent with those parameters
     var agent = makeHyperbolicDiscounter(
-      { utility   : makeRestaurantUtilityMDP(world, utilityTable),
+      { utility   : makeRestaurantUtilityFunction(world, utilityTable),
         alpha     : priorAlpha(), 
         discount  : priorDiscounting().discount,
         sophisticatedOrNaive : sophisticatedOrNaive
