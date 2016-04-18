@@ -70,7 +70,7 @@ var twoHeads = Enumerate(function(){
   return a;
 });
 
-viz.print(twoHeads);
+viz.auto(twoHeads);
 ~~~~
 
 The same inference machinery can compute the optimal action in Tom's decision problem. We sample random actions with `uniformDraw` and condition on the preferred outcome happening. Intuitively, we imagine observing the consequence we prefer (e.g. pizza) and then *infer* from this the action that caused this consequence. <!-- address evidential vs causal decision theory? -->
@@ -92,7 +92,7 @@ var inferenceAgent = function(state){
   });
 };
 
-viz.print(inferenceAgent("default"));
+viz.auto(inferenceAgent("default"));
 ~~~~
 
 
@@ -150,25 +150,25 @@ var softHeads = Enumerate(function(){
   return a;
 });
 
-viz.print(softHeads);
+viz.auto(softHeads);
 ~~~~
 
 As another example, consider the following short program:
 
 ~~~~
-var dist = Enumerate(function(){
+var y = Enumerate(function(){
   var n = uniformDraw([0, 1, 2]);
   factor(n * n);
   return n;
 });
 
-viz.print(dist);
+viz.auto(y);
 ~~~~
 
-Without the `factor` statement, each value of `n` has equal probability. Adding the `factor` statements adds `n*n` to the log-score of each value. To get the new probabilities (after adding `factor`) we compute the normalizing constant given these log-scores. The resulting probability of `sample(dist) === 2` will be:
+Without the `factor` statement, each value of the variable `n` has equal probability. Adding the `factor` statements adds `n*n` to the log-score of each value. To get the new probabilities induced by the `factor` statement we compute the normalizing constant given these log-scores. The resulting probability $$P(y=2)$$ that the ERP `y` assigns to output $$2$$ is:
 
 $$
-\frac {e^{2 \cdot 2}} { (e^{0 \cdot 0} + e^{1 \cdot 1} + e^{2 \cdot 2}) }
+P(y=2) = \frac {e^{2 \cdot 2}} { (e^{0 \cdot 0} + e^{1 \cdot 1} + e^{2 \cdot 2}) }
 $$
 
 Returning to our implementation as planning-as-inference for maximizing *expected* utility, we use a `factor` statement to implement soft conditioning:
@@ -205,7 +205,7 @@ var softMaxAgent = function(state){
   })
 };
 
-viz.print(softMaxAgent('default'));
+viz.auto(softMaxAgent('default'));
 ~~~~
 
 The `softMaxAgent` differs in two ways from the `maxEUAgent` above. First, it uses the planning-as-inference idiom. Second, it does not deterministically choose the action with maximal expected utility. Instead, it implements *soft* maximization, selecting actions with a probability that depends on their expected utility. Formally, let the agent's probability of choosing an action be $$C(a;s)$$ for $$a \in A$$ when in state $$s \in S$$. Then the *softmax* decision rule is:
@@ -216,7 +216,9 @@ $$
 
 The noise parameter $$\alpha$$ modulates between random choice $$(\alpha=0)$$ and the perfect maximization $$(\alpha = \infty)$$ of the `maxEUAgent`.
 
-Since rational agents will *always* take the best action, why consider softmax agents? If the task is to provide normative advice on how to solve a one-shot decision problem, then "hard" maximization is the way to go. An important goal for this tutorial is to infer the preferences and beliefs of agents from their choices. These agents might not always choose the normatively optimal actions. The softmax agent provides a computationally simple, analytically tractable model of suboptimal choice. This model has been tested empirically on human action selection refp:luce2005individual. Moreover, it has been used extensively in Inverse Reinforcement Learning as a model of human errors refp:kim2014inverse, refp:zheng2014robust. For for this reason, we employ the softmax model throughout this tutorial. When modeling an agent assumed to be optimal, the noise parameter $$\alpha$$ can be set to a large value. <!-- [TODO: Alternatively, agent could output erp.MAP().val instead of erp.] -->
+Since rational agents will *always* take the best action, why consider softmax agents? If the task is to provide normative advice on how to solve a one-shot decision problem, then "hard" maximization is the way to go. An important goal for this tutorial is to infer the preferences and beliefs of agents from their choices. These agents might not always choose the normatively optimal actions. The softmax agent provides a computationally simple, analytically tractable model of suboptimal choice[^softmax]. This model has been tested empirically on human action selection refp:luce2005individual. Moreover, it has been used extensively in Inverse Reinforcement Learning as a model of human errors refp:kim2014inverse, refp:zheng2014robust. For for this reason, we employ the softmax model throughout this tutorial. When modeling an agent assumed to be optimal, the noise parameter $$\alpha$$ can be set to a large value. <!-- [TODO: Alternatively, agent could output erp.MAP().val instead of erp.] -->
+
+[^softmax]: A softmax agent's choice of action is a differentiable function of their utilities. This differentiability makes possible certain techniques for inferring utilities from choices.
 
 ### Moving to complex decision problems
 

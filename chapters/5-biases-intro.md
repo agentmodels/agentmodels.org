@@ -37,7 +37,7 @@ Here are some examples of systematic deviations from optimal action:
 
 - Failing frequently on the same kind of math problem (e.g. long integer division).
 
-[^strings]: People can memorize these numbers and then store them in mind for longer periods. The claim is that if people do not make an attempt to memorize a random string, they will systematically forget the string within a short duration. This can't be easily explained on a POMDP model, where the agent has perfect memory.
+[^strings]: With effort people can memorize these strings and store them in mind for longer periods. The claim is that if people do not make an attempt to memorize a random string, they will systematically forget the string within a short duration. This can't be easily explained on a POMDP model, where the agent has perfect memory.
 
 This is not to say that all human deviations are systematic. 
 
