@@ -302,11 +302,11 @@ var expectedUtility = dp.cache(function(state, action){
   
   if (state.terminateAfterAction){
     return u; 
-  } else {                     
+  } else {
     return u + expectation(Enumerate(function(){
       var nextState = transition(state, action);
       var nextAction = sample(act(nextState));
-      return expectedUtility(nextState, nextAction);  
+      return expectedUtility(nextState, nextAction);
     }));
   }
 });
@@ -316,22 +316,18 @@ var simulate = function(startState){
   var sampleSequence = function(state){
     var action = sample(act(state));
     var nextState = transition(state, action);
-	var out = [state.loc, action];
-    return state.terminateAfterAction ? [out]
-	  : [out].concat(sampleSequence(nextState));
+    return state.terminateAfterAction ? [state]
+	  : [state].concat(sampleSequence(nextState));
   };
   return sampleSequence(startState);
 };
 
 var startState = {loc: [3,1],
                   terminateAfterAction: false,
-                  timeLeft: 9,
-                  timeAtRestaurant: 1};
-var locActionPairs = simulate(startState);
+                  timeLeft: 9};
+var trajectory = simulate(startState);
 
-locActionPairs;
-// TODO_daniel: use GridWorld.draw here
-// GridWorld.draw(world, {trajectory : locActionPairs});
+GridWorld.draw(world, {trajectory : trajectory});
 ~~~~
 
 ### Noisy agents, stochastic environments
