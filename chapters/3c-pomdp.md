@@ -444,7 +444,8 @@ display(trajectory);
 
 Solving Bandit problems optimally quickly becomes intractable without special optimizations. The codebox below shows how runtime scales as a function of the number of trials. 
 
-TODO_daniel fit a quadratic to this data and plot the quadratic on the same axis. 
+TODO_daniel fit a quadratic to this data and plot the quadratic on the same axis.
+
 ~~~~
 
 // bandit_scaling
@@ -493,7 +494,9 @@ viz.line(numberTrialsList, runtimes);
 // note: this takes approximately 30 seconds to run
 ~~~~
 
+
 Scaling is much worse in the number of arms:
+
 
 ~~~~
 // TODO_daniel: redo this codebox based on the codebox immediately above.
@@ -559,13 +562,27 @@ viz.bar(arms, runtimes);
 
 
 ### Gridworld with observations
-As we discussed above, an agent in the Restaurant Choice problem is likely to be uncertain about some features of the environment. We consider a variant of the Restaurant Choice problem where the agent is uncertain about which restaurants are open. The agent can observe whether a restaurant is open by moving to a square on the grid adjacent to the restaurant. If the restaurant is open, the agent can enter it (and receive utility).
+As we discussed above, an agent in the Restaurant Choice problem is likely to be uncertain about some features of the environment. We consider a variant of the Restaurant Choice problem where the agent is uncertain about which restaurants are open. The agent can observe whether a restaurant is open by moving to a square on the grid adjacent to the restaurant. If the restaurant is open, the agent can enter it and thereby receive utility. In this POMDP version of Restaurant Choice, a rational agent can exhibit behavior that never occurs in the MDP version:
 
-In this POMDP version of Restaurant Choice, a rational agent can exhibit behavior that never occurs in the MDP version. First, suppose the agent has a prior belief that Donut South is likely to be closed and Donut North is likely to be open. Then the agent might go to Donut North despite Donut South being closer (see example below). Second, suppose the agent believes the Noodle Shop is likely open when it's actually closed. Then the agent might go to Noodle Shop, see it's closed and then take the long loop round to Vegetarian Cafe (which would not make sense if the Noodle Shop was known to be closed from the start). This is shown in the second example below. 
+1. The agent thinks Donut South is closed and Donut North is open, and so goes to the further away Donut North (see next codebox). 
 
-[Add these two examples using library functions].
+2. The agent goes to Noodle, see that it's closed and so takes the loop round to Veg. This route that doesn't make sense if Noodle is known to be closed (see second codebox). 
 
-TODO: add draw, remove world.feature thing is possible. 
+The POMDP version of Restaurant Choice (`getRestaurantChoicePOMDP`) is built from the MDP version. States now have the form:
+
+>`{manifestState: { ... }, latentState: { ... }}`
+
+The `manifestState` contains the features of the world that the agent always observes directly (and so always knows). This includes the remaining time and (for Gridworld environments) the agent's location in the grid. The `latentState` contains features that may only be observable in certain states. In our examples, the `latentState` specifies whether each restaurant is open or closed.
+
+The transition function for the POMDP case is essentially the same as in the MDP case. The main difference is that if a restaurant is closed the agent cannot transition to its location. The observation function allows the agent to observe whether a restaurant is open or closed only if the agent is adjacent to the restaurant.
+
+The next two codebox use the same POMDP, where all restaurants are open but for Noodle. The first agent prefers the Donut Store and believes (falsely) that Donut South is likely closed. The second agent prefers Noodle and belives (falsely) that Noodle is likely open.
+
+TODO_daniel:
+- remove use of `feature`
+- add Gridworld.draw
+- write out startState and alternative alterntateLatentState explicity (make startState same across both codeboxes)
+- use same prior and latent state for both examples and just vary utilities. put the prior above the fold on second example
 
 ~~~~
 var world = getRestaurantChoicePOMDP();
@@ -629,10 +646,10 @@ var trajectory = simulateBeliefAgent(startState, world, agent, 'states');
 trajectoryToLocations(trajectory);
 ~~~~
 
-
+<!-- TODO
 ### Possible additions
 - Doing belief update online vs belief doing a batch update every time. Latter is good if belief updates are rare and if we are doing approximate inference (otherwise the errors in approximations will compound in some way). Maintaining observations is also good if your ability to do good approximate inference changes over time. (Or least maintaining compressed observations or some kind of compressed summary statistic of the observation -- e.g. .jpg or mp3 form). This is related to UDT vs CDT and possibly to the episodic vs. declarative memory in human psychology. [Add a different *updateBelief* function to illustrate.]
-
+-->
 
 
 --------------
