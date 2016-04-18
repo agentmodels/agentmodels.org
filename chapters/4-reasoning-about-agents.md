@@ -274,14 +274,12 @@ As we noted previously, it is simple to extend our approach to inference to cond
 ~~~~
 // display_multiple_trajectories
 
-//TODO_daniel fix this codebox
-
 var world = makeRestaurantChoiceMDP();
 var observedSequence1 = restaurantNameToObservationTime11['naive'];
 var observedSequence2 = restaurantNameToObservationTime11['donutSouth'];
 
 map( function(trajectory){
-  GridWorld.draw(world, {trajectory: locationsToManifestStates(trajectory)});
+  GridWorld.draw(world, {trajectory: map(first, trajectory)});
 }, [observedSequence1, observedSequence2])
 ~~~~
 
