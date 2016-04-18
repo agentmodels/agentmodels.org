@@ -8,29 +8,54 @@ is_section: true
 
 ### Optimality and modeling human actions
 
-we've already mentioned two uses for models of optimal decision making:
+We've mentioned two uses for models of sequential decision making:
 
-1. Build algorithms that solve practical problems optimally. The algorithm might solve the problem quite different from humans would and is often much faster.
+(1). Solve practical decision problems optimally (or approximately optimally) 
 
-2. Model the behavior of humans or other agents
+(2). Learn the preferences and beliefs of humans (e.g. to predict future behavior or to provide useful recommendations)
+
+The first chapters of the book focused on (1). We presented agent models for solving MDPs and POMDPs optimally. We demonstrated these models on toy problems (Gridworld and simple variants of Bandits) that are closely related to practical real-world problems. The previous [chapter](/chapters/4-reasoning-about-agents), by contrast, focused on (2). This chapter used the MDP and POMDP agent models not to solve problems but as *generative models* of human behavior. But are the MDP and POMDP agent models good models of human behavior? These are models of *optimal* action for a particular decision problem. If humans deviate from optimality for such a decision problem, will these be bad generative models?
+
+### Random vs. Systematic Errors
+The agent models we've considered are models of *optimal* performance on (PO)MDPs. Nevertheless, they are flexible models. The agent can have any utility function and any initial belief distribution. We saw in the previous chapters that apparently irrational behavior can sometimes be explained in terms of inaccurate prior beliefs.
+
+Some kinds of human behavior resist explanation in these terms. Consider a cigarette smoker who smokes every day while wanting to quit. Such people have often quit previously and relapsed multiple times. They can be well informed both about the health effects of smoking and the psychological effects of avoiding cigarettes. It's hard to explain their behavior in terms of inaccurate beliefs[^beliefs].
+
+[^beliefs]: One could argue that the smoker has a temporary belief that smoking is high utility which causes them to smoke. This belief subsides after smoking a cigarette and is replaced with regret. To explain this in terms of a POMDP agent, there has to be an observation that triggers this change of belief via Bayesian belief-updating. But what is this observation? The smoker may have *cravings*. Yet cravings alter the smoker's desires or wants, rather than being observational evidence about the empirical world. 
+
+One standard response is to model deviations from optimal behavior using softmax noise. As we've seen above, it's easy from a computational standpoint to move between perfect maximizing behavior and soft-max behavior. Various papers doing Inverse Reinforcement Learning (IRL) on human data take this approach refp:kim2014inverse and refp:zheng2014robust. Yet the softmax model also has limited expressiveness. It's a model of *random* deviations from optimal behavior. Bigger deviations from optimal are explained by more randomness overall[^softmax]. However, the smoking example suggests that humans deviate from optimality *systematically*. That is, when not behaving optimally, their actions may still be predictable. Bigger deviations from optimality do not imply more randomness. Here are some examples of systematic deviations from optimal action:
+
+>**Systematic deviations from optimal action**:
+
+- Smoking every week (i.e. systematically) while simultaneously trying to quit (e.g. using patches, throwing out cigarette packets).
+
+- Always completing assignments just before the deadline, while always planning to complete the assignment as early as possible. 
+
+- Forgetting random strings (passwords, ID numbers, words in a foreign language) within a few hours -- assuming they weren't explicitly memorized [^strings].
+
+- Failing frequently on the same kind of math problem (e.g. long integer division).
+
+[^strings]: People can memorize these numbers and then store them in mind for longer periods. The claim is that if people do not make an attempt to memorize a random string, they will systematically forget the string within a short duration. This can't be easily explained on a POMDP model, where the agent has perfect memory.
 
 
 
-<small>
-| Goal | Key tasks | Subject Areas | Fields |
+
+
+| Goal | Key tasks | Find optimal solution? | Subject Areas | Fields |
 |:--------|:-------:|:--------:|--------:|
-| Build optimal decision making systems | 1. Define appropriate utility function. 2. Optimize it | RL, Control Theory, Game Theory | Machine Learning, Electrical engineering, Operations Research, Economics (normative) |
-| Model human behavior to learn preferences and beliefs | 1. Collect data by observation or experiment. 2. Infer parameters. | IRL, Econometrics (Structural Estimation) | Machine Learning, Economics (positive), Political Science, Psychology/Neuroscience|
+| Build optimal decision making systems |
+1. Define appropriate utility function and decision problem. 2. Solve optimization problem |
+If it's tractable |
+RL, Control Theory, Game Theory, Decision Theory |
+Machine Learning, Electrical engineering, Operations Research, Economics (normative), Finance |
+
+| Model human behavior to learn preferences and beliefs |
+1. Collect data by observation or experiment. 2. Infer parameters and predict future behavior |
+If it fits human data |
+IRL, Econometrics (Structural Estimation) | Machine Learning, Economics (positive and behavioral), Political Science, Psychology/Neuroscience |
 |=====
 
-<br>
-
-| Header1 | Header2 | Header3 |
-|:--------|:-------:|--------:|
-| cell1   | cell2   | cell3   |
-| cell4   | cell5   | cell6   |
-|=====
-
+Don't want to over-emphasize this distinction. First, good models of human behavior may be approximations models that are tractable and so good for building approximate optimal decision makers. Second, with IRL there is an interesting interaction between the two problems. Because defining an appropriate utility function to optimize is hard, you infer a function from humans. Once you have it, you can use any technique you like to optimize it (and you could ultimately get performance on the task that's very different from human performance). 
 
 
 
