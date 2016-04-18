@@ -442,8 +442,9 @@ var trajectory = simulateBeliefAgent(startState, world, agent, 'stateAction');
 display(trajectory);
 ~~~~
 
-Scaling:
+Solving Bandit problems optimally quickly becomes intractable without special optimizations. The codebox below shows how runtime scales as a function of the number of trials. 
 
+TODO_daniel fit a quadratic to this data and plot the quadratic on the same axis. 
 ~~~~
 
 // bandit_scaling
@@ -484,7 +485,7 @@ var getRuntime = function(numberTrials){
   return timeit(f).runtimeInMilliseconds.toPrecision(3) * 0.001;
 };
 
-// Varying the lifetime of the agent
+// Runtime as a function of number of trials
 var numberTrialsList = range(15).slice(2);
 var runtimes = map(getRuntime, numberTrialsList);
 viz.line(numberTrialsList, runtimes);
@@ -492,7 +493,15 @@ viz.line(numberTrialsList, runtimes);
 // note: this takes approximately 30 seconds to run
 ~~~~
 
+Scaling is much worse in the number of arms:
+
 ~~~~
+// TODO_daniel: redo this codebox based on the codebox immediately above.
+// that is: put the fixed variables like probably1ERP under the fold and only put the
+// stuff that depends on the number of arms in the 'getRuntime' function.
+
+// ALso: if possible reduce the number of trials to 3/4 so we can get up to 4 arms. 
+
 
 // test to show the scaling properties of stochastic bandits
 
