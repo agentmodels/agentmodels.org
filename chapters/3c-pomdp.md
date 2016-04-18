@@ -363,8 +363,6 @@ We consider an especially simple Bandit problem, where the agent already knows t
 
 For the following codebox, we use library functions for the environment (`makeBanditWorld`), for constructing the agent (`makeBeliefAgent`) and for simulating the agent (`simulateBeliefAgent`):
 
-TODO_daniel: why doesn't agent explore with timeLeft==10?
-
 ~~~~
 // helper functions defined here:
 ///fold:
@@ -422,12 +420,12 @@ var alternateLatent = update(latent, {1: probably0ERP});
 
 // Construct startState
 var numberTrials = 10;
-var startState = buildBanditStartState(numberTrials, latent);
+var startState = buildBanditStartState(numberTrials + 1, latent);
 
 // Construct agent's prior on the startState
 var priorBelief = Enumerate(function(){
   var latentState = uniformDraw([latent, alternateLatent]);
-  return buildBanditStartState(numberTrials, latentState);
+  return buildBanditStartState(numberTrials + 1, latentState);
 });
 
 // Construct agent
