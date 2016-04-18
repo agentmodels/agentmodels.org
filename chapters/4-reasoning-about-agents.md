@@ -40,8 +40,8 @@ Consider the MDP version of Bob's Restaurant Choice problem. Bob is choosing bet
 
 ~~~~
 var world = restaurantChoiceMDP; 
-var observedPath = restaurantNameToPath.donutSouth;
-var observedTrajectory = locationsToManifestStates(observedPath);
+var observedTrajectory = map(first,
+	                         restaurantNameToObservationTime11.donutSouth);
 
 GridWorld.draw(world,{trajectory: observedTrajectory});
 ~~~~
@@ -53,23 +53,15 @@ In this first example of inference, Bob's preference for saving time is held fix
 ~~~~
 var world = makeRestaurantChoiceMDP();
 
-var observedLocs = restaurantNameToPath.donutSouth;
-var startState = {loc: [3,1],
-		          timeLeft: 11,
-				  terminateAfterAction: false};
-
-// TODO_daniel
-// observations should be full state-actions
-// startState is then first element of observations
-// restaurant names should always be in quotes
-
+var observedStateActions = restaurantNameToObservationTime11.donutSouth;
+var startState = observedStateActions[0][0];
 
 var utilityTablePrior = function(){
   var baseUtilityTable = {
     'Donut S': 1,
     'Donut N': 1,
-    Veg: 1,
-    Noodle: 1,
+    'Veg': 1,
+    'Noodle': 1,
     timeCost: -0.05
   };
   return uniformDraw( 
@@ -92,8 +84,7 @@ var posterior = Enumerate( function(){
 		        alpha: 100};
   var agent  = makeMDPAgent(params, world);
   
-  var predictedStates = simulateMDP(startState, world, agent, 'states');
-  var predictedLocs = _.map(predictedStates, 'loc');
+  var predictedStates = simulateMDP(startState, world, agent, 'stateAction');
   condition(_.isEqual(observedLocs, predictedLocs));
   return {favourite: favourite};
 });
