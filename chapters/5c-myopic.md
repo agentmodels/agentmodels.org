@@ -39,14 +39,14 @@ The next codeboxes show the performance of the Greedy agent on Bandit problems. 
 // noisy_greedy_regret_ratio
 
 // Construct world: One bad arm, one good arm, 100 trials. 
-var world = makeStochasticBanditWorld(2);
+var world = makeBanditWorld(2);
 var latentState = {
   0: categoricalERP([0.25, 0.75], [1.5, 0] ),
   1: categoricalERP([0.5, 0.5], [1, 0])
 };
 
 var numberTrials = 100;
-var startState = buildStochasticBanditStartState(numberTrials, latentState);
+var startState = buildBanditStartState(numberTrials, latentState);
 
 
 // Construct greedy agent
@@ -65,7 +65,7 @@ var alpha = 10; // noise level
 
 var params = {
   alpha: 10,
-  utility: stochasticBanditUtility,
+  utility: banditUtility,
   priorBelief: agentPrior,
   myopia: {on: true, bound: greedyBound},
   boundVOI: {on: false, bound: 0},
@@ -76,7 +76,7 @@ var params = {
 };
 var agent = makeBeliefDelayAgent(params, world);
 var trajectory = simulateBeliefDelayAgent(startState, world, agent, 'states');
-var averageUtility = listMean(map(stochasticBanditUtility, trajectory));
+var averageUtility = listMean(map(banditUtility, trajectory));
 print('Arm1 is best arm and has expected utility 0.5.\n' + 
       'So ideal performance gives average score of: 0.5 \n' + 
       'The average score over 100 trials for greedy agent: '
@@ -99,7 +99,7 @@ var alpha = 10; // noise level
 
 var params = {
   alpha: 10,
-  utility: stochasticBanditUtility,
+  utility: banditUtility,
   myopia: {on: true, bound: greedyBound},
   boundVOI: {on: false, bound: 0},
   noDelays: false,
@@ -109,21 +109,21 @@ var params = {
 };
 ///
 
-var world = makeStochasticBanditWorld(3);
+var world = makeBanditWorld(3);
 var latentState = {0: categoricalERP([0.1, 0.9], [3, 0]),
 		           1: categoricalERP([0.5, 0.5], [1, 0]),
 		           2: categoricalERP([0.5, 0.5], [2, 0])};
 
 var numberTrials = 40;
-var startState = buildStochasticBanditStartState(numberTrials, latentState);
+var startState = buildBanditStartState(numberTrials, latentState);
 
 var agentPrior = Enumerate(function(){
   var prob3 = uniformDraw([0.1, 0.5, 0.9]);
   var prob1 = uniformDraw([0.1, 0.5, 0.9]);
   var prob2 = uniformDraw([0.1, 0.5, 0.9]);
   var latentState = {0: categoricalERP([prob3, 1 - prob3], [3, 0]),
-		             1: categoricalERP([prob1, 1 - prob1], [1, 0]),				                      
-		             2: categoricalERP([prob2, 1 - prob2], [2, 0])};				                       
+		             1: categoricalERP([prob1, 1 - prob1], [1, 0]),
+		             2: categoricalERP([prob2, 1 - prob2], [2, 0])};
   return buildState(startState.manifestState, latentState);
 });
 
@@ -137,8 +137,8 @@ print("Agent's first 20 actions (during exploration phase): \n" +
       
 print('Arm2 is best arm and has expected utility 1.\n' + 
       'So ideal performance gives average score of: 1 \n' + 
-      'The average score over 40 trials for greedy agent: '     
-      + listMean(map(stochasticBanditUtility, map(first,trajectory))))
+      'The average score over 40 trials for greedy agent: '
+      + listMean(map(banditUtility, map(first,trajectory))))
 ~~~~
 
 
@@ -214,7 +214,7 @@ The Myopic agent performs well on a variety of Bandit problems. The following co
 // HELPERS FOR CONSTRUCTING AGENT
 
 var baseParams = {
-  utility: stochasticBanditUtility,
+  utility: banditUtility,
   alpha: 1000,
   fastUpdateBelief: false,
   noDelays: false,
@@ -231,7 +231,7 @@ var getParams = function(agentPrior, options){
 var getAgentPrior = function(totalTime, priorArm0, priorArm1){
   return Enumerate(function(){
     var latentState = {0: priorArm0(), 1: priorArm1()};
-    return buildStochasticBanditStartState(totalTime, latentState);
+    return buildBanditStartState(totalTime, latentState);
   });
 };
 
@@ -245,13 +245,13 @@ var probably0ERP = categoricalERP([0.6, 0.4], [0, 1]);
 // Construct Bandit POMDP
 var getBanditWorld = function(totalTime){
   var numberArms = 2;
-  var world = makeStochasticBanditWorld(numberArms);
+  var world = makeBanditWorld(numberArms);
   
   // Arm to distribution
   var trueLatent = {0: probably0ERP,
 		            1: probably1ERP};
   
-  var start = buildStochasticBanditStartState(totalTime, trueLatent);
+  var start = buildBanditStartState(totalTime, trueLatent);
 
   return {world:world, start:start};
 };
@@ -259,7 +259,7 @@ var getBanditWorld = function(totalTime){
 // Get score for a single episode of bandits
 var score = function(out){
   var total = sum(map(function(x){
-    return stochasticBanditUtility(x);}, out));
+    return banditUtility(x);}, out));
   return total / out.length;
 };
 ///
@@ -322,7 +322,7 @@ The following codebox computes the runtime for Myopic and Optimal agents as a fu
 // HELPERS FOR CONSTRUCTING AGENT
 
 var baseParams = {
-  utility: stochasticBanditUtility,
+  utility: banditUtility,
   alpha: 1000,
   fastUpdateBelief: false,
   noDelays: false,
@@ -339,7 +339,7 @@ var getParams = function(agentPrior, options){
 var getAgentPrior = function(totalTime, priorArm0, priorArm1){
   return Enumerate(function(){
     var latentState = {0: priorArm0(), 1: priorArm1()};
-    return buildStochasticBanditStartState(totalTime, latentState);
+    return buildBanditStartState(totalTime, latentState);
   });
 };
 
@@ -353,13 +353,13 @@ var probably0ERP = categoricalERP([0.6, 0.4], [0, 1]);
 // Construct Bandit POMDP
 var getBanditWorld = function(totalTime){
   var numberArms = 2;
-  var world = makeStochasticBanditWorld(numberArms);
+  var world = makeBanditWorld(numberArms);
   
   // Arm to distribution
   var trueLatent = {0: probably0ERP,
 		            1: probably1ERP};
   
-  var start = buildStochasticBanditStartState(totalTime, trueLatent);
+  var start = buildBanditStartState(totalTime, trueLatent);
 
   return {world:world, start:start};
 };
@@ -367,7 +367,7 @@ var getBanditWorld = function(totalTime){
 // Get score for a single episode of bandits
 var score = function(out){
   var total = sum(map(function(x){
-    return stochasticBanditUtility(x);}, out));
+    return banditUtility(x);}, out));
   return total / out.length;
 };
 

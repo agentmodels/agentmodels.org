@@ -361,16 +361,16 @@ We consider an especially simple Bandit problem, where the agent already knows t
 >**Figure 3:** Structure of Bandit problem where `Arm1` is stochastic. 
 <br>
 
-For the following codebox, we use library functions for the environment (`makeStochasticBanditWorld`), for constructing the agent (`makeBeliefAgent`) and for simulating the agent (`simulateBeliefAgent`):
+For the following codebox, we use library functions for the environment (`makeBanditWorld`), for constructing the agent (`makeBeliefAgent`) and for simulating the agent (`simulateBeliefAgent`):
 
-TODO_daniel: remove "stochastic" from names and just call them bandits. why doesn't agent explore with timeLeft==10?
+TODO_daniel: why doesn't agent explore with timeLeft==10?
 
 ~~~~
 // helper functions defined here:
 ///fold:
 // part of the webppl language. takes a timeLeft and a latent state, returns a
 // start state for a stochastic bandit POMDP.
-var buildStochasticBanditStartState = function(timeLeft, latent) {
+var buildBanditStartState = function(timeLeft, latent) {
   return {manifestState: {loc: 'start',
 			              timeLeft: timeLeft,
 						  terminateAfterAction: false},
@@ -379,7 +379,7 @@ var buildStochasticBanditStartState = function(timeLeft, latent) {
 
 // part of the webppl language. is a generic utility function for stochastic
 // bandit POMDPs.
-var stochasticBanditUtility = function(state, action) {
+var banditUtility = function(state, action) {
   var reward = state.manifestState.loc;
   return reward === 'start' ? 0 : reward;
 };
@@ -408,7 +408,7 @@ var display = function(trajectory) {
 
 // Construct Bandit environment. The latent mapping
 // from arms to rewards is specified in the *startState* (below)
-var world = makeStochasticBanditWorld(2);
+var world = makeBanditWorld(2);
 
 // Possible distributions on rewards for Arm1
 var probably1ERP = categoricalERP([0.2, 0.8], [0, 1]);
@@ -422,16 +422,16 @@ var alternateLatent = update(latent, {1: probably0ERP});
 
 // Construct startState
 var numberTrials = 10;
-var startState = buildStochasticBanditStartState(numberTrials, latent);
+var startState = buildBanditStartState(numberTrials, latent);
 
 // Construct agent's prior on the startState
 var priorBelief = Enumerate(function(){
   var latentState = uniformDraw([latent, alternateLatent]);
-  return buildStochasticBanditStartState(numberTrials, latentState);
+  return buildBanditStartState(numberTrials, latentState);
 });
 
 // Construct agent
-var params = {utility: stochasticBanditUtility,
+var params = {utility: banditUtility,
               alpha: 1000,
               priorBelief: priorBelief,
 		      fastUpdateBelief: false};
@@ -452,7 +452,7 @@ TODO_daniel fit a quadratic to this data and plot the quadratic on the same axis
 
 // Construct world and agent priorBelief as above
 ///fold:
-var world = makeStochasticBanditWorld(2);
+var world = makeBanditWorld(2);
 
 var probably1ERP = categoricalERP([0.2, 0.8], [0, 1]);
 var probably0ERP = categoricalERP([0.8, 0.2], [0, 1]);
@@ -463,18 +463,18 @@ var alternateLatent = update(latent, {1: probably0ERP});
 var getPriorBelief = function(numberTrials){
   return Enumerate(function(){
     var latentState = uniformDraw([latent, alternateLatent]);
-    return buildStochasticBanditStartState(numberTrials, latentState);
+    return buildBanditStartState(numberTrials, latentState);
   })
 };
 
-var baseParams = {utility: stochasticBanditUtility,
+var baseParams = {utility: banditUtility,
                   alpha: 1000,
                   fastUpdateBelief: false};
 ///
 
 // Simulate agent for a given number of Bandit trials
 var getRuntime = function(numberTrials){
-  var startState = buildStochasticBanditStartState(numberTrials, latent); 
+  var startState = buildBanditStartState(numberTrials, latent); 
   var priorBelief = getPriorBelief(numberTrials)
   var params = update(baseParams, {priorBelief: priorBelief});
   var agent = makeBeliefAgent(params, world);
@@ -510,7 +510,7 @@ Scaling is much worse in the number of arms:
 
 var varyArms = function(n) {
 
-  var world = makeStochasticBanditWorld(n);
+  var world = makeBanditWorld(n);
 
   var probably1ERP = categoricalERP([0.2, 0.8], [0, 1]);
   var probably0ERP = categoricalERP([0.8, 0.2], [0, 1]);
@@ -519,7 +519,7 @@ var varyArms = function(n) {
     return map(function(x){return probably1ERP;}, _.range(numArms));
   };
 
-  var startState = buildStochasticBanditStartState(5, makeLatentState(n));
+  var startState = buildBanditStartState(5, makeLatentState(n));
 
   var latentSampler = function(numArms) {
     return map(function(x){return uniformDraw([probably0ERP,
@@ -528,10 +528,10 @@ var varyArms = function(n) {
   };
   var prior = Enumerate(function(){
     var latentState = latentSampler(n);
-    return buildStochasticBanditStartState(5, latentState);
+    return buildBanditStartState(5, latentState);
   });
 
-  var agentParams = {utility: stochasticBanditUtility,
+  var agentParams = {utility: banditUtility,
 		             alpha: 100,
 		             priorBelief: prior,
 		             fastUpdateBelief: false};
