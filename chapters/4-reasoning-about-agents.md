@@ -251,8 +251,11 @@ var posterior = function(observedStateActionSequence){
 
 var observedStateActionSequence = restaurantNameToObservationTime11.donutSouth;
 
-// TODO_daniel plot prior vs posterior
 var prior = posterior([]);
+print('Prior:');
+map( function(variableName){
+  viz.auto(getMarginalObject(prior, variableName));
+}, ['donutFavorite', 'alpha', 'timeCost'] );
 
 print('Conditioning on one action:');
 var posterior = posterior(observedStateActionSequence.slice(0,1));
