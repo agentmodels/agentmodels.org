@@ -84,8 +84,8 @@ var posterior = Enumerate( function(){
 		        alpha: 100};
   var agent  = makeMDPAgent(params, world);
   
-  var predictedStates = simulateMDP(startState, world, agent, 'stateAction');
-  condition(_.isEqual(observedLocs, predictedLocs));
+  var predictedStateAction = simulateMDP(startState, world, agent, 'stateAction');
+  condition(_.isEqual(observedStateAction, predictedStateAction));
   return {favourite: favourite};
 });
 
@@ -153,16 +153,16 @@ var utilityTablePrior = function(){
   var baseUtilityTable = {
     'Donut S': 1,
     'Donut N': 1,
-    Veg: 1,
-    Noodle: 1,
+    'Veg': 1,
+    'Noodle': 1,
     timeCost: -0.05
   };
   return uniformDraw( 
     [{table: update(baseUtilityTable, {'Donut N':2, 'Donut S':2}),
       favourite: 'donut'},
-     {table: update(baseUtilityTable, {Veg:2}),
+     {table: update(baseUtilityTable, {'Veg':2}),
       favourite: 'veg'},
-     {table: update(baseUtilityTable, {Noodle:2}),
+     {table: update(baseUtilityTable, {'Noodle':2}),
       favourite: 'noodle'}]
   );
 };
@@ -189,8 +189,6 @@ var posterior = Enumerate( function(){
   return {favourite: favourite};
 });
 
-// TODO_daniel show posterior over veg and noodle (see paragraph immediately
-// below
 viz.auto(posterior);
 // TODO: fix "bar is not defined" error. same situation as above codebox
 ~~~~
