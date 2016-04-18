@@ -566,12 +566,9 @@ The transition function for the POMDP case is essentially the same as in the MDP
 
 The next two codebox use the same POMDP, where all restaurants are open but for Noodle. The first agent prefers the Donut Store and believes (falsely) that Donut South is likely closed. The second agent prefers Noodle and belives (falsely) that Noodle is likely open.
 
-TODO_daniel:
-- add Gridworld.draw
-- write out startState and alternative alterntateLatentState explicity (make startState same across both codeboxes)
-- use same prior and latent state for both examples and just vary utilities. put the prior above the fold on second example
-
 ~~~~
+// agent_thinks_donut_south_closed
+
 var world = getRestaurantChoicePOMDP();
 var utilityTable = {'Donut N': 5,
 		            'Donut S': 5,
@@ -579,12 +576,22 @@ var utilityTable = {'Donut N': 5,
 					'Noodle': 1,
 					timeCost: -0.1};
 var utility = tableToUtilityFunction(utilityTable, world);
-var startState = allOpenRestaurantChoiceStart;
+var latent = {'Donut N': true,
+		      'Donut S': true,
+			  'Veg': true,
+			  'Noodle': false};
+var alternativeLatent = update(latent, {'Donut S': false,
+	                                    'Noodle': true});
+
+var startState = {
+  manifestState: { loc: [3,1],
+		           terminateAfterAction: false,
+				   timeLeft: 11},
+  latentState: latent
+};
 
 var latentSampler = function() {
-  return categorical([0.8, 0.2], [update(startState.latentState,
-					                     {'Donut S': false}),
-				                  startState.latentState]);
+  return categorical([0.8, 0.2], [alternativeLatent, latent]);
 };
 
 var prior = getPriorBeliefGridworld(startState.manifestState, latentSampler);
@@ -601,30 +608,38 @@ GridWorld.draw(world.restaurantChoiceMDP, {trajectory: manifestStates});
 noodle example:
 
 ~~~~
+// agent_thinks_noodle_open
+
+// same world, prior, start state, and latent state as previous codebox
+///fold:
 var world = getRestaurantChoicePOMDP();
+var latent = {'Donut N': true,
+		      'Donut S': true,
+			  'Veg': true,
+			  'Noodle': false};
+var alternativeLatent = update(latent, {'Donut S': false,
+	                                    'Noodle': true});
+
+var startState = {
+  manifestState: { loc: [3,1],
+		           terminateAfterAction: false,
+				   timeLeft: 11},
+  latentState: latent
+};
+
+var latentSampler = function() {
+  return categorical([0.8, 0.2], [alternativeLatent, latent]);
+};
+
+var prior = getPriorBeliefGridworld(startState.manifestState, latentSampler);
+///
+
 var utilityTable = {'Donut N': 1,
 		            'Donut S': 1,
 					'Veg': 3,
 					'Noodle': 5,
 					timeCost: -0.1};
 var utility = tableToUtilityFunction(utilityTable, world);
-var startState = {
-  manifestState: { loc: [3,1],
-		           terminateAfterAction: false,
-		           timeLeft: 11},
-  latentState: {'Donut N': true,
-		        'Donut S': true,
-				Veg: true,
-				Noodle: false}
-};
-
-var latentSampler = function() {
-  return categorical([0.8, 0.2], [update(startState.latentState,
-				                     	 {Noodle: true}),
-				                  startState.latentState]);
-};
-
-var prior = getPriorBeliefGridworld(startState.manifestState, latentSampler);
 var agent = makeBeliefAgent({utility: utility,
 			                 alpha: 100,
 			                 priorBelief: prior}, world);
