@@ -8,6 +8,32 @@ is_section: true
 
 ### Optimality and modeling human actions
 
+we've already mentioned two uses for models of optimal decision making:
+
+1. Build algorithms that solve practical problems optimally. The algorithm might solve the problem quite different from humans would and is often much faster.
+
+2. Model the behavior of humans or other agents
+
+
+
+<small>
+| Goal | Key tasks | Subject Areas | Fields |
+|:--------|:-------:|:--------:|--------:|
+| Build optimal decision making systems | 1. Define appropriate utility function. 2. Optimize it | RL, Control Theory, Game Theory | Machine Learning, Electrical engineering, Operations Research, Economics (normative) |
+| Model human behavior to learn preferences and beliefs | 1. Collect data by observation or experiment. 2. Infer parameters. | IRL, Econometrics (Structural Estimation) | Machine Learning, Economics (positive), Political Science, Psychology/Neuroscience|
+|=====
+
+<br>
+
+| Header1 | Header2 | Header3 |
+|:--------|:-------:|--------:|
+| cell1   | cell2   | cell3   |
+| cell4   | cell5   | cell6   |
+|=====
+
+
+
+
 Earlier chapters describe agent models for *optimal* decision making and planning in sequential decision problems (MDPs and POMDPs). These models can serve as a guide when we build an algorithm that makes good choices. If we can write down a utility function (which is not always easy -- see below) and define the relevant state and action spaces, then we can use the kind of agent models for MDPs and POMDPs described earlier (or approximations of those models). Creating algorithms that make good choices is a common application in AI and robotics, OR and engineering and in applied economics (e.g. algorithmic trading).
 
 The previous chapter discussed the problem of learning the utility functions and beliefs of agents from their behavior. The MDP and POMDP agent models serve as *generative* models of behavior that can be inverted to learn about the agent. The models are a means to the end of modeling the agent's behavior. If the agent does not behave optimally, we'd be better off (all other things being equal) using a different model. 
