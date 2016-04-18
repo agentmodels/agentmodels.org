@@ -210,8 +210,6 @@ Extending this idea, we can return and visualize the expected values of each act
 
 The expected values we seek to display are already being computed implicitly: we add a function addition to `getExpectedUtilitiesMDP` in order to return them. We then plot these on the Gridworld itself. The numbers in each grid cell are the expected utilities of moving in the corresponding directions. This allows us to see how close the agent was to taking the short route as opposed to the long route. (Also note that if the difference in expected utility between two actions is small then a noisy agent will take each of them with nearly equal probability). 
 
-TODO: fix this codebox. There is an example in John's examples/hyperbolic/generative_examples.wppl (which uses src/hyperbolic.wppl). It should be possible to port over that code. 
-
 ~~~~
 // trajectory must consist only of states. This can be done by calling
 // *simulateMDP* with an additional final argument 'states'.
@@ -229,11 +227,10 @@ var getExpectedUtilitiesMDP = function(stateTrajectory, world, agent) {
 
 var noiseProb = 0.03;
 var world = makeHike(noiseProb, {big: true});
-var feature = world.feature;
 
 var alpha = 100;
 var utilityTable = {East: 10, West: 7, Hill : -40, timeCost: -0.4};
-var utility = mdpTableToUtilityFunction(utilityTable, feature);
+var utility = mdpTableToUtilityFunction(utilityTable, world);
 var agent = makeMDPAgent({utility: utility, alpha: alpha}, world);
 
 var startState = {loc: [1,1],

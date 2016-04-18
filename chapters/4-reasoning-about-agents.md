@@ -52,7 +52,6 @@ In this first example of inference, Bob's preference for saving time is held fix
 
 ~~~~
 var world = makeRestaurantChoiceMDP();
-var feature = world.feature;
 
 var observedLocs = restaurantNameToPath.donutSouth;
 var startState = {loc: [3,1],
@@ -88,7 +87,7 @@ var posterior = Enumerate( function(){
   var utilityTable = utilityTableAndFavourite.table;
   var favourite = utilityTableAndFavourite.favourite;
   
-  var utility = mdpTableToUtilityFunction(utilityTable, feature);
+  var utility = mdpTableToUtilityFunction(utilityTable, world);
   var params = {utility: utility,
 		        alpha: 100};
   var agent  = makeMDPAgent(params, world);
@@ -156,7 +155,6 @@ Our approach to inference is slightly different than in the example at the start
 // infer_from_single_step_trajectory
 
 var world = restaurantChoiceMDP;
-var feature = world.feature;
 
 var utilityTablePrior = function(){
   var baseUtilityTable = {
@@ -183,7 +181,7 @@ var observedStateAction = [[{loc: [3,1],
 var posterior = Enumerate( function(){
   var utilityTableAndFavourite = utilityTablePrior();
   var utilityTable = utilityTableAndFavourite.table;
-  var utility = mdpTableToUtilityFunction(utilityTable, feature);
+  var utility = mdpTableToUtilityFunction(utilityTable, world);
   var favourite = utilityTableAndFavourite.favourite;
 
   var params = {utility: utility,
@@ -217,7 +215,6 @@ The previous examples assumed that the agent's `timeCost` (the negative utility 
 // infer_utilities_timeCost_softmax_noise
 
 var world = makeRestaurantChoiceMDP()
-var feature = world.feature;
 
 var utilityTablePrior = function(){
   var foodValues = [0,1,2];
@@ -237,7 +234,7 @@ var posterior = function(observedStateActionSequence){
   return Enumerate( function() {
     var utilityTable = utilityTablePrior();
     var alpha = alphaPrior();
-    var params = {utility: mdpTableToUtilityFunction(utilityTable, feature),
+    var params = {utility: mdpTableToUtilityFunction(utilityTable, world),
 		          alpha: alpha};
     var agent = makeMDPAgent(params, world);
     var act = agent.act;
@@ -302,7 +299,6 @@ To perform inference, we just condition on both sequences. (We use concatenation
 ///fold:
 
 var world = makeRestaurantChoiceMDP()
-var feature = world.feature;
 
 var utilityTablePrior = function(){
   var foodValues = [0,1,2];
@@ -322,7 +318,7 @@ var posterior = function(observedStateActionSequence){
   return Enumerate( function() {
     var utilityTable = utilityTablePrior();
     var alpha = alphaPrior();
-    var params = {utility: mdpTableToUtilityFunction(utilityTable, feature),
+    var params = {utility: mdpTableToUtilityFunction(utilityTable, world),
 		          alpha: alpha};
     var agent = makeMDPAgent(params, world);
     var act = agent.act;

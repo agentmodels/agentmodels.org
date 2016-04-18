@@ -567,20 +567,18 @@ The transition function for the POMDP case is essentially the same as in the MDP
 The next two codebox use the same POMDP, where all restaurants are open but for Noodle. The first agent prefers the Donut Store and believes (falsely) that Donut South is likely closed. The second agent prefers Noodle and belives (falsely) that Noodle is likely open.
 
 TODO_daniel:
-- remove use of `feature`
 - add Gridworld.draw
 - write out startState and alternative alterntateLatentState explicity (make startState same across both codeboxes)
 - use same prior and latent state for both examples and just vary utilities. put the prior above the fold on second example
 
 ~~~~
 var world = getRestaurantChoicePOMDP();
-var feature = world.feature;
 var utilityTable = {'Donut N': 5,
 		            'Donut S': 5,
 					'Veg': 1,
 					'Noodle': 1,
 					timeCost: -0.1};
-var utility = tableToUtilityFunction(utilityTable, feature);
+var utility = tableToUtilityFunction(utilityTable, world);
 var startState = allOpenRestaurantChoiceStart;
 
 var latentSampler = function() {
@@ -602,13 +600,12 @@ noodle example:
 
 ~~~~
 var world = getRestaurantChoicePOMDP();
-var feature = world.feature;
 var utilityTable = {'Donut N': 1,
 		            'Donut S': 1,
 					'Veg': 3,
 					'Noodle': 5,
 					timeCost: -0.1};
-var utility = tableToUtilityFunction(utilityTable, feature);
+var utility = tableToUtilityFunction(utilityTable, world);
 var startState = {
   manifestState: { loc: [3,1],
 		           terminateAfterAction: false,

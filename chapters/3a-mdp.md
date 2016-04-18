@@ -271,11 +271,11 @@ We extend the agent model above by adding `isTerminal` to halt simulations when 
 // We use the WebPPL-gridworld library
 var world = makeDonutWorld2({big: true});
 var transition = world.transition;
-var gridLocationToRestaurant = world.feature;
 var utilityTable = {'Donut S': 1, 'Donut N': 1, 'Veg': 3,
                     'Noodle': 2, 'timeCost': -0.1};
-var tableToUtilityFunction = function(table, feature) {  
+var tableToUtilityFunction = function(table, world) {
   return function(state, action) {
+    var feature = world.feature;
     var stateFeatureName = feature(state).name;
     if (stateFeatureName) {
       return table[stateFeatureName];
@@ -284,7 +284,7 @@ var tableToUtilityFunction = function(table, feature) {
     }
   };
 };
-var utility = tableToUtilityFunction(utilityTable, gridLocationToRestaurant);
+var utility = tableToUtilityFunction(utilityTable, world);
 var stateToActions = world.stateToActions;
 var alpha = 100;
 
@@ -330,7 +330,7 @@ var startState = {loc: [3,1],
 var locActionPairs = simulate(startState);
 
 locActionPairs;
-
+// TODO_daniel: use GridWorld.draw here
 // GridWorld.draw(world, {trajectory : locActionPairs});
 ~~~~
 
