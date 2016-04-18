@@ -12,7 +12,7 @@ As a simple illustration of a sequential decision problem, suppose that an agent
 
 ~~~~
 // We use the Webppl-gridworld library
-var world = restaurantChoiceMDP;
+var world = makeRestaurantChoiceMDP();
 var startState = restaurantChoiceStart;
 
 GridWorld.draw(world, { trajectory : [ startState ] });
@@ -21,7 +21,7 @@ GridWorld.draw(world, { trajectory : [ startState ] });
 
 ## Markov Decision Processes: Definition
 
-We represent Bob's decision problem as a Markov Decision Process (MDP) and, more specifically, as a discrete "Gridworld" environment. An MDP is characterized by a tuple $$(S,A(s),T(s,a),U(s,a))$$, including the *states*, the *actions* in each state, the *transition function* that maps state-action pairs to successor states, and the *utility* or *reward* function. In our example, the states $$S$$ are Bob's locations on the grid. At each state, Bob selects an action $$a \in \{ \text{up}, \text{down}, \text{left}, \text{right} \} $$, which moves Bob around the grid (according to transition function $$T$$). We assume that Bob's actions, as well as the transitions and utilities of the restaurants, are all deterministic. However, we will describe an agent model (and implementation in WebPPL) that solves the general case of an MDP with stochastic transitions, noisy actions, and stochastic rewards.
+We represent Bob's decision problem as a Markov Decision Process (MDP) and, more specifically, as a discrete "Gridworld" environment. An MDP is a tuple $$ \left\langle S,A(s),T(s,a),U(s,a) \right\rangle$$, including the *states*, the *actions* in each state, the *transition function* that maps state-action pairs to successor states, and the *utility* or *reward* function. In our example, the states $$S$$ are Bob's locations on the grid. At each state, Bob selects an action $$a \in \{ \text{up}, \text{down}, \text{left}, \text{right} \} $$, which moves Bob around the grid (according to transition function $$T$$). We assume that Bob's actions, as well as the transitions and utilities of the restaurants, are all deterministic. However, we will describe an agent model (and implementation in WebPPL) that solves the general case of an MDP with stochastic transitions, noisy actions, and stochastic rewards.
 
 As with the one-shot decisions of the previous chapter, the agent in an MDP will choose actions that *maximize expected utility*. This now depends on the total utility of the *sequence* of states that the agent visits. Formally, let $$EU_{s}[a]$$ be the expected (total) utility of action $$a$$ in state $$s$$. The agent's choice is a softmax function of this expected utility:
 
@@ -31,18 +31,21 @@ $$
 
 The expected utility depends on both immediate utility and, recursively, on future expected utility:
 
+<br>**Expected Utility Recursion**:
+
 $$
 EU_{s}[a] = U(s, a) + \mathbb{E}_{s', a'}(EU_{s'}[a'])
 $$
 
-with the next state $$s' \sim T(s,a)$$ and $$a' \sim C(s')$$. This equation for expected utility will be denoted **Equation 1**. The decision problem ends either when a *terminal* state is reached or when the time-horizon is reached. (In the next few chapters, the time-horizon will always be finite). 
+<br>
+with the next state $$s' \sim T(s,a)$$ and $$a' \sim C(s')$$. The decision problem ends either when a *terminal* state is reached or when the time-horizon is reached. (In the next few chapters, the time-horizon will always be finite). 
 
 The intuition to keep in mind for MDPs is that the expected utility will propagate backwards from possible future states to the current action. If a high utility state can be reached by a sequence of actions starting from action $$a$$, then action $$a$$ will have high expected utility -- *provided* that the sequence of actions is taken with high probability and there are no low utility steps along the way.
 
 
 ## Markov Decision Processes: Implementation
 
-The recursive decision rule for MDP agents (Equation 1) can be directly translated into WebPPL. The resulting agent model is also a natural extension of the `softmaxAgent` from the previous [chapter](/chapters/3-agents-as-programs.html). The `act` function of the agent takes the agent's state, evaluates the expectation of actions in the state, and returns a softmax distribution over actions. The expected utility of an action is computed by a separate function `expectedUtility`. Since an action's expected utility depends on the agent's future actions, `expectedUtility` calls `act` in a mutual recursion, bottoming out when a terminal state is reached or when time runs out. 
+The recursive decision rule for MDP agents (Expected Utility Recursion above) can be directly translated into WebPPL. The resulting agent model is also a natural extension of the `softmaxAgent` from the previous [chapter](/chapters/3-agents-as-programs.html). The `act` function of the agent takes the agent's state, evaluates the expectation of actions in the state, and returns a softmax distribution over actions. The expected utility of an action is computed by a separate function `expectedUtility`. Since an action's expected utility depends on the agent's future actions, `expectedUtility` calls `act` in a mutual recursion, bottoming out when a terminal state is reached or when time runs out. 
 
 We illustrate this agent model with a trival example of an MDP and return to Bob's choice of restaurant later on. The trivial MDP is implemented in WebPPL by functions `transition` and `utility`, and by the agent's available actions `[-1, 0, 1]`. The MDP is as follows:
 
@@ -51,7 +54,7 @@ We illustrate this agent model with a trival example of an MDP and return to Bob
 
 - **Actions/transitions**: Actions "left", "right" and "stay" move the agent deterministically along the line in either direction.
 
-- **Utility**: We have `utility(3) === 1` and `utility(n) === 0` for all other `n`.
+- **Utility**: The utility is $$1$$ for the state corresponding to the integer $$3$$ and is $$0$$ otherwise. 
 
 
 Here is a WebPPL agent that starts at the origin (`state === 0`) and that takes a first step (to the right):
@@ -101,7 +104,7 @@ var startState = 0;
 var totalTime = 4;
 
 // Agent's move '-1' means 'left', '0' means 'stay', '1' means 'right'
-sample(act(startState, totalTime));
+print("Agent's action: " + sample(act(startState, totalTime)));
 ~~~~
 
 This code computes the agent's initial action, given that the agent will get to take four actions in total. To simulate the agent's entire trajectory, we add a third function `simulate`, which updates and stores the world state in response to the agent's actions: 
@@ -115,37 +118,43 @@ var utility = function(state){
   return (state === 3) ? 1 : 0;
 };
 
-var agent = function(state, timeLeft){
-  return Enumerate(function(){
-    var action = uniformDraw([-1, 0, 1]);
-    var eu = expectedUtility(state, action, timeLeft);    
-    factor(100 * eu);
-    return action;
-  });
-};
+var makeAgent = function() { 
+  var act = function(state, timeLeft){
+    return Enumerate(function(){
+      var action = uniformDraw([-1, 0, 1]);
+      var eu = expectedUtility(state, action, timeLeft);    
+      factor(100 * eu);
+      return action;
+    });      
+  };
 
-var expectedUtility = function(state, action, timeLeft){
-  var u = utility(state, action);
-  var newTimeLeft = timeLeft - 1;
+  var expectedUtility = function(state, action, timeLeft){
+    var u = utility(state,action);
+    var newTimeLeft = timeLeft - 1;
 
-  if (newTimeLeft == 0){
-    return u; 
-  } else {
-    return u + expectation( Enumerate(function(){
-      var nextState = transition(state, action); 
-      var nextAction = sample(agent(nextState, newTimeLeft));
-      return expectedUtility(nextState, nextAction, newTimeLeft);  
-    }));
-  }
-};
+    if (newTimeLeft == 0){
+      return u; 
+    } else {                     
+      return u + expectation(Enumerate(function(){
+        var nextState = transition(state, action); 
+        var nextAction = sample(act(nextState, newTimeLeft));
+        return expectedUtility(nextState, nextAction, newTimeLeft);  
+      }));
+    }
+  };
+
+  return { act : act};
+}
+
+
+var act = makeAgent().act;
 
 var simulate = function(startState, totalTime){
-
   var sampleSequence = function(state, timeLeft){
     if (timeLeft === 0){
       return [];
     } else {
-      var action = sample(agent(state, timeLeft));
+      var action = sample(act(state, timeLeft));
       var nextState = transition(state,action); 
       return [state].concat(sampleSequence(nextState, timeLeft - 1))
     }
@@ -155,14 +164,16 @@ var simulate = function(startState, totalTime){
 
 var startState = 0;
 var totalTime = 4;
-simulate(startState, totalTime);
+print("Agent's action sequence: " + simulate(startState, totalTime));
 ~~~~
 
-The `expectedUtility` and `simulate` functions are similar. The `expUtilty` function includes the agent's own (subjective) simulation of the future distribution on states. In the case of an MDP and an optimal agent, the agent's simulation is identical to the world simulator (up to irreducible random noise in the transition and choice functions). In later chapters, the agent's subjective simulations will diverge from the world simulator and become inaccurate.
+The `expectedUtility` and `simulate` functions are similar. The `expectedUtilty` function includes the agent's own (subjective) simulation of the future distribution on states. In the case of an MDP and an optimal agent, the agent's simulation is identical to the world simulator (up to irreducible random noise in the transition and choice functions). In later chapters, we describe agents whose subjective simulations diverge from the world simulator -- i.e. agents with inaccurate models of their future selves. 
 
-What does the mutual recursion between `agent` and `expectedUtility` look like if we unroll it? In this example, where the transition function is deterministic, there is a tree that expands until `timeLeft` reaches zero. The root is the starting state (`startState === 0`) and this branches into three successor states (`-1`, `0`, `1`). This leads to an exponential blow-up in the runtime of a single action (as a function of the number of steps taken into account when considering the future):
+What does the mutual recursion between `act` and `expectedUtility` look like if we unroll it? In this example, where the transition function is deterministic, there is a tree that expands until `timeLeft` reaches zero. The root is the starting state (`startState === 0`) and this branches into three successor states (`-1`, `0`, `1`). This leads to an exponential blow-up in the runtime of a single action (as a function of the number of steps taken into account when considering the future):
 
 ~~~~
+// transition, utility and makeAgent functions defined exactly as above
+///fold:
 var transition = function(state, action){
   return state + action;
 };
@@ -171,92 +182,139 @@ var utility = function(state){
   return (state === 3) ? 1 : 0;
 };
 
-var agent = function(state, timeLeft){
-  return Enumerate(function(){
-    var action = uniformDraw([-1, 0, 1]);
-    var eu = expectedUtility(state, action, timeLeft);    
-    factor(100 * eu);
-    return action;
-  });
-};
+var makeAgent = function() { 
+  var act = function(state, timeLeft){
+    return Enumerate(function(){
+      var action = uniformDraw([-1, 0, 1]);
+      var eu = expectedUtility(state, action, timeLeft);    
+      factor(100 * eu);
+      return action;
+    });      
+  };
 
-var expectedUtility = function(state, action, timeLeft){
-  var u = utility(state, action);
-  var newTimeLeft = timeLeft - 1;
+  var expectedUtility = function(state, action, timeLeft){
+    var u = utility(state,action);
+    var newTimeLeft = timeLeft - 1;
 
-  if (newTimeLeft === 0){
-    return u; 
-  } else {                     
-    return u + expectation(Enumerate(function(){
-      var nextState = transition(state, action); 
-      var nextAction = sample(agent(nextState, newTimeLeft));
-      return expectedUtility(nextState, nextAction, newTimeLeft);
-    }));
-  }
+    if (newTimeLeft == 0){
+      return u; 
+    } else {                     
+      return u + expectation(Enumerate(function(){
+        var nextState = transition(state, action); 
+        var nextAction = sample(act(nextState, newTimeLeft));
+        return expectedUtility(nextState, nextAction, newTimeLeft);  
+      }));
+    }
+  };
+
+  return { act : act};
+}
+
+
+var act = makeAgent().act;
+
+var simulate = function(startState, totalTime){
+  var sampleSequence = function(state, timeLeft){
+    if (timeLeft === 0){
+      return [];
+    } else {
+      var action = sample(act(state, timeLeft));
+      var nextState = transition(state,action); 
+      return [state].concat(sampleSequence(nextState, timeLeft - 1))
+    }
+  };
+  return sampleSequence(startState, totalTime);
 };
+///
 
 var startState = 0;
 
 var getRuntime = function(totalTime){
   return timeit(function(){
-    return agent(startState,totalTime);
+    return act(startState,totalTime);
   }).runtimeInMilliseconds.toPrecision(4);
 };
 
 var numSteps = [3, 4, 5, 6, 7];
 var runtimes = map(getRuntime, numSteps);
-print('Runtime in ms for num steps: ' + numSteps + '\n' + runtimes);
 
+print('Runtime in ms for for a given number of steps: \n')
+print(_.object(numSteps, runtimes));
 viz.bar(numSteps, runtimes)
 ~~~~
 
-Most of this computation is unnecessary. If the agent starts at `state === 0`, there are three ways the agent could be at `state === 0` again after two steps: either the agent stays put twice or the agent goes one step away and then returns. The code above computes `agent(0, totalTime-2)` three times, while it only needs to be computed once. This problem can be resolved by *memoization*, which stores the results of a function call for re-use when the function is called again on the same input. This use of memoization results in a runtime that is polynomial in the number of states and the total time. We explore the efficiency of these algorithms in more detail in Section VI. In WebPPL, we use the higher-order function `dp.cache` to memoize the `agent` and `expectedUtility` functions:
+Most of this computation is unnecessary. If the agent starts at `state === 0`, there are three ways the agent could be at `state === 0` again after two steps: either the agent stays put twice or the agent goes one step away and then returns. The code above computes `agent(0, totalTime-2)` three times, while it only needs to be computed once. This problem can be resolved by *memoization*, which stores the results of a function call for re-use when the function is called again on the same input. This use of memoization results in a runtime that is polynomial in the number of states and the total time. We explore the efficiency of these algorithms in more detail in Section VI. In WebPPL, we use the higher-order function `dp.cache` to memoize the `act` and `expectedUtility` functions:
 
 ~~~~
+// transition, utility and makeAgent functions defined exactly as above
+///fold:
 var transition = function(state, action){
   return state + action;
 };
-  
+
 var utility = function(state){
   return (state === 3) ? 1 : 0;
 };
 
-var agent = dp.cache(function(state, timeLeft){
-  return Enumerate(function(){
-    var action = uniformDraw([-1, 0, 1]);
-    var eu = expectedUtility(state, action, timeLeft);    
-    factor(100 * eu);
-    return action;
+var makeAgent = function() { 
+  var act = dp.cache(function(state, timeLeft){
+    return Enumerate(function(){
+      var action = uniformDraw([-1, 0, 1]);
+      var eu = expectedUtility(state, action, timeLeft);    
+      factor(100 * eu);
+      return action;
+    });      
   });
-});
 
-var expectedUtility = dp.cache(function(state, action, timeLeft){
-  var u = utility(state,action);
-  var newTimeLeft = timeLeft - 1;
-  
-  if (newTimeLeft == 0){
-    return u; 
-  } else {                     
-    return u + expectation( Enumerate(function(){
-      var nextState = transition(state, action); 
-      var nextAction = sample(agent(nextState, newTimeLeft));
-      return expectedUtility(nextState, nextAction, newTimeLeft);
-    }));
-  }
-});
+  var expectedUtility = dp.cache(function(state, action, timeLeft){
+    var u = utility(state,action);
+    var newTimeLeft = timeLeft - 1;
+
+    if (newTimeLeft == 0){
+      return u; 
+    } else {                     
+      return u + expectation(Enumerate(function(){
+        var nextState = transition(state, action); 
+        var nextAction = sample(act(nextState, newTimeLeft));
+        return expectedUtility(nextState, nextAction, newTimeLeft);  
+      }));
+    }
+  });
+
+  return { act : act};
+}
+
+
+var act = makeAgent().act;
+
+var simulate = function(startState, totalTime){
+  var sampleSequence = function(state, timeLeft){
+    if (timeLeft === 0){
+      return [];
+    } else {
+      var action = sample(act(state, timeLeft));
+      var nextState = transition(state,action); 
+      return [state].concat(sampleSequence(nextState, timeLeft - 1))
+    }
+  };
+  return sampleSequence(startState, totalTime);
+};
+///
 
 var startState = 0;
 
 var getRuntime = function(totalTime){
-    return timeit( function(){
-        return agent(startState,totalTime);
-    }).runtimeInMilliseconds.toPrecision(4);
+  return timeit(function(){
+    return act(startState,totalTime);
+  }).runtimeInMilliseconds.toPrecision(4);
 };
 
 var numSteps = [3, 4, 5, 6, 7];
 var runtimes = map(getRuntime, numSteps);
-print('Runtime in ms for num steps: ' + numSteps + '\n' + runtimes);
 
+print('WITH MEMOIZATION \n');
+print('Runtime in ms for for a given number of steps: \n')
+print(_.object(numSteps, runtimes));
 viz.bar(numSteps, runtimes)
 ~~~~
 
@@ -269,30 +327,33 @@ We extend the agent model above by adding `isTerminal` to halt simulations when 
 
 ~~~~
 // We use the WebPPL-gridworld library
-var world = makeDonutWorld2({big: true});
+
+// Construct world
+var world = makeRestaurantChoiceMDP();
 var transition = world.transition;
-var utilityTable = {'Donut S': 1, 'Donut N': 1, 'Veg': 3,
-                    'Noodle': 2, 'timeCost': -0.1};
-var tableToUtilityFunction = function(table, world) {
-  return function(state, action) {
-    var feature = world.feature;
+var stateToActions = world.stateToActions;
+var gridLocationToRestaurant = world.feature;
+
+// Construct agent utility function
+var utilityTable = {'Donut S': 1, 
+                    'Donut N': 1, 
+                    'Veg': 3,
+                    'Noodle': 2, 
+                    'timeCost': -0.1};
+
+var tableToUtilityFunction = function(table, feature){  
+  return function(state, action){
     var stateFeatureName = feature(state).name;
-    if (stateFeatureName) {
-      return table[stateFeatureName];
-    } else {
-      return table.timeCost;
-    }
+    return stateFeatureName ? table[stateFeatureName] : table.timeCost;
   };
 };
-var utility = tableToUtilityFunction(utilityTable, world);
-var stateToActions = world.stateToActions;
-var alpha = 100;
+
 
 var act = dp.cache(function(state){
   return Enumerate(function(){
     var action = uniformDraw(stateToActions(state));
     var eu = expectedUtility(state, action);
-    factor(alpha * eu);
+    factor(100 * eu);
     return action;
   });
 });
@@ -310,24 +371,56 @@ var expectedUtility = dp.cache(function(state, action){
     }));
   }
 });
+    
+var utility = tableToUtilityFunction(utilityTable, gridLocationToRestaurant);
+
+
+// Define agent
+var makeAgent = function(){
+  var act = dp.cache(function(state){
+    return Enumerate(function(){
+      var action = uniformDraw(stateToActions(state));
+      var eu = expectedUtility(state, action);
+      factor(100 * eu);
+      return action;
+    });
+  });
+
+  var expectedUtility = dp.cache(function(state, action){
+    var u = utility(state, action);
+
+    if (state.terminateAfterAction){
+      return u; 
+    } else {                     
+      return u + expectation(Enumerate(function(){
+        var nextState = transition(state, action);
+        var nextAction = sample(act(nextState));
+        return expectedUtility(nextState, nextAction);  
+      }));
+    }
+  });
+  return {act:act}
+};
+
+var act = makeAgent().act;
 
 var simulate = function(startState){
-  
   var sampleSequence = function(state){
     var action = sample(act(state));
     var nextState = transition(state, action);
-    return state.terminateAfterAction ? [state]
-	  : [state].concat(sampleSequence(nextState));
+	var out = [state, action];
+    return state.terminateAfterAction ? [out]
+	  : [out].concat(sampleSequence(nextState));
   };
   return sampleSequence(startState);
 };
 
 var startState = {loc: [3,1],
-                  terminateAfterAction: false,
-                  timeLeft: 9};
+                  timeLeft: 9,
+                  timeAtRestaurant: 1};
 var trajectory = simulate(startState);
+GridWorld.draw(world, {trajectory : map(first, trajectory)});
 
-GridWorld.draw(world, {trajectory : trajectory});
 ~~~~
 
 ### Noisy agents, stochastic environments
