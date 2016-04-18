@@ -12,7 +12,7 @@ As a simple illustration of a sequential decision problem, suppose that an agent
 
 ~~~~
 // We use the Webppl-gridworld library
-var world = restaurantChoiceMDP;
+var world = makeRestaurantChoiceMDP();
 var startState = restaurantChoiceStart;
 
 GridWorld.draw(world, { trajectory : [ startState ] });
@@ -21,7 +21,7 @@ GridWorld.draw(world, { trajectory : [ startState ] });
 
 ## Markov Decision Processes: Definition
 
-We represent Bob's decision problem as a Markov Decision Process (MDP) and, more specifically, as a discrete "Gridworld" environment. An MDP is characterized by a tuple $$(S,A(s),T(s,a),U(s,a))$$, including the *states*, the *actions* in each state, the *transition function* that maps state-action pairs to successor states, and the *utility* or *reward* function. In our example, the states $$S$$ are Bob's locations on the grid. At each state, Bob selects an action $$a \in \{ \text{up}, \text{down}, \text{left}, \text{right} \} $$, which moves Bob around the grid (according to transition function $$T$$). We assume that Bob's actions, as well as the transitions and utilities of the restaurants, are all deterministic. However, we will describe an agent model (and implementation in WebPPL) that solves the general case of an MDP with stochastic transitions, noisy actions, and stochastic rewards.
+We represent Bob's decision problem as a Markov Decision Process (MDP) and, more specifically, as a discrete "Gridworld" environment. An MDP is characterized by a tuple $$ \left\langle S,A(s),T(s,a),U(s,a) \right\rangle$$, including the *states*, the *actions* in each state, the *transition function* that maps state-action pairs to successor states, and the *utility* or *reward* function. In our example, the states $$S$$ are Bob's locations on the grid. At each state, Bob selects an action $$a \in \{ \text{up}, \text{down}, \text{left}, \text{right} \} $$, which moves Bob around the grid (according to transition function $$T$$). We assume that Bob's actions, as well as the transitions and utilities of the restaurants, are all deterministic. However, we will describe an agent model (and implementation in WebPPL) that solves the general case of an MDP with stochastic transitions, noisy actions, and stochastic rewards.
 
 As with the one-shot decisions of the previous chapter, the agent in an MDP will choose actions that *maximize expected utility*. This now depends on the total utility of the *sequence* of states that the agent visits. Formally, let $$EU_{s}[a]$$ be the expected (total) utility of action $$a$$ in state $$s$$. The agent's choice is a softmax function of this expected utility:
 
