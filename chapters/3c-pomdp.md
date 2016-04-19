@@ -352,7 +352,7 @@ You can change the agent's behavior by varying `numberTrials`, `armToPrize` in `
 ### Bandits with stochastic observations
 The Bandit problem above is especially simple because pulling an arm *deterministically* results in a prize (which the agent directly observes). So there is a fixed, finite number of beliefs about the `armToPrize` mapping that the agent can have and it depends on the number of arms but not on the number of trials.
 
-The next codebox considers the stochastic version of Bandits. Each arm has a distribution on outcomes and the agent is uncertain about the distribution. The arms yield numerical rewards rather than prizes like chocolate -- so this is a standard Bandit problem from ML and Control Theory refp:kaelbling1996reinforcement. For this standard Bandit problem, the number of possible beliefs for the agent grows with the number of trials. <a id="complexity"></a> [TODO_daniel be more precise here and ideally cite the relevant page of the papers].
+The next codebox considers the stochastic version of Bandits. Each arm has a distribution on outcomes and the agent is uncertain about the distribution. The arms yield numerical rewards rather than prizes like chocolate -- so this is a standard Bandit problem from ML and Control Theory refp:kaelbling1996reinforcement. For this standard Bandit problem, the number of possible beliefs for the agent grows with the number of trials. <a id="complexity"></a> <!--TODO_daniel be more precise here and ideally cite the relevant page of the papers].-->
 
 We consider an especially simple Bandit problem, where the agent already knows the reward for `Arm0` and only considers two possible distributions on reward for `Arm1`. This is depicted in Figure 3.
 
@@ -442,7 +442,7 @@ display(trajectory);
 
 Solving Bandit problems optimally quickly becomes intractable without special optimizations. The codebox below shows how runtime scales as a function of the number of trials. 
 
-TODO_daniel fit a quadratic to this data and plot the quadratic on the same axis.
+<!--TODO_daniel fit a quadratic to this data and plot the quadratic on the same axis.-->
 
 ~~~~
 
@@ -564,7 +564,7 @@ The `manifestState` contains the features of the world that the agent always obs
 
 The transition function for the POMDP case is essentially the same as in the MDP case. The main difference is that if a restaurant is closed the agent cannot transition to its location. The observation function allows the agent to observe whether a restaurant is open or closed only if the agent is adjacent to the restaurant.
 
-The next two codebox use the same POMDP, where all restaurants are open but for Noodle. The first agent prefers the Donut Store and believes (falsely) that Donut South is likely closed. The second agent prefers Noodle and belives (falsely) that Noodle is likely open.
+The next two codeboxes use the same POMDP, where all restaurants are open but for Noodle. The first agent prefers the Donut Store and believes (falsely) that Donut South is likely closed. The second agent prefers Noodle and belives (falsely) that Noodle is likely open.
 
 ~~~~
 // agent_thinks_donut_south_closed
@@ -605,7 +605,7 @@ var manifestStates = map(function(state){return state.manifestState;},
 GridWorld.draw(world.restaurantChoiceMDP, {trajectory: manifestStates});
 ~~~~
 
-noodle example:
+Here is the agent that prefers Noodle and falsely belives that it is open:
 
 ~~~~
 // agent_thinks_noodle_open
