@@ -57,7 +57,9 @@ var coin = function(){
 var flips = [coin(), coin(), coin()];
 print("Some coin flips: " + flips);
 
+~~~~
 
+~~~~
 // We now use `flip` to define a sampler for the geometric distribution:
 
 var geometric = function(p) {
@@ -69,7 +71,7 @@ var boundedGeometric = Enumerate(
   20);
 
 print('Histogram of (bounded) Geometric distribution');
-viz.print(boundedGeometric);
+viz.auto(boundedGeometric);
 ~~~~
 
 In the [next chapter](/chapters/2-webppl.html), we will introduce WebPPL in more detail.
