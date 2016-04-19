@@ -193,8 +193,6 @@ As with the Procrastination example above, we compare the inferences of two mode
 
 <!--(With stochastic bandits you could have arms which are known to have high variance and with uncertain expectation. In this case you might get less exploration even if the myopia bound is higher or discounting is weaker. It'd be nice to include such an example but it's not neccesary).--> 
 
-TODO_daniel: Put graphs on same axis. (Also would be great to simplify and shorten this code).
-
 ~~~~
 // infer_utility_from_no_exploration
 
