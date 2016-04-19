@@ -572,8 +572,8 @@ var utilityBeliefPosterior = Enumerate(function(){
   return {likesChocolate: likesChocolate,
 	      isInformed: isInformed};
 });
-//TODO_daniel: make the visualization here better
-viz.auto(utilityBeliefPosterior);
+
+viz.table(utilityBeliefPosterior);
 ~~~~
 
 Exploration is more valuable if there are more Bandit trials in total. If we observe the agent choosing the arm they already know about (`arm0`) then we get stronger inferences about their preference for chocolate over champagne as the total trials increases.
