@@ -73,8 +73,6 @@ For each parameter, we plot a time-series showing the posterior expectation of t
 
 TODO: ideally we would do this as actual online inference.
 
-TODO_daniel: plot both optimal and discounting model on same axis. 
-
 ~~~~ 
 // infer_procrastination
 
@@ -96,7 +94,6 @@ var displayTimeSeries = function(observedStateAction, getPosterior){
   };
 
   var getTimeSeries = function(useOptimalModel){
-    var dummy = useOptimalModel ? print('Optimal Model:') : print('Possibly Discounting Model:');
 
     var inferAllTimeIndexes = map( function(index){
       return inferUpToTimeIndex(index, useOptimalModel);
@@ -104,15 +101,27 @@ var displayTimeSeries = function(observedStateAction, getPosterior){
 
     return map( function(i){
       // get full time series of online inferences for each feature
-      var series = map(function(infer){return infer[i];}, inferAllTimeIndexes);
+      return map(function(infer){return infer[i];}, inferAllTimeIndexes);
       
-      print('\n\n feature:' + features[i]); //, ' \n', featureOut);
-      viz.line( range(observedStateAction.length), series );
     }, range(features.length) );
   };
 
+   var displayOptimalAndPossiblyDiscountingSeries = function(index){
+    print('\n\nfeature: ' + features[index]);
+    var optimalSeries = getTimeSeries(true)[index];
+    var possiblyDiscountingSeries = getTimeSeries(false)[index];
+    var plotOptimal = map(function(pair){
+      return {t: pair[0], expectation: pair[1],agentType: 'Optimal'};},
+                          zip(range(observedStateAction.length), optimalSeries));
+    var plotPossiblyDiscounting = map(function(pair){
+      return {t: pair[0], expectation: pair[1],agentType: 'Possibly Discounting'};},
+                                      zip(range(observedStateAction.length),
+	                                      possiblyDiscountingSeries));
+    viz.line(plotOptimal.concat(plotPossiblyDiscounting), {groupBy: 'agentType'});
+  };
+  
   print('Posterior expectation on feature after observing "wait" for t timesteps and "work" when t=9');
-  map(getTimeSeries,[true, false]);
+  map(displayOptimalAndPossiblyDiscountingSeries, range(features.length));
   return '';
 };
 ///
