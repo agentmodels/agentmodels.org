@@ -53,8 +53,8 @@ In this first example of inference, Bob's preference for saving time is held fix
 ~~~~
 var world = makeRestaurantChoiceMDP();
 
-var observedStateActions = restaurantNameToObservationTime11.donutSouth;
-var startState = observedStateActions[0][0];
+var observedStateAction = restaurantNameToObservationTime11.donutSouth;
+var startState = observedStateAction[0][0];
 
 var utilityTablePrior = function(){
   var baseUtilityTable = {
@@ -89,8 +89,6 @@ var posterior = Enumerate( function(){
   return {favourite: favourite};
 });
 
-// TODO: fix "bar is not defined" error. Note that error does not show when
-// run in console with printERP instead of viz.auto
 viz.auto(posterior);
 ~~~~
 
@@ -190,7 +188,6 @@ var posterior = Enumerate( function(){
 });
 
 viz.auto(posterior);
-// TODO: fix "bar is not defined" error. same situation as above codebox
 ~~~~
 
 Note that utility functions where Veg or Noodle are most preferred have almost the same posterior probability. Since they had the same prior, this means that we haven't received evidence about which the agent prefers. Moreover, assuming the agent's `timeCost` is negligible, then no matter where the agent above starts out on the grid, they choose Donut North or South. So we never get any information about whether they prefer the Vegetarian Cafe or Noodle Shop!
@@ -262,7 +259,6 @@ var posterior = posterior(observedStateActionSequence.slice(0,1));
 map( function(variableName){
   viz.auto(getMarginalObject(posterior, variableName));
 }, ['donutFavorite', 'alpha', 'timeCost'] );
-// TODO "bar is not defined" error
 ~~~~
 
 The posterior shows that taking a step towards Donut South can now be explained in terms of a high `timeCost`. If the agent has a low value for $$\alpha$$, this step to the left is fairly likely even if the agent prefers Noodle or Veg. So including softmax noise in the inference makes inferences about other parameters closer to the prior.
@@ -508,7 +504,7 @@ var posterior = agentModelsIRLBanditInfer(baseParams, priorPrizeToUtility,
 
 print("After observing agent choose arm1, what are agent's utilities?")
 print('Posterior on agent utilities:')
-print(getMarginal(posterior,'prizeToUtility'))
+viz.auto(getMarginal(posterior,'prizeToUtility'))
 ~~~~
 
 In the codebox above, the agent's preferences are identified by the observations. This won't hold for the next example, which we introduced previously. The agent's utilities for prizes are still unknown and now the agent's prior is also unknown. Either the agent is "informed" and knows the truth that `arm1` yields "champagne". Or the agent is misinformed and believes `arm1` is likely to yield "nothing". These two possibilities are depicted in Figure 2.  
