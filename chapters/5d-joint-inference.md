@@ -198,6 +198,46 @@ TODO_daniel: Put graphs on same axis. (Also would be great to simplify and short
 ~~~~
 // infer_utility_from_no_exploration
 
+// helper function to assemble and display inferred values
+///fold:
+var timeHorizonValues = range(10).slice(2);
+var features = ['Utility of arm 0 (chocolate)', 'Greediness bound'];
+
+var displayExpectations = function(getPosterior){
+
+  var getExpectations = function(useOptimalModel){
+
+    var inferAllTimeHorizons = map( function(horizon){
+      return getPosterior(horizon, useOptimalModel);
+    }, timeHorizonValues);
+
+    return map( function(i){
+      return map(function(infer){return infer[i];}, inferAllTimeHorizons);
+    }, range(features.length) );
+  };
+
+   var displayOptimalAndPossiblyGreedySeries = function(index){
+    print('\n\nfeature: ' + features[index]);
+    var optimalSeries = getExpectations(true)[index];
+    var possiblyGreedySeries = getExpectations(false)[index];
+    var plotOptimal = map(function(pair){
+      return {horizon: pair[0], expectation: pair[1], agentModel: 'Optimal'};},
+                          zip(timeHorizonValues, optimalSeries));
+    var plotPossiblyGreedy = map(function(pair){
+      return {horizon: pair[0], expectation: pair[1],
+		      agentModel: 'Possibly Greedy'};},
+                                 zip(timeHorizonValues,
+									 possiblyGreedySeries));
+    viz.line(plotOptimal.concat(plotPossiblyGreedy), {groupBy: 'agentModel'});
+  };
+  
+  print('Posterior expectation on feature after observing no exploration');
+  map(displayOptimalAndPossiblyGreedySeries, range(features.length));
+  return '';
+};
+///
+
+
 var getPosterior = function(timeLeft, useOptimalModel) {
   var numArms = 2;
   var armToPrize = {0: 'chocolate',
@@ -233,7 +273,7 @@ var getPosterior = function(timeLeft, useOptimalModel) {
 			             myopia: {on: false, bound:0},
 						 boundVOI: {on: false, bound: 0},
 						 sophisticatedOrNaive: 'naive',
-						 discount: 0
+						 discount: 0,
 						 noDelays: useOptimalModel};
 
   var observations = [[startState, 0]];
@@ -249,23 +289,9 @@ var getPosterior = function(timeLeft, useOptimalModel) {
           expectation(getMarginal(outputERP,'myopiaBound'))]
 };
 
-var timeHorizonValues = range(10).slice(2);
-
-var optimalExpectations = map(function(t){return getPosterior(t, true);},
-			                  timeHorizonValues);
-var possiblyMyopicExpectations = map(function(t){return getPosterior(t, false);},
-			                         timeHorizonValues);
-
 print('Prior expected utility for arm0 (chocolate): ' + listMean(range(20).concat(25)) );
 
-print('Inferred Utility for arm0 (chocolate) for Optimal Model as timeHorizon increases');
-viz.line(timeHorizonValues, map(first, optimalExpectations));
-
-print('Inferred Utility for arm0 (chocolate) for Possibly Greedy Model as timeHorizon increases');
-viz.line(timeHorizonValues, map(first, possiblyMyopicExpectations));
-
-print('Inferred Greedy Bound for Possibly Greedy Model as timeHorizon increases');
-viz.line(timeHorizonValues, map(second, possiblyMyopicExpectations));
+displayExpectations(getPosterior);
 ~~~~
 
 The graphs show that as the agent's time horizon increases the inferences of the two models diverge. For the Optimal agent, the longer time horizon makes exploration more valuable. So the Optimal model infers a higher utility for the known option as the time horizon increases. By contrast, the Possibly Greedy model can explain away the lack of exploration by the agent being Greedy. This latter model infers slightly lower values for $$C_g$$ as the horizon increases. 
