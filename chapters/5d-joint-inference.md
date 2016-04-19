@@ -111,13 +111,13 @@ var displayTimeSeries = function(observedStateAction, getPosterior){
     var optimalSeries = getTimeSeries(true)[index];
     var possiblyDiscountingSeries = getTimeSeries(false)[index];
     var plotOptimal = map(function(pair){
-      return {t: pair[0], expectation: pair[1],agentType: 'Optimal'};},
+      return {t: pair[0], expectation: pair[1], agentModel: 'Optimal'};},
                           zip(range(observedStateAction.length), optimalSeries));
     var plotPossiblyDiscounting = map(function(pair){
-      return {t: pair[0], expectation: pair[1],agentType: 'Possibly Discounting'};},
+      return {t: pair[0], expectation: pair[1], agentModel: 'Possibly Discounting'};},
                                       zip(range(observedStateAction.length),
 	                                      possiblyDiscountingSeries));
-    viz.line(plotOptimal.concat(plotPossiblyDiscounting), {groupBy: 'agentType'});
+    viz.line(plotOptimal.concat(plotPossiblyDiscounting), {groupBy: 'agentModel'});
   };
   
   print('Posterior expectation on feature after observing "wait" for t timesteps and "work" when t=9');
