@@ -7,11 +7,11 @@ is_section: true
 
 ## Introduction
 
-This chapter introduces the probabilistic programming language WebPPL (pronounced "web people"). The models for agents (and for learning about agents) in this tutorial are all implemented in WebPPL -- so this is an important building block for what follows.
+This chapter introduces the probabilistic programming language WebPPL (pronounced "web people"). The models for agents in this tutorial are all implemented in WebPPL and so it's important to understand how the language works. 
 
-In the following, we give an overview of the WebPPL features that are essential to the rest of the tutorial. We will cover the key ideas of probabilistic programming quickly. If you are new to probabilistic programming, you might want to read a more general introduction (e.g. [here](http://www.pl-enthusiast.net/2014/09/08/probabilistic-programming/) or [here](https://moalquraishi.wordpress.com/2015/03/29/the-state-of-probabilistic-programming/)). [This detailed tutorial](https://probmods.org) on Bayesian methods and probabilistic programming, using a language similar to WebPPL, is also helpful background.
+We begin with a quick overview of probabilistic programming. If you are new to probabilistic programming, you might want to read an informal introduction (e.g. [here](http://www.pl-enthusiast.net/2014/09/08/probabilistic-programming/) or [here](https://moalquraishi.wordpress.com/2015/03/29/the-state-of-probabilistic-programming/)). A good technical overview is here TODO_cite MSR thing. Finally, there is a detailed interactive tutorial on Bayesian inference and probabilistic programming. It uses the language Church, from which WebPPL descends, and so will be helpful background.
 
-The only requirement to run the code for this tutorial is a current browser (Chrome/Firefox/Safari). However, to explore the models in more detail, you will want to run WebPPL from the command line. Installation is simple and is explained [here](http://webppl.org).
+The only requirement to run the code for this tutorial is a modern browser (e.g. Chrome, Firefox, Safari). However, to explore the models in more detail, you will want to run WebPPL from the command line. Installation is simple and is explained [here](http://webppl.org).
 
 
 ## WebPPL: a purely functional subset of Javascript
@@ -39,10 +39,10 @@ print("Apply verboseLog to elements in array: ");
 map(verboseLog, inputs);
 ~~~~
 
-Language features with side effects are not allowed in WebPPL. The commented-out code uses assignment to update a table and produces an error.
+Language features with side effects are not allowed in WebPPL. The code that has been commented out uses assignment to update a table. This produces an error in WebPPL.
 
 ~~~~
-// Assignment produces an error:
+// Don't do this:
 
 // var table = {};
 // table.key = 1;
@@ -54,30 +54,38 @@ Language features with side effects are not allowed in WebPPL. The commented-out
 
 var table = {key: 1};
 var updatedTable = {key: table.key + 1};
-updatedTable;
+print(updatedTable);
+
+// Or use the library function *update*:
+
+var secondUpdatedTable = update(table, {key:10})
+print(secondUpdatedTable);
 ~~~~
 
-There are no `for` or `while` loops. Instead, use higher-order functions like WebPPL's builtin `map`, `filter` and `zip`:
+There are no `for` or `while` loops. Instead, use higher-order functions like WebPPL's built-in `map`, `filter` and `zip`:
 
 ~~~~
 var ar = [1,2,3];
+
+// Don't do this:
 
 // for (var i = 0; i < ar.length; i++){
 //   print(ar[i]); 
 // }
 
+
 // Instead of for-loop, use `map`:
 map(print, ar);
 ~~~~
 
-It is possible to use normal Javascript functions (which make internal use of side effects) in WebPPL. See the [online book](http://dippl.org/chapters/02-webppl.html) on the implementation of WebPPL for details (section "Using Javascript Libraries"). 
+It is possible to use normal Javascript functions (which make *internal* use of side effects) in WebPPL. See the [online book](http://dippl.org/chapters/02-webppl.html) on the implementation of WebPPL for details (section "Using Javascript Libraries"). 
 
 
 ## WebPPL stochastic primitives
 
 ### Sampling from random variables
 
-WebPPL has a number of built-in functions for sampling from random variables (i.e. generating random numbers from a particular probability distribution). These will be familiar from scientific computing and probability theory. A full list of functions is in the WebPPL library [source](https://github.com/probmods/webppl/blob/dev/src/header.wppl). Try clicking the "Run" button repeatedly to get different random samples:
+WebPPL has a number of built-in functions for sampling from random variables from different distributions. Many of these are found in scientific computing libraries. A full list of functions is in the WebPPL library [source](https://github.com/probmods/webppl/blob/dev/src/header.wppl). Try clicking the "Run" button repeatedly to get different i.i.d. random samples:
 
 ~~~~
 print('Fair coins: ' + [flip(0.5), flip(0.5)]);
@@ -178,14 +186,14 @@ print(Math.exp(moreThanTwoHeads.score([], true)));
 
 ### Codeboxes and Plotting
 
-The code boxes allow you to modify our examples and to write your own WebPPL code. Code is not shared between boxes. You can use the special function `viz.print` to plot ERPs:
+The codeboxes allow you to modify our examples and to write your own WebPPL code. Code is not shared between boxes. You can use the special function `viz.auto` to plot ERPs:
 
 ~~~~
 var appleOrangeERP = Enumerate(function(){ 
   return flip(0.9) ? "apple" : "orange";
 });
 
-viz.print(appleOrangeERP);
+viz.auto(appleOrangeERP);
 ~~~~
 
 ~~~~
@@ -196,7 +204,7 @@ var fruitTasteERP = Enumerate(function(){
   };
 });
 
-viz.print(fruitTasteERP);
+viz.auto(fruitTasteERP);
 ~~~~
 
 ~~~~
@@ -206,7 +214,7 @@ var positionERP = Rejection(function(){
     Y: gaussian(0, 1)};
 }, 1000);
 
-viz.print(positionERP);
+viz.auto(positionERP);
 ~~~~
 
 ### Next
