@@ -247,8 +247,3 @@ GridWorld.draw(world, {
 });
 
 ~~~~
-
-
---------------
-
-[Table of Contents](/)

@@ -426,7 +426,3 @@ GridWorld.draw(world, {trajectory : map(first, trajectory)});
 ### Noisy agents, stochastic environments
 
 This section looked at two MDPs that were essentially deterministic. Part of the difficulty of solving MDPs is that actions, rewards and transitions can be stochastic. The next [chapter](/chapters/3b-mdp-gridworld.html) explores both noisy agents and stochastic gridworld environments.
-
---------------
-
-[Table of Contents](/)

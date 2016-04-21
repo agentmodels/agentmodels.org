@@ -75,7 +75,3 @@ viz.auto(boundedGeometric);
 ~~~~
 
 In the [next chapter](/chapters/2-webppl.html), we will introduce WebPPL in more detail.
-
---------------
-
-[Table of Contents](/)
