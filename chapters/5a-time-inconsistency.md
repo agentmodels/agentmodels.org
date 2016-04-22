@@ -141,7 +141,7 @@ $$
 
 The crucial difference between the curves is that the hyperbola is initially steep and then becomes almost flat, while the exponential continues to be steep. This means that exponential discounting is time consistent and hyperbolic discounting is not. 
 
-TODO_daniel: put the function forms 1/2^t and 1/(1+2t) in the legend. maybe label the parts that are steep / shallow. 
+TODO_daniel: put the function forms 1/2^t and 1/(1+2t) in the legend. maybe label the parts that are steep / shallow. reduce white space on left/right.
 
 <a href="/assets/img/hyperbolic_no_label.jpg"><img src="/assets/img/hyperbolic_no_label.jpg" alt="Figure 2" style="width: 650px" /></a>
 
