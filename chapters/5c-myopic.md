@@ -1,6 +1,6 @@
 ---
 layout: chapter
-title: Bounded Agents-- Greedy and Myopic
+title: Bounded Agents — Greedy and Myopic
 description: Fast approximate planning algorithms that assume a short time horizon for utilities (Greedy) or for obserations (Myopic)
 
 ---
