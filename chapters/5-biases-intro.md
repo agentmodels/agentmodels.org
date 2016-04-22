@@ -16,7 +16,7 @@ We've mentioned two uses for models of sequential decision making:
 
 Table 1 provides more detail about these two uses[^table]. The first chapters of the book focused on (1). We presented agent models for solving MDPs and POMDPs optimally. We demonstrated these models on toy problems (Gridworld and simple variants of Bandits) that are closely related to practical real-world problems. Chapter 4, by contrast, focused on (2). (PO)MDP agent models were used not to solve practical problems but as *generative models* of human behavior. The present chapter discusses the limitations of using optimal (PO)MDP agent modes as generative models for (2). We argue that developing models of *biased* or *bounded* decision making will be valuable for (2).
 
-<img src="/assets/img/table_chapter5_intro.png" alt="table" style="width: 650px;"/>
+<a href="/assets/img/table_chapter5_intro.png"><img src="/assets/img/table_chapter5_intro.png" alt="table" style="width: 650px;"/></a>
 
 >**Table 1:** Two uses for formal models of sequential decision making. The heading "Optimality" means "Are optimal models of decision making used?".
 <br>
