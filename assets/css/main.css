@@ -78,9 +78,13 @@ a.chapter-link {
     padding: 20px;
 }
 
-a.ref, a.ref:visited {
+a.ref {
     text-decoration: none;
     color: #000;
+}
+
+a.ref:visited:hover {
+    color: rgb(85, 26, 139);
 }
 
 a.ref:hover {
