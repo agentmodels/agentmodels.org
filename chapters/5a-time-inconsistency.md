@@ -143,7 +143,7 @@ The crucial difference between the curves is that the hyperbola is initially ste
 
 TODO_daniel: put the function forms 1/2^t and 1/(1+2t) in the legend. maybe label the parts that are steep / shallow. 
 
-![Figure 2](/assets/img/hyperbolic_no_label.jpg)
+<a href="/assets/img/hyperbolic_no_label.jpg"><img src="/assets/img/hyperbolic_no_label.jpg" alt="Figure 2" style="width: 650px" /></a>
 
 >**Figure 2:** Graph comparing exponential and hyperbolic discount curves. 
 
