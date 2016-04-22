@@ -274,7 +274,7 @@ In this problem, the behavior of optimal and time-inconsistent agents with ident
 
 We formalize the Procrastination Problem in terms of a deterministic graph. Suppose the **deadline** is $$T$$ steps from the start. Assume that after $$t$$ < $$T$$ steps the agent has not yet completed the task. Then the agent can take the action `"work"` (which has **work cost** $$-w$$) or the action `"wait"` with zero cost. After the `"work"` action the agent transitions to the `"reward"` state and receives $$+(R - t \epsilon)$$, where $$R$$ is the **reward** for the task and $$\epsilon$$ is how much the reward diminishes for every day of waiting (the **wait cost**). See Figure 3 below.  
 
-<img src="/assets/img/procrastination_mdp.png" alt="diagram" style="width: 700px;"/>
+<img src="/assets/img/procrastination_mdp.png" alt="diagram" style="width: 650px;"/>
 
 >**Figure 3:** Transition graph for Procrastination Problem. States are represented by nodes. Edges are state-transitions and are labeled with the action name and the utility of the state-action pair. Terminal nodes have a bold border and their utility is labeled below.
 
