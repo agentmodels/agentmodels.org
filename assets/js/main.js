@@ -82,27 +82,56 @@ function format_citation(citation) {
     return textohtml(s);
 }
 
+function author_lastname(authorString) {
+  var names = authorString.split(", ");
+  if (names.length == 0) {
+    console.error('Expected first and last name, got: ' + authorString);
+    return;
+  }
+  return names[0];
+}
+
+function short_authors(authorsString) {
+  if (!authorsString) {
+    console.warn('short_authors got:' + authorsString);
+    return;
+  }
+  var authors = authorsString.split(" and ");
+  if (authors.length === 0) {
+    console.error('Expected >= 1 author, got: ' + authorsString);
+    return authorsString;
+  }
+  var firstAuthor = authors[0];
+  if (authors.length === 1) {
+    return author_lastname(firstAuthor);
+  } else if (authors.length === 2) {
+    var secondAuthor = authors[1];
+    return author_lastname(firstAuthor) + ' and ' + author_lastname(secondAuthor);
+  } else {
+    return author_lastname(firstAuthor) + ' et al.';
+  }
+}
+
+function cite_url(citation) {
+  if (citation["URL"]) {
+    return citation["URL"];
+  }
+  return 'https://scholar.google.com/scholar?q="' + citation["TITLE"] + '"';
+}
+
 function format_reft(citation) {
   var s = "";
-  if (citation["URL"]) {
-    s += "<a href='" + citation["URL"] + "'>";
-  }
-  s += "<em>" + citation["AUTHOR"] + " (" + citation["YEAR"] + ")</em>";
-  if (citation["URL"]) {
-    s += "</a>";
-  }  
+  s += "<a class='ref' href='" + cite_url(citation) + "'>";
+  s += short_authors(citation["AUTHOR"]) + " (" + citation["YEAR"] + ")";
+  s += "</a>";
   return textohtml(s);
 }
 
 function format_refp(citation) {
   var s = "(";
-  if (citation["URL"]) {
-    s += "<a href='" + citation["URL"] + "'>";
-  }  
-  s += "<em>" + citation["AUTHOR"] + "; " + citation["YEAR"] + "</em>";
-  if (citation["URL"]) {
-    s += "</a>";
-  }
+  s += "<a class='ref' href='" + cite_url(citation) + "'>";
+  s += short_authors(citation["AUTHOR"]) + ", " + citation["YEAR"];
+  s += "</a>";
   s += ")";
   return textohtml(s);
 }

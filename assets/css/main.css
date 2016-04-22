@@ -78,6 +78,16 @@ a.chapter-link {
     padding: 20px;
 }
 
+a.ref, a.ref:visited {
+    text-decoration: none;
+    color: #000;
+}
+
+a.ref:hover {
+    color: rgb(0, 0, 238);
+    text-decoration: underline;
+}
+
 .MathJax_Preview {
     color: #888
 }
