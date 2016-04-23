@@ -135,6 +135,7 @@ A pragmatic speaker, thinking about the literal listener:
 ~~~~
 var alpha = 2;
 
+///fold: statePrior, literalMeanings, sentencePrior
 var statePrior = function() {
   return uniformDraw([0, 1, 2, 3]);
 };
@@ -148,6 +149,7 @@ var literalMeanings = {
 var sentencePrior = function() {
   return uniformDraw(['allSprouted', 'someSprouted', 'noneSprouted']);
 };
+///
 
 var literalListener = function(sentence) {
   return Enumerate(function(){
@@ -174,6 +176,7 @@ Pragmatic listener, thinking about speaker:
 ~~~~
 var alpha = 2;
 
+///fold: statePrior, literalMeanings, sentencePrior
 var statePrior = function() {
   return uniformDraw([0, 1, 2, 3]);
 };
@@ -187,6 +190,7 @@ var literalMeanings = {
 var sentencePrior = function() {
   return uniformDraw(['allSprouted', 'someSprouted', 'noneSprouted']);
 };
+///
 
 var literalListener = dp.cache(function(sentence) {
   return Enumerate(function(){
@@ -250,6 +254,105 @@ viz.auto(movePrior(startState));
 Now let's add a deterministic transition function:
 
 ~~~~
+///fold: isValidMove, movePrior
+var isValidMove = function(state, move) {
+  return state[move.x][move.y] === '?';
+};
+
+var movePrior = dp.cache(function(state){
+  return Enumerate(function(){
+    var move = {
+      x: randomInteger(3),
+      y: randomInteger(3)
+    };
+    condition(isValidMove(state, move));
+    return move;
+  });
+});
+///
+
+var assign = function(obj, k, v) {
+  var newObj = _.clone(obj);
+  return Object.defineProperty(newObj, k, {value: v})
+};
+
+var transition = function(state, move, player) {
+  var newRow = assign(state[move.x], move.y, player);
+  return assign(state, move.x, newRow);
+};
+
+var startState = [
+  ['?', 'o', '?'],
+  ['?', 'x', 'x'],
+  ['?', '?', '?']
+];
+
+transition(startState, {x: 1, y: 0}, 'o')
+~~~~
+
+We need to be able to check if a player has won:
+
+~~~~
+///fold: movePrior, transition
+var isValidMove = function(state, move) {
+  return state[move.x][move.y] === '?';
+};
+
+var movePrior = dp.cache(function(state){
+  return Enumerate(function(){
+    var move = {
+      x: randomInteger(3),
+      y: randomInteger(3)
+    };
+    condition(isValidMove(state, move));
+    return move;
+  });
+});
+
+var assign = function(obj, k, v) {
+  var newObj = _.clone(obj);
+  return Object.defineProperty(newObj, k, {value: v})
+};
+
+var transition = function(state, move, player) {
+  var newRow = assign(state[move.x], move.y, player);
+  return assign(state, move.x, newRow);
+};
+///
+
+var diag1 = function(state) {
+  return mapIndexed(function(i, x) {return x[i];}, state);
+};
+
+var diag2 = function(state) {
+  var n = state.length;
+  return mapIndexed(function(i, x) {return x[n - (i + 1)];}, state);
+};
+
+var hasWon = dp.cache(function(state, player) {
+  var check = function(xs){
+    return _.countBy(xs)[player] == xs.length;
+  };
+  return any(check, [
+    state[0], state[1], state[2], // rows
+    map(first, state), map(second, state), map(third, state), // cols
+    diag1(state), diag2(state) // diagonals
+  ]);
+});
+
+var startState = [
+  ['?', 'o', '?'],
+  ['x', 'x', 'x'],
+  ['?', '?', '?']
+];
+
+hasWon(startState, 'x')
+~~~~
+
+Now let's implement an agent that chooses a single action, but can't plan ahead:
+
+~~~~
+///fold: movePrior, transition, hasWon
 var isValidMove = function(state, move) {
   return state[move.x][move.y] === '?';
 };
@@ -275,24 +378,140 @@ var transition = function(state, move, player) {
   return assign(state, move.x, newRow);
 };
 
+var diag1 = function(state) {
+  return mapIndexed(function(i, x) {return x[i];}, state);
+};
+
+var diag2 = function(state) {
+  var n = state.length;
+  return mapIndexed(function(i, x) {return x[n - (i + 1)];}, state);
+};
+
+var hasWon = dp.cache(function(state, player) {
+  var check = function(xs){
+    return _.countBy(xs)[player] == xs.length;
+  };
+  return any(check, [
+    state[0], state[1], state[2], // rows
+    map(first, state), map(second, state), map(third, state), // cols
+    diag1(state), diag2(state) // diagonals
+  ]);
+});
+///
+var isDraw = function(state) {
+  return !hasWon(state, 'x') && !hasWon(state, 'o');
+};
+
+var utility = function(state, player) {
+  if (hasWon(state, player)) {
+    return 10;
+  } else if (isDraw(state)) {
+    return 0;
+  } else {
+    return -10;
+  }
+};
+
+var act = dp.cache(function(state, player) {
+  return Enumerate(function(){
+    var move = sample(movePrior(state));
+    var outcome = transition(state, move, player);
+    factor(utility(outcome, player));
+    return move;
+  });
+});
+
 var startState = [
-  ['?', 'o', '?'],
+  ['o', 'o', '?'],
   ['?', 'x', 'x'],
   ['?', '?', '?']
 ];
 
-transition(startState, {x: 1, y: 0}, 'o')
+viz.auto(act(startState, 'o'))
 ~~~~
 
-The next step would be to check win conditions...
+And now let's include planning:
 
 ~~~~
+///fold: movePrior, transition, hasWon, utility, isTerminal
+var isValidMove = function(state, move) {
+  return state[move.x][move.y] === '?';
+};
+
+var movePrior = dp.cache(function(state){
+  return Enumerate(function(){
+    var move = {
+      x: randomInteger(3),
+      y: randomInteger(3)
+    };
+    condition(isValidMove(state, move));
+    return move;
+  });
+});
+
+var assign = function(obj, k, v) {
+  var newObj = _.clone(obj);
+  return Object.defineProperty(newObj, k, {value: v})
+};
+
+var transition = function(state, move, player) {
+  var newRow = assign(state[move.x], move.y, player);
+  return assign(state, move.x, newRow);
+};
+
+var diag1 = function(state) {
+  return mapIndexed(function(i, x) {return x[i];}, state);
+};
+
+var diag2 = function(state) {
+  var n = state.length;
+  return mapIndexed(function(i, x) {return x[n - (i + 1)];}, state);
+};
+
+var hasWon = dp.cache(function(state, player) {
+  var check = function(xs){
+    return _.countBy(xs)[player] == xs.length;
+  };
+  return any(check, [
+    state[0], state[1], state[2], // rows
+    map(first, state), map(second, state), map(third, state), // cols
+    diag1(state), diag2(state) // diagonals
+  ]);
+});
+
+var isDraw = function(state) {
+  return !hasWon(state, 'x') && !hasWon(state, 'o');
+};
+
+var utility = function(state, player) {
+  if (hasWon(state, player)) {
+    return 10;
+  } else if (isDraw(state)) {
+    return 0;
+  } else {
+    return -10;
+  }
+};
+
+var isTerminal = function(state) {
+  return all(
+    function(x){
+      return x != '?';
+    },
+    _.flatten(state));
+};
+///
+
+var otherPlayer = function(player) {
+  return (player === 'x') ? 'o' : 'x';
+};
+
 var act = dp.cache(function(state, player) {
   return Enumerate(function(){
-    var action = actionPrior();
-    var outcome = simulate(state, action, player);
+    var move = sample(movePrior(state));
+    var outcome = simulate(state, move, player);
     factor(utility(outcome, player));
-    return action;
+    return move;
   });
 });
 
@@ -302,18 +521,18 @@ var simulate = dp.cache(function(state, action, player) {
     return nextState;
   } else {
     var nextPlayer = otherPlayer(player);
-    var nextAction = act(nextState, nextPlayer);
+    var nextAction = sample(act(nextState, nextPlayer));
     return simulate(nextState, nextAction, nextPlayer);
   }
 });
 
 var startState = [
-  ['?', 'o', '?'],
+  ['?', '?', '?'],
   ['?', 'x', 'x'],
-  ['?', 'o', '?']
+  ['o', '?', '?']
 ];
 
-act(startState, 'x');
+viz.auto(act(startState, 'o'))
 ~~~~
 
 ## Induction puzzles
