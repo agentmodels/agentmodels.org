@@ -540,34 +540,53 @@ viz.auto(act(startState, 'o'))
 Blue-eyed islanders:
 
 ~~~~
+// FIXME:
+// AssertionError: Expected marginal to be normalized, got: 
+// {"2":{"val":2,"prob":null},"3":{"val":3,"prob":null},"4":{"val":4,"prob":null}}
+
 var alpha = 2;
 
-var agent = dp.cache(function(state) {
-  return Enumerate(function(){
-    var myBlueEyes = flip(baserate) ? 1 : 0;
-    var totalBlueEyes = myBlueEyes + state.othersBlueEyes;
-    condition(totalBlueEyes > 0);
-    var raisedHandDist = simulate(/* */);
-    factor(alpha * raisedHandDist.score(state.raisedHands));
-    return myBlueEyes;
-  });
-});
-
-var getRaisedHands(state) {
-  // ...
+var assign = function(obj, k, v) {
+  var newObj = _.clone(obj);
+  return Object.defineProperty(newObj, k, {value: v})
 };
 
-var simulate = dp.cache(function(state) {
-  if (state.start >= state.end) {
-    return state.raisedHands;
+
+var numAgents = 2;
+var baserate = .045;
+
+var agent = dp.cache(function(t, raisedHands, othersBlueEyes) {
+  if (1 + othersBlueEyes < raisedHands) {
+    return Enumerate(function(){
+      return 1;
+    })
   } else {
-    var nextState = {
-      start: state.start + 1,
-      end: state.end,
-      raisedHands: getRaisedHands(state),
-      trueBlueEyes: state.trueBlueEyes
-    };
-    return simulate(nextState);
+    return Enumerate(function(){
+      var myBlueEyes = flip(baserate) ? 1 : 0;
+      var totalBlueEyes = myBlueEyes + othersBlueEyes;
+      condition(totalBlueEyes >= 0);
+      condition(totalBlueEyes <= numAgents);      
+      var outcome = runGame(0, t, 0, totalBlueEyes);
+      condition(outcome == raisedHands);
+      return myBlueEyes;
+    });
   }
 });
+
+var getRaisedHands = function(t, raisedHands, trueBlueEyes) {
+  var p1 = Math.exp(agent(t, raisedHands, trueBlueEyes - 1).score([], 1));
+  var p2 = Math.exp(agent(t, raisedHands, trueBlueEyes).score([], 1));
+  return binomial(p1, trueBlueEyes) + binomial(p2, numAgents - trueBlueEyes);
+};
+
+var runGame = function(start, end, raisedHands, trueBlueEyes) {
+  if (start >= end) {
+    return raisedHands;
+  } else {
+    var raisedHands = getRaisedHands(start, raisedHands, trueBlueEyes)
+    return runGame(start + 1, end, raisedHands, trueBlueEyes);    
+  }
+};
+
+viz.auto(Enumerate(function(){return runGame( 0, 2, 0, 2);}));
 ~~~~
