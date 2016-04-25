@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: Multi-agent models
-description: Connection between recursively simulating self (sequential decisions) and recursive simulation of other agents (strategic reasoning, coordination). Schelling games, tic-tac-toe, a simple natural-language example, and inducation puzzles.
+description: Connection between recursively simulating self (sequential decisions) and recursive simulation of other agents (strategic reasoning, coordination). Schelling games, tic-tac-toe, a simple natural-language example, and induction puzzles.
 is_section: true
 ---
 
