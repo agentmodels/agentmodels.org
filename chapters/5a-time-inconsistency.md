@@ -141,9 +141,26 @@ $$
 
 The crucial difference between the curves is that the hyperbola is initially steep and then becomes almost flat, while the exponential continues to be steep. This means that exponential discounting is time consistent and hyperbolic discounting is not. 
 
-TODO_daniel: put the function forms 1/2^t and 1/(1+2t) in the legend. maybe label the parts that are steep / shallow. reduce white space on left/right.
-
-<a href="/assets/img/hyperbolic_no_label.jpg"><img src="/assets/img/hyperbolic_no_label.jpg" alt="Figure 2" style="width: 650px" /></a>
+~~~~
+var delays = range(6);
+var expDiscount = function(delay) {
+ return Math.pow(0.5, delay); 
+};
+var hypDiscount = function(delay) {
+  return 1.0 / (1 + 2*delay);
+};
+var makeExpDatum = function(delay){
+  return {delay: delay, discountFactor: expDiscount(delay),
+          discountType: 'Exponential discounting: 1/2^t'};
+};
+var makeHypDatum = function(delay){
+  return {delay: delay, discountFactor: hypDiscount(delay),
+          discountType: 'Hyperbolic discounting: 1/(1 + 2t)'};
+};
+var expData = map(makeExpDatum, delays);
+var hypData = map(makeHypDatum, delays);
+viz.line(expData.concat(hypData), {groupBy: 'discountType'});
+~~~~
 
 >**Figure 2:** Graph comparing exponential and hyperbolic discount curves. 
 
