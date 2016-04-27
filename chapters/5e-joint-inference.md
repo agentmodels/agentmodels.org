@@ -6,7 +6,7 @@ description: Explaining temptation and pre-commitment using either softmax noise
 ---
 
 
-## Restaurant Choice Inference
+## Restaurant Choice: Time-inconsistent vs. optimal MDP agents
 
 Returning to the MDP Restaurant Choice problem, we compare a model that assumes an optimal, non-discounting MDP agent to a model that includes both time-inconsistent and optimal agents. We also consider models that expand the set of preferences the agent can have.
 
@@ -16,11 +16,10 @@ As we discussed in Chapter V.1, time-inconsistent agents can produce trajectorie
 
 In our first inference example, we do joint inference over preferences, softmax noise and the discounting behavior of the agent. (We assume for this example that the agent has full knowledge and is not Myopic). We compare the preference inferences [that allow for possibility of time inconsistency] to the earlier inference approach that assumes optimality.
 -->
+ 
+### Assume discounting, infer "Naive" or "Sophisticated"
+Before making a direct comparison, we demonstrate that we can infer the preferences of time-inconsistent agents from observations of their behavior.
 
-### Example 1: Time-inconsistent vs. optimal MDP agents
-This example compares a model that assumes an optimal agent (and just infers their preferences and softmax noise) to a model that also allows for sub-optimal, time-inconsistent agents. Before making a direct comparison, we demonstrate that we can infer the preferences of time-inconsistent agents from observations of their behavior.
-
-#### Assume discounting, infer "Naive" or "Sophisticated"
 First we condition on the path where the agent moves to Donut North. We call this the Naive path because it is distinctive to the Naive hyperbolic discounter (who is tempted by Donut North on the way to Veg):
 
 ~~~~
@@ -263,7 +262,7 @@ var posterior = getPosterior(world, prior, observedStateAction);
 displayResults(posterior, 'Posterior distribution conditioning on VegDirect path');
 ~~~~
 
-#### Assume non-discounting, infer preferences and softmax
+### Assume non-discounting, infer preferences and softmax
 We want to compare a model that assumes an optimal MDP agent with one that allows for time-inconsistency. We first show the inferences by the model that assumes optimality. This model can only explain the anomalous Naive and Sophisticated paths in terms of softmax noise (lower values for $$\alpha$$). We display the prior and posteriors for both the Naive and Sophisticated paths. 
 
 ~~~~
@@ -389,7 +388,7 @@ displayResults( posteriorNaive, 'Posterior on conditioning 3 times on Naive path
 
 
 
-#### Model that includes discounting: jointly infer discounting, preferences, softmax noise
+### Model that includes discounting: jointly infer discounting, preferences, softmax noise
 
 Our inference model now has the optimal agent as a special case but also includes time-inconsistent agents. This model jointly infers the discounting behavior, the agent's utilities and the softmax noise. 
 
@@ -461,7 +460,7 @@ Conditioning on the Naive path once, the probabilities of the agent being Naive 
 In summary, if we observe the agent repeatedly take the Naive path, the "Optimal Model" explains this in terms of a preference for Donut and significant softmax noise (explaining why the agent takes Donut North over Donut South). The "Discounting Model" is similar to the Optimal Model when it observes the Naive path *once*. However, observing it multiple times, it infers that the agent has low noise and an overall preference for Veg. 
 
 
-#### Preferences for the two Donut Store branches can vary
+### Preferences for the two Donut Store branches can vary
 Another explanation of the Naive path is that the agent has a preference for the "Donut N" branch of the Donut Store over the "Donut S" branch. Maybe this branch is better run or has more space. If we add this to our set of possible preferences, inference changes significantly.
 
 To speed up inference, we use a fixed assumption that the agent is Naive. There are three explanations of the agent's path:
