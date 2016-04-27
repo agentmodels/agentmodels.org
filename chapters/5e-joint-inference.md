@@ -263,6 +263,7 @@ var posterior = getPosterior(world, prior, observedStateAction);
 displayResults(posterior, 'Posterior distribution conditioning on VegDirect path');
 ~~~~
 
+<br>
 
 ---------
 
@@ -390,6 +391,8 @@ var posteriorNaive = getPosterior(world, prior, observedStateActionNaive, number
 displayResults( posteriorNaive, 'Posterior on conditioning 3 times on Naive path')
 ~~~~
 
+<br>
+
 --------
 
 ### Model that includes discounting: jointly infer discounting, preferences, softmax noise
@@ -462,6 +465,8 @@ displayResults(getPosterior(world, prior, observedStateAction, numberRepeats), '
 Conditioning on the Naive path once, the probabilities of the agent being Naive and of `donutTempting` both go up. However, the probability of high softmax noise also goes up. In terms of preferences, we rule out a strong preference for Veg and slightly reduce a preference for Donut. So if the agent were Naive, tempted by Donut and with very low noise, our inference would not place most of the posterior on this explanation. There are two reasons for this. First, this agent is unlikely in the prior. Second, the explanation of the behavior in terms of noise is plausible. (In our Gridworld setup, we don't allow the agent to backtrack to the previous state. This means there are few cases where a softmax noisy agent would behavior differently than a low noise one.). Conditioning on the same Naive path three times makes the explanation in terms of noise much less plausible: the agent would makes the same "mistake" three times and makes no other mistakes. (The results for the Sophisticated path are similar.)
 
 In summary, if we observe the agent repeatedly take the Naive path, the "Optimal Model" explains this in terms of a preference for Donut and significant softmax noise (explaining why the agent takes Donut North over Donut South). The "Discounting Model" is similar to the Optimal Model when it observes the Naive path *once*. However, observing it multiple times, it infers that the agent has low noise and an overall preference for Veg. 
+
+<br>
 
 ------
 
