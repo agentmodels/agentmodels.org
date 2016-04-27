@@ -5,6 +5,7 @@ description: Explaining temptation and pre-commitment using either softmax noise
 
 ---
 
+<!-- TODO_daniel: For all posteriors plotted in this chapter, plot the prior on the same axis. For some of the codeboxes the prior is already being plotted on a separate axis. For other codeboxes, the prior is not being plotted and so you need to add a line of code to plot the posterior. -->
 
 ## Restaurant Choice: Time-inconsistent vs. optimal MDP agents
 
@@ -262,6 +263,9 @@ var posterior = getPosterior(world, prior, observedStateAction);
 displayResults(posterior, 'Posterior distribution conditioning on VegDirect path');
 ~~~~
 
+
+---------
+
 ### Assume non-discounting, infer preferences and softmax
 We want to compare a model that assumes an optimal MDP agent with one that allows for time-inconsistency. We first show the inferences by the model that assumes optimality. This model can only explain the anomalous Naive and Sophisticated paths in terms of softmax noise (lower values for $$\alpha$$). We display the prior and posteriors for both the Naive and Sophisticated paths. 
 
@@ -386,7 +390,7 @@ var posteriorNaive = getPosterior(world, prior, observedStateActionNaive, number
 displayResults( posteriorNaive, 'Posterior on conditioning 3 times on Naive path')
 ~~~~
 
-
+--------
 
 ### Model that includes discounting: jointly infer discounting, preferences, softmax noise
 
@@ -459,15 +463,16 @@ Conditioning on the Naive path once, the probabilities of the agent being Naive 
 
 In summary, if we observe the agent repeatedly take the Naive path, the "Optimal Model" explains this in terms of a preference for Donut and significant softmax noise (explaining why the agent takes Donut North over Donut South). The "Discounting Model" is similar to the Optimal Model when it observes the Naive path *once*. However, observing it multiple times, it infers that the agent has low noise and an overall preference for Veg. 
 
+------
 
 ### Preferences for the two Donut Store branches can vary
 Another explanation of the Naive path is that the agent has a preference for the "Donut N" branch of the Donut Store over the "Donut S" branch. Maybe this branch is better run or has more space. If we add this to our set of possible preferences, inference changes significantly.
 
 To speed up inference, we use a fixed assumption that the agent is Naive. There are three explanations of the agent's path:
 
-1. Softmax noise: measured by $$\alpha$$
-2. The agent is Naive and tempted by Donut: measured by `discount` and `donutTempting`
-3. The agent prefers Donut N to Donut S: measured by `donutNGreaterDonutS` (i.e. Donut N's utility is greater than Donut S's).
+(1). Softmax noise: measured by $$\alpha$$
+(2). The agent is Naive and tempted by Donut: measured by `discount` and `donutTempting`
+(3). The agent prefers Donut N to Donut S: measured by `donutNGreaterDonutS` (i.e. Donut N's utility is greater than Donut S's).
 
 These three can also be combined to explain the behavior. 
 
