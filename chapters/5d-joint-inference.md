@@ -14,7 +14,7 @@ As we discussed in Chapter 4, the identifiability of preferences is a ubiquitous
 
 
 ### Formalization of Joint Inference
-We formalize joint inference over beliefs, preferences and biases by extending the approach developing in Chapter IV. In Equation (2) of that chapter, an agent was characterized by parameters $$  \left\langle U, \alpha, b_0 \right\rangle$$. To include the possibility of time-inconsistent and Greedy/Myopic agents, an agent $$\theta$$ is now characterized by a tuple of parameters as follows: <a id="formalization"></a>
+ <a id="formalization"></a>We formalize joint inference over beliefs, preferences and biases by extending the approach developing in Chapter IV. In Equation (2) of that chapter, an agent was characterized by parameters $$  \left\langle U, \alpha, b_0 \right\rangle$$. To include the possibility of time-inconsistent and Greedy/Myopic agents, an agent $$\theta$$ is now characterized by a tuple of parameters as follows:
 
 $$
 \theta = \left\langle U, \alpha, b_0, k, \nu, C \right\rangle
