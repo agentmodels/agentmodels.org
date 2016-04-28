@@ -431,8 +431,7 @@ var priorBelief = Enumerate(function(){
 // Construct agent
 var params = {utility: banditUtility,
               alpha: 1000,
-              priorBelief: priorBelief,
-		      fastUpdateBelief: false};
+              priorBelief: priorBelief};
 var agent = makeBeliefAgent(params, world);
 
 // Simulate agent and return state-action pairs
@@ -466,8 +465,7 @@ var getPriorBelief = function(numberTrials){
 };
 
 var baseParams = {utility: banditUtility,
-                  alpha: 1000,
-                  fastUpdateBelief: false};
+                  alpha: 1000};
 ///
 
 // Simulate agent for a given number of Bandit trials
@@ -522,8 +520,7 @@ var getPriorBelief = function(numberTrials, numberArms) {
 };
 
 var baseParams = {utility: banditUtility,
-		  alpha: 1000,
-		  fastUpdateBelief: false};
+		          alpha: 1000};
 ///
 
 var getRuntime = function(numberArms){

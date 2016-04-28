@@ -71,8 +71,7 @@ var params = {
   boundVOI: {on: false, bound: 0},
   noDelays: false,
   discount: 0,
-  sophisticatedOrNaive: 'naive',
-  fastUpdateBelief: false
+  sophisticatedOrNaive: 'naive'
 };
 var agent = makeBeliefDelayAgent(params, world);
 var trajectory = simulateBeliefDelayAgent(startState, world, agent, 'states');
@@ -104,8 +103,7 @@ var params = {
   boundVOI: {on: false, bound: 0},
   noDelays: false,
   discount: 0,
-  sophisticatedOrNaive: 'naive',
-  fastUpdateBelief: false
+  sophisticatedOrNaive: 'naive'
 };
 ///
 
@@ -216,7 +214,6 @@ The Myopic agent performs well on a variety of Bandit problems. The following co
 var baseParams = {
   utility: banditUtility,
   alpha: 1000,
-  fastUpdateBelief: false,
   noDelays: false,
   sophisticatedOrNaive: 'naive',
   myopia: {on: false, bound: 0},
@@ -324,7 +321,6 @@ The following codebox computes the runtime for Myopic and Optimal agents as a fu
 var baseParams = {
   utility: banditUtility,
   alpha: 1000,
-  fastUpdateBelief: false,
   noDelays: false,
   sophisticatedOrNaive: 'naive',
   myopia: {on: false, bound: 0},
