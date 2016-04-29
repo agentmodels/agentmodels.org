@@ -39,14 +39,20 @@ The next codeboxes show the performance of the Greedy agent on Bandit problems. 
 // noisy_greedy_regret_ratio
 
 // Construct world: One bad arm, one good arm, 100 trials. 
-var world = makeBanditWorld(2);
-var latentState = {
+
+var trueArmToPrizeERP = {
   0: categoricalERP([0.25, 0.75], [1.5, 0] ),
   1: categoricalERP([0.5, 0.5], [1, 0])
 };
-
-var numberTrials = 100;
-var startState = buildBanditStartState(numberTrials, latentState);
+var numberOfTrials = 100;
+var bandit = makeBandit({
+  numberOfTrials: numberOfTrials,
+  numberOfArms: 2,
+  armToPrizeERP: trueArmToPrizeERP,
+  numericalPrizes: true
+});
+var world = bandit.world;
+var startState = bandit.startState;
 
 
 // Construct greedy agent
@@ -55,17 +61,16 @@ var startState = buildBanditStartState(numberTrials, latentState);
 var agentPrior = Enumerate(function(){
   var prob15 = uniformDraw([0, 0.25, 0.5, 0.75, 1]);
   var prob1 = uniformDraw([0, 0.25, 0.5, 0.75, 1]);
-  var latentState = {0: categoricalERP([prob15, 1 - prob15], [1.5, 0]),
-		             1: categoricalERP([prob1, 1 - prob1], [1, 0])};
-  return buildState(startState.manifestState, latentState);
+  var armToPrizeERP = {0: categoricalERP([prob15, 1 - prob15], [1.5, 0]),
+		               1: categoricalERP([prob1, 1 - prob1], [1, 0])};
+  return makeBanditStartState(numberOfTrials, armToPrizeERP);
 });
 
 var greedyBound = 1;
 var alpha = 10; // noise level
 
 var params = {
-  alpha: 10,
-  utility: banditUtility,
+  alpha: alpha,
   priorBelief: agentPrior,
   myopia: {on: true, bound: greedyBound},
   boundVOI: {on: false, bound: 0},
@@ -73,9 +78,9 @@ var params = {
   discount: 0,
   sophisticatedOrNaive: 'naive'
 };
-var agent = makeBeliefDelayAgent(params, world);
+var agent = makeBanditAgent(params, bandit, 'beliefDelay');
 var trajectory = simulateBeliefDelayAgent(startState, world, agent, 'states');
-var averageUtility = listMean(map(banditUtility, trajectory));
+var averageUtility = listMean(map(numericBanditUtility, trajectory));
 print('Arm1 is best arm and has expected utility 0.5.\n' + 
       'So ideal performance gives average score of: 0.5 \n' + 
       'The average score over 100 trials for greedy agent: '
