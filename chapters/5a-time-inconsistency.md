@@ -62,8 +62,6 @@ var armToPlace = function(arm){
           2: "Switzerland"}[arm];
 };
 
-var utilityTable = {0:0, 0.5:0.5, 1:1, 1.5:1.5, 5:5};
-
 var display = function(trajectory){
   return map( armToPlace, most(trajectory) );
 };
@@ -73,26 +71,34 @@ var display = function(trajectory){
 // 0: "Tahoe", 1: "Chile", 2: "Switzerland"
 
 // Actual utility for each destination
-var armToPrize = {
-  0: "1",
-  1: "0",
-  2: "0.5"
+var trueArmToPrizeERP = {
+  0: deltaERP(1),
+  1: deltaERP(0),
+  2: deltaERP(0.5)
 };
 
 // Constuct Bandit world
-var numberTrials = 10;
-var worldAndStart = makeIRLBanditWorldAndStart(3, armToPrize, numberTrials);
-var world = worldAndStart.world;
-var start = worldAndStart.startState;
+var numberOfTrials = 10;
+var bandit = makeBandit({
+  numberOfArms: 3,
+  armToPrizeERP: trueArmToPrizeERP,
+  numberOfTrials: numberOfTrials,
+  numericalPrizes: true
+});
+
+var world = bandit.world;
+var start = bandit.startState;
 
 // Agent prior for utility of each destination
 var priorBelief = Enumerate(function(){
-  var latentState = {
-    0: "1", // Tahoe has known utility 1
-    1: categorical([0.9, 0.1], ["0", "5"]), // Chile has high variance
-    2: uniformDraw(["0.5", "1.5"]) // Switzerland has high expected value
+  var armToPrizeERP = {
+    0: deltaERP(1), // Tahoe has known utility 1
+    1: categorical([0.9, 0.1],
+	               [deltaERP(0), deltaERP(5)]), // Chile has high variance
+	2: uniformDraw([deltaERP(0.5), deltaERP(1.5)])
+	// Switzerland has high expected value
   };
-  return buildState(start.manifestState, latentState);
+  return makeBanditStartState(numberOfTrials, armToPrizeERP);
 });
 
 var discountFunction = function(delay) {
@@ -101,20 +107,19 @@ var discountFunction = function(delay) {
 
 var exponentialParams = update(baseParams, {discountFunction: discountFunction,
                                             priorBelief: priorBelief});
-var exponentialAgent = makeIRLBanditAgent(utilityTable, exponentialParams,
-										  worldAndStart, 'beliefDelay');
-var exponentialTrajectory = simulateBeliefDelayAgent(start, world, exponentialAgent,
-						     'actions');
+var exponentialAgent = makeBanditAgent(exponentialParams, bandit,
+	                                   'beliefDelay');
+var exponentialTrajectory = simulateBeliefDelayAgent(start, world,
+	                                                 exponentialAgent,
+													 'actions');
 
 var optimalParams = update(baseParams, {priorBelief: priorBelief});
-var optimalAgent = makeIRLBanditAgent(utilityTable, optimalParams, worldAndStart,
-				      'belief');
+var optimalAgent = makeBanditAgent(optimalParams, bandit, 'belief');
 var optimalTrajectory = simulateBeliefAgent(start, world, optimalAgent, 'actions');
 
 
 print('exponential discounting trajectory: ' + display(exponentialTrajectory));
 print('\noptimal trajectory: ' + display(optimalTrajectory));
-
 ~~~~
 
  
@@ -218,7 +223,7 @@ GridWorld.draw(world, {trajectory:path});
 // draw_sophisticated
 var world = makeRestaurantChoiceMDP();
 var observedStateAction = restaurantNameToObservationTime11['sophisticated'];
-print('Observations for Naive agent loaded from library function: \n' 
+print('Observations for Sophisticated agent loaded from library function: \n' 
        + JSON.stringify(observedStateAction) + ' \n');
 var path = map(first,observedStateAction);
 GridWorld.draw(world, {trajectory:path});
