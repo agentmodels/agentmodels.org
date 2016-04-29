@@ -395,11 +395,11 @@ P(U, \alpha, b_0 | (s,o,a)_{0:n}) \propto P(U, \alpha, b_0) \prod_{i=0}^n P( a_i
 $$
 
 
-### Application: IRL Bandits
+### Application: Bandits
 
 To learn the preferences and beliefs of a POMDP agent we translate Equation (2) into WebPPL. In a later [chapter](/chapters/5e-joint-inference.md), we apply this to the Restaurant Choice problem. Here we focus on the Bandit problems introduced in the [previous chapter](/chapters/3c-pomdp).
 
-In the IRL Bandit problems there is an unknown mapping from arms to prizes (or distributions on prizes) and the agent has preferences over these prizes. The agent tries out arms to discover the mapping and exploits the most promising arms. In the *inverse* problem, we get to observe the agent's actions. Unlike the agent, we already know the mapping from arms to prizes. However, we don't know the agent's preferences or the agent's prior about the mapping[^bandit].
+In the Bandit problems there is an unknown mapping from arms to non-numeric prizes (or distributions on such prizes) and the agent has preferences over these prizes. The agent tries out arms to discover the mapping and exploits the most promising arms. In the *inverse* problem, we get to observe the agent's actions. Unlike the agent, we already know the mapping from arms to prizes. However, we don't know the agent's preferences or the agent's prior about the mapping[^bandit].
 
 [^bandit]: If we did not know the mapping from arms to prizes, the inference problem would not change fundamentally. We get information about this mapping by observing the prizes the agent receives when pulling different arms. 
 
@@ -422,15 +422,19 @@ The codeboxes below implements this example. The translation of Equation (2) is 
 - $$a_i$$ is `observedAction`
 
 ~~~~
-var agentModelsIRLBanditInfer = function(baseAgentParams, priorPrizeToUtility,
-                                         priorInitialBelief, worldAndStart,
-										 observedSequence){
+var agentModelsBanditInfer = function(baseAgentParams, priorPrizeToUtility,
+				                      priorInitialBelief, bandit,
+									  observedSequence) {
+
   return Enumerate(function(){
-    var prizeToUtility = sample(priorPrizeToUtility);
+    var prizeToUtility = priorPrizeToUtility ? sample(priorPrizeToUtility)
+	      : undefined;
     var initialBelief = sample(priorInitialBelief);
-    var params = update(baseAgentParams, {priorBelief:initialBelief});
-    var agent = makeIRLBanditAgent(prizeToUtility,params,worldAndStart,'belief')
-	                      
+
+    var newAgentParams = update(baseAgentParams, {priorBelief:initialBelief});
+    
+    var agent = makeBanditAgent(newAgentParams, bandit, 'belief',
+				                prizeToUtility);
     var agentAct = agent.act;
     var agentUpdateBelief = agent.updateBelief;
     
@@ -438,8 +442,7 @@ var agentModelsIRLBanditInfer = function(baseAgentParams, priorPrizeToUtility,
       if (timeIndex < observedSequence.length) { 
         var state = observedSequence[timeIndex].state;
         var observation = observedSequence[timeIndex].observation;
-        var nextBelief = agentUpdateBelief(currentBelief, observation,
-		                                   previousAction);
+        var nextBelief = agentUpdateBelief(currentBelief, observation, previousAction);
         var nextActionERP = agentAct(nextBelief);
         var observedAction = observedSequence[timeIndex].action;
         
@@ -459,24 +462,29 @@ We start with a very simple example. The agent is observed pulling `arm1` five t
 
 <img src="/assets/img/4-irl-bandit-1.png" alt="diagram" style="width: 500px;"/>
 
-> **Figure 1:** IRL Bandits where agent's prior is known. (The true state has the bold outline). 
+> **Figure 1:** Bandit problem where agent's prior is known. (The true state has the bold outline). 
 
 From the observation, it's obvious that the agent prefers champagne. This is what we infer below:
 
 ~~~~
 // true prizes for arms
-var armToPrize = {0: 'chocolate',
-		          1: 'champagne'};
-var worldAndStart = makeIRLBanditWorldAndStart(2, armToPrize, 5);
+var trueArmToPrizeERP = {0: deltaERP('chocolate'),
+		                 1: deltaERP('champagne')};
+var bandit = makeBandit({
+  armToPrizeERP: trueArmToPrizeERP,
+  numberOfArms: 2,
+  numberOfTrials: 5
+});
 
 var simpleAgent = {
+  // simpleAgent always pulls arm 1
   act: function(belief){return Enumerate(function() {return 1;});},
   updateBelief: function(belief){return belief;},
-  params: {priorBelief: deltaERP(armToPrize)}
+  params: {priorBelief: deltaERP(trueArmToPrizeERP)}
 };
 
-var observedSequence = simulateBeliefAgent(worldAndStart.startState,
-                                           worldAndStart.world, simpleAgent,
+var observedSequence = simulateBeliefAgent(bandit.startState,
+                                           bandit.world, simpleAgent,
 										   'stateObservationAction');
 
 // Priors for inference
@@ -484,8 +492,10 @@ var observedSequence = simulateBeliefAgent(worldAndStart.startState,
 // We know agent's prior, which is that either arm1 yields
 // nothing or it yields champagne.
 var priorInitialBelief = deltaERP(Enumerate(function(){
-  var latent = uniformDraw([armToPrize, {0:'chocolate', 1:'nothing'}]);
-  return buildState(worldAndStart.startState.manifestState, latent);
+  var armToPrizeERP = uniformDraw([trueArmToPrizeERP,
+                                   update(trueArmToPrizeERP,
+								          {1:deltaERP('nothing')})]);
+  return makeBanditStartState(5, armToPrizeERP);
 }));
 
 // Agent either prefers chocolate or champagne.
@@ -498,51 +508,54 @@ var likesChocolate = {nothing: 0,
 var priorPrizeToUtility = categoricalERP([0.5, 0.5], 
                                          [likesChampagne, likesChocolate]);
 var baseParams = {alpha:1000};
-var posterior = agentModelsIRLBanditInfer(baseParams, priorPrizeToUtility,
-					                      priorInitialBelief, worldAndStart,
-										  observedSequence);
+var posterior = agentModelsBanditInfer(baseParams, priorPrizeToUtility,
+	                                   priorInitialBelief, bandit,
+									   observedSequence);
 
 print("After observing agent choose arm1, what are agent's utilities?")
 print('Posterior on agent utilities:')
 viz.auto(getMarginal(posterior,'prizeToUtility'))
 ~~~~
+<!-- TODO - make output above less ugly -->
 
 In the codebox above, the agent's preferences are identified by the observations. This won't hold for the next example, which we introduced previously. The agent's utilities for prizes are still unknown and now the agent's prior is also unknown. Either the agent is "informed" and knows the truth that `arm1` yields "champagne". Or the agent is misinformed and believes `arm1` is likely to yield "nothing". These two possibilities are depicted in Figure 2.  
 
 <img src="/assets/img/4-irl-bandit-2.png" alt="diagram" style="width: 600px;"/>
 
-> **Figure 2:** IRL Bandits where agent's prior is unknown. The two large boxes depict the prior on the agent's initial belief. Each possibility for the agent's initial belief has probability 0.5. 
+> **Figure 2:** Bandit where agent's prior is unknown. The two large boxes depict the prior on the agent's initial belief. Each possibility for the agent's initial belief has probability 0.5. 
 
 We observe the agent's first action, which is pulling `arm0`. Our inference approach is the same as above:
 
 ~~~~
-var armToPrize = {0: 'chocolate', 1: 'champagne'};
-var worldAndStart = makeIRLBanditWorldAndStart(2, armToPrize, 5);
-var observe = worldAndStart.world.observe;
-var fullObserve = getFullObserve(observe);
-var transition = worldAndStart.world.transition;
+var trueArmToPrizeERP = {0: deltaERP('chocolate'),
+                         1: deltaERP('champagne')};
+var bandit = makeBandit({
+  numberOfArms: 2,
+  armToPrizeERP: trueArmToPrizeERP,
+  numberOfTrials: 5
+});
 
-// TODO remove this (see above codebox)
-var makeTrajectory = function(state) {
-  var observation = fullObserve(state);
-  var action = 0; // agent always pulls arm 0
-  var nextState = transition(state, action);
-  return [{state: state,
-	       observation: observation,
-	       action: action}];
+var simpleAgent = {
+  // simpleAgent always pulls arm 0
+  act: function(belief){return Enumerate(function() {return 0;});},
+  updateBelief: function(belief){return belief;},
+  params: {priorBelief: deltaERP(trueArmToPrizeERP)}
 };
 
-var observedSequence = makeTrajectory(worldAndStart.startState);
-
+var observedSequence = simulateBeliefAgent(bandit.startState,
+                                           bandit.world, simpleAgent,
+										   'stateObservationAction');
 
 // Agent either knows that arm1 has prize "champagne"
 // or agent thinks prize is probably "nothing"
 
-var informedPrior = deltaERP(worldAndStart.startState);
+var informedPrior = deltaERP(bandit.startState);
 var noChampagnePrior = Enumerate(function(){
-  var latent = categorical( [0.05, 0.95],
-                           [armToPrize, {0:'chocolate', 1:'nothing'}]);
-  return buildState(worldAndStart.startState.manifestState, latent);
+  var armToPrizeERP = categorical([0.05, 0.95],
+                                  [trueArmToPrizeERP,
+								   update(trueArmToPrizeERP,
+								          {1:deltaERP('nothing')})]);
+  return makeBanditStartState(5, armToPrizeERP);
 });
 
 var priorInitialBelief = categoricalERP([0.5, 0.5], 
@@ -560,9 +573,9 @@ var priorPrizeToUtility = categoricalERP([0.5, 0.5],
                                          [likesChampagne,likesChocolate]);
 
 var baseParams = {alpha: 1000};
-var posterior = agentModelsIRLBanditInfer(baseParams, priorPrizeToUtility,
-					                      priorInitialBelief, worldAndStart,
-										  observedSequence);
+var posterior = agentModelsBanditInfer(baseParams, priorPrizeToUtility,
+					                   priorInitialBelief, bandit,
+									   observedSequence);
 
 var utilityBeliefPosterior = Enumerate(function(){
   var utilityBelief = sample(posterior);
@@ -582,34 +595,34 @@ Exploration is more valuable if there are more Bandit trials in total. If we obs
 // TODO simplify the code here or merge with previous example. 
 
 
-var probLikesChocolate = function(timeLeft){
-  var armToPrize = {0: 'chocolate',
-		            1: 'champagne'};
-  var worldAndStart = makeIRLBanditWorldAndStart(2, armToPrize, timeLeft);
-  var observe = worldAndStart.world.observe;
-  var fullObserve = getFullObserve(observe);
-  var transition = worldAndStart.world.transition;
+var probLikesChocolate = function(numberOfTrials){
+  var trueArmToPrizeERP = {0: deltaERP('chocolate'),
+		                   1: deltaERP('champagne')};
+  var bandit = makeBandit({
+    numberOfArms: 2,
+    armToPrizeERP: trueArmToPrizeERP,
+	numberOfTrials: numberOfTrials
+  });
 
-  var makeTrajectory = function(state) {
-    var observation = fullObserve(state);
-    var action = 0; // agent always pulls arm 0
-    var nextState = transition(state, action);
-    return [{state: state,
-	         observation: observation,
-	         action: action}];
+  var simpleAgent = {
+    // simpleAgent always pulls arm 0
+    act: function(belief){return Enumerate(function() {return 0;});},
+    updateBelief: function(belief){return belief;},
+    params: {priorBelief: deltaERP(trueArmToPrizeERP)}
   };
 
-  var observedSequence = makeTrajectory(worldAndStart.startState);
+  var observedSequence = simulateBeliefAgent(bandit.startState,
+                                             bandit.world, simpleAgent,
+											 'stateObservationAction');
 
-  var baseParams = {
-    alpha: 100
-  };
+  var baseParams = {alpha: 100};
 
   var noChampagnePrior = Enumerate(function(){
-    var latent = flip(0.2) ? armToPrize : update(armToPrize, {1: 'nothing'});
-    return buildState(worldAndStart.startState.manifestState, latent);
+    var armToPrizeERP = flip(0.2) ? trueArmToPrizeERP
+          : update(trueArmToPrizeERP, {1: deltaERP('nothing')});
+    return makeBanditStartState(numberOfTrials, armToPrizeERP);
   });
-  var informedPrior = deltaERP(worldAndStart.startState);
+  var informedPrior = deltaERP(bandit.startState);
   var priorInitialBelief = categoricalERP([0.5, 0.5], [noChampagnePrior,
 						                               informedPrior]);
 
@@ -623,9 +636,9 @@ var probLikesChocolate = function(timeLeft){
   var priorPrizeToUtility = categoricalERP([0.5, 0.5], [likesChampagne,
 							                            likesChocolate]);
 
-  var posterior = agentModelsIRLBanditInfer(baseParams, priorPrizeToUtility,
-					                        priorInitialBelief, worldAndStart,
-											observedSequence);
+  var posterior = agentModelsBanditInfer(baseParams, priorPrizeToUtility,
+                                         priorInitialBelief, bandit,
+									     observedSequence);
 
   var likesChocInformed = {prizeToUtility: likesChocolate,
 			               priorBelief: informedPrior};
@@ -645,5 +658,6 @@ print('Probability of liking chocolate for lifetimes ' + lifetimes + '\n'
 viz.bar(lifetimes, probsLikesChoc)
 ~~~~
 
+  
 This example of inferring an agent's utilities from a Bandit problem may seem contrived. However, there are practical problems that have a similar structure. Consider a domain where $$k$$ **sources** (arms) produce a stream of content, with each piece of content having a **category** (prizes). At each timestep, a human is observed choosing a source. The human has uncertainty about the stochastic mapping from sources to categories. Our goal is to infer the human's beliefs about the sources and their preferences over categories. The sources could be blogs or feeds that tag posts using the same set of tags. Alternatively, the sources could be channels for TV shows or songs. In this kind of application, the same issue of identifiability arises. An agent may choose a source either because they know it produces content in the best categories or because they have a strong prior belief that it does.
 
