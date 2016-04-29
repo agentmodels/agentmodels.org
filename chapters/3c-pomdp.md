@@ -161,7 +161,7 @@ var simulate = function(startState, priorBelief) {
 ## Applying the POMDP agent model
 
 ### Two-arm, deterministic, IRL Bandits
-We apply the POMDP agent to a simplified variant of the Multi-arm Bandit Problem. In this variant, pulling an arm produces a *prize* deterministically. The agent begins with uncertainty about the mapping from arms to prizes and learns over time by trying the arms. In our concrete example, there are only two arms. The first arm is known to have the prize "chocolate" and the second arm either has "champagne" or has no prize at all ("nothing"). See Figure 2 (below) for details. We refer to Bandit problems with prizes (e.g. chocolate) as "IRL Bandits" to distinguish them from the standard Bandit problems with numerical rewards.
+We apply the POMDP agent to a simplified variant of the Multi-arm Bandit Problem. In this variant, pulling an arm produces a *prize* deterministically. The agent begins with uncertainty about the mapping from arms to prizes and learns over time by trying the arms. In our concrete example, there are only two arms. The first arm is known to have the prize "chocolate" and the second arm either has "champagne" or has no prize at all ("nothing"). See Figure 2 (below) for details. We refer to Bandit problems with prizes (e.g. chocolate) as "IRL Bandits" to distinguish them from the standard Bandit problems with numerical rewards. <!-- I don't like this explanation of the term "IRL bandit" - reading the paragraph, you don't get an explanation why "IRL" was chosen or what it has to do with inverse reinforcement learning. - Daniel -->
 
 <img src="/assets/img/3c-irl-bandit.png" alt="diagram" style="width: 500px;"/>
 
@@ -176,7 +176,7 @@ In our implementation of this problem, the two arms are labeled "0" and "1" resp
 // Pull arm0 or arm1
 var actions = [0,1];
 
-// use latent "armToPrize" mapping in
+// use latent "armToPrizeERP" mapping in
 // state to determine which prize agent gets
 var transition = function(state, action){
   var newTimeLeft = state.timeLeft - 1;
@@ -352,7 +352,7 @@ You can change the agent's behavior by varying `numberTrials`, `armToPrize` in `
 ### Bandits with stochastic observations
 The Bandit problem above is especially simple because pulling an arm *deterministically* results in a prize (which the agent directly observes). So there is a fixed, finite number of beliefs about the `armToPrize` mapping that the agent can have and it depends on the number of arms but not on the number of trials.
 
-The next codebox considers the stochastic version of Bandits. Each arm has a distribution on outcomes and the agent is uncertain about the distribution. The arms yield numerical rewards rather than prizes like chocolate -- so this is a standard Bandit problem from ML and Control Theory refp:kaelbling1996reinforcement. For this standard Bandit problem, the number of possible beliefs for the agent grows with the number of trials. <a id="complexity"></a> <!--TODO_daniel be more precise here and ideally cite the relevant page of the papers].-->
+The next codebox considers the stochastic version of Bandits. Each arm has a distribution on outcomes and the agent is uncertain about the distribution. The arms yield numerical prizes rather than prizes like chocolate -- so this is a standard Bandit problem from ML and Control Theory refp:kaelbling1996reinforcement. For this standard Bandit problem, the number of possible beliefs for the agent grows with the number of trials. <a id="complexity"></a> <!--TODO_daniel be more precise here and ideally cite the relevant page of the papers].-->
 
 We consider an especially simple Bandit problem, where the agent already knows the reward for `Arm0` and only considers two possible distributions on reward for `Arm1`. This is depicted in Figure 3.
 
@@ -361,30 +361,15 @@ We consider an especially simple Bandit problem, where the agent already knows t
 >**Figure 3:** Structure of Bandit problem where `Arm1` is stochastic. 
 <br>
 
-For the following codebox, we use library functions for the environment (`makeBanditWorld`), for constructing the agent (`makeBeliefAgent`) and for simulating the agent (`simulateBeliefAgent`):
+For the following codebox, we use library functions for the environment (`makeBandit`), for constructing the agent (`makeBanditAgent`) and for simulating the agent (`simulateBeliefAgent`):
 
 ~~~~
 // helper functions defined here:
 ///fold:
-// part of the webppl language. takes a timeLeft and a latent state, returns a
-// start state for a stochastic bandit POMDP.
-var buildBanditStartState = function(timeLeft, latent) {
-  return {manifestState: {loc: 'start',
-			              timeLeft: timeLeft,
-						  terminateAfterAction: false},
-	      latentState: latent};
-};
-
-// part of the webppl language. is a generic utility function for stochastic
-// bandit POMDPs.
-var banditUtility = function(state, action) {
-  var reward = state.manifestState.loc;
-  return reward === 'start' ? 0 : reward;
-};
-
+	  
 // takes a trajectory containing states and actions and returns one containing
 // locs and actions, getting rid of 'start' and the final meaningless action.
-// unlike the other two, this is not part of the webppl language
+// unlike the other functions, this is not part of the webppl language
 var display = function(trajectory) {
   var getPrizeAction = function(stateAction) {
     var state = stateAction[0];
@@ -405,34 +390,38 @@ var display = function(trajectory) {
 ///
 
 // Construct Bandit environment. The latent mapping
-// from arms to rewards is specified in the *startState* (below)
-var world = makeBanditWorld(2);
+// from arms to prizes is specified in the options of makeBandit
 
 // Possible distributions on rewards for Arm1
 var probably1ERP = categoricalERP([0.2, 0.8], [0, 1]);
 var probably0ERP = categoricalERP([0.8, 0.2], [0, 1]);
 
-// True latent state (NB: Arm1 is better in EV)
-var latent = {0: deltaERP(0.7), 1: probably1ERP};
+var options = {
+  numberOfArms: 2,
+  armToPrizeERP: {0: deltaERP(0.7), 1: probably1ERP},
+  // note that arm 1 is better in EV
+  numberOfTrials: 11,
+  numericalPrizes: true
+};
 
-// Alternate latent state 
-var alternateLatent = update(latent, {1: probably0ERP});
+var bandit = makeBandit(options);
+var startState = bandit.startState;
+var world = bandit.world;
 
-// Construct startState
-var numberTrials = 11;
-var startState = buildBanditStartState(numberTrials, latent);
+// Alternate arm to prize ERP
+var alternateArmToPrizeERP = update(options.armToPrizeERP, {1: probably0ERP});
 
 // Construct agent's prior on the startState
 var priorBelief = Enumerate(function(){
-  var latentState = uniformDraw([latent, alternateLatent]);
-  return buildBanditStartState(numberTrials, latentState);
+  var armToPrizeERP = uniformDraw([options.armToPrizeERP,
+	                               alternateArmToPrizeERP]);
+  return update(startState, {latentState: armToPrizeERP});
 });
 
 // Construct agent
-var params = {utility: banditUtility,
-              alpha: 1000,
+var params = {alpha: 1000,
               priorBelief: priorBelief};
-var agent = makeBeliefAgent(params, world);
+var agent = makeBanditAgent(params, bandit, 'belief');
 
 // Simulate agent and return state-action pairs
 var trajectory = simulateBeliefAgent(startState, world, agent, 'stateAction');
@@ -445,35 +434,46 @@ Solving Bandit problems optimally quickly becomes intractable without special op
 
 ~~~~
 
-// bandit_scaling_time_left
+// bandit_scaling_number_of_trials
 
 // Construct world and agent priorBelief as above
 ///fold:
-var world = makeBanditWorld(2);
 
 var probably1ERP = categoricalERP([0.2, 0.8], [0, 1]);
 var probably0ERP = categoricalERP([0.8, 0.2], [0, 1]);
 
-var latent = {0: deltaERP(0.7), 1: probably1ERP};
-var alternateLatent = update(latent, {1: probably0ERP});
+var trueArmToPrizeERP = {0: deltaERP(0.7), 1: probably1ERP};
+var alternateArmToPrizeERP = update(trueArmToPrizeERP, {1: probably0ERP});
 
-var getPriorBelief = function(numberTrials){
+
+var makeBanditWithNumberOfTrials = function(numberOfTrials) {
+  return makeBandit({
+    numberOfTrials: numberOfTrials,
+	numberOfArms: 2,
+	armToPrizeERP: trueArmToPrizeERP,
+	numericalPrizes: true
+  });
+};
+
+var getPriorBelief = function(numberOfTrials){
   return Enumerate(function(){
-    var latentState = uniformDraw([latent, alternateLatent]);
-    return buildBanditStartState(numberTrials, latentState);
+    var armToPrizeERP = uniformDraw([trueArmToPrizeERP,
+                                     alternateArmToPrizeERP]);
+    return makeBanditStartState(numberOfTrials, armToPrizeERP);
   })
 };
 
-var baseParams = {utility: banditUtility,
-                  alpha: 1000};
+var baseParams = {alpha: 1000};
 ///
 
 // Simulate agent for a given number of Bandit trials
-var getRuntime = function(numberTrials){
-  var startState = buildBanditStartState(numberTrials, latent); 
-  var priorBelief = getPriorBelief(numberTrials)
+var getRuntime = function(numberOfTrials){
+  var bandit = makeBanditWithNumberOfTrials(numberOfTrials);
+  var world = bandit.world;
+  var startState = bandit.startState;
+  var priorBelief = getPriorBelief(numberOfTrials)
   var params = update(baseParams, {priorBelief: priorBelief});
-  var agent = makeBeliefAgent(params, world);
+  var agent = makeBanditAgent(params, bandit, 'belief');
 
   var f = function() {
     return simulateBeliefAgent(startState, world, agent, 'stateAction');
@@ -483,11 +483,11 @@ var getRuntime = function(numberTrials){
 };
 
 // Runtime as a function of number of trials
-var numberTrialsList = range(15).slice(2);
-var runtimes = map(getRuntime, numberTrialsList);
-viz.line(numberTrialsList, runtimes);
+var numberOfTrialsList = range(15).slice(2);
+var runtimes = map(getRuntime, numberOfTrialsList);
+viz.line(numberOfTrialsList, runtimes);
 
-// note: this takes approximately 30 seconds to run
+// note: this takes approximately 20 seconds to run
 ~~~~
 
 
@@ -495,42 +495,48 @@ Scaling is much worse in the number of arms:
 
 
 ~~~~
-// bandit_scaling_num_arms
+// bandit_scaling_number_of_arms
 
 ///fold:
 
 var probably1ERP = categoricalERP([0.2, 0.8], [0, 1]);
 var probably0ERP = categoricalERP([0.8, 0.2], [0, 1]);
 
-var makeLatentState = function(numberArms) {
-  return map(function(x){return probably1ERP;}, _.range(numberArms));
+var makeArmToPrizeERP = function(numberOfArms) {
+  return map(function(x){return probably1ERP;}, _.range(numberOfArms));
 };
 
-var latentSampler = function(numberArms) {
+var armToPrizeERPSampler = function(numberOfArms) {
   return map(function(x){return uniformDraw([probably0ERP,
-					     probably1ERP]);},
-	     _.range(numberArms));
+					                         probably1ERP]);},
+	         _.range(numberOfArms));
 };
 
-var getPriorBelief = function(numberTrials, numberArms) {
+var getPriorBelief = function(numberOfTrials, numberOfArms) {
   return Enumerate(function(){
-    var latentState = latentSampler(numberArms);
-    return buildBanditStartState(numberTrials, latentState);
+    var armToPrizeERP = armToPrizeERPSampler(numberOfArms);
+    return makeBanditStartState(numberOfTrials, armToPrizeERP);
   });
 };
 
-var baseParams = {utility: banditUtility,
-		          alpha: 1000};
+var baseParams = {alpha: 1000};
 ///
 
-var getRuntime = function(numberArms){
-  var world = makeBanditWorld(numberArms);
-  var numberTrials = 5;
-  var startState = buildBanditStartState(numberTrials,
-					 makeLatentState(numberArms));
-  var priorBelief = getPriorBelief(numberTrials, numberArms);
+var getRuntime = function(numberOfArms){
+  var armToPrizeERP = makeArmToPrizeERP(numberOfArms);
+  var options = {
+    numberOfTrials: 5,
+	armToPrizeERP: armToPrizeERP,
+	numberOfArms: numberOfArms,
+	numericalPrizes: true
+  };
+  var numberOfTrials = options.numberOfTrials;
+  var bandit = makeBandit(options);
+  var world = bandit.world;
+  var startState = bandit.startState;
+  var priorBelief = getPriorBelief(numberOfTrials, numberOfArms);
   var params = update(baseParams, {priorBelief: priorBelief});
-  var agent = makeBeliefAgent(params, world);
+  var agent = makeBanditAgent(params, bandit, 'belief');
 
   var f = function() {
     return simulateBeliefAgent(startState, world, agent, 'stateAction');
@@ -540,9 +546,11 @@ var getRuntime = function(numberArms){
 };
 
 // Runtime as a function of number of arms
-var numberArmsList = [1,2,3];
-var runtimes = map(getRuntime, numberArmsList);
-viz.line(numberArmsList, runtimes);
+var numberOfArmsList = [1,2,3];
+var runtimes = map(getRuntime, numberOfArmsList);
+viz.line(numberOfArmsList, runtimes);
+
+// note: this may take over a minute to run
 ~~~~
 
 
