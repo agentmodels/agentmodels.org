@@ -203,7 +203,7 @@ The key part is the definition of $$b'$$. The Myopic agent assumes his future se
 
 The implementation of the Myopic agent in WebPPL is a direct translation of the definition provided above.
 
->**Exercise:** Modify the code for the POMDP agent [TODO link to codebox] to represent a Myopic agent.
+>**Exercise:** Modify the code for the POMDP agent to represent a Myopic agent. See this <a href="/chapters/3c-pomdp.html#pomdpCode">codebox</a> or this library [script](https://github.com/agentmodels/webppl-gridworld/src/beliefAgent.wppl). <!-- TODO fix link -->
 
 
 ### Myopic Exploration for Bandits

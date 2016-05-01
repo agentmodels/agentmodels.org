@@ -100,6 +100,7 @@ where $$s'$$, $$o$$, $$a'$$ and $$b'$$ are distributed as in the Expected Utilit
 Unfortunately, finding the optimal policy for POMDPs is a difficult task. In fact, even in the special case where the observations are deterministic and the horizon is finite, the task of determining whether the optimal policy has expected utility greater than some constant is PSPACE-complete refp:papadimitriou1987complexity.
 
 ### Implementation of the Model
+<a id="pomdpCode"></a>
 As with the agent model for MDPs, we provide a direct translation of the equations above into an agent model for solving POMDPs. The variables `nextState`, `nextObservation`, `nextBelief`, and `nextAction` correspond to $$s'$$,  $$o$$, $$b'$$ and $$a'$$ respectively, and we use the Expected Utility of Belief Recursion. The following codebox defines the `act` and `expectedUtility` functions. We define the functions `updateBelief`, `transition`, `observe` and `utility` below. 
 
 
