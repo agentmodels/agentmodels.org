@@ -425,7 +425,7 @@ map( function(totalTime){
           map(getTime, runAgents(totalTime)) );
           }, totalTimeValues );
 
-//TODO graph these.
+//TODO_daniel graph these.
 ~~~~
 
 
@@ -473,7 +473,7 @@ var agent = makeBeliefAgent(params, world);
 var trajectory = simulateBeliefAgent(pomdp.startState, world, agent, 'states');
 var manifestStates = map(function(state){return state.manifestState;},
                          trajectory);
-print('Quality of restaurants: \n'+JSON.stringify(startState.latentState));
+print('Quality of restaurants: \n'+JSON.stringify(pomdp.startState.latentState));
 GridWorld.draw(pomdp.mdp, {trajectory: manifestStates})
 ~~~~
 
