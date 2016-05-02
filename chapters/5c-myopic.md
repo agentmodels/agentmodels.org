@@ -103,7 +103,6 @@ var alpha = 10; // noise level
 
 var params = {
   alpha: 10,
-  utility: banditUtility,
   myopia: {on: true, bound: greedyBound},
   boundVOI: {on: false, bound: 0},
   noDelays: false,
@@ -112,36 +111,44 @@ var params = {
 };
 ///
 
-var world = makeBanditWorld(3);
-var latentState = {0: categoricalERP([0.1, 0.9], [3, 0]),
-		           1: categoricalERP([0.5, 0.5], [1, 0]),
-		           2: categoricalERP([0.5, 0.5], [2, 0])};
+var trueArmToPrizeERP = {0: categoricalERP([0.1, 0.9], [3, 0]),
+	                     1: categoricalERP([0.5, 0.5], [1, 0]),
+		                 2: categoricalERP([0.5, 0.5], [2, 0])};
 
-var numberTrials = 40;
-var startState = buildBanditStartState(numberTrials, latentState);
+var numberOfTrials = 40;
+
+var bandit = makeBandit({
+  numberOfArms: 3,
+  armToPrizeERP: trueArmToPrizeERP,
+  numberOfTrials: numberOfTrials,
+  numericalPrizes: true
+});
+var world = bandit.world;
+var startState = bandit.startState;
 
 var agentPrior = Enumerate(function(){
   var prob3 = uniformDraw([0.1, 0.5, 0.9]);
   var prob1 = uniformDraw([0.1, 0.5, 0.9]);
   var prob2 = uniformDraw([0.1, 0.5, 0.9]);
-  var latentState = {0: categoricalERP([prob3, 1 - prob3], [3, 0]),
-		             1: categoricalERP([prob1, 1 - prob1], [1, 0]),
-		             2: categoricalERP([prob2, 1 - prob2], [2, 0])};
-  return buildState(startState.manifestState, latentState);
+  var armToPrizeERP = {0: categoricalERP([prob3, 1 - prob3], [3, 0]),
+	                   1: categoricalERP([prob1, 1 - prob1], [1, 0]),
+	                   2: categoricalERP([prob2, 1 - prob2], [2, 0])};
+  return makeBanditStartState(numberOfTrials, armToPrizeERP);
 });
 
-var params = update(params,{priorBelief: agentPrior});
-var agent = makeBeliefDelayAgent(params, world);
+var params = update(params, {priorBelief: agentPrior});
+var agent = makeBanditAgent(params, bandit, 'beliefDelay');
 var trajectory = simulateBeliefDelayAgent(startState, world, agent,
 					                      'stateAction');
 
 print("Agent's first 20 actions (during exploration phase): \n" + 
-      map(second,trajectory.slice(0,20)))
-      
+      map(second,trajectory.slice(0,20)));
+
+var averageUtility = listMean(map(numericBanditUtility, map(first,trajectory)));
 print('Arm2 is best arm and has expected utility 1.\n' + 
       'So ideal performance gives average score of: 1 \n' + 
       'The average score over 40 trials for greedy agent: '
-      + listMean(map(banditUtility, map(first,trajectory))))
+      + averageUtility);
 ~~~~
 
 
@@ -217,52 +224,45 @@ The Myopic agent performs well on a variety of Bandit problems. The following co
 // HELPERS FOR CONSTRUCTING AGENT
 
 var baseParams = {
-  utility: banditUtility,
   alpha: 1000,
   noDelays: false,
   sophisticatedOrNaive: 'naive',
+  boundVOI: {on: true, bound: 1},
   myopia: {on: false, bound: 0},
   discount: 0
 };
 
-var getParams = function(agentPrior, options){
+var getParams = function(agentPrior){
   var params = update(baseParams, {priorBelief: agentPrior});
-  return update(params, options);
+  return update(params);
 };
 
-var getAgentPrior = function(totalTime, priorArm0, priorArm1){
+var getAgentPrior = function(numberOfTrials, priorArm0, priorArm1){
   return Enumerate(function(){
-    var latentState = {0: priorArm0(), 1: priorArm1()};
-    return buildBanditStartState(totalTime, latentState);
+    var armToPrizeERP = {0: priorArm0(), 1: priorArm1()};
+    return makeBanditStartState(numberOfTrials, armToPrizeERP);
   });
 };
 
 // HELPERS FOR CONSTRUCTING WORLD
 
 // Possible distributions for arms
-var probably1ERP = categoricalERP([0.4, 0.6], [0, 1]);
 var probably0ERP = categoricalERP([0.6, 0.4], [0, 1]);
-
+var probably1ERP = categoricalERP([0.4, 0.6], [0, 1]);
 
 // Construct Bandit POMDP
-var getBanditWorld = function(totalTime){
-  var numberArms = 2;
-  var world = makeBanditWorld(numberArms);
-  
-  // Arm to distribution
-  var trueLatent = {0: probably0ERP,
-		            1: probably1ERP};
-  
-  var start = buildBanditStartState(totalTime, trueLatent);
-
-  return {world:world, start:start};
+var getBandit = function(numberOfTrials){
+  return makeBandit({
+    numberOfArms: 2,
+	armToPrizeERP: {0: probably0ERP, 1: probably1ERP},
+	numberOfTrials: numberOfTrials,
+	numericalPrizes: true
+  });
 };
 
 // Get score for a single episode of bandits
 var score = function(out){
-  var total = sum(map(function(x){
-    return banditUtility(x);}, out));
-  return total / out.length;
+  return listMean(map(numericBanditUtility, out));
 };
 ///
 
@@ -277,40 +277,41 @@ var probably1ERP = categoricalERP([0.4, 0.6], [0, 1]);
 
 // Agent prior on arms: arm1 (better arm) has higher EV
 var priorArm0 = function(){
-  return categorical([0.5, 0.5], [probably1ERP, probably0ERP])
+  return categorical([0.5, 0.5], [probably1ERP, probably0ERP]);
 };
 var priorArm1 = function(){
-  return categorical([0.6, 0.4], [probably1ERP, probably0ERP])
+  return categorical([0.6, 0.4], [probably1ERP, probably0ERP]);
 };
 
 
-var runAgent = function(totalTime, optimal){
+var runAgent = function(numberOfTrials, optimal){
   // Construct world and agents
-  var banditWorld = getBanditWorld(totalTime);
-  var world = banditWorld.world;
-  var start = banditWorld.start;
-  var prior = getAgentPrior(totalTime, priorArm0, priorArm1);
+  var bandit = getBandit(numberOfTrials);
+  var world = bandit.world;
+  var startState = bandit.startState;
+  var prior = getAgentPrior(numberOfTrials, priorArm0, priorArm1);
+  var agentParams = getParams(prior);
 
-  var agent = optimal? makeBeliefAgent(getParams(prior), world) :
-   makeBeliefDelayAgent(getParams(prior, {boundVOI:{on:true, bound:1}}), world);
+  var agent = optimal ? makeBanditAgent(agentParams, bandit, 'belief') :
+       makeBanditAgent(agentParams, bandit, 'beliefDelay');
 
-  var simulate = optimal? simulateBeliefAgent : simulateBeliefDelayAgent;
+  var simulate = optimal ? simulateBeliefAgent : simulateBeliefDelayAgent;
   
-  return score(simulate(start, world, agent, 'states')); 
+  return score(simulate(startState, world, agent, 'states')); 
 };
 
 // Run each agent 10 times and take average of scores
 var means = map( function(optimal){
-  var scores = repeat(10, function(){return runAgent(5,optimal)});
-  var st = optimal? 'Optimal: ' : 'Myopic: ';
-  print(st + 'Mean scores on 10 repeats of 5-trial bandits\n' + scores)
+  var scores = repeat(10, function(){return runAgent(5,optimal);});
+  var st = optimal ? 'Optimal: ' : 'Myopic: ';
+  print(st + 'Mean scores on 10 repeats of 5-trial bandits\n' + scores);
   return listMean(scores);
   }, [true,false]);
   
 print('Overall means for [Optimal,Myopic]: ' + means);
 ~~~~
 
->**Exercise**: The above codebox shows that performance for the two agents is similar. Try varying the priors and the `latentState` and verify that performance remains similar. How would you provide stronger empirical evidence that the two algorithms are equivalent for this problem?
+>**Exercise**: The above codebox shows that performance for the two agents is similar. Try varying the priors and the `armToPrizeERP` and verify that performance remains similar. How would you provide stronger empirical evidence that the two algorithms are equivalent for this problem?
 
 The following codebox computes the runtime for Myopic and Optimal agents as a function of the number of Bandit trials. We see that the Myopic agent has better scaling even on a small number of trials. Note that neither agent has been optimized for Bandit problems.
 
@@ -324,23 +325,23 @@ The following codebox computes the runtime for Myopic and Optimal agents as a fu
 // HELPERS FOR CONSTRUCTING AGENT
 
 var baseParams = {
-  utility: banditUtility,
   alpha: 1000,
   noDelays: false,
   sophisticatedOrNaive: 'naive',
   myopia: {on: false, bound: 0},
+  boundVOI: {on: true, bound: 1},
   discount: 0
 };
 
-var getParams = function(agentPrior, options){
+var getParams = function(agentPrior){
   var params = update(baseParams, {priorBelief: agentPrior});
-  return update(params, options);
+  return update(params);
 };
 
-var getAgentPrior = function(totalTime, priorArm0, priorArm1){
+var getAgentPrior = function(numberOfTrials, priorArm0, priorArm1){
   return Enumerate(function(){
-    var latentState = {0: priorArm0(), 1: priorArm1()};
-    return buildBanditStartState(totalTime, latentState);
+    var armToPrizeERP = {0: priorArm0(), 1: priorArm1()};
+    return makeBanditStartState(numberOfTrials, armToPrizeERP);
   });
 };
 
@@ -352,24 +353,18 @@ var probably0ERP = categoricalERP([0.6, 0.4], [0, 1]);
 
 
 // Construct Bandit POMDP
-var getBanditWorld = function(totalTime){
-  var numberArms = 2;
-  var world = makeBanditWorld(numberArms);
-  
-  // Arm to distribution
-  var trueLatent = {0: probably0ERP,
-		            1: probably1ERP};
-  
-  var start = buildBanditStartState(totalTime, trueLatent);
-
-  return {world:world, start:start};
+var getBandit = function(numberOfTrials){
+  return makeBandit({
+    numberOfArms: 2,
+	armToPrizeERP: {0: probably0ERP, 1: probably1ERP},
+	numberOfTrials: numberOfTrials,
+	numericalPrizes: true
+  });
 };
 
 // Get score for a single episode of bandits
 var score = function(out){
-  var total = sum(map(function(x){
-    return banditUtility(x);}, out));
-  return total / out.length;
+  return listMean(map(numericBanditUtility, out));
 };
 
 
@@ -384,32 +379,32 @@ var probably1ERP = categoricalERP([0.4, 0.6], [0, 1]);
 
 // Agent prior on arms: arm1 (better arm) has higher EV
 var priorArm0 = function(){
-  return categorical([0.5, 0.5], [probably1ERP, probably0ERP])
+  return categorical([0.5, 0.5], [probably1ERP, probably0ERP]);
 };
 var priorArm1 = function(){
-  return categorical([0.6, 0.4], [probably1ERP, probably0ERP])
+  return categorical([0.6, 0.4], [probably1ERP, probably0ERP]);
 };
 
 
-var runAgents = function(totalTime){
+var runAgents = function(numberOfTrials){
   // Construct world and agents
-  var banditWorld = getBanditWorld(totalTime);
-  var world = banditWorld.world;
-  var start = banditWorld.start;
+  var bandit = getBandit(numberOfTrials);
+  var world = bandit.world;
+  var startState = bandit.startState;
   
-  var agentPrior = getAgentPrior(totalTime, priorArm0, priorArm1);
+  var agentPrior = getAgentPrior(numberOfTrials, priorArm0, priorArm1);
+  var agentParams = getParams(agentPrior);
 
-  var optimalAgent = makeBeliefAgent(getParams(agentPrior), world);
-  var myopicParams = getParams(agentPrior, {boundVOI: {on:true, bound:1}});
-  var myopicAgent = makeBeliefDelayAgent(myopicParams, world);
+  var optimalAgent = makeBanditAgent(agentParams, bandit, 'belief');
+  var myopicAgent = makeBanditAgent(agentParams, bandit, 'beliefDelay');
 
   // Get average score across totalTime for both agents
   var runOptimal = function(){
-    return score(simulateBeliefAgent(start, world, optimalAgent, 'states')); 
+    return score(simulateBeliefAgent(startState, world, optimalAgent, 'states')); 
   };
   
   var runMyopic = function(){
-    return score(simulateBeliefDelayAgent(start, world, myopicAgent, 'states'));
+    return score(simulateBeliefDelayAgent(startState, world, myopicAgent, 'states'));
   };
 
   return [timeit(runOptimal), timeit(runMyopic)];
@@ -427,7 +422,7 @@ print('Runtime in s for [Optimal,Myopic] agents:');
 
 map( function(totalTime){
     print( totalTime + ': ' +
-          map( function(out){return getTime(out);}, runAgents(totalTime)) );
+          map(getTime, runAgents(totalTime)) );
           }, totalTimeValues );
 
 //TODO graph these.
@@ -453,8 +448,9 @@ TODO: gridworld draw should take pomdp trajectories. they should also take POMDP
 // optimal_agent_restaurant_search
 
 var pomdp = makeRestaurantSearchPOMDP();
-var world = pomdp.world
+var world = pomdp.world;
 var makeUtility = pomdp.makeUtility;
+var startState = pomdp.startState;
 
 var agentPrior = Enumerate(function(){
   var rewardD = uniformDraw([0,5]); // D is bad or great (E is opposite)
@@ -479,8 +475,6 @@ var manifestStates = map(function(state){return state.manifestState;},
                          trajectory);
 print('Quality of restaurants: \n'+JSON.stringify(startState.latentState));
 GridWorld.draw(pomdp.mdp, {trajectory: manifestStates})
-
-// TODO fix error "startState is not defined"
 ~~~~
 
 >**Exercise:** The codebox below shows the behavior the Myopic agent. Try different values for the `myopiaBound` parameter. For values in $$[1,2,3]$$, explain the behavior of the Myopic agent. 
