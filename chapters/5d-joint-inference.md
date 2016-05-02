@@ -236,15 +236,20 @@ var displayExpectations = function(getPosterior){
 ///
 
 
-var getPosterior = function(timeLeft, useOptimalModel) {
-  var numArms = 2;
-  var armToPrize = {0: 'chocolate',
-		            1: 'nothing'};
-  var worldAndStart = makeIRLBanditWorldAndStart(numArms, armToPrize, timeLeft);
-  var startState = worldAndStart.startState;
-  var alternativeLatent = update(armToPrize, {1: 'champagne'});
-  var alternativeStartState = update(startState,
-                                     {latentState: alternativeLatent});
+var getPosterior = function(numberOfTrials, useOptimalModel) {
+  var trueArmToPrizeERP = {0: deltaERP('chocolate'),
+		                   1: deltaERP('nothing')};
+  var bandit = makeBandit({
+    numberOfArms: 2,
+	armToPrizeERP: trueArmToPrizeERP,
+	numberOfTrials: numberOfTrials
+  });
+
+  var startState = bandit.startState;
+  var alternativeArmToPrizeERP = update(trueArmToPrizeERP,
+                                        {1: deltaERP('champagne')});
+  var alternativeStartState = makeBanditStartState(numberOfTrials,
+	                                               alternativeArmToPrizeERP);
 
   var priorAgentPrior = deltaERP(categoricalERP([0.7, 0.3],
 						                        [startState,
@@ -276,8 +281,8 @@ var getPosterior = function(timeLeft, useOptimalModel) {
 
   var observations = [[startState, 0]];
   
-  var outputERP = inferIRLBandit(worldAndStart, baseAgentParams, prior,
-				                 observations, 'offPolicy', 0, 'beliefDelay');
+  var outputERP = inferBandit(bandit, baseAgentParams, prior, observations,
+                              'offPolicy', 0, 'beliefDelay');
   
   var marginalChocolate = Enumerate(function(){
     return sample(outputERP).prizeToUtility.chocolate;
