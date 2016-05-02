@@ -270,7 +270,7 @@ Hyperbolic discounting provides an elegant model of this behavior. On Day 1, a h
 
 In this problem, the behavior of optimal and time-inconsistent agents with identical preferences (i.e. utility functions) diverges. If the deadline is $$T$$ days from the start, the optimal agent will do the task immediately and the Naive agent will do the task on Day $$T$$. (Any problem where a time-inconsistent agent receives exponentially lower reward than an optimal agent contains a close variant of our Procrastination Problem[^kleinberg]). 
 
-[^kleinberg]: refp:kleinberg2014time considers a variant problem where the each cost/penalty for waiting is received immediately (rather than being delayed until the time the task is done). In this variant, the agent must eventually complete the task. The authors consider "semi-myopic" time-inconsistent agents, i.e. agents who do not discount their next reward, but discount all future rewards by $$\beta < 1$$. They show that in any problem where a semi-myopic agent receives exponentially lower reward than an optimal agent, the problem must contain a copy of their variant of the Procrastination Problem.
+[^kleinberg]: The paper refp:kleinberg2014time considers a variant problem where the each cost/penalty for waiting is received immediately (rather than being delayed until the time the task is done). In this variant, the agent must eventually complete the task. The authors consider "semi-myopic" time-inconsistent agents, i.e. agents who do not discount their next reward, but discount all future rewards by $$\beta < 1$$. They show that in any problem where a semi-myopic agent receives exponentially lower reward than an optimal agent, the problem must contain a copy of their variant of the Procrastination Problem.
 
 We formalize the Procrastination Problem in terms of a deterministic graph. Suppose the **deadline** is $$T$$ steps from the start. Assume that after $$t$$ < $$T$$ steps the agent has not yet completed the task. Then the agent can take the action `"work"` (which has **work cost** $$-w$$) or the action `"wait"` with zero cost. After the `"work"` action the agent transitions to the `"reward"` state and receives $$+(R - t \epsilon)$$, where $$R$$ is the **reward** for the task and $$\epsilon$$ is how much the reward diminishes for every day of waiting (the **wait cost**). See Figure 3 below.  
 
@@ -304,7 +304,7 @@ var getLastState = function(discount){
   return [last(states).loc, states.length];
 };
 
-// TODO use vegaPrint to display as table
+// TODO why do we get non-monotonic and noisy result?
 map( function(discount){
     var lastState = getLastState(discount);
     print('Discount: ' + discount + '. Last state: ' + lastState[0] +
