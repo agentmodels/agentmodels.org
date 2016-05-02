@@ -39,7 +39,7 @@ This chapter provides an array of illustrative examples of learning about agents
 Consider the MDP version of Bob's Restaurant Choice problem. Bob is choosing between restaurants, all restaurants are open (and Bob knows this), and Bob also knows the street layout. Previously, we discussed how to compute optimal behavior *given* Bob's utility function over restaurants. Now we infer Bob's utility function *given* observations of the behavior in the codebox:
 
 ~~~~
-var world = restaurantChoiceMDP; 
+var world = makeRestaurantChoiceMDP(); 
 var observedTrajectory = map(first,
 	                         restaurantNameToObservationTime11.donutSouth);
 
@@ -79,7 +79,7 @@ var posterior = Enumerate( function(){
   var utilityTable = utilityTableAndFavourite.table;
   var favourite = utilityTableAndFavourite.favourite;
   
-  var utility = mdpTableToUtilityFunction(utilityTable, world);
+  var utility = makeRestaurantUtilityFunction(world, utilityTable);
   var params = {utility: utility,
 		        alpha: 1000};
   var agent  = makeMDPAgent(params, world);
@@ -145,7 +145,7 @@ Our approach to inference is slightly different than in the example at the start
 ~~~~
 // infer_from_single_step_trajectory
 
-var world = restaurantChoiceMDP;
+var world = makeRestaurantChoiceMDP();
 
 var utilityTablePrior = function(){
   var baseUtilityTable = {
@@ -172,7 +172,7 @@ var observedStateAction = [[{loc: [3,1],
 var posterior = Enumerate( function(){
   var utilityTableAndFavourite = utilityTablePrior();
   var utilityTable = utilityTableAndFavourite.table;
-  var utility = mdpTableToUtilityFunction(utilityTable, world);
+  var utility = makeRestaurantUtilityFunction(world, utilityTable);
   var favourite = utilityTableAndFavourite.favourite;
 
   var params = {utility: utility,
@@ -223,7 +223,7 @@ var posterior = function(observedStateActionSequence){
   return Enumerate( function() {
     var utilityTable = utilityTablePrior();
     var alpha = alphaPrior();
-    var params = {utility: mdpTableToUtilityFunction(utilityTable, world),
+    var params = {utility: makeRestaurantUtilityFunction(world, utilityTable),
 		          alpha: alpha};
     var agent = makeMDPAgent(params, world);
     var act = agent.act;
@@ -307,7 +307,7 @@ var posterior = function(observedStateActionSequence){
   return Enumerate( function() {
     var utilityTable = utilityTablePrior();
     var alpha = alphaPrior();
-    var params = {utility: mdpTableToUtilityFunction(utilityTable, world),
+    var params = {utility: makeRestaurantUtilityFunction(world, utilityTable),
 		          alpha: alpha};
     var agent = makeMDPAgent(params, world);
     var act = agent.act;

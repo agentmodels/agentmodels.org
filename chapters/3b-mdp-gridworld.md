@@ -230,7 +230,7 @@ var world = makeHike(noiseProb, {big: true});
 
 var alpha = 100;
 var utilityTable = {East: 10, West: 7, Hill : -40, timeCost: -0.4};
-var utility = mdpTableToUtilityFunction(utilityTable, world);
+var utility = makeHikeUtilityFunction(world, utilityTable);
 var agent = makeMDPAgent({utility: utility, alpha: alpha}, world);
 
 var startState = {loc: [1,1],
