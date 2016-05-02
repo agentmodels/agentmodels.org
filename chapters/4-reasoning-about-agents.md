@@ -23,7 +23,7 @@ $$
 
 This approach, using generative models of sequential decision making, has used to learn preferences and beliefs about education, work, health, and many other topics[^generative].
 
-[^generative]: The approach in economics closest to the one we outline here (with models of action based on sequential decision making) is called "Structural Estimation". TODO: citations. Some particular examples are: refp:aguirregabiria2010dynamic, refp:darden2010smoking. A related piece of work in AI or computational social science is: refp:ermon2014learning.
+[^generative]: The approach in economics closest to the one we outline here (with models of action based on sequential decision making) is called "Structural Estimation". Some particular examples are refp:aguirregabiria2010dynamic and refp:darden2010smoking. A related piece of work in AI or computational social science is refp:ermon2014learning.
 
 Agent models are also used as generative models in Machine Learning, under the label "Inverse Reinforcement Learning" (IRL). One motivation for learning human preferences and beliefs is to give humans helpful recommendations (e.g. for products they are likely to enjoy). A different goal is to build systems that mimic human expert performance. For some tasks, it is hard for humans to directly specify a utility/reward function that is both correct and that can be tractably optimized. An alternative is to *learn* the human's utility function by watching them perform the task. Once learned, the system can use standard RL techniques to optimize the function. This has been applied to building systems to park cars, to fly helicopters, to control human-like bots in videogames, and to play table-tennis[^inverse].
 
@@ -62,7 +62,7 @@ var utilityTablePrior = function(){
     'Donut N': 1,
     'Veg': 1,
     'Noodle': 1,
-    timeCost: -0.05
+    'timeCost': -0.04
   };
   return uniformDraw( 
     [{table: update(baseUtilityTable, {'Donut N':2, 'Donut S':2}),
@@ -81,7 +81,7 @@ var posterior = Enumerate( function(){
   
   var utility = mdpTableToUtilityFunction(utilityTable, world);
   var params = {utility: utility,
-		        alpha: 100};
+		        alpha: 1000};
   var agent  = makeMDPAgent(params, world);
   
   var predictedStateAction = simulateMDP(startState, world, agent, 'stateAction');
@@ -153,7 +153,7 @@ var utilityTablePrior = function(){
     'Donut N': 1,
     'Veg': 1,
     'Noodle': 1,
-    timeCost: -0.05
+    'timeCost': -0.04
   };
   return uniformDraw( 
     [{table: update(baseUtilityTable, {'Donut N':2, 'Donut S':2}),
@@ -164,7 +164,7 @@ var utilityTablePrior = function(){
       favourite: 'noodle'}]
   );
 };
-var alpha = 100;
+var alpha = 1000;
 var observedStateAction = [[{loc: [3,1],
 			                 timeLeft: 11,
 							 terminateAfterAction: false}, 'l']];
@@ -214,7 +214,7 @@ var utilityTablePrior = function(){
           'Donut S': donut,
           'Veg': uniformDraw(foodValues),
           'Noodle': uniformDraw(foodValues),
-          timeCost: uniformDraw(timeCostValues)};
+          'timeCost': uniformDraw(timeCostValues)};
 };
 
 var alphaPrior = function(){return uniformDraw([.1,1,10,100]);};
