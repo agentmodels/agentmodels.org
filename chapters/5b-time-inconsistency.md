@@ -304,7 +304,7 @@ var getLastState = function(discount){
   return [last(states).loc, states.length];
 };
 
-// TODO why do we get non-monotonic and noisy result?
+// TODO_daniel why do we get non-monotonic and noisy result?
 map( function(discount){
     var lastState = getLastState(discount);
     print('Discount: ' + discount + '. Last state: ' + lastState[0] +
