@@ -705,18 +705,96 @@ We show two different posteriors. The first is after conditioning on the Naive p
 var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
 var getPosterior = restaurantHyperbolicInfer.getPosterior;
 
-var displayResults = function(erp, label){
-  if (label){print('Display: ' + label)}
-  var utility = erp.MAP().val.utility;
-  print('MAP utility for Veg: ' + utility['Veg'] + 
-  '. Donut: ' + utility['Donut N'] + ' \n')
-  viz.auto(getMarginalObject(erp,'sophisticatedOrNaive'));
-  viz.auto(getMarginalObject(erp,'vegMinusDonut'));
-  viz.auto(getMarginalObject(erp,'donutTempting'));
-  var alphaPrint = Enumerate(function(){
-    return {alpha: JSON.stringify(sample(erp).alpha) };
-  });                          
-  viz.auto(alphaPrint);
+var displayResults = function(priorERP, posteriorERP) {
+
+  var priorUtility = priorERP.MAP().val.utility;
+  print('Prior highest-probability utility for Veg: ' + priorUtility['Veg']
+	+ '. Donut: ' + priorUtility['Donut N'] + ' \n');
+
+  var posteriorUtility = posteriorERP.MAP().val.utility;
+  print('Posterior highest-probability utility for Veg: '
+	+ posteriorUtility['Veg'] + '. Donut: ' + posteriorUtility['Donut N']
+	+ ' \n');
+  
+  var getPriorProb = function(x){
+    var label = _.keys(x)[0];
+    var erp = getMarginalObject(priorERP, label);
+    return Math.exp(erp.score([],x));
+  };
+
+  var getPosteriorProb = function(x){
+    var label = _.keys(x)[0];
+    var erp = getMarginalObject(posteriorERP, label);
+    return Math.exp(erp.score([],x));
+  };
+
+  var sophisticationPriorDataTable = map(function(x){
+    return {sophisticatedOrNaive: x,
+	        probability: getPriorProb({sophisticatedOrNaive: x}),
+	        distribution: 'prior'};
+  }, ['naive', 'sophisticated']);
+
+  var sophisticationPosteriorDataTable = map(function(x){
+    return {sophisticatedOrNaive: x,
+	        probability: getPosteriorProb({sophisticatedOrNaive: x}),
+	        distribution: 'posterior'};
+  }, ['naive', 'sophisticated']);
+
+  var sophisticatedOrNaiveDataTable = append(sophisticationPosteriorDataTable,
+                                             sophisticationPriorDataTable);
+
+  viz.bar(sophisticatedOrNaiveDataTable, {groupBy: 'distribution'});
+
+  var vegMinusDonutPriorDataTable = map(function(x){
+    return {vegMinusDonut: x,
+	        probability: getPriorProb({vegMinusDonut: x}),
+	        distribution: 'prior'};
+  }, [-10, 0, 10, 20, 30, 40, 50, 60, 70]);
+
+  var vegMinusDonutPosteriorDataTable = map(function(x){
+    return {vegMinusDonut: x,
+	        probability: getPosteriorProb({vegMinusDonut: x}),
+	        distribution: 'posterior'};
+  }, [-10, 0, 10, 20, 30, 40, 50, 60, 70]);
+
+  var vegMinusDonutDataTable = append(vegMinusDonutPriorDataTable,
+				                      vegMinusDonutPosteriorDataTable);
+
+  viz.bar(vegMinusDonutDataTable, {groupBy: 'distribution'});
+  
+  var donutTemptingPriorDataTable = map(function(x){
+    return {donutTempting: x,
+	        probability: getPriorProb({donutTempting: x}),
+	        distribution: 'prior'};
+  }, [true, false]);
+
+  var donutTemptingPosteriorDataTable = map(function(x){
+    return {donutTempting: x,
+	        probability: getPosteriorProb({donutTempting: x}),
+	        distribution: 'posterior'};
+  }, [true, false]);
+
+  var donutTemptingDataTable = append(donutTemptingPriorDataTable,
+				                      donutTemptingPosteriorDataTable);
+
+  viz.bar(donutTemptingDataTable, {groupBy: 'distribution'});
+
+  var alphaPriorDataTable = map(function(x){
+    return {alpha: x,
+	        probability: getPriorProb({alpha: x}),
+	        distribution: 'prior'};
+  }, [0.1, 10, 1000]);
+
+  var alphaPosteriorDataTable = map(function(x){
+    return {alpha: x,
+	        probability: getPosteriorProb({alpha: x}),
+	        distribution: 'posterior'};
+  }, [0.1, 10, 1000]);
+
+  var alphaDataTable = append(alphaPriorDataTable,
+			                  alphaPosteriorDataTable);
+
+  viz.bar(alphaDataTable, {groupBy: 'distribution'});
 };
 
 ///
@@ -752,11 +830,13 @@ var world = makeRestaurantChoiceMDP(); //  makeRestaurantChoiceMDP({noReverse:fa
 
 var observedStateAction = restaurantNameToObservationTime11['naive'];
 var posterior = getPosterior(world, prior, observedStateAction);
-displayResults(getPosterior(world, prior, []), 'Prior distribution');
-displayResults(posterior, 'Posterior on Naive path');
-var numberRepeats = 2;
-displayResults(getPosterior(world, prior, observedStateAction, numberRepeats), 'Posterior on three repeats of Naive path')
+print('Prior and posterior after observing Naive path');
+displayResults(getPosterior(world, prior, []), posterior);
 
+print('Prior and posterior after observing Naive path three times');
+var numberRepeats = 2;
+displayResults(getPosterior(world, prior, []),
+               getPosterior(world, prior, observedStateAction, numberRepeats));
 ~~~~
 
 Conditioning on the Naive path once, the probabilities of the agent being Naive and of `donutTempting` both go up. However, the probability of high softmax noise also goes up. In terms of preferences, we rule out a strong preference for Veg and slightly reduce a preference for Donut. So if the agent were Naive, tempted by Donut and with very low noise, our inference would not place most of the posterior on this explanation. There are two reasons for this. First, this agent is unlikely in the prior. Second, the explanation of the behavior in terms of noise is plausible. (In our Gridworld setup, we don't allow the agent to backtrack to the previous state. This means there are few cases where a softmax noisy agent would behavior differently than a low noise one.). Conditioning on the same Naive path three times makes the explanation in terms of noise much less plausible: the agent would makes the same "mistake" three times and makes no other mistakes. (The results for the Sophisticated path are similar.)
