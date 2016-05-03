@@ -21,7 +21,7 @@ $$
 P( U, b \vert \{a_i\})  =: \text{Invert generative model via statistical inference}
 $$
 
-This approach, using generative models of sequential decision making, has used to learn preferences and beliefs about education, work, health, and many other topics[^generative].
+This approach, using generative models of sequential decision making, has been used to learn preferences and beliefs about education, work, health, and many other topics[^generative].
 
 [^generative]: The approach in economics closest to the one we outline here (with models of action based on sequential decision making) is called "Structural Estimation". Some particular examples are refp:aguirregabiria2010dynamic and refp:darden2010smoking. A related piece of work in AI or computational social science is refp:ermon2014learning.
 
