@@ -163,8 +163,13 @@ $(function(){
       var text = script.text === "" ? script.innerHTML : script.text;
       var options = script.type.match(/mode\s*=\s*display/) ?
           {displayMode: true} : {};
-      script.insertAdjacentHTML("beforebegin",
-                                katex.renderToString(text, options));
+      try {
+        script.insertAdjacentHTML("beforebegin",
+                                  katex.renderToString(text, options));
+      } catch (err) {
+          console.log('KaTeX error:');
+          console.log(err);
+      }
     }
   }
   document.body.className += " math_finished";
