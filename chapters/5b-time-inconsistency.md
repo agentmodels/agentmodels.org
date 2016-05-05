@@ -288,14 +288,14 @@ var deadline = 10;
 var world = makeProcrastinationMDP(deadline);
 
 // Agent params
-var utilityTable = {reward: 5,
-    waitCost: -0.1,
-    workCost: -1};
+var utilityTable = {reward: 4.5,
+                    waitCost: -0.1,
+					workCost: -1};
 
 var params = {utility: makeProcrastinationUtility(utilityTable),
-	      alpha: 1000,
-	      discount: null,
-	      sophisticatedOrNaive: 'sophisticated'};
+	          alpha: 1000,
+			  discount: null,
+			  sophisticatedOrNaive: 'sophisticated'};
 
 var getLastState = function(discount){
   var agent = makeHyperbolicDiscounter(update(params, {discount: discount}), 
@@ -304,18 +304,17 @@ var getLastState = function(discount){
   return [last(states).loc, states.length];
 };
 
-// TODO_daniel why do we get non-monotonic and noisy result?
 map( function(discount){
     var lastState = getLastState(discount);
     print('Discount: ' + discount + '. Last state: ' + lastState[0] +
-    '. Time: ' + lastState[1] + '\n')
+          '. Time: ' + lastState[1] + '\n')
 }, range(8) );
 ~~~~
 
 
 >**Exercise:**
 
-> 1. Explain how an exponential discounter would behave on this task. Assume their utilities are the same as above and consider different discount rates.  
+> 1. Explain how an exponential discounter would behave on this task. Assume their utilities are the same as above and consider different discount rates.
 > 2. Run the codebox above with a Sophisticated agent. Explain the results. 
 
 
