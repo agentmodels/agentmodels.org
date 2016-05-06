@@ -84,11 +84,11 @@ var makeAgent = function() {
 
     if (newTimeLeft == 0){
       return u; 
-    } else {                     
+    } else {
       return u + expectation(Enumerate(function(){
         var nextState = transition(state, action); 
         var nextAction = sample(act(nextState, newTimeLeft));
-        return expectedUtility(nextState, nextAction, newTimeLeft);  
+        return expectedUtility(nextState, nextAction, newTimeLeft);
       }));
     }
   };
@@ -122,10 +122,10 @@ var makeAgent = function() {
   var act = function(state, timeLeft){
     return Enumerate(function(){
       var action = uniformDraw([-1, 0, 1]);
-      var eu = expectedUtility(state, action, timeLeft);    
+      var eu = expectedUtility(state, action, timeLeft);
       factor(100 * eu);
       return action;
-    });      
+    });
   };
 
   var expectedUtility = function(state, action, timeLeft){
@@ -164,7 +164,7 @@ var simulate = function(startState, totalTime){
 
 var startState = 0;
 var totalTime = 4;
-print("Agent's action sequence: " + simulate(startState, totalTime));
+print("Agent's trajectory: " + simulate(startState, totalTime));
 ~~~~
 
 The `expectedUtility` and `simulate` functions are similar. The `expectedUtilty` function includes the agent's own (subjective) simulation of the future distribution on states. In the case of an MDP and an optimal agent, the agent's simulation is identical to the world simulator (up to irreducible random noise in the transition and choice functions). In later chapters, we describe agents whose subjective simulations diverge from the world simulator -- i.e. agents with inaccurate models of their future selves. 
