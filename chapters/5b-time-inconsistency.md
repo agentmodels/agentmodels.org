@@ -298,9 +298,10 @@ var params = {utility: makeProcrastinationUtility(utilityTable),
 			  sophisticatedOrNaive: 'sophisticated'};
 
 var getLastState = function(discount){
-  var agent = makeHyperbolicDiscounter(update(params, {discount: discount}), 
-                                       world);
-  var states = simulateMDP(world.startState, world, agent);
+  var agent = makeMDPAgentHyperbolic(update(params, {discount: discount}), 
+                                     world);
+  var states = simulateMDPAgentHyperbolic(world.startState, world, agent,
+									      'states');
   return [last(states).loc, states.length];
 };
 
