@@ -362,7 +362,7 @@ We consider an especially simple Bandit problem, where the agent already knows t
 >**Figure 3:** Structure of Bandit problem where `Arm1` is stochastic. 
 <br>
 
-For the following codebox, we use library functions for the environment (`makeBandit`), for constructing the agent (`makeBanditAgent`) and for simulating the agent (`simulateBeliefAgent`):
+For the following codebox, we use library functions for the environment (`makeBandit`), for constructing the agent (`makeBanditAgent`) and for simulating the agent (`simulate`):
 
 ~~~~
 // helper functions defined here:
@@ -425,7 +425,7 @@ var params = {alpha: 1000,
 var agent = makeBanditAgent(params, bandit, 'belief');
 
 // Simulate agent and return state-action pairs
-var trajectory = simulatePOMDPAgent(startState, world, agent, 'stateAction');
+var trajectory = simulate(startState, world, agent, 'stateAction');
 display(trajectory);
 ~~~~
 
@@ -477,7 +477,7 @@ var getRuntime = function(numberOfTrials){
   var agent = makeBanditAgent(params, bandit, 'belief');
 
   var f = function() {
-    return simulatePOMDPAgent(startState, world, agent, 'stateAction');
+    return simulate(startState, world, agent, 'stateAction');
   };
   
   return timeit(f).runtimeInMilliseconds.toPrecision(3) * 0.001;
@@ -540,7 +540,7 @@ var getRuntime = function(numberOfArms){
   var agent = makeBanditAgent(params, bandit, 'belief');
 
   var f = function() {
-    return simulatePOMDPAgent(startState, world, agent, 'stateAction');
+    return simulate(startState, world, agent, 'stateAction');
   };
 
   return timeit(f).runtimeInMilliseconds.toPrecision(3) * 0.001;
@@ -604,7 +604,7 @@ var prior = getPriorBeliefGridworld(startState.manifestState, latentSampler);
 var agent = makePOMDPAgentOptimal({utility: utility,
 			                       alpha: 100,
 								   priorBelief: prior}, world);
-var trajectory = simulatePOMDPAgent(startState, world, agent, 'states');
+var trajectory = simulate(startState, world, agent, 'states');
 var manifestStates = map(function(state){return state.manifestState;},
                          trajectory);
 
@@ -649,7 +649,7 @@ var utility = makeRestaurantUtilityFunction(world, utilityTable);
 var agent = makePOMDPAgentOptimal({utility: utility,
 			                       alpha: 100,
 			                       priorBelief: prior}, world);
-var trajectory = simulatePOMDPAgent(startState, world, agent, 'states');
+var trajectory = simulate(startState, world, agent, 'states');
 var manifestStates = map(function(state){return state.manifestState;},
                          trajectory);
 
