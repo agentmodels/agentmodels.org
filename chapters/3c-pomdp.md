@@ -126,8 +126,8 @@ var expectedUtility = function(belief, action) {
 	  } else {
 	    var nextState = transition(state, action);
 	    var nextObservation = observe(nextState);
-	    var nextBelief = updateBelief(belief, nextObservation, action);            
-	    var nextAction = sample(act(nextBelief));   
+	    var nextBelief = updateBelief(belief, nextObservation, action);
+	    var nextAction = sample(act(nextBelief));
 	    return u + expectedUtility(nextBelief, nextAction);
 	    }
     }));
@@ -150,7 +150,7 @@ var simulate = function(startState, priorBelief) {
       
     if (state.terminateAfterAction){
       return output;
-    } else {   
+    } else {
       var nextState = transition(state, action);
       return output.concat(sampleSequence(nextState, belief, action));
       }
@@ -273,8 +273,8 @@ var makeAgent = function(params){
 	  } else {
 	    var nextState = transition(state, action);
 	    var nextObservation = observe(nextState);
-	    var nextBelief = updateBelief(belief, nextObservation, action);            
-	    var nextAction = sample(act(nextBelief));   
+	    var nextBelief = updateBelief(belief, nextObservation, action);
+	    var nextAction = sample(act(nextBelief));
 	    return u + expectedUtility(nextBelief, nextAction);
 	  }
         }));
@@ -284,7 +284,7 @@ var makeAgent = function(params){
           act: act, 
           expectedUtility: expectedUtility, 
           updateBelief: updateBelief
-          };
+         };
 };
 
 var simulate = function(startState, agent){
@@ -301,12 +301,12 @@ var simulate = function(startState, agent){
          
     if (state.terminateAfterAction){
       return output;
-    } else {   
+    } else {
       var nextState = transition(state, action);
       return output.concat(sampleSequence(nextState, belief, action));
     }
   };
-  // Start with agent's prior and a special "null" action  
+  // Start with agent's prior and a special "null" action
   return sampleSequence(startState, priorBelief, 'noAction');
 };
 
@@ -384,7 +384,7 @@ var display = function(trajectory) {
 
   var printOut = function(n) {
     print('\n Arm: ' + actionsPrizes[2*n] + ' -- Prize: '
-	  + actionsPrizes[2*n + 1]);
+	      + actionsPrizes[2*n + 1]);
   };
   return map(printOut, range((actionsPrizes.length)*0.5));
 };
@@ -425,7 +425,7 @@ var params = {alpha: 1000,
 var agent = makeBanditAgent(params, bandit, 'belief');
 
 // Simulate agent and return state-action pairs
-var trajectory = simulateBeliefAgent(startState, world, agent, 'stateAction');
+var trajectory = simulatePOMDPAgent(startState, world, agent, 'stateAction');
 display(trajectory);
 ~~~~
 
@@ -477,7 +477,7 @@ var getRuntime = function(numberOfTrials){
   var agent = makeBanditAgent(params, bandit, 'belief');
 
   var f = function() {
-    return simulateBeliefAgent(startState, world, agent, 'stateAction');
+    return simulatePOMDPAgent(startState, world, agent, 'stateAction');
   };
   
   return timeit(f).runtimeInMilliseconds.toPrecision(3) * 0.001;
@@ -540,7 +540,7 @@ var getRuntime = function(numberOfArms){
   var agent = makeBanditAgent(params, bandit, 'belief');
 
   var f = function() {
-    return simulateBeliefAgent(startState, world, agent, 'stateAction');
+    return simulatePOMDPAgent(startState, world, agent, 'stateAction');
   };
 
   return timeit(f).runtimeInMilliseconds.toPrecision(3) * 0.001;
@@ -581,7 +581,7 @@ var utilityTable = {'Donut N': 5,
 					'Veg': 1,
 					'Noodle': 1,
 					'timeCost': -0.1};
-var utility = tableToUtilityFunction(utilityTable, world);
+var utility = makeRestaurantUtilityFunction(world, utilityTable);
 var latent = {'Donut N': true,
 		      'Donut S': true,
 			  'Veg': true,
@@ -601,10 +601,10 @@ var latentSampler = function() {
 };
 
 var prior = getPriorBeliefGridworld(startState.manifestState, latentSampler);
-var agent = makeBeliefAgent({utility: utility,
-			                 alpha: 100,
-							 priorBelief: prior}, world);
-var trajectory = simulateBeliefAgent(startState, world, agent, 'states');
+var agent = makePOMDPAgentOptimal({utility: utility,
+			                       alpha: 100,
+								   priorBelief: prior}, world);
+var trajectory = simulatePOMDPAgent(startState, world, agent, 'states');
 var manifestStates = map(function(state){return state.manifestState;},
                          trajectory);
 
@@ -645,11 +645,11 @@ var utilityTable = {'Donut N': 1,
 					'Veg': 3,
 					'Noodle': 5,
 					'timeCost': -0.1};
-var utility = tableToUtilityFunction(utilityTable, world);
-var agent = makeBeliefAgent({utility: utility,
-			                 alpha: 100,
-			                 priorBelief: prior}, world);
-var trajectory = simulateBeliefAgent(startState, world, agent, 'states');
+var utility = makeRestaurantUtilityFunction(world, utilityTable);
+var agent = makePOMDPAgentOptimal({utility: utility,
+			                       alpha: 100,
+			                       priorBelief: prior}, world);
+var trajectory = simulatePOMDPAgent(startState, world, agent, 'states');
 var manifestStates = map(function(state){return state.manifestState;},
                          trajectory);
 
