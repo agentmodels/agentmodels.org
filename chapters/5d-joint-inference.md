@@ -143,7 +143,7 @@ var getPosterior = function(observedStateAction, useOptimalModel) {
       sophisticatedOrNaive: 'naive'
     };
     
-    var agent = makeHyperbolicDiscounter(params, world);
+    var agent = makeMDPAgent(params, world);
     var act = agent.act;
 
     map(function(stateAction){
