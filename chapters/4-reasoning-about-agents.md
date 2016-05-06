@@ -82,10 +82,9 @@ var posterior = Enumerate( function(){
   var utility = makeRestaurantUtilityFunction(world, utilityTable);
   var params = {utility: utility,
 		        alpha: 1000};
-  var agent  = makeMDPAgentOptimal(params, world);
+  var agent  = makeMDPAgent(params, world);
   
-  var predictedStateAction = simulateMDPAgentOptimal(startState, world, agent,
-                                                     'stateAction');
+  var predictedStateAction = simulate(startState, world, agent, 'stateAction');
   condition(_.isEqual(observedStateAction, predictedStateAction));
   return {favourite: favourite};
 });
@@ -178,7 +177,7 @@ var posterior = Enumerate( function(){
 
   var params = {utility: utility,
 		        alpha: alpha};
-  var agent  = makeMDPAgentOptimal(params, world);
+  var agent  = makeMDPAgent(params, world);
   var act = agent.act;
   // For each observed state-action pair, compute likekihood of action
   map( function(stateAction){
@@ -226,7 +225,7 @@ var posterior = function(observedStateActionSequence){
     var alpha = alphaPrior();
     var params = {utility: makeRestaurantUtilityFunction(world, utilityTable),
 		          alpha: alpha};
-    var agent = makeMDPAgentOptimal(params, world);
+    var agent = makeMDPAgent(params, world);
     var act = agent.act;
 
     var donutBest = utilityTable['Donut N'] >= utilityTable['Veg']
@@ -312,7 +311,7 @@ var posterior = function(observedStateActionSequence){
     var alpha = alphaPrior();
     var params = {utility: makeRestaurantUtilityFunction(world, utilityTable),
 		          alpha: alpha};
-    var agent = makeMDPAgentOptimal(params, world);
+    var agent = makeMDPAgent(params, world);
     var act = agent.act;
 
     var donutBest = utilityTable['Donut N'] >= utilityTable['Veg']
@@ -491,9 +490,8 @@ var simpleAgent = update(simpleAgent_,
                          {POMDPFunctions: getPOMDPFunctions(simpleAgent_.params,
                                                             bandit.world)});
 
-var observedSequence = simulatePOMDPAgent(bandit.startState, bandit.world,
-                                          simpleAgent,
-										  'stateObservationAction');
+var observedSequence = simulate(bandit.startState, bandit.world, simpleAgent,
+	                            'stateObservationAction');
 
 // Priors for inference
 
@@ -554,9 +552,8 @@ var simpleAgent = update(simpleAgent_,
 			             {POMDPFunctions: getPOMDPFunctions(simpleAgent_.params,
 							                                bandit.world)});
 
-var observedSequence = simulatePOMDPAgent(bandit.startState,
-                                          bandit.world, simpleAgent,
-										  'stateObservationAction');
+var observedSequence = simulate(bandit.startState, bandit.world, simpleAgent,
+	                            'stateObservationAction');
 
 // Agent either knows that arm1 has prize "champagne"
 // or agent thinks prize is probably "nothing"
@@ -627,9 +624,8 @@ var probLikesChocolate = function(numberOfTrials){
 			               {POMDPFunctions: getPOMDPFunctions(simpleAgent_.params,
 							                                  bandit.world)});
 
-  var observedSequence = simulatePOMDPAgent(bandit.startState,
-                                            bandit.world, simpleAgent,
-										    'stateObservationAction');
+  var observedSequence = simulate(bandit.startState, bandit.world, simpleAgent,
+	                              'stateObservationAction');
 
   var baseParams = {alpha: 100};
 
