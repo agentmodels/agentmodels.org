@@ -72,10 +72,10 @@ var makeAgent = function() {
   var act = function(state, timeLeft){
     return Enumerate(function(){
       var action = uniformDraw([-1, 0, 1]);
-      var eu = expectedUtility(state, action, timeLeft);    
+      var eu = expectedUtility(state, action, timeLeft);
       factor(100 * eu);
       return action;
-    });      
+    });
   };
 
   var expectedUtility = function(state, action, timeLeft){
@@ -186,10 +186,10 @@ var makeAgent = function() {
   var act = function(state, timeLeft){
     return Enumerate(function(){
       var action = uniformDraw([-1, 0, 1]);
-      var eu = expectedUtility(state, action, timeLeft);    
+      var eu = expectedUtility(state, action, timeLeft);
       factor(100 * eu);
       return action;
-    });      
+    });
   };
 
   var expectedUtility = function(state, action, timeLeft){
@@ -198,11 +198,11 @@ var makeAgent = function() {
 
     if (newTimeLeft == 0){
       return u; 
-    } else {                     
+    } else {
       return u + expectation(Enumerate(function(){
         var nextState = transition(state, action); 
         var nextAction = sample(act(nextState, newTimeLeft));
-        return expectedUtility(nextState, nextAction, newTimeLeft);  
+        return expectedUtility(nextState, nextAction, newTimeLeft);
       }));
     }
   };
@@ -260,10 +260,10 @@ var makeAgent = function() {
   var act = dp.cache(function(state, timeLeft){
     return Enumerate(function(){
       var action = uniformDraw([-1, 0, 1]);
-      var eu = expectedUtility(state, action, timeLeft);    
+      var eu = expectedUtility(state, action, timeLeft);
       factor(100 * eu);
       return action;
-    });      
+    });
   });
 
   var expectedUtility = dp.cache(function(state, action, timeLeft){
@@ -272,11 +272,11 @@ var makeAgent = function() {
 
     if (newTimeLeft == 0){
       return u; 
-    } else {                     
+    } else {
       return u + expectation(Enumerate(function(){
         var nextState = transition(state, action); 
         var nextAction = sample(act(nextState, newTimeLeft));
-        return expectedUtility(nextState, nextAction, newTimeLeft);  
+        return expectedUtility(nextState, nextAction, newTimeLeft);
       }));
     }
   });
@@ -341,7 +341,7 @@ var utilityTable = {'Donut S': 1,
                     'Noodle': 2, 
                     'timeCost': -0.1};
 
-var tableToUtilityFunction = function(table, feature){  
+var tableToUtilityFunction = function(table, feature){
   return function(state, action){
     var stateFeatureName = feature(state).name;
     return stateFeatureName ? table[stateFeatureName] : table.timeCost;
