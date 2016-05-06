@@ -82,9 +82,10 @@ var posterior = Enumerate( function(){
   var utility = makeRestaurantUtilityFunction(world, utilityTable);
   var params = {utility: utility,
 		        alpha: 1000};
-  var agent  = makeMDPAgent(params, world);
+  var agent  = makeMDPAgentOptimal(params, world);
   
-  var predictedStateAction = simulateMDP(startState, world, agent, 'stateAction');
+  var predictedStateAction = simulateMDPAgentOptimal(startState, world, agent,
+                                                     'stateAction');
   condition(_.isEqual(observedStateAction, predictedStateAction));
   return {favourite: favourite};
 });
@@ -177,11 +178,11 @@ var posterior = Enumerate( function(){
 
   var params = {utility: utility,
 		        alpha: alpha};
-  var agent  = makeMDPAgent(params, world);
+  var agent  = makeMDPAgentOptimal(params, world);
   var act = agent.act;
   // For each observed state-action pair, compute likekihood of action
   map( function(stateAction){
-    factor( act(stateAction[0]).score( [], stateAction[1]) );
+    factor( act(stateAction[0]).score([], stateAction[1]) );
   }, observedStateAction );
 
   return {favourite: favourite};
@@ -225,7 +226,7 @@ var posterior = function(observedStateActionSequence){
     var alpha = alphaPrior();
     var params = {utility: makeRestaurantUtilityFunction(world, utilityTable),
 		          alpha: alpha};
-    var agent = makeMDPAgent(params, world);
+    var agent = makeMDPAgentOptimal(params, world);
     var act = agent.act;
 
     var donutBest = utilityTable['Donut N'] >= utilityTable['Veg']
@@ -233,7 +234,7 @@ var posterior = function(observedStateActionSequence){
 
     // For each observed state-action pair, compute likekihood of action
     map( function(stateAction){
-      factor( act(stateAction[0]).score( [], stateAction[1]) );
+      factor( act(stateAction[0]).score([], stateAction[1]) );
       }, observedStateActionSequence );
 
     // Compute whether Donut is preferred to Veg and Noodle
@@ -260,6 +261,8 @@ map( function(variableName){
   viz.auto(getMarginalObject(posterior, variableName));
 }, ['donutFavorite', 'alpha', 'timeCost'] );
 ~~~~
+
+<!-- TODO: plot prior and posterior on same axes -->
 
 The posterior shows that taking a step towards Donut South can now be explained in terms of a high `timeCost`. If the agent has a low value for $$\alpha$$, this step to the left is fairly likely even if the agent prefers Noodle or Veg. So including softmax noise in the inference makes inferences about other parameters closer to the prior.
 
@@ -309,7 +312,7 @@ var posterior = function(observedStateActionSequence){
     var alpha = alphaPrior();
     var params = {utility: makeRestaurantUtilityFunction(world, utilityTable),
 		          alpha: alpha};
-    var agent = makeMDPAgent(params, world);
+    var agent = makeMDPAgentOptimal(params, world);
     var act = agent.act;
 
     var donutBest = utilityTable['Donut N'] >= utilityTable['Veg']
@@ -346,7 +349,7 @@ map( function(variableName){
 }, ['donutFavorite', 'alpha', 'timeCost'] );
   
 ~~~~
-
+<!-- TODO: plot prior and posterior on same axes -->
 
 
 ## Learning about agents in POMDPs
@@ -476,16 +479,21 @@ var bandit = makeBandit({
   numberOfTrials: 5
 });
 
-var simpleAgent = {
+var simpleAgent_ = {
   // simpleAgent always pulls arm 1
   act: function(belief){return Enumerate(function() {return 1;});},
   updateBelief: function(belief){return belief;},
-  params: {priorBelief: deltaERP(trueArmToPrizeERP)}
+  params: {priorBelief: deltaERP(bandit.startState)}
 };
 
-var observedSequence = simulateBeliefAgent(bandit.startState,
-                                           bandit.world, simpleAgent,
-										   'stateObservationAction');
+// necessary for proper functioning of simulatePOMDPAgent
+var simpleAgent = update(simpleAgent_,
+                         {POMDPFunctions: getPOMDPFunctions(simpleAgent_.params,
+                                                            bandit.world)});
+
+var observedSequence = simulatePOMDPAgent(bandit.startState, bandit.world,
+                                          simpleAgent,
+										  'stateObservationAction');
 
 // Priors for inference
 
@@ -512,13 +520,13 @@ var posterior = agentModelsBanditInfer(baseParams, priorPrizeToUtility,
 	                                   priorInitialBelief, bandit,
 									   observedSequence);
 
-print("After observing agent choose arm1, what are agent's utilities?")
-print('Posterior on agent utilities:')
-viz.auto(getMarginal(posterior,'prizeToUtility'))
+print("After observing agent choose arm1, what are agent's utilities?");
+print('Posterior on agent utilities:');
+viz.auto(getMarginal(posterior,'prizeToUtility'));
 ~~~~
 <!-- TODO - make output above less ugly -->
 
-In the codebox above, the agent's preferences are identified by the observations. This won't hold for the next example, which we introduced previously. The agent's utilities for prizes are still unknown and now the agent's prior is also unknown. Either the agent is "informed" and knows the truth that `arm1` yields "champagne". Or the agent is misinformed and believes `arm1` is likely to yield "nothing". These two possibilities are depicted in Figure 2.  
+In the codebox above, the agent's preferences are identified by the observations. This won't hold for the next example, which we introduced previously. The agent's utilities for prizes are still unknown and now the agent's prior is also unknown. Either the agent is "informed" and knows the truth that `arm1` yields "champagne". Or the agent is misinformed and believes `arm1` is likely to yield "nothing". These two possibilities are depicted in Figure 2.
 
 <img src="/assets/img/4-irl-bandit-2.png" alt="diagram" style="width: 600px;"/>
 
@@ -535,16 +543,20 @@ var bandit = makeBandit({
   numberOfTrials: 5
 });
 
-var simpleAgent = {
+var simpleAgent_ = {
   // simpleAgent always pulls arm 0
   act: function(belief){return Enumerate(function() {return 0;});},
   updateBelief: function(belief){return belief;},
-  params: {priorBelief: deltaERP(trueArmToPrizeERP)}
+  params: {priorBelief: deltaERP(bandit.startState)}
 };
 
-var observedSequence = simulateBeliefAgent(bandit.startState,
-                                           bandit.world, simpleAgent,
-										   'stateObservationAction');
+var simpleAgent = update(simpleAgent_,
+			             {POMDPFunctions: getPOMDPFunctions(simpleAgent_.params,
+							                                bandit.world)});
+
+var observedSequence = simulatePOMDPAgent(bandit.startState,
+                                          bandit.world, simpleAgent,
+										  'stateObservationAction');
 
 // Agent either knows that arm1 has prize "champagne"
 // or agent thinks prize is probably "nothing"
@@ -581,7 +593,7 @@ var utilityBeliefPosterior = Enumerate(function(){
   var utilityBelief = sample(posterior);
   var chocolateUtility = utilityBelief.prizeToUtility.chocolate;
   var likesChocolate = chocolateUtility > 3;
-  var isInformed = isDeltaERP(utilityBelief.priorBelief);
+  var isInformed = utilityBelief.priorBelief.support().length === 1;
   return {likesChocolate: likesChocolate,
 	      isInformed: isInformed};
 });
@@ -604,16 +616,20 @@ var probLikesChocolate = function(numberOfTrials){
 	numberOfTrials: numberOfTrials
   });
 
-  var simpleAgent = {
+  var simpleAgent_ = {
     // simpleAgent always pulls arm 0
-    act: function(belief){return Enumerate(function() {return 0;});},
-    updateBelief: function(belief){return belief;},
-    params: {priorBelief: deltaERP(trueArmToPrizeERP)}
+	act: function(belief){return Enumerate(function() {return 0;});},
+	updateBelief: function(belief){return belief;},
+	params: {priorBelief: deltaERP(bandit.startState)}
   };
 
-  var observedSequence = simulateBeliefAgent(bandit.startState,
-                                             bandit.world, simpleAgent,
-											 'stateObservationAction');
+  var simpleAgent = update(simpleAgent_,
+			               {POMDPFunctions: getPOMDPFunctions(simpleAgent_.params,
+							                                  bandit.world)});
+
+  var observedSequence = simulatePOMDPAgent(bandit.startState,
+                                            bandit.world, simpleAgent,
+										    'stateObservationAction');
 
   var baseParams = {alpha: 100};
 
