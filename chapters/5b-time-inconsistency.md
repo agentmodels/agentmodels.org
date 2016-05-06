@@ -117,10 +117,10 @@ var makeAgent = function (params, world) {
       var delay = delay ? delay : 0; //make sure delay is never undefined
       return Enumerate(function(){
         var action = uniformDraw(stateToActions(state));
-        var eu = expectedUtility(state, action, delay);    
+        var eu = expectedUtility(state, action, delay);
         factor(params.alpha * eu);
         return action;
-      });      
+      });
     });
   
   var expectedUtility = dp.cache(
@@ -128,14 +128,14 @@ var makeAgent = function (params, world) {
       var u = discountFunction(delay) * utility(state, action);
       if (state.terminateAfterAction){
         return u; 
-      } else {                     
+      } else {
         return u + expectation( Enumerate(function(){
           var nextState = transition(state, action); 
           var perceivedDelay = isNaive ? delay + 1 : 0;
           var nextAction = sample(act(nextState, perceivedDelay));
-          return expectedUtility(nextState, nextAction, delay+1);  
+          return expectedUtility(nextState, nextAction, delay+1);
         }));
-      }                      
+      }
     });
   
   return {
@@ -165,7 +165,7 @@ var runAndGraph = function(agent) {
 };
 
 var agent = makeAgent({sophisticatedOrNaive:'naive', 
-                      utility: restaurantUtility }, world);
+                       utility: restaurantUtility }, world);
 
 print('Naive agent: \n\n');
 runAndGraph(agent);
@@ -197,10 +197,10 @@ var makeAgent = function (params, world) {
       var delay = delay ? delay : 0; //make sure delay is never undefined
       return Enumerate(function(){
         var action = uniformDraw(stateToActions(state));
-        var eu = expectedUtility(state, action, delay);    
+        var eu = expectedUtility(state, action, delay);
         factor(params.alpha * eu);
         return action;
-      });      
+      });
     });
   
   var expectedUtility = dp.cache(
@@ -246,7 +246,7 @@ var runAndGraph = function(agent) {
 ///
 
 var agent = makeAgent({sophisticatedOrNaive:'sophisticated', 
-                      utility: restaurantUtility }, world);
+                       utility: restaurantUtility }, world);
 
 print('Sophisticated agent: \n\n');
 runAndGraph(agent);
@@ -298,10 +298,8 @@ var params = {utility: makeProcrastinationUtility(utilityTable),
 			  sophisticatedOrNaive: 'sophisticated'};
 
 var getLastState = function(discount){
-  var agent = makeMDPAgentHyperbolic(update(params, {discount: discount}), 
-                                     world);
-  var states = simulateMDPAgentHyperbolic(world.startState, world, agent,
-									      'states');
+  var agent = makeMDPAgent(update(params, {discount: discount}), world);
+  var states = simulate(world.startState, world, agent, 'states');
   return [last(states).loc, states.length];
 };
 
