@@ -134,11 +134,11 @@ var makeAgent = function() {
 
     if (newTimeLeft == 0){
       return u; 
-    } else {                     
+    } else {
       return u + expectation(Enumerate(function(){
         var nextState = transition(state, action); 
         var nextAction = sample(act(nextState, newTimeLeft));
-        return expectedUtility(nextState, nextAction, newTimeLeft);  
+        return expectedUtility(nextState, nextAction, newTimeLeft);
       }));
     }
   };
@@ -391,11 +391,11 @@ var makeAgent = function(){
 
     if (state.terminateAfterAction){
       return u; 
-    } else {                     
+    } else {
       return u + expectation(Enumerate(function(){
         var nextState = transition(state, action);
         var nextAction = sample(act(nextState));
-        return expectedUtility(nextState, nextAction);  
+        return expectedUtility(nextState, nextAction);
       }));
     }
   });

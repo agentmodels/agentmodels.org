@@ -29,7 +29,7 @@ We start with a *deterministic* transition function. In this case, Alice's risk 
 ~~~~
 // define_agent_simulate
 
-var makeMDPAgentOptimal = function(params, world) {
+var makeMDPAgent = function(params, world) {
   var stateToActions = world.stateToActions;
   var transition = world.transition;
   var utility = params.utility;
@@ -66,7 +66,7 @@ var makeMDPAgentOptimal = function(params, world) {
   };
 };
 
-var simulateMDPAgentOptimal = function(startState, world, agent, outputType) {
+var simulate = function(startState, world, agent, outputType) {
   // if outputType is undefined, default to states
   var act = agent.act;
   var transition = world.transition;
@@ -100,7 +100,7 @@ var startState = {loc: [0,1],
 var utilityTable = {East: 10, West: 1, Hill: -10, timeCost: -.1};
 var utility = makeHikeUtilityFunction(world, utilityTable);
 var agent = makeMDPAgent({utility: utility, alpha: 1000}, world);
-var trajectory = simulateMDP(startState, world, agent);
+var trajectory = simulate(startState, world, agent);
 
 
 GridWorld.draw(world, {trajectory: trajectory});
@@ -133,8 +133,8 @@ var startState = {loc: [0,1],
 // parameters for agent
 var utilityTable = { East: 10, West: 1, Hill: -10, timeCost: -.1 };
 var utility = makeHikeUtilityFunction(world, utilityTable);
-var agent = makeMDPAgentOptimal({utility: utility, alpha: 1000}, world);
-var trajectory = simulateMDPAgentOptimal(startState, world, agent, 'states');
+var agent = makeMDPAgent({utility: utility, alpha: 1000}, world);
+var trajectory = simulate(startState, world, agent, 'states');
 
 GridWorld.draw(world, {trajectory: trajectory});
 ~~~~
@@ -166,15 +166,15 @@ var startState = {loc: [0,1],
 var alpha = 1;
 var utilityTable = { East: 10, West: 1, Hill: -10, timeCost: -.1 };
 var utility = makeHikeUtilityFunction(world, utilityTable);
-var agent = makeMDPAgentOptimal({utility: utility, alpha: alpha}, world);
+var agent = makeMDPAgent({utility: utility, alpha: alpha}, world);
 
 // generate a single trajectory
-var trajectory = simulateMDPAgentOptimal(startState, world, agent, 'states');
+var trajectory = simulate(startState, world, agent, 'states');
 GridWorld.draw(world, {trajectory: trajectory});
 
 // run 100 iid samples of the function *lengthTrajectory*
 var lengthTrajectory = function(){
-  return simulateMDP(startState, world, agent).length;
+  return simulate(startState, world, agent).length;
 };
 var trajectoryERP = Rejection(lengthTrajectory, 100);
 viz.auto(trajectoryERP);
@@ -203,8 +203,8 @@ var startState = {loc: [1,1],
 // parameters for agent
 var utilityTable = { East: 10, West: 1, Hill: -10, timeCost: -.1 };
 var utility = makeHikeUtilityFunction(world, utilityTable);
-var agent = makeMDPAgentOptimal({utility: utility, alpha: 1000}, world);
-var trajectory = simulateMDPAgentOptimal(startState, world, agent, 'states');
+var agent = makeMDPAgent({utility: utility, alpha: 1000}, world);
+var trajectory = simulate(startState, world, agent, 'states');
 
 GridWorld.draw(world, {trajectory: trajectory});
 ~~~~
@@ -215,7 +215,7 @@ The expected values we seek to display are already being computed implicitly: we
 
 ~~~~
 // trajectory must consist only of states. This can be done by calling
-// *simulateMDP* with an additional final argument 'states'.
+// *simulate* with an additional final argument 'states'.
 var getExpectedUtilitiesMDP = function(stateTrajectory, world, agent) {
   var eu = agent.expectedUtility;
   var actions = world.actions;
@@ -234,13 +234,13 @@ var world = makeHike(noiseProb, {big: true});
 var alpha = 100;
 var utilityTable = {East: 10, West: 7, Hill : -40, timeCost: -0.4};
 var utility = makeHikeUtilityFunction(world, utilityTable);
-var agent = makeMDPAgentOptimal({utility: utility, alpha: alpha}, world);
+var agent = makeMDPAgent({utility: utility, alpha: alpha}, world);
 
 var startState = {loc: [1,1],
 		          timeLeft: 12,
 		          terminateAfterAction: false};
 
-var trajectory = simulateMDPAgentOptimal(startState, world, agent, 'states');
+var trajectory = simulate(startState, world, agent, 'states');
 var locs1 = map(function(state){return state.loc;}, trajectory);
 var eus = getExpectedUtilitiesMDP(trajectory, world, agent);
 
