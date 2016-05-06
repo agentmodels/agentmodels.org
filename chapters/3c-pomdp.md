@@ -601,9 +601,9 @@ var latentSampler = function() {
 };
 
 var prior = getPriorBeliefGridworld(startState.manifestState, latentSampler);
-var agent = makePOMDPAgentOptimal({utility: utility,
-			                       alpha: 100,
-								   priorBelief: prior}, world);
+var agent = makePOMDPAgent({utility: utility,
+			                alpha: 100,
+							priorBelief: prior}, world);
 var trajectory = simulate(startState, world, agent, 'states');
 var manifestStates = map(function(state){return state.manifestState;},
                          trajectory);
@@ -646,9 +646,9 @@ var utilityTable = {'Donut N': 1,
 					'Noodle': 5,
 					'timeCost': -0.1};
 var utility = makeRestaurantUtilityFunction(world, utilityTable);
-var agent = makePOMDPAgentOptimal({utility: utility,
-			                       alpha: 100,
-			                       priorBelief: prior}, world);
+var agent = makePOMDPAgent({utility: utility,
+			                alpha: 100,
+			                priorBelief: prior}, world);
 var trajectory = simulate(startState, world, agent, 'states');
 var manifestStates = map(function(state){return state.manifestState;},
                          trajectory);
