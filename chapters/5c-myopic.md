@@ -407,11 +407,17 @@ var runAgents = function(numberOfTrials){
     return score(simulatePOMDPAgentDelay(startState, world, myopicAgent, 'states'));
   };
 
-  return [timeit(runOptimal), timeit(runMyopic)];
-};
+  var optimalDatum = {numberOfTrials: numberOfTrials,
+                      runtime: timeit(runOptimal).runtimeInMilliseconds*0.001,
+					  agentType: 'optimal'
+  };
 
-var getTime = function(x){
-  return (.001*x.runtimeInMilliseconds).toPrecision(2);
+  var myopicDatum = {numberOfTrials: numberOfTrials,
+                     runtime: timeit(runMyopic).runtimeInMilliseconds*0.001,
+					 agentType: 'myopic'
+  };
+
+  return [optimalDatum, myopicDatum];
 };
 ///
 
@@ -420,12 +426,9 @@ var totalTimeValues = range(9).slice(2);
 
 print('Runtime in s for [Optimal,Myopic] agents:');
 
-map( function(totalTime){
-    print( totalTime + ': ' +
-          map(getTime, runAgents(totalTime)) );
-          }, totalTimeValues );
+var runtimeValues = _.flatten(map(runAgents, totalTimeValues));
 
-//TODO_daniel graph these.
+viz.line(runtimeValues, {groupBy: 'agentType'});
 ~~~~
 
 
