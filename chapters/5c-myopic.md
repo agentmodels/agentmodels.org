@@ -79,7 +79,7 @@ var params = {
   sophisticatedOrNaive: 'naive'
 };
 var agent = makeBanditAgent(params, bandit, 'beliefDelay');
-var trajectory = simulateBeliefDelayAgent(startState, world, agent, 'states');
+var trajectory = simulatePOMDPAgentDelay(startState, world, agent, 'states');
 var averageUtility = listMean(map(numericBanditUtility, trajectory));
 print('Arm1 is best arm and has expected utility 0.5.\n' + 
       'So ideal performance gives average score of: 0.5 \n' + 
@@ -138,8 +138,8 @@ var agentPrior = Enumerate(function(){
 
 var params = update(params, {priorBelief: agentPrior});
 var agent = makeBanditAgent(params, bandit, 'beliefDelay');
-var trajectory = simulateBeliefDelayAgent(startState, world, agent,
-					                      'stateAction');
+var trajectory = simulatePOMDPAgentDelay(startState, world, agent,
+                                         'stateAction');
 
 print("Agent's first 20 actions (during exploration phase): \n" + 
       map(second,trajectory.slice(0,20)));
@@ -295,7 +295,7 @@ var runAgent = function(numberOfTrials, optimal){
   var agent = optimal ? makeBanditAgent(agentParams, bandit, 'belief') :
        makeBanditAgent(agentParams, bandit, 'beliefDelay');
 
-  var simulate = optimal ? simulateBeliefAgent : simulateBeliefDelayAgent;
+  var simulate = optimal ? simulatePOMDPAgent : simulatePOMDPAgentDelay;
   
   return score(simulate(startState, world, agent, 'states')); 
 };
@@ -400,11 +400,11 @@ var runAgents = function(numberOfTrials){
 
   // Get average score across totalTime for both agents
   var runOptimal = function(){
-    return score(simulateBeliefAgent(startState, world, optimalAgent, 'states')); 
+    return score(simulatePOMDPAgent(startState, world, optimalAgent, 'states')); 
   };
   
   var runMyopic = function(){
-    return score(simulateBeliefDelayAgent(startState, world, myopicAgent, 'states'));
+    return score(simulatePOMDPAgentDelay(startState, world, myopicAgent, 'states'));
   };
 
   return [timeit(runOptimal), timeit(runMyopic)];
@@ -469,8 +469,8 @@ var params = {
   priorBelief: agentPrior
 };
 
-var agent = makeBeliefAgent(params, world);
-var trajectory = simulateBeliefAgent(pomdp.startState, world, agent, 'states');
+var agent = makePOMDPAgent(params, world);
+var trajectory = simulatePOMDPAgent(pomdp.startState, world, agent, 'states');
 var manifestStates = map(function(state){return state.manifestState;},
                          trajectory);
 print('Quality of restaurants: \n'+JSON.stringify(pomdp.startState.latentState));
@@ -512,8 +512,8 @@ var params = {
   boundVOI: {on: true, bound: myopiaBound},
 };
 
-var agent = makeBeliefDelayAgent(params, world);
-var trajectory = simulateBeliefDelayAgent(pomdp.startState, world, agent, 'states');
+var agent = makePOMDPAgentDelay(params, world);
+var trajectory = simulatePOMDPAgentDelay(pomdp.startState, world, agent, 'states');
 var manifestStates = map(function(state){return state.manifestState},
                          trajectory);
 
