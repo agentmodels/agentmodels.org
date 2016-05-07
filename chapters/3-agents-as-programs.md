@@ -37,6 +37,8 @@ $$
 In WebPPL, we can implement this utility-maximizing agent as a function `maxAgent` that takes a state $$s \in S$$ as input and returns an action. For Tom's choice between restaurants, we assume that the agent starts off in a state `"default"`, denoting whatever Tom does before going off to eat. The program directly translates the decision rule above using the higher-order function `argMax`.
 
 ~~~~
+var argMax = function(f,ar){return maxWith(f,ar)[0]};
+
 // Choose to eat at the Italian or French restaurants
 var actions = ['italian', 'french'];
 
@@ -109,6 +111,8 @@ $$
 To represent this in WebPPL, we extend `maxAgent` using the `expectation` function, which maps an ERP with finite support to its (real-valued) expectation:
 
 ~~~~
+var argMax = function(f,ar){return maxWith(f,ar)[0]};
+
 var actions = ['italian', 'french'];
 
 var transition = function(state, action){
