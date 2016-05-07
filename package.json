@@ -19,9 +19,9 @@
   "homepage": "https://github.com/agentmodels/agentmodels.org#readme",
   "dependencies": {
     "webppl": "^0.6.2",
+    "webppl-agents": "github:agentmodels/webppl-agents",
     "webppl-dp": "^0.1.1",
     "webppl-editor": "github:probmods/webppl-editor",
-    "webppl-agents": "github:agentmodels/webppl-agents",
     "webppl-timeit": "^0.3.0",
     "webppl-viz": "github:probmods/webppl-viz",
     "wp-editor": "github:probmods/webppl-editor"

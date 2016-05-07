@@ -13479,12 +13479,12 @@ arguments[4][39][0].apply(exports,arguments)
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
-  (factory((global.topojson = {})));
+  (factory((global.topojson = global.topojson || {})));
 }(this, function (exports) { 'use strict';
 
   function noop() {}
 
-  function absolute(transform) {
+  function transformAbsolute(transform) {
     if (!transform) return noop;
     var x0,
         y0,
@@ -13499,7 +13499,7 @@ arguments[4][39][0].apply(exports,arguments)
     };
   }
 
-  function relative(transform) {
+  function transformRelative(transform) {
     if (!transform) return noop;
     var x0,
         y0,
@@ -13509,8 +13509,8 @@ arguments[4][39][0].apply(exports,arguments)
         dy = transform.translate[1];
     return function(point, i) {
       if (!i) x0 = y0 = 0;
-      var x1 = (point[0] - dx) / kx | 0,
-          y1 = (point[1] - dy) / ky | 0;
+      var x1 = Math.round((point[0] - dx) / kx),
+          y1 = Math.round((point[1] - dy) / ky);
       point[0] = x1 - x0;
       point[1] = y1 - y0;
       x0 = x1;
@@ -13552,21 +13552,21 @@ arguments[4][39][0].apply(exports,arguments)
   }
 
   function object(topology, o) {
-    var absolute$$ = absolute(topology.transform),
+    var absolute = transformAbsolute(topology.transform),
         arcs = topology.arcs;
 
     function arc(i, points) {
       if (points.length) points.pop();
       for (var a = arcs[i < 0 ? ~i : i], k = 0, n = a.length, p; k < n; ++k) {
         points.push(p = a[k].slice());
-        absolute$$(p, k);
+        absolute(p, k);
       }
       if (i < 0) reverse(points, n);
     }
 
     function point(p) {
       p = p.slice();
-      absolute$$(p, 0);
+      absolute(p, 0);
       return p;
     }
 
@@ -13728,7 +13728,7 @@ arguments[4][39][0].apply(exports,arguments)
     return {type: "MultiLineString", arcs: stitchArcs(topology, arcs)};
   }
 
-  function triangle(triangle) {
+  function cartesianTriangleArea(triangle) {
     var a = triangle[0], b = triangle[1], c = triangle[2];
     return Math.abs((a[0] - c[0]) * (b[1] - a[1]) - (a[0] - b[0]) * (c[1] - a[1]));
   }
@@ -13772,8 +13772,8 @@ arguments[4][39][0].apply(exports,arguments)
       polygons.push(polygon);
     }
 
-    function exterior(ring$$) {
-      return ring(object(topology, {type: "Polygon", arcs: [ring$$]}).coordinates[0]) > 0; // TODO allow spherical?
+    function area(ring$$) {
+      return Math.abs(ring(object(topology, {type: "Polygon", arcs: [ring$$]}).coordinates[0]));
     }
 
     polygons.forEach(function(polygon) {
@@ -13823,14 +13823,11 @@ arguments[4][39][0].apply(exports,arguments)
 
         // If more than one ring is returned,
         // at most one of these rings can be the exterior;
-        // this exterior ring has the same winding order
-        // as any exterior ring in the original polygons.
+        // choose the one with the greatest absolute area.
         if ((n = arcs.length) > 1) {
-          var sgn = exterior(polygons[0][0]);
-          for (var i = 0, t; i < n; ++i) {
-            if (sgn === exterior(arcs[i])) {
-              t = arcs[0], arcs[0] = arcs[i], arcs[i] = t;
-              break;
+          for (var i = 1, k = area(arcs[0]), ki, t; i < n; ++i) {
+            if ((ki = area(arcs[i])) > k) {
+              t = arcs[0], arcs[0] = arcs[i], arcs[i] = t, k = ki;
             }
           }
         }
@@ -13940,11 +13937,11 @@ arguments[4][39][0].apply(exports,arguments)
   }
 
   function presimplify(topology, triangleArea) {
-    var absolute$$ = absolute(topology.transform),
-        relative$$ = relative(topology.transform),
+    var absolute = transformAbsolute(topology.transform),
+        relative = transformRelative(topology.transform),
         heap = minAreaHeap();
 
-    if (!triangleArea) triangleArea = triangle;
+    if (!triangleArea) triangleArea = cartesianTriangleArea;
 
     topology.arcs.forEach(function(arc) {
       var triangles = [],
@@ -13960,7 +13957,7 @@ arguments[4][39][0].apply(exports,arguments)
       // Infinity will be computed in the next step.
       for (i = 0, n = arc.length; i < n; ++i) {
         p = arc[i];
-        absolute$$(arc[i] = [p[0], p[1], Infinity], i);
+        absolute(arc[i] = [p[0], p[1], Infinity], i);
       }
 
       for (i = 1, n = arc.length - 1; i < n; ++i) {
@@ -14000,7 +13997,7 @@ arguments[4][39][0].apply(exports,arguments)
         }
       }
 
-      arc.forEach(relative$$);
+      arc.forEach(relative);
     });
 
     function update(triangle) {
@@ -14012,7 +14009,7 @@ arguments[4][39][0].apply(exports,arguments)
     return topology;
   }
 
-  var version = "1.6.24";
+  var version = "1.6.26";
 
   exports.version = version;
   exports.mesh = mesh;
@@ -49429,7 +49426,7 @@ function barDfs(df, options) {
     vlSpec.encoding.column = {
       "field": xName, "type": "ordinal",
       "scale": { "padding": 4 },
-      "axis": { "orient": "bottom", "axisWidth": 1, "offset": -8 }
+      "axis": { "orient": "bottom", "axisWidth": 1, "offset": -8, "labelAngle": 270 }
     };
 
     vlSpec.encoding.x = {
