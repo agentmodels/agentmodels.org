@@ -520,5 +520,7 @@ GridWorld.draw(pomdp.mdp, {trajectory: manifestStates});
 ~~~~
 
 -------
+
+
 ## Footnotes
 <br>
