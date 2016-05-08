@@ -33,7 +33,7 @@ where:
 
 - $$\nu$$ is an indicator for Naive or Sophisticated hyperbolic discounting
 
-- $$C \in [1,\infty]$$ is the integer cutoff or bound for Greedy or Myopic Agents[^bound] 
+- $$C \in [1,\infty]$$ is the integer cutoff or bound for Reward-myopic or Update-myopic Agents[^bound] 
 
 As in Equation (2), we condition on state-action-observation triples:
 
@@ -50,7 +50,7 @@ $$
 
 The likelihood term on the RHS of this equation is simply the softmax probability that the agent with given parameters chooses $$a_i$$ in state $$s_i$$. This equation for inference does not make use of the *delay* indices used by time-inconsistent and Myopic agents. This is because the delays figure only in their internal simulations. In order to compute the likelihood the agent takes an action, we don't need to keep track of delay values. 
 
-[^bound]: To simplify the presentation, we assume here that one does inference either about whether the agent is Myopic or about whether the agent is Greedy (but not both). It's actually straightforward to include both kinds of agents in the hypothesis space and infer both $$C_m$$ and $$C_g$$. 
+[^bound]: To simplify the presentation, we assume here that one does inference either about whether the agent is Update-myopic or about whether the agent is Reward-myopic (but not both). It's actually straightforward to include both kinds of agents in the hypothesis space and infer both $$C_m$$ and $$C_g$$. 
 
 
 ## Learning from Procrastinators
@@ -174,10 +174,10 @@ Suppose you now observe the person doing the task on the final day. What do you 
 ----------
 
 
-## Learning from Greedy Agents in Bandits
-We've seen that assuming optimality can lead to bad inferences due to systematic deviations between optimal and time-inconsistent agents. For this example we move to a POMDP problem: the IRL Bandit problem of earlier chapters. In Chapter V.2, we noted that the Greedy agent will explore less than an optimal agent. The Greedy agent plans each action as if time runs out in $$C_g$$ steps, where $$C_g$$ is the *bound* or "look ahead". If exploration only pays off in the long-run (after the bound) then the agent won't explore [^bandit1]. This means there are two possible explanations for an agent not exploring: either the agent is greedy or the agent has a low prior on utility of the unknown options.
+## Learning from Reward-myopic Agents in Bandits
+We've seen that assuming optimality can lead to bad inferences due to systematic deviations between optimal and time-inconsistent agents. For this example we move to a POMDP problem: the IRL Bandit problem of earlier chapters. In Chapter V.2, we noted that the Reward-myopic agent will explore less than an optimal agent. The Reward-myopic agent plans each action as if time runs out in $$C_g$$ steps, where $$C_g$$ is the *bound* or "look ahead". If exploration only pays off in the long-run (after the bound) then the agent won't explore [^bandit1]. This means there are two possible explanations for an agent not exploring: either the agent is greedy or the agent has a low prior on utility of the unknown options.
 
-[^bandit1]: If there's no noise in transitions or in selection of actions, the Greedy agent will *never* explore and will do worse than an agent that optimally solves the POMDP.
+[^bandit1]: If there's no noise in transitions or in selection of actions, the Reward-myopic agent will *never* explore and will do worse than an agent that optimally solves the POMDP.
 
 For this example, we consider the deterministic bandit-style problem from earlier. At each trial, the agent chooses between two arms with the following properties:
 
@@ -189,10 +189,9 @@ For this example, we consider the deterministic bandit-style problem from earlie
 
 The inference problem is to infer the agent's preference over chocolate. While this problem with only two deterministic arms may seem overly simple, the same kind of structure is shared by realistic problems. For example, we can imagine observing people choosing between different cuisines, restaurants or menu options. Usually people will know some options (arms) well but be uncertain about others. When inferring their preferences, we (as outside observers) need to distinguish between options chosen for exploration vs. exploitation The same applies to the example of people choosing media sources. Someone might try out a channel just in case it shows their favorite genre.
 
-As with the Procrastination example above, we compare the inferences of two models. The *Optimal Model* assumes the agent solving the POMDP optimally. The *Possibly Greedy Model* includes both the optimal agent and Greedy agents with different values for the bound $$C_g$$. The models know the agent's utility for champagne and his prior about how likely champagne is from `arm1`. The models have a fixed prior on the agent's utility for chocolate. We vary the agent's time horizon between 2 and 10 timesteps and plot posterior expectations for the utility of chocolate. For the Possibly Greedy model, we also plot the expectation for $$C_g$$. 
+As with the Procrastination example above, we compare the inferences of two models. The *Optimal Model* assumes the agent solving the POMDP optimally. The *Possibly Reward-myopic Model* includes both the optimal agent and Reward-myopic agents with different values for the bound $$C_g$$. The models know the agent's utility for champagne and his prior about how likely champagne is from `arm1`. The models have a fixed prior on the agent's utility for chocolate. We vary the agent's time horizon between 2 and 10 timesteps and plot posterior expectations for the utility of chocolate. For the Possibly Reward-myopic model, we also plot the expectation for $$C_g$$. 
 
-<!--(With stochastic bandits you could have arms which are known to have high variance and with uncertain expectation. In this case you might get less exploration even if the myopia bound is higher or discounting is weaker. It'd be nice to include such an example but it's not neccesary).--> 
-
+<!-- TODO fix this codebox -->
 ~~~~
 // infer_utility_from_no_exploration
 
@@ -214,23 +213,23 @@ var displayExpectations = function(getPosterior){
     }, range(features.length) );
   };
 
-   var displayOptimalAndPossiblyGreedySeries = function(index){
+   var displayOptimalAndPossiblyRewardMyopicSeries = function(index){
     print('\n\nfeature: ' + features[index]);
     var optimalSeries = getExpectations(true)[index];
-    var possiblyGreedySeries = getExpectations(false)[index];
+    var possiblyRewardMyopicSeries = getExpectations(false)[index];
     var plotOptimal = map(function(pair){
       return {horizon: pair[0], expectation: pair[1], agentModel: 'Optimal'};},
                           zip(timeHorizonValues, optimalSeries));
-    var plotPossiblyGreedy = map(function(pair){
+    var plotPossiblyRewardMyopic = map(function(pair){
       return {horizon: pair[0], expectation: pair[1],
-		      agentModel: 'Possibly Greedy'};},
+		      agentModel: 'Possibly RewardMyopic'};},
                                  zip(timeHorizonValues,
-									 possiblyGreedySeries));
-    viz.line(plotOptimal.concat(plotPossiblyGreedy), {groupBy: 'agentModel'});
+									 possiblyRewardMyopicSeries));
+    viz.line(plotOptimal.concat(plotPossiblyRewardMyopic), {groupBy: 'agentModel'});
   };
   
   print('Posterior expectation on feature after observing no exploration');
-  map(displayOptimalAndPossiblyGreedySeries, range(features.length));
+  map(displayOptimalAndPossiblyRewardMyopicSeries, range(features.length));
   return '';
 };
 ///
@@ -263,8 +262,7 @@ var getPosterior = function(numberOfTrials, useOptimalModel) {
   
   var priorMyopia =  useOptimalModel ? deltaERP({on:false, bound:0}) :
       Enumerate(function(){
-        return {on: true, 
-                bound: categorical([.4, .2, .1, .1, .1, .1], 
+        return {bound: categorical([.4, .2, .1, .1, .1, .1], 
                                    [1, 2, 3, 4, 6, 10])};
       });
   
@@ -273,8 +271,6 @@ var getPosterior = function(numberOfTrials, useOptimalModel) {
                priorMyopia: priorMyopia};
 
   var baseAgentParams = {alpha: 1000,
-			             myopia: {on: false, bound:0},
-						 boundVOI: {on: false, bound: 0},
 						 sophisticatedOrNaive: 'naive',
 						 discount: 0,
 						 noDelays: useOptimalModel};
@@ -297,7 +293,13 @@ print('Prior expected utility for arm0 (chocolate): ' + listMean(range(20).conca
 displayExpectations(getPosterior);
 ~~~~
 
-The graphs show that as the agent's time horizon increases the inferences of the two models diverge. For the Optimal agent, the longer time horizon makes exploration more valuable. So the Optimal model infers a higher utility for the known option as the time horizon increases. By contrast, the Possibly Greedy model can explain away the lack of exploration by the agent being Greedy. This latter model infers slightly lower values for $$C_g$$ as the horizon increases. 
+The graphs show that as the agent's time horizon increases the inferences of the two models diverge. For the Optimal agent, the longer time horizon makes exploration more valuable. So the Optimal model infers a higher utility for the known option as the time horizon increases. By contrast, the Possibly Reward-myopic model can explain away the lack of exploration by the agent being Reward-myopic. This latter model infers slightly lower values for $$C_g$$ as the horizon increases. 
 
 >**Exercise**: Suppose that instead of allowing the agent to be greedy, we allowed the agent to be a hyperbolic discounter. Think about how this would affect inferences from the observations above and for other sequences of observation. Change the code above to test out your predictions.
 <br>
+
+
+----
+
+
+## Footnotes
