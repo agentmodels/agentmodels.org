@@ -1,33 +1,36 @@
 ---
 layout: chapter
-title: Bounded Agents — Greedy and Myopic
-description: Fast approximate planning algorithms that assume a short time horizon for utilities (Greedy) or for obserations (Myopic)
+title: Bounded Agents — Myopia for rewards and updates
+description: Fast approximate planning algorithms that assume a short time horizon for utilities (reward-myopic) or for belief updates (update-myopic). 
 
 ---
 
 ### Introduction
-In the previous chapter, we extended our earlier agent model for solving MDPs optimally to a model of planning for hyperbolic discounters. The goal was to better capture human behavior by incorporating one of the most prominent and well studied human *biases*. As we discussed [earlier](/chapters/5-biases-intro), any bounded agent will be unable to solve certain computational problems optimally. So when modeling human behavior (e.g. for Inverse Reinforcement Learning), we might produce better generative models by incorporating planning algorithms that are sub-optimal but which perform well given human computational bounds (e.g. they might be "resource rational" in the sense of CITE). This chapter describes two approximate planning algorithms that are conceptually simple and much more scalable than optimal planning: Greedy planning and Myopic Exploration. Each can be implemented by adding a few lines of code to the optimal POMDP agent. 
-
-## Greedy Planning: the basic idea
-One reason optimal planning is computationally difficult is that it chooses actions in a way that takes into account the entire future. The (PO)MDP agent we described previously reasons backwards from utility of (belief) states at the final timestep. It considers actions on earlier timesteps based on whether they lead to good final states. (With an infinite time horizon, an optimal agent must consider the expected utility of being in every possible state, including states only reachable after a very long duration). Suppose we used this approach when playing against a predictable chess algorithm for a fixed and very large number of timesteps. Then it would simulate every possible chess game up to that duration, including many games that are incredibly unlikely.
-
-The obvious alternative to taking into account the entire future when taking an action is to consider only the short term. For example, in a problem that lasts 1000 timesteps, you take your first action by optimizing for the first 10 timesteps. For your second action, you recompute your plan, optimizing for timesteps 2-11, and so on. Whereas the optimal agent computes a complete plan or *policy* before the first timestep and does no more computation after that, the "greedy" alternative involves computing a short-term plan at every timestep. Spreading out the computation in this way can be much more tractable than the optimal approach. The Greedy approach only considers states or belief-states that it actually enters or that it gets close to, while the Optimal approach considers every possible state or belief-state.
-
-The Greedy approach will work best if continually optimizing for the short-term produces good results in the long-term. It's easy to imagine probems where this doesn't hold: e.g. if there's a big prize at the end of a long corridor (with no rewards along the way). A remedy is to find a proxy for the long-term expected utility of being in a state that is cheap to compute. For example, you can Greedily optimize the score of future chess positions using a cheaply computed evaluation function. In this chapter, we only consider the simplest kind of Greedy planning, where the agent optimizes for short-term utility (rather than for some tractable proxy of long-term utility).
+The previous chapter extended the MDP agent model to include exponential and hyperbolic discounting. The goal was to produce models of human behavior that capture a prominent *bias* (time inconsistency). As noted [earlier](/chapters/5-biases-intro) humans are not just biased but also *cognitively bounded*. This chapter extends the POMDP agent model with sub-optimal but frugal planning algorithms. These algorithms are implemented by adding a few lines of code to our POMDP agent. We illustrate their limitations and also cases where their performance is close to optimal (and much quicker). 
 
 
-### Greedy Planning: implementation and examples
-We consider the simplest kind of Greedy agent. This agent takes the expected-utility maximizing action, assuming that the decision problem ends $$C_g$$ steps into the future. The cutoff or *bound* $$C_g > 0$$ will typically be much smaller than the time horizon for the decision problem.
+## Reward-myopic Planning: the basic idea
+One reason optimal planning is computationally difficult is that it chooses actions in a way that takes into account the entire future. The optimal (PO)MDP agent reasons backwards from the utility of its final state. It considers actions on earlier timesteps based on whether they lead to good final states. (With an infinite time horizon, an optimal agent must consider the expected utility of being in every possible state, including states only reachable after a very long duration). Suppose we used this approach when playing against a predictable chess algorithm for a fixed and very large number of timesteps. Then it would simulate every possible chess game up to that duration, including many games that are incredibly unlikely.
 
-You will notice the similarity between the Greedy agent and the hyperbolic discounting agents. Both agents make plans based (mostly) on short-term rewards. Both agents revise these plans at every timestep. And the Naive and Greedy agents both have implicit models of their future selves that are incorrect. A major difference is that Greedy planning is much easier to make computationally fast. Given their similarity, it is unsurprising that we implement the Greedy agent using the concept of *delay* described in the previous chapter. The formalization and implementation of the Greedy agent is left as an exercise.
+Instead of explicitly optimizing for the entire future when taking an action, an agent can "myopically" optimize for near-term rewards. With a time-horizon of 1000 timesteps, the agent would take action $$a_1$$ optimizing for reward up to (say) timestep $$t_10$$, action $$a_2$$ optimizing for reward up to $$t_11$$, and so on. Whereas the optimal agent computes a complete plan or *policy* at the first timestep and thereafter simply executes the policy, the "Reward-myopic agent" computes a new (near-term) policy for each timestep. So the Reward-myopic agent spreads out their computation over the whole time-horizon. If optimal planning is super-linear in the time-horizon, the Reward-myopic agent will do less computation overall[^reward]
 
->**Exercise:** Formalize POMDP and MDP versions of the Greedy agent by modifiying the equations for the expected utility of state-action pairs or belief-state-action pairs. Implement the agent by modifying the code for the POMDP and MDP agents. Verify that the agent behaves sub-optimally (but more efficiently) on Gridworld and Bandit problems. 
+[^reward]: The Reward-myopic agent only considers states or belief-states that it actually enters or that it gets close to, while the Optimal approach considers every possible state or belief-state.
+
+The Reward-myopic approach works best if continually optimizing for the short-term produces good results in the long-term. It's easy to imagine probems where this doesn't hold: e.g. if there's a big prize at the end of a long corridor (with no rewards along the way). A remedy is to find a proxy for the long-term expected utility of being in a state that is cheap to compute. For example, you can myopically optimize the score of future chess positions using a cheaply computed evaluation function. In this chapter, we only consider the simplest kind of Reward-myopic planning, where the agent optimizes for short-term utility rather than a proxy of long-term utility.
+
+
+### Reward-myopic Planning: implementation and examples
+We consider the simplest kind of Reward-myopic agent. This agent takes the expected-utility maximizing action, assuming that the decision problem ends $$C_g$$ steps into the future. The cutoff or *bound* $$C_g > 0$$ will typically be much smaller than the time horizon for the decision problem.
+
+You will notice the similarity between the Reward-myopic agent and the hyperbolic discounting agents. Both agents make plans based (mostly) on short-term rewards. Both agents revise these plans at every timestep. And the Naive and Reward-myopic agents both have implicit models of their future selves that are incorrect. A major difference is that Reward-myopic planning is much easier to make computationally fast. Given their similarity, it is unsurprising that we implement the Reward-myopic agent using the concept of *delay* described in the previous chapter. The formalization and implementation of the Reward-myopic agent is left as an exercise.
+
+>**Exercise:** Formalize POMDP and MDP versions of the Reward-myopic agent by modifiying the equations for the expected utility of state-action pairs or belief-state-action pairs. Implement the agent by modifying the code for the POMDP and MDP agents. Verify that the agent behaves sub-optimally (but more efficiently) on Gridworld and Bandit problems. 
 
 ------
 
-The Greedy agent will do well if good short-term actions produce good long-term consequences. In Bandit problems, elaborate long-terms plans are not needed to reach particular desirable future states. It turns out that a maximally Greedy agent, who only cares about the immediate reward ($$C_g = 1$$), does well on the standard Multi-arm bandit problem -- provided that it has some noise in its actions TODO add sutton barto cite refp:sutton119xreinforcement.
+The Reward-myopic agent will do well if good short-term actions produce good long-term consequences. In Bandit problems, elaborate long-terms plans are not needed to reach particular desirable future states. It turns out that a maximally Reward-myopic agent, who only cares about the immediate reward ($$C_g = 1$$), does well on the standard Multi-arm bandit problem -- provided that it has some noise in its actions TODO add sutton barto cite refp:sutton119xreinforcement.
 
-The next codeboxes show the performance of the Greedy agent on Bandit problems. The first codebox is a two-arm Bandit problem, illustrated in Figure 1. We use a Greedy agent with high softmax noise: $$C_g=1$$ and $$\alpha=10$$. The Greedy agent's average reward over 100 trials is close to the expected average reward given perfect knowledge of the arms.
+The next codeboxes show the performance of the Reward-myopic agent on Bandit problems. The first codebox is a two-arm Bandit problem, illustrated in Figure 1. We use a Reward-myopic agent with high softmax noise: $$C_g=1$$ and $$\alpha=10$$. The Reward-myopic agent's average reward over 100 trials is close to the expected average reward given perfect knowledge of the arms.
 
 <img src="/assets/img/5b-greedy-bandit.png" alt="diagram" style="width: 600px;"/>
 
@@ -36,7 +39,7 @@ The next codeboxes show the performance of the Greedy agent on Bandit problems. 
 <br>
 
 ~~~~
-// noisy_greedy_regret_ratio
+// noisy_reward-myopic_regret_ratio
 
 // Construct world: One bad arm, one good arm, 100 trials. 
 
@@ -55,7 +58,7 @@ var world = bandit.world;
 var startState = bandit.startState;
 
 
-// Construct greedy agent
+// Construct reward-myopic agent
 
 // Arm0 is a mixture of [0,1.5] and Arm1 of [0,1]
 var agentPrior = Enumerate(function(){
@@ -66,14 +69,13 @@ var agentPrior = Enumerate(function(){
   return makeBanditStartState(numberOfTrials, armToPrizeERP);
 });
 
-var greedyBound = 1;
+var rewardMyopicBound = 1;
 var alpha = 10; // noise level
 
 var params = {
   alpha: alpha,
   priorBelief: agentPrior,
-  myopia: {on: true, bound: greedyBound},
-  boundVOI: {on: false, bound: 0},
+  rewardMyopic: {bound: rewardMyopicBound},
   noDelays: false,
   discount: 0,
   sophisticatedOrNaive: 'naive'
@@ -83,7 +85,7 @@ var trajectory = simulate(startState, world, agent, 'states');
 var averageUtility = listMean(map(numericBanditUtility, trajectory));
 print('Arm1 is best arm and has expected utility 0.5.\n' + 
       'So ideal performance gives average score of: 0.5 \n' + 
-      'The average score over 100 trials for greedy agent: '
+      'The average score over 100 trials for rewardMyopic agent: '
       + averageUtility);
 ~~~~
 
@@ -94,17 +96,16 @@ The next codebox is a three-arm Bandit problem show in Figure 2. Given the agent
 >**Figure 2:** Bandit problem where `arm0` has highest prior expectation for the agent but where `arm2` is actually the best arm.
 
 ~~~~
-// noisy_greedy_3_arms
+// noisy_rewardMyopic_3_arms
 
 // agent is same as above: bound=1, alpha=10
 ///fold:
-var greedyBound = 1;
+var rewardMyopicBound = 1;
 var alpha = 10; // noise level
 
 var params = {
   alpha: 10,
-  myopia: {on: true, bound: greedyBound},
-  boundVOI: {on: false, bound: 0},
+  rewardMyopic: {bound: rewardMyopicBound},
   noDelays: false,
   discount: 0,
   sophisticatedOrNaive: 'naive'
@@ -146,7 +147,7 @@ print("Agent's first 20 actions (during exploration phase): \n" +
 var averageUtility = listMean(map(numericBanditUtility, map(first,trajectory)));
 print('Arm2 is best arm and has expected utility 1.\n' + 
       'So ideal performance gives average score of: 1 \n' + 
-      'The average score over 40 trials for greedy agent: '
+      'The average score over 40 trials for rewardMyopic agent: '
       + averageUtility);
 ~~~~
 
@@ -215,7 +216,7 @@ The Myopic agent performs well on a variety of Bandit problems. The following co
 <br>
 
 ~~~~
-// myopia_bandit_performance
+// myopic_bandit_performance
 
 // Helper functions for Bandits:
 ///fold:
@@ -226,8 +227,7 @@ var baseParams = {
   alpha: 1000,
   noDelays: false,
   sophisticatedOrNaive: 'naive',
-  boundVOI: {on: true, bound: 1},
-  myopia: {on: false, bound: 0},
+  updateMyopic: {bound: 1},
   discount: 0
 };
 
@@ -315,7 +315,7 @@ The following codebox computes the runtime for Myopic and Optimal agents as a fu
 >**Exercise:** Think of ways to optimize the Myopic agent with $$C_m=1$$ for binary Bandit problems.
 
 ~~~~
-// myopia_bandit_scaling
+// myopic_bandit_scaling
 // Similar helper functions as above codebox
 ///fold:
 
@@ -325,8 +325,7 @@ var baseParams = {
   alpha: 1000,
   noDelays: false,
   sophisticatedOrNaive: 'naive',
-  myopia: {on: false, bound: 0},
-  boundVOI: {on: true, bound: 1},
+  updateMyopic: {bound: 1},
   discount: 0
 };
 
@@ -477,7 +476,7 @@ print('Quality of restaurants: \n'+JSON.stringify(pomdp.startState.latentState))
 GridWorld.draw(pomdp.mdp, {trajectory: manifestStates})
 ~~~~
 
->**Exercise:** The codebox below shows the behavior the Myopic agent. Try different values for the `myopiaBound` parameter. For values in $$[1,2,3]$$, explain the behavior of the Myopic agent. 
+>**Exercise:** The codebox below shows the behavior the Myopic agent. Try different values for the `myopicBound` parameter. For values in $$[1,2,3]$$, explain the behavior of the Myopic agent. 
 
 ~~~~
 // myopic_agent_restaurant_search
@@ -499,7 +498,7 @@ var agentPrior = Enumerate(function(){
   });
 ///
 
-var myopiaBound = 1;
+var myopicBound = 1;
 
 var params = {
   utility: makeUtility(-0.01),
@@ -508,8 +507,7 @@ var params = {
   noDelays: false,
   discount: 0,
   sophisticatedOrNaive: 'naive',
-  myopia: {on: false, bound: 0},
-  boundVOI: {on: true, bound: myopiaBound},
+  updateMyopic: {bound: myopicBound}
 };
 
 var agent = makePOMDPAgent(params, world);
@@ -518,7 +516,7 @@ var manifestStates = map(function(state){return state.manifestState},
                          trajectory);
 
 print('Rewards for each restaurant: ' + JSON.stringify(pomdp.startState.latentState));
-print('Myopia bound: ' + myopiaBound);
+print('Myopic bound: ' + myopicBound);
 GridWorld.draw(pomdp.mdp, {trajectory: manifestStates});
 ~~~~
 
