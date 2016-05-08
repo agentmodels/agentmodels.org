@@ -202,7 +202,7 @@ The key part is the definition of $$b'$$. The Update-myopic agent assumes his fu
 
 The implementation of the Update-myopic agent in WebPPL is a direct translation of the definition provided above.
 
->**Exercise:** Modify the code for the POMDP agent to represent an Update-myopic agent. See this <a href="/chapters/3c-pomdp.html#pomdpCode">codebox</a> or this library [script](https://github.com/agentmodels/webppl-gridworld/src/beliefAgent.wppl). <!-- TODO fix link -->
+>**Exercise:** Modify the code for the POMDP agent to represent an Update-myopic agent. See this <a href="/chapters/3c-pomdp.html#pomdpCode">codebox</a> or this library [script](https://github.com/agentmodels/webppl-agents/blob/master/src/agents/makePOMDPAgent.wppl).
 
 
 ### Myopic Updating for Bandits
@@ -299,17 +299,17 @@ var runAgent = function(numberOfTrials, optimal){
 // Run each agent 10 times and take average of scores
 var means = map( function(optimal){
   var scores = repeat(10, function(){return runAgent(5,optimal);});
-  var st = optimal ? 'Optimal: ' : 'Myopic: ';
+  var st = optimal ? 'Optimal: ' : 'Update-Myopic: ';
   print(st + 'Mean scores on 10 repeats of 5-trial bandits\n' + scores);
   return listMean(scores);
   }, [true,false]);
   
-print('Overall means for [Optimal,Myopic]: ' + means);
+print('Overall means for [Optimal,Update-Myopic]: ' + means);
 ~~~~
 
 >**Exercise**: The above codebox shows that performance for the two agents is similar. Try varying the priors and the `armToPrizeERP` and verify that performance remains similar. How would you provide stronger empirical evidence that the two algorithms are equivalent for this problem?
 
-The following codebox computes the runtime for Myopic and Optimal agents as a function of the number of Bandit trials. We see that the Update-myopic agent has better scaling even on a small number of trials. Note that neither agent has been optimized for Bandit problems.
+The following codebox computes the runtime for Update-myopic and Optimal agents as a function of the number of Bandit trials. We see that the Update-myopic agent has better scaling even on a small number of trials. Note that neither agent has been optimized for Bandit problems.
 
 >**Exercise:** Think of ways to optimize the Update-myopic agent with $$C_m=1$$ for binary Bandit problems.
 
@@ -434,7 +434,7 @@ We illustrate this limitation with a new problem:
 
 >**Restaurant Search:** You are looking for a good restaurant in a foreign city without the aid of a smartphone. You know the quality of some restaurants already and you are uncertain about the others. If you walk right up to a restaurant, you can tell its quality by seeing how busy it is inside. You care about the quality of the restaurant (a scalar) and about minimizing the time spent walking.
 
-How does the Update-myopic agent fail? Suppose that a few blocks from agent is a great restaurant next to a bad restaurant and the agent doesn't know which is which. If the agent checked inside each restaurant, they would pick out the great one. But if they are Myopic, they assume they'd be unable to tell between them.
+How does the Update-myopic agent fail? Suppose that a few blocks from agent is a great restaurant next to a bad restaurant and the agent doesn't know which is which. If the agent checked inside each restaurant, they would pick out the great one. But if they are Update-myopic, they assume they'd be unable to tell between them.
 
 The codebox below depicts a toy version of this problem in Gridworld. The restaurants vary in quality between 0 and 5. The agent knows the quality of Restaurant A and is unsure about the other restaurants. One of Restaurants D and E is great and the other is bad. The Optimal POMDP agent will go right up to each restaurant and find out which is great. The Update-myopic agent, with low enough bound $$C_m$$, will either go to the known good restaurant A or investigate one of restaurants that is closer than D and E.
 
@@ -519,3 +519,6 @@ print('Myopic bound: ' + myopicBound);
 GridWorld.draw(pomdp.mdp, {trajectory: manifestStates});
 ~~~~
 
+-------
+## Footnotes
+<br>
