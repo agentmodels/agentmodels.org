@@ -574,6 +574,14 @@ The next two codeboxes use the same POMDP, where all restaurants are open but fo
 
 ~~~~
 // agent_thinks_donut_south_closed
+///fold:
+var getPriorBelief = function(startManifestState, latentStateSampler){
+  return Enumerate( function(){
+    return {manifestState:startManifestState, 
+            latentState: latentStateSampler()};
+  });
+};
+///
 
 var world = makeRestaurantChoiceWorld({POMDP:true});
 var utilityTable = {'Donut N': 5,
@@ -596,11 +604,11 @@ var startState = {
   latentState: latent
 };
 
-var latentSampler = function() {
+var latentStateSampler = function() {
   return categorical([0.8, 0.2], [alternativeLatent, latent]);
 };
 
-var prior = getPriorBeliefGridworld(startState.manifestState, latentSampler);
+var prior = getPriorBelief(startState.manifestState, latentStateSampler);
 var agent = makePOMDPAgent({utility: utility,
 			                alpha: 100,
 							priorBelief: prior}, world);
@@ -618,6 +626,13 @@ Here is the agent that prefers Noodle and falsely belives that it is open:
 
 // same world, prior, start state, and latent state as previous codebox
 ///fold:
+var getPriorBelief = function(startManifestState, latentStateSampler){
+  return Enumerate( function(){
+    return {manifestState:startManifestState, 
+            latentState: latentStateSampler()};
+            });
+};
+  
 var world = makeRestaurantChoiceWorld({POMDP:true});
 var latent = {'Donut N': true,
 		      'Donut S': true,
@@ -637,7 +652,7 @@ var latentSampler = function() {
   return categorical([0.8, 0.2], [alternativeLatent, latent]);
 };
 
-var prior = getPriorBeliefGridworld(startState.manifestState, latentSampler);
+var prior = getPriorBelief(startState.manifestState, latentSampler);
 ///
 
 var utilityTable = {'Donut N': 1,
@@ -661,6 +676,8 @@ GridWorld.draw(world.MDPWorld, {trajectory: manifestStates});
 - Doing belief update online vs belief doing a batch update every time. Latter is good if belief updates are rare and if we are doing approximate inference (otherwise the errors in approximations will compound in some way). Maintaining observations is also good if your ability to do good approximate inference changes over time. (Or least maintaining compressed observations or some kind of compressed summary statistic of the observation -- e.g. .jpg or mp3 form). This is related to UDT vs CDT and possibly to the episodic vs. declarative memory in human psychology. [Add a different *updateBelief* function to illustrate.]
 -->
 
+
 ----
+
 ### Footnotes
 <br>
