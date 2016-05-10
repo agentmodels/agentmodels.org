@@ -48,9 +48,6 @@ It is straightforward to add exponential discounting to our existing agent model
 
 ///fold:
 var baseParams = {
-  alpha: 1000,
-  myopia: {on: false, bound: 0},
-  boundVOI: {on: false, bound: 0},
   noDelays: false,
   discount: 0,
   sophisticatedOrNaive: 'naive'
@@ -237,7 +234,7 @@ The Naive agent goes to Donut North, even though Donut South (which has identica
 
 The Sophisticated agent can accurately model what it *would* do if it ended up in location [3,5] (adjacent to Donut North). So it avoids temptation by taking the long, inefficient route to Veg. 
 
-In this simple example, the Naive and Sophisticated agents each take paths that optimal time-consistent MDP agents (without softmax noise) would never take. So this is an example where a bias leads to a *systematic* deviation from optimality and behavior that is not predicted by an optimal model. In Chapter V.III we explore inference of preferences for time inconsistent agents.
+In this simple example, the Naive and Sophisticated agents each take paths that optimal time-consistent MDP agents (without softmax noise) would never take. So this is an example where a bias leads to a *systematic* deviation from optimality and behavior that is not predicted by an optimal model. In Chapter 5.3 we explore inference of preferences for time inconsistent agents.
 
 
 -----------
