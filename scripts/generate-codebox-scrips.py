@@ -6,9 +6,15 @@ import os
 # 1. edit markdown files, 2. do "jekyll serve" to create html (TODO: automate running jekyll)
 # 3. run this script.
 
-# TODO:
-# come up with system for adding codeboxe scripts to webppl-gridworld
-# make sure print, viz.print, draw work in both editor and node
+
+# TODOS:
+# 1. come up with system for adding codebox scripts to webppl-agents
+# such that we can test them all (by checking for errors in execution)
+
+# 2. (maybe should go based on markdown rather than html. since html
+# is only updated when we do jekyll serve. but that would require
+# rewriting what's below). 
+
 
 
 
