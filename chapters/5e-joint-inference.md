@@ -24,12 +24,10 @@ First we condition on the path where the agent moves to Donut North. We call thi
 ~~~~
 // draw_naive_path
 var world = makeRestaurantChoiceMDP();
-var observedStateAction = restaurantNameToObservationTime11['naive'];
+var trajectory = restaurantNameToObservationTime11['naive'];
 print('Observations loaded from library function: \n' 
-       + JSON.stringify(observedStateAction) + ' \n');
-
-var path = map(first,observedStateAction);
-GridWorld.draw(world, {trajectory:path});
+       + JSON.stringify(trajectory) + ' \n');
+GridWorld.draw(world, {trajectory:trajectory});
 ~~~~
 
 For inference, we specialize the approach in the previous <a href="/chapters/5d-joint-inference.html#formalization">chapter</a> for agents in MDPs that are potentially time inconsistent. So we infer $$\nu$$ and $$k$$ (the hyperbolic discounting parameters) but not the initial belief state $$b_0$$. The function `exampleGetPosterior` is a slightly simplified version of the library function we use below.
@@ -214,8 +212,8 @@ Using the same prior, we condition on the "Sophisticated" path (i.e. the path di
 ~~~~
 // draw_sophisticated_path
 var world = makeRestaurantChoiceMDP();
-var path = map(first, restaurantNameToObservationTime11['sophisticated']);
-GridWorld.draw(world, {trajectory:path});
+var trajectory = restaurantNameToObservationTime11['sophisticated'];
+GridWorld.draw(world, {trajectory:trajectory});
 ~~~~
 
 Here are the results of inference: 
@@ -340,8 +338,8 @@ If the agent goes directly to Veg, then they don't provide information about whe
 ~~~~
 // draw_vegDirect_path
 var world = makeRestaurantChoiceMDP();
-var path = map(first, restaurantNameToObservationTime11['vegDirect']);
-GridWorld.draw(world, {trajectory:path});
+var trajectory = restaurantNameToObservationTime11['vegDirect'];
+GridWorld.draw(world, {trajectory:trajectory});
 ~~~~
 
 Here are the results of inference: 

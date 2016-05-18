@@ -668,7 +668,7 @@ var trajectory = simulate(startState, world, agent, 'states');
 var manifestStates = map(function(state){return state.manifestState;},
                          trajectory);
 
-GridWorld.draw(world.MDPWorld, {trajectory: manifestStates});
+GridWorld.draw(world, {trajectory: manifestStates});
 ~~~~
 
 <!-- TODO

@@ -40,9 +40,7 @@ Consider the MDP version of Bob's Restaurant Choice problem. Bob is choosing bet
 
 ~~~~
 var world = makeRestaurantChoiceMDP(); 
-var observedTrajectory = map(first,
-	                         restaurantNameToObservationTime11.donutSouth);
-
+var observedTrajectory = restaurantNameToObservationTime11['donutSouth'];
 GridWorld.draw(world,{trajectory: observedTrajectory});
 ~~~~
 
@@ -277,7 +275,7 @@ var observedSequence1 = restaurantNameToObservationTime11['naive'];
 var observedSequence2 = restaurantNameToObservationTime11['donutSouth'];
 
 map( function(trajectory){
-  GridWorld.draw(world, {trajectory: map(first, trajectory)});
+  GridWorld.draw(world, {trajectory: trajectory});
 }, [observedSequence1, observedSequence2])
 ~~~~
 

@@ -207,21 +207,19 @@ The next two codeboxes show the behavior of two hyperbolic discounters. Each age
 ~~~~
 // draw_naive
 var world = makeRestaurantChoiceMDP();
-var observedStateAction = restaurantNameToObservationTime11['naive'];
+var trajectory = restaurantNameToObservationTime11['naive'];
 print('Observations for Naive agent loaded from library function: \n' 
-       + JSON.stringify(observedStateAction) + ' \n');
-var path = map(first,observedStateAction);
-GridWorld.draw(world, {trajectory:path});
+       + JSON.stringify(trajectory) + ' \n');
+GridWorld.draw(world, {trajectory:trajectory});
 ~~~~
 
 ~~~~
 // draw_sophisticated
 var world = makeRestaurantChoiceMDP();
-var observedStateAction = restaurantNameToObservationTime11['sophisticated'];
+var trajectory = restaurantNameToObservationTime11['sophisticated'];
 print('Observations for Sophisticated agent loaded from library function: \n' 
-       + JSON.stringify(observedStateAction) + ' \n');
-var path = map(first,observedStateAction);
-GridWorld.draw(world, {trajectory:path});
+       + JSON.stringify(trajectory) + ' \n');
+GridWorld.draw(world, {trajectory:trajectory});       
 ~~~~
 
 >**Exercise:** (Try this exercise *before* reading further). Your goal is to do preference inference from the observed actions in the codeboxes above (using only a pen and paper). The discount function is the hyperbola $$D=1/(1+kt)$$, where $$t$$ is the time from the present, $$D$$ is the discount factor (to be multiplied by the utility) and $$k$$ is a positive constant. Find a single setting for the utilities and discount function that produce the behavior in both the codeboxes above. This includes utilities for the restaurants (both *immediate* and *delayed*) and for the `timeCost` (the negative utility for each additional step walked), as well as the discount constant $$k$$. Assume there is no softmax noise. 
