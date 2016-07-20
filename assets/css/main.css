@@ -53,27 +53,50 @@ a.chapter-link {
     overflow: visible;
 }
 
+/* Increase max-height of editor so that we can show bigger gridworlds */
+
 .page-content .wpedit .result {
-    max-height: 1200px;  // increase max-height so that we can show biggergridworlds
+    max-height: 1200px;
 }
+
+/* Prettier editor buttons */
+
+.wpedit button {
+    height: 26px !important;
+    padding: 0em 1em !important;
+    background-color: #e0e0e0 !important;
+    background-image: linear-gradient(to bottom,#fff 0,#e0e0e0 100%);
+    border-radius: 4px;
+    border: 1px solid rgb(204,204,204) !important;
+    font-size: 12px !important;
+}
+
+.wpedit button:hover {
+    background-color: #d0d0d0;
+}
+
+.wpedit button:active {
+    background-image: none;
+}
+
+/* Make errors less jarring */
+
+.page-content .wpedit .result pre.error {
+    color: red;
+    background-color: #fff;
+}
+
+/* Decrease line-height a bit, add padding to code and result box */
 
 .page-content .CodeMirror-lines, .page-content .wpedit .result {
     padding: 5px;
     line-height: 18px;
 }
 
-.page-content .wpedit button.run, .page-content .wpedit button.cancel {
-    font-size: 12px;
-}
 
 .page-content .wpedit .result pre {
     font-size: 12px;
     margin: 5px;
-}
-
-.page-content .wpedit .result pre.error {
-    color: red;
-    background-color: #fff;
 }
 
 .page-content > p > img {
