@@ -66,9 +66,9 @@ var geometric = function(p) {
   return flip(p) ? 1 + geometric(p) : 1
 };
 
-var boundedGeometric = Enumerate(
-  function(){ return geometric(0.5); }, 
-  20);
+var boundedGeometric = Infer(
+  { method: 'enumerate', maxExecutions: 20 },
+  function(){ return geometric(0.5); });
 
 print('Histogram of (bounded) Geometric distribution');
 viz.auto(boundedGeometric);
