@@ -53,6 +53,10 @@ a.chapter-link {
     overflow: visible;
 }
 
+.page-content .wpedit .result {
+    max-height: 1200px;  // increase max-height so that we can show biggergridworlds
+}
+
 .page-content .CodeMirror-lines, .page-content .wpedit .result {
     padding: 5px;
     line-height: 18px;
