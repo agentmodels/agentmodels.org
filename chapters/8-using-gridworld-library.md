@@ -33,27 +33,34 @@ The library is built around two basic entities: *agents* and *environments*. A *
 Environments and agents can't be freely combined. Among environments, we distinguish MDPs and POMDPs. For a POMDP environment, the agent must be a "POMDP agent", which means they maintain a belief distribution on the state. This separation of POMDPs and MDPs is not necessary, since POMDPs generalize MDPs. However, the separation makes the MDP code very short and perspicuous and also provides performance advantages. 
 
 ### Creating an MDP environment
+
 We begin by creating a very simple MDP environment and running two agents from the library on that environment. 
 
-MDPs are defined [here](http://agentmodels.org/chapters/3a-mdp.html). For use in the library, MDP environments are Javascript objects with `transition` and `stateToAction` methods. The `transition` method is a function from state-action pairs to states (as in the function $$T$$ in the MDP definition). The `stateToAction` method is a mapping from states to the actions that are allowed in that state.
+MDPs are defined [here](http://agentmodels.org/chapters/3a-mdp.html). For use in the library, MDP environments are Javascript objects with the following methods:
+
+>`var myMDPEnvironment = {transition: ...,  stateToActions: ...}`
+
+The `transition` method is a function from state-action pairs to states (as in the function $$T$$ in the MDP definition). The `stateToAction` method is a mapping from states to the actions that are allowed in that state.
 
 MDPs are usually defined to include a *reward* or *utility* function on states or state-action pairs. We don't require that MDP objects include a utility function. But if we run an *agent* on the MDP, the agent must have a utility function defined on the states of the MDP. Since the same state space is used in both the MDP itself and the utility function, we often create the utility function when creating the MDP. 
 
-Our first MDP environment is a simply a line where the agent can move left or right (starting from the origin). More precisely:
+#### The Line MDP environment
+Our first MDP environment is a simply a line where the agent can move left or right (starting from the origin). More precisely, the Line MDP is as follows:
 
-- *States:* Points on the integer line (e.g -1, 0, 1, 2).
+- **States:** Points on the integer line (e.g ..., -1, 0, 1, 2, ...).
 
-- *Actions/transitions:* Actions “left”, “right” and “stay” move the agent deterministically along the line in either direction. We represent the actions as $$[-1,0,1]$$ in the code below. 
+- **Actions/transitions:** Actions “left”, “right” and “stay” move the agent deterministically along the line in either direction. We represent the actions as $$[-1,0,1]$$ in the code below. 
 
-In our examples, the agent will start at the origin. The utility/reward function is as follows:
+In our examples, the agent's `startState` is the origin. The utility is 1 at the origin, 3 at the third state right of the origin ("state 3"), and 0 otherwise.
 
-> `U(state)` is `1` when `state==0` (i.e. at the origin), `3` at `state==3` and `0` at all other states. 
+The transition function must also decrements the time. States are objects with a `terminateAfterAction` attribute, which terminates the MDP when true. In the example below, `terminateAfterAction` is set to `true` when the state's `timeLeft` attribute is set to 1. For the Line MDP, an example state (the `startState`) has form:
 
-The code for this MDP is straightforward. One additional requirement for an MDP object is that the transition function decrements the time and sets the `terminateAfterAction` attribute to `true` when the time has elapsed.
+>` var myState = {terminateAfterAction: false, timeLeft:6, loc:0}`
 
-TODO: could use *environment* instead of *world*. 
+TODO: could say "environment" instead of "world" in the code below. but we used used "world" almost everywhere in the library. 
 
 ~~~~
+// helper function that decrements time and triggers termination when time elapsed
 var advanceStateTime = function(state){
   var newTimeLeft = state.timeLeft - 1;
   return update(state, { 
@@ -62,7 +69,8 @@ var advanceStateTime = function(state){
   });
 };
 
-
+// constructuor for the "line" MDP environment:
+// argument *totalTime* is the time horizon
 var makeLineMDP = function(totalTime){
 
     var stateToActions = function(state){return [-1, 0, 1];};
@@ -90,24 +98,84 @@ var makeLineMDP = function(totalTime){
 wpEditor.put('makeLineMDP', makeLineMDP);
 ~~~~
 
+To run an agent on this MDP, we use a `makeAgent` constructor and the library function `simulate`. The constructor for MDP agents is `makeMDPAgent`:
 
-We now create and simulate some agents from the library. [TODO: Explain how to construct agents, how to customize utility function]
+>`**makeMDPAgent** (params, world)`
+
+For an optimal (non-discounting) agent, the `params` are:
+
+>`{utility: <utility_function>,  alpha: <softmax_alpha>}`
+
+The `world` is the environment. Agent constructors always have these two arguments. The `world` argument is required for the agent's internal simulations of possible transitions. The `params` argument specifies the agent's parameters and whether the agent is optimal or biased.
+
+An environment (or "world") and agent are combined with the `simulate` function:
+
+>`**simulate** (startState, world, agent, outputType)
+
 
 ~~~~
-var makeLineMDP = wpEditor.get('makeLineMDP');
 
-// Make world
-var line = makeLineMDP(6);
-var world = line.world;
-var utility = line.utility;
+///fold:
+// helper function that decrements time and triggers termination when time elapsed
+var advanceStateTime = function(state){
+  var newTimeLeft = state.timeLeft - 1;
+  return update(state, { 
+    timeLeft: newTimeLeft,
+    terminateAfterAction: newTimeLeft > 1 ? state.terminateAfterAction : true
+  });
+};
+
+// constructuor for the "line" MDP environment:
+// argument *totalTime* is the time horizon
+var makeLineMDP = function(totalTime){
+
+    var stateToActions = function(state){return [-1, 0, 1];};
+
+    var transition = function(state,action){
+      var newLoc = state.loc + action;
+      var stateNewLoc = update(state,{loc: newLoc});
+      return advanceStateTime(stateNewLoc);
+    };
+
+    var world = {stateToActions:stateToActions, transition:transition};
+    
+    var startState = {timeLeft: totalTime, 
+                      terminateAfterAction: false, 
+                      loc: 0};
+
+    var utility = function(state, action){    
+      var table = {0:1, 3:3};
+      return table[state.loc] ? table[state.loc] : 0;
+    };
+
+    return {world:world, startState:startState, utility:utility};
+  };
+///
+
+// Construct line MDP environment
+var totalTime = 6;
+var lineMDP = makeLineMDP(totalTime);
+var world = lineMDP.world;
+
+// The lineMDP object also includes a utility function and startState
+var utility = lineMDP.utility;
+var startState = lineMDP.startState;
 
 
-// MDPAgent
+// Construct MDP agent
 var params = {alpha:1000, utility:utility};
 var agent = makeMDPAgent(params, world);
-var trajectory = simulate(line.startState, world, agent, 'states');
-var locations = getLocations(trajectory);
-assert.ok( last(locations)==3, 'MDPAgent test');
+
+// Simulate the agent on the lineMDP with *outputType* set to *states*
+var trajectory = simulate(startState, world, agent, 'states');
+print(trajectory)
+
+~~~~
+
+
+
+
+~~~~
 
 // random MDPAgent
 var makeMDPAgentRandom = function(params, world){
