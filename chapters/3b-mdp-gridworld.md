@@ -37,7 +37,7 @@ var makeMDPAgent = function(params, world) {
 
   var act = dp.cache( 
     function(state){
-      return Enumerate(function(){
+      return Infer({ method: 'enumerate' }, function(){
         var action = uniformDraw(stateToActions(state));
         var eu = expectedUtility(state, action);
         factor(alpha * eu);
@@ -51,7 +51,7 @@ var makeMDPAgent = function(params, world) {
       if (state.terminateAfterAction){
         return u; 
       } else {
-        return u + expectation( Enumerate(function(){
+        return u + expectation( Infer({ method: 'enumerate' }, function(){
           var nextState = transition(state, action); 
           var nextAction = sample(act(nextState));
           return expectedUtility(nextState, nextAction);
@@ -82,8 +82,11 @@ var simulate = function(startState, world, agent, outputType) {
     var action = sample(act(state));
     var nextState = transition(state, action);
     var out = selectOutput(state, action);
-    return state.terminateAfterAction ? [out]
-      : [out].concat(sampleSequence(nextState));
+    if (state.terminateAfterAction) {
+      return [out];
+    } else {
+      return [out].concat(sampleSequence(nextState));
+    }    
   };
   return sampleSequence(startState);
 };
@@ -108,7 +111,7 @@ GridWorld.draw(world, {trajectory: trajectory});
 
 >**Exercise**: Adjust the parameters `utilityTable` in order to produce the following behaviors:
 
->1. The agent does directly to "West".
+>1. The agent directly goes to "West".
 >2. The agent takes the long way around to "West".
 >3. The agent sometimes goes to the Hill at $$[1,0]$$. The probability of this outcome is close to the most likely trajectory for the agent. 
 <!-- 3 is obtained by making timeCost positive and Hill better than alternatives -->
@@ -126,17 +129,28 @@ Setting `transitionNoiseProb=0.1`, the agent's first action is "up" instead of "
 // parameters for world
 var transitionNoiseProb = 0.1;
 var world = makeHike(transitionNoiseProb);
-var startState = {loc: [0,1],
-		          timeLeft: 12,
-				  terminateAfterAction: false};
+var startState = {
+  loc: [0, 1],
+  timeLeft: 12,
+  terminateAfterAction: false
+};
 
 // parameters for agent
+var alpha = 1;
 var utilityTable = { East: 10, West: 1, Hill: -10, timeCost: -.1 };
 var utility = makeHikeUtilityFunction(world, utilityTable);
-var agent = makeMDPAgent({utility: utility, alpha: 1000}, world);
-var trajectory = simulate(startState, world, agent, 'states');
+var agent = makeMDPAgent({utility: utility, alpha: alpha}, world);
 
+// generate a single trajectory
+var trajectory = simulate(startState, world, agent, 'states');
 GridWorld.draw(world, {trajectory: trajectory});
+
+// run 100 iid samples of the function *sampleTrajectoryLength*
+var sampleTrajectoryLength = function(){
+  return simulate(startState, world, agent).length;
+};
+var trajectoryDist = Infer({ method: 'rejection', samples: 100 }, sampleTrajectoryLength);
+viz.auto(trajectoryDist);
 ~~~~
 
 >**Exercise:**
@@ -172,13 +186,12 @@ var agent = makeMDPAgent({utility: utility, alpha: alpha}, world);
 var trajectory = simulate(startState, world, agent, 'states');
 GridWorld.draw(world, {trajectory: trajectory});
 
-// run 100 iid samples of the function *lengthTrajectory*
-var lengthTrajectory = function(){
+// run 100 iid samples of the function *sampleTrajectoryLength*
+var sampleTrajectoryLength = function(){
   return simulate(startState, world, agent).length;
 };
-var trajectoryERP = Rejection(lengthTrajectory, 100);
-viz.auto(trajectoryERP);
-
+var trajectoryDist = Infer({ method: 'rejection', samples: 100 }, sampleTrajectoryLength);
+viz.auto(trajectoryDist);
 ~~~~
 
 
@@ -196,9 +209,11 @@ var transitionNoiseProb = 0.1;
 var world = makeHike(transitionNoiseProb);
 
 // change start from [0,1] to [1,1] and timeLeft to 11
-var startState = {loc: [1,1],
-		          timeLeft: 12-1,
-				  terminateAfterAction: false};
+var startState = {
+  loc: [1,1],
+  timeLeft: 12-1,
+  terminateAfterAction: false
+};
 
 // parameters for agent
 var utilityTable = { East: 10, West: 1, Hill: -10, timeCost: -.1 };
@@ -206,7 +221,7 @@ var utility = makeHikeUtilityFunction(world, utilityTable);
 var agent = makeMDPAgent({utility: utility, alpha: 1000}, world);
 var trajectory = simulate(startState, world, agent, 'states');
 
-GridWorld.draw(world, {trajectory: trajectory});
+GridWorld.draw(world, { trajectory: trajectory });
 ~~~~
 
 Extending this idea, we can return and visualize the expected values of each action the agent *could have taken* during their trajectory. For each state in a trajectory, we compute the expected value of each possible action (given the state and remaining time). The resulting numbers are analogous to Q-values in infinite-horizon MDPs. 
@@ -220,8 +235,10 @@ var getExpectedUtilitiesMDP = function(stateTrajectory, world, agent) {
   var eu = agent.expectedUtility;
   var actions = world.actions;
   var getAllExpectedUtilities = function(state) {
-    return [state, map(function(action){return eu(state, action);},
-		           actions)];
+    var actionUtilities = map(
+      function(action){ return eu(state, action); },
+      actions);
+    return [state, actionUtilities];
   };
   return map(getAllExpectedUtilities, stateTrajectory);
 };
@@ -232,13 +249,15 @@ var noiseProb = 0.03;
 var world = makeHike(noiseProb, {big: true});
 
 var alpha = 100;
-var utilityTable = {East: 10, West: 7, Hill : -40, timeCost: -0.4};
+var utilityTable = { East: 10, West: 7, Hill : -40, timeCost: -0.4 };
 var utility = makeHikeUtilityFunction(world, utilityTable);
 var agent = makeMDPAgent({utility: utility, alpha: alpha}, world);
 
-var startState = {loc: [1,1],
-		          timeLeft: 12,
-		          terminateAfterAction: false};
+var startState = {
+  loc: [1,1],
+  timeLeft: 12,
+  terminateAfterAction: false
+};
 
 var trajectory = simulate(startState, world, agent, 'states');
 var locs1 = map(function(state){return state.loc;}, trajectory);
@@ -248,5 +267,4 @@ GridWorld.draw(world, {
   trajectory: trajectory,
   actionExpectedUtilities: eus
 });
-
 ~~~~
