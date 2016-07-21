@@ -1,0 +1,15 @@
+[x] use cdn version of viz and editor (if exists)
+[-] set up version of agentmodels that auto-recompiles when agents code changes
+    cd /assets/js/
+    ln ~/Projects/agentmodels.org/node_modules/webppl/bundle/webppl.js webppl.link.js
+    cd ../../node_modules/webppl
+    grunt browserify-watch:../webppl-timeit:../webppl-dp:../webppl-agents
+    - not really working
+[x] let's try the version where I manually recompile
+     ./scripts/update-webppl-local
+[ ] go through chapters, make srue code runs with latest webppl
+    [ ] rename erp to dist
+    [ ] change Enumerate to Infer syntax
+    [ ] change Rejection to Infer syntax
+[ ] update code in webppl-agents
+[ ] think about additional refactoring
