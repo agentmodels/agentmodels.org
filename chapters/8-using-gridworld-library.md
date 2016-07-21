@@ -55,7 +55,7 @@ In our examples, the agent's `startState` is the origin. The utility is 1 at the
 
 The transition function must also decrements the time. States are objects with a `terminateAfterAction` attribute, which terminates the MDP when true. In the example below, `terminateAfterAction` is set to `true` when the state's `timeLeft` attribute is set to 1. For the Line MDP, an example state (the `startState`) has form:
 
->` var myState = {terminateAfterAction: false, timeLeft:6, loc:0}`
+>`{terminateAfterAction: false, timeLeft:6, loc:0}`
 
 TODO: could say "environment" instead of "world" in the code below. but we used used "world" almost everywhere in the library. 
 
@@ -100,18 +100,19 @@ wpEditor.put('makeLineMDP', makeLineMDP);
 
 To run an agent on this MDP, we use a `makeAgent` constructor and the library function `simulate`. The constructor for MDP agents is `makeMDPAgent`:
 
->`**makeMDPAgent** (params, world)`
+>`makeMDPAgent(params, world)`
 
-For an optimal (non-discounting) agent, the `params` are:
+For an optimal (non-discounting) agent, the parameters are:
 
 >`{utility: <utility_function>,  alpha: <softmax_alpha>}`
 
-The `world` is the environment. Agent constructors always have these two arguments. The `world` argument is required for the agent's internal simulations of possible transitions. The `params` argument specifies the agent's parameters and whether the agent is optimal or biased.
+Agent constructors always have these same two arguments. The `world` argument is required for the agent's internal simulations of possible transitions. The `params` argument specifies the agent's parameters and whether the agent is optimal or biased.
 
 An environment (or "world") and agent are combined with the `simulate` function:
 
->`**simulate** (startState, world, agent, outputType)
+>`simulate(startState, world, agent, outputType)`
 
+Given the utility function defined above, the highest utility state is at location 3 (three steps to the right from the origin). So a non-discounting agent will move and stay at this location. 
 
 ~~~~
 
@@ -168,12 +169,15 @@ var agent = makeMDPAgent(params, world);
 
 // Simulate the agent on the lineMDP with *outputType* set to *states*
 var trajectory = simulate(startState, world, agent, 'states');
+
+// Display start state 
 print(trajectory)
 
 ~~~~
 
 
 
+More agents:
 
 ~~~~
 
