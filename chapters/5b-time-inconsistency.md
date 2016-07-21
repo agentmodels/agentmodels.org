@@ -57,7 +57,7 @@ var makeAgent = function (params, world) {
 
   var act = dp.cache( 
     function(state, delay){
-      return Enumerate(function(){
+      return Infer({ method: 'enumerate' }, function(){
         var action = uniformDraw(stateToActions(state));
         var eu = expectedUtility(state, action, delay);    
         factor(params.alpha * eu);
@@ -71,7 +71,7 @@ var makeAgent = function (params, world) {
       if (state.terminateAfterAction){
         return u; 
       } else {                     
-        return u + expectation( Enumerate(function(){
+        return u + expectation( Infer({ method: 'enumerate' }, function(){
           var nextState = transition(state, action); 
           var perceivedDelay = isNaive ? delay + 1 : 0;
           var nextAction = sample(act(nextState, perceivedDelay));
@@ -115,7 +115,7 @@ var makeAgent = function (params, world) {
   var act = dp.cache( 
     function(state, delay){
       var delay = delay ? delay : 0; //make sure delay is never undefined
-      return Enumerate(function(){
+      return Infer({ method: 'enumerate' }, function(){
         var action = uniformDraw(stateToActions(state));
         var eu = expectedUtility(state, action, delay);
         factor(params.alpha * eu);
@@ -129,7 +129,7 @@ var makeAgent = function (params, world) {
       if (state.terminateAfterAction){
         return u; 
       } else {
-        return u + expectation( Enumerate(function(){
+        return u + expectation( Infer({ method: 'enumerate' }, function(){
           var nextState = transition(state, action); 
           var perceivedDelay = isNaive ? delay + 1 : 0;
           var nextAction = sample(act(nextState, perceivedDelay));
@@ -195,7 +195,7 @@ var makeAgent = function (params, world) {
   var act = dp.cache( 
     function(state, delay){
       var delay = delay ? delay : 0; //make sure delay is never undefined
-      return Enumerate(function(){
+      return Infer({ method: 'enumerate' }, function(){
         var action = uniformDraw(stateToActions(state));
         var eu = expectedUtility(state, action, delay);
         factor(params.alpha * eu);
@@ -209,7 +209,7 @@ var makeAgent = function (params, world) {
       if (state.terminateAfterAction){
         return u; 
       } else {
-        return u + expectation( Enumerate(function(){
+        return u + expectation( Infer({ method: 'enumerate' }, function(){
           var nextState = transition(state, action); 
           var perceivedDelay = isNaive ? delay + 1 : 0;
           var nextAction = sample(act(nextState, perceivedDelay));

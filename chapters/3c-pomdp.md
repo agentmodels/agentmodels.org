@@ -108,7 +108,7 @@ As with the agent model for MDPs, we provide a direct translation of the equatio
 // pomdp_agent
 
 var act = function(belief) {
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
     var action = uniformDraw(actions);
     var eu = expectedUtility(belief, action);
     factor(alpha * eu);
@@ -118,7 +118,7 @@ var act = function(belief) {
 
 var expectedUtility = function(belief, action) {
   return expectation(
-    Enumerate(function(){
+    Infer({ method: 'enumerate' }, function(){
       var state = sample(belief);
 	  var u = utility(state, action);
 	  if (state.terminateAfterAction) {
@@ -129,7 +129,7 @@ var expectedUtility = function(belief, action) {
 	    var nextBelief = updateBelief(belief, nextObservation, action);
 	    var nextAction = sample(act(nextBelief));
 	    return u + expectedUtility(nextBelief, nextAction);
-	    }
+	  }
     }));
 };
 
@@ -153,8 +153,8 @@ var simulate = function(startState, priorBelief) {
     } else {
       var nextState = transition(state, action);
       return output.concat(sampleSequence(nextState, belief, action));
-      }
-    };
+    }
+  };
   return sampleSequence(startState, priorBelief, 'noAction');
 };
 ~~~~
@@ -243,7 +243,7 @@ var makeAgent = function(params){
 
   // Implements *Belief-update formula* in text
   var updateBelief = function(belief, observation, action){
-    return Enumerate(function(){
+    return Infer({ method: 'enumerate' }, function(){
       var state = sample(belief);
       var predictedNextState = transition(state, action);
       var predictedObservation = observe(predictedNextState);
@@ -254,7 +254,7 @@ var makeAgent = function(params){
 
   var act = dp.cache(
     function(belief) {
-      return Enumerate(function(){
+      return Infer({ method: 'enumerate' }, function(){
         var action = uniformDraw(actions);
         var eu = expectedUtility(belief, action);
         factor(1000 * eu);
@@ -265,7 +265,7 @@ var makeAgent = function(params){
   var expectedUtility = dp.cache(
     function(belief, action) {
       return expectation(
-        Enumerate(function(){
+        Infer({ method: 'enumerate' }, function(){
 	  var state = sample(belief);
 	  var u = utility(state, action);
 	  if (state.terminateAfterAction) {
@@ -413,7 +413,7 @@ var world = bandit.world;
 var alternateArmToPrizeERP = update(options.armToPrizeERP, {1: probably0ERP});
 
 // Construct agent's prior on the startState
-var priorBelief = Enumerate(function(){
+var priorBelief = Infer({ method: 'enumerate' }, function(){
   var armToPrizeERP = uniformDraw([options.armToPrizeERP,
 	                               alternateArmToPrizeERP]);
   return update(startState, {latentState: armToPrizeERP});
@@ -457,7 +457,7 @@ var makeBanditWithNumberOfTrials = function(numberOfTrials) {
 };
 
 var getPriorBelief = function(numberOfTrials){
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
     var armToPrizeERP = uniformDraw([trueArmToPrizeERP,
                                      alternateArmToPrizeERP]);
     return makeBanditStartState(numberOfTrials, armToPrizeERP);
@@ -514,7 +514,7 @@ var armToPrizeERPSampler = function(numberOfArms) {
 };
 
 var getPriorBelief = function(numberOfTrials, numberOfArms) {
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
     var armToPrizeERP = armToPrizeERPSampler(numberOfArms);
     return makeBanditStartState(numberOfTrials, armToPrizeERP);
   });
@@ -576,7 +576,7 @@ The next two codeboxes use the same POMDP, where all restaurants are open but fo
 // agent_thinks_donut_south_closed
 ///fold:
 var getPriorBelief = function(startManifestState, latentStateSampler){
-  return Enumerate( function(){
+  return Infer({ method: 'enumerate' },  function(){
     return {manifestState:startManifestState, 
             latentState: latentStateSampler()};
   });
@@ -627,7 +627,7 @@ Here is the agent that prefers Noodle and falsely belives that it is open:
 // same world, prior, start state, and latent state as previous codebox
 ///fold:
 var getPriorBelief = function(startManifestState, latentStateSampler){
-  return Enumerate( function(){
+  return Infer({ method: 'enumerate' },  function(){
     return {manifestState:startManifestState, 
             latentState: latentStateSampler()};
             });

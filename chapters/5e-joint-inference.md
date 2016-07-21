@@ -36,7 +36,7 @@ For inference, we specialize the approach in the previous <a href="/chapters/5d-
 // getPosterior_function
 
 var exampleGetPosterior = function(world, prior, observedStateAction){
-  return Enumerate(function () {
+  return Infer({ method: 'enumerate' }, function () {
 
     // Sample parameters from prior
     var priorUtility = prior.priorUtility;

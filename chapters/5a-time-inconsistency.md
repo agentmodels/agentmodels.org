@@ -87,7 +87,7 @@ var world = bandit.world;
 var start = bandit.startState;
 
 // Agent prior for utility of each destination
-var priorBelief = Enumerate(function(){
+var priorBelief = Infer({ method: 'enumerate' }, function(){
   var armToPrizeERP = {
     0: deltaERP(1), // Tahoe has known utility 1
     1: categorical([0.9, 0.1],

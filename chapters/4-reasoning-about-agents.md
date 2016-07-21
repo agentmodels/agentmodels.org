@@ -72,7 +72,7 @@ var utilityTablePrior = function(){
   );
 };
 
-var posterior = Enumerate( function(){
+var posterior = Infer({ method: 'enumerate' },  function(){
   var utilityTableAndFavourite = utilityTablePrior();
   var utilityTable = utilityTableAndFavourite.table;
   var favourite = utilityTableAndFavourite.favourite;
@@ -167,7 +167,7 @@ var observedStateAction = [[{loc: [3,1],
 			                 timeLeft: 11,
 							 terminateAfterAction: false}, 'l']];
 
-var posterior = Enumerate( function(){
+var posterior = Infer({ method: 'enumerate' },  function(){
   var utilityTableAndFavourite = utilityTablePrior();
   var utilityTable = utilityTableAndFavourite.table;
   var utility = makeRestaurantUtilityFunction(world, utilityTable);
@@ -218,7 +218,7 @@ var utilityTablePrior = function(){
 var alphaPrior = function(){return uniformDraw([.1,1,10,100]);};
 
 var posterior = function(observedStateActionSequence){
-  return Enumerate( function() {
+  return Infer({ method: 'enumerate' },  function() {
     var utilityTable = utilityTablePrior();
     var alpha = alphaPrior();
     var params = {utility: makeRestaurantUtilityFunction(world, utilityTable),
@@ -304,7 +304,7 @@ var utilityTablePrior = function(){
 var alphaPrior = function(){return uniformDraw([.1,1,10,100]);};
 
 var posterior = function(observedStateActionSequence){
-  return Enumerate( function() {
+  return Infer({ method: 'enumerate' },  function() {
     var utilityTable = utilityTablePrior();
     var alpha = alphaPrior();
     var params = {utility: makeRestaurantUtilityFunction(world, utilityTable),
@@ -426,7 +426,7 @@ var agentModelsBanditInfer = function(baseAgentParams, priorPrizeToUtility,
 				                      priorInitialBelief, bandit,
 									  observedSequence) {
 
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
     var prizeToUtility = priorPrizeToUtility ? sample(priorPrizeToUtility)
 	      : undefined;
     var initialBelief = sample(priorInitialBelief);
@@ -478,7 +478,7 @@ var bandit = makeBandit({
 
 var simpleAgent_ = {
   // simpleAgent always pulls arm 1
-  act: function(belief){return Enumerate(function() {return 1;});},
+  act: function(belief){return Infer({ method: 'enumerate' }, function() {return 1;});},
   updateBelief: function(belief){return belief;},
   params: {priorBelief: deltaERP(bandit.startState)}
 };
@@ -495,7 +495,7 @@ var observedSequence = simulate(bandit.startState, bandit.world, simpleAgent,
 
 // We know agent's prior, which is that either arm1 yields
 // nothing or it yields champagne.
-var priorInitialBelief = deltaERP(Enumerate(function(){
+var priorInitialBelief = deltaERP(Infer({ method: 'enumerate' }, function(){
   var armToPrizeERP = uniformDraw([trueArmToPrizeERP,
                                    update(trueArmToPrizeERP,
 								          {1:deltaERP('nothing')})]);
@@ -541,7 +541,7 @@ var bandit = makeBandit({
 
 var simpleAgent_ = {
   // simpleAgent always pulls arm 0
-  act: function(belief){return Enumerate(function() {return 0;});},
+  act: function(belief){return Infer({ method: 'enumerate' }, function() {return 0;});},
   updateBelief: function(belief){return belief;},
   params: {priorBelief: deltaERP(bandit.startState)}
 };
@@ -557,7 +557,7 @@ var observedSequence = simulate(bandit.startState, bandit.world, simpleAgent,
 // or agent thinks prize is probably "nothing"
 
 var informedPrior = deltaERP(bandit.startState);
-var noChampagnePrior = Enumerate(function(){
+var noChampagnePrior = Infer({ method: 'enumerate' }, function(){
   var armToPrizeERP = categorical([0.05, 0.95],
                                   [trueArmToPrizeERP,
 								   update(trueArmToPrizeERP,
@@ -584,7 +584,7 @@ var posterior = agentModelsBanditInfer(baseParams, priorPrizeToUtility,
 					                   priorInitialBelief, bandit,
 									   observedSequence);
 
-var utilityBeliefPosterior = Enumerate(function(){
+var utilityBeliefPosterior = Infer({ method: 'enumerate' }, function(){
   var utilityBelief = sample(posterior);
   var chocolateUtility = utilityBelief.prizeToUtility.chocolate;
   var likesChocolate = chocolateUtility > 3;
@@ -613,7 +613,7 @@ var probLikesChocolate = function(numberOfTrials){
 
   var simpleAgent_ = {
     // simpleAgent always pulls arm 0
-	act: function(belief){return Enumerate(function() {return 0;});},
+	act: function(belief){return Infer({ method: 'enumerate' }, function() {return 0;});},
 	updateBelief: function(belief){return belief;},
 	params: {priorBelief: deltaERP(bandit.startState)}
   };
@@ -627,7 +627,7 @@ var probLikesChocolate = function(numberOfTrials){
 
   var baseParams = {alpha: 100};
 
-  var noChampagnePrior = Enumerate(function(){
+  var noChampagnePrior = Infer({ method: 'enumerate' }, function(){
     var armToPrizeERP = flip(0.2) ? trueArmToPrizeERP
           : update(trueArmToPrizeERP, {1: deltaERP('nothing')});
     return makeBanditStartState(numberOfTrials, armToPrizeERP);

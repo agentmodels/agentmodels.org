@@ -61,7 +61,7 @@ var startState = bandit.startState;
 // Construct reward-myopic agent
 
 // Arm0 is a mixture of [0,1.5] and Arm1 of [0,1]
-var agentPrior = Enumerate(function(){
+var agentPrior = Infer({ method: 'enumerate' }, function(){
   var prob15 = uniformDraw([0, 0.25, 0.5, 0.75, 1]);
   var prob1 = uniformDraw([0, 0.25, 0.5, 0.75, 1]);
   var armToPrizeERP = {0: categoricalERP([prob15, 1 - prob15], [1.5, 0]),
@@ -127,7 +127,7 @@ var bandit = makeBandit({
 var world = bandit.world;
 var startState = bandit.startState;
 
-var agentPrior = Enumerate(function(){
+var agentPrior = Infer({ method: 'enumerate' }, function(){
   var prob3 = uniformDraw([0.1, 0.5, 0.9]);
   var prob1 = uniformDraw([0.1, 0.5, 0.9]);
   var prob2 = uniformDraw([0.1, 0.5, 0.9]);
@@ -236,7 +236,7 @@ var getParams = function(agentPrior){
 };
 
 var getAgentPrior = function(numberOfTrials, priorArm0, priorArm1){
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
     var armToPrizeERP = {0: priorArm0(), 1: priorArm1()};
     return makeBanditStartState(numberOfTrials, armToPrizeERP);
   });
@@ -334,7 +334,7 @@ var getParams = function(agentPrior){
 };
 
 var getAgentPrior = function(numberOfTrials, priorArm0, priorArm1){
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
     var armToPrizeERP = {0: priorArm0(), 1: priorArm1()};
     return makeBanditStartState(numberOfTrials, armToPrizeERP);
   });
@@ -450,7 +450,7 @@ var world = pomdp.world;
 var makeUtility = pomdp.makeUtility;
 var startState = pomdp.startState;
 
-var agentPrior = Enumerate(function(){
+var agentPrior = Infer({ method: 'enumerate' }, function(){
   var rewardD = uniformDraw([0,5]); // D is bad or great (E is opposite)
   var latentState = {A: 3,
 		             B: uniformDraw(range(6)),
@@ -486,7 +486,7 @@ var pomdp = makeRestaurantSearchPOMDP();
 var world = pomdp.world;
 var makeUtility = pomdp.makeUtility;
 
-var agentPrior = Enumerate(function(){
+var agentPrior = Infer({ method: 'enumerate' }, function(){
   var rewardD = uniformDraw([0,5]); // D is bad or great (E is opposite)
   var latentState = {A: 3,
 		             B: uniformDraw(range(6)),

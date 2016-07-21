@@ -130,7 +130,7 @@ var getPosterior = function(observedStateAction, useOptimalModel) {
   var world = makeProcrastinationMDP();
   var lastChanceState = secondLast(procrastinateUntilEnd10)[0];
   
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
    
    var utilityTable = {
      reward: uniformDraw([0.5, 2, 3, 4, 5, 6, 7, 8]),
@@ -254,14 +254,14 @@ var getPosterior = function(numberOfTrials, useOptimalModel) {
 						                        [startState,
 						                         alternativeStartState]));
   
-  var priorPrizeToUtility = Enumerate(function(){
+  var priorPrizeToUtility = Infer({ method: 'enumerate' }, function(){
     return {chocolate: uniformDraw(range(20).concat(25)),
 	        nothing: 0,
 	        champagne: 20};
   });
   
   var priorMyopia =  useOptimalModel ? deltaERP({on:false, bound:0}) :
-      Enumerate(function(){
+      Infer({ method: 'enumerate' }, function(){
         return {bound: categorical([.4, .2, .1, .1, .1, .1], 
                                    [1, 2, 3, 4, 6, 10])};
       });
@@ -280,7 +280,7 @@ var getPosterior = function(numberOfTrials, useOptimalModel) {
   var outputERP = inferBandit(bandit, baseAgentParams, prior, observations,
                               'offPolicy', 0, 'beliefDelay');
   
-  var marginalChocolate = Enumerate(function(){
+  var marginalChocolate = Infer({ method: 'enumerate' }, function(){
     return sample(outputERP).prizeToUtility.chocolate;
   });
   
