@@ -163,7 +163,7 @@ var literalListener = function(sentence) {
 var speaker = function(state) {
   return Infer({ method: 'enumerate' }, function(){
     var sentence = sentencePrior();
-    factor(alpha * literalListener(sentence).score([], state));
+    factor(alpha * literalListener(sentence).score(state));
     return sentence;
   });
 }
@@ -204,7 +204,7 @@ var literalListener = dp.cache(function(sentence) {
 var speaker = dp.cache(function(state) {
   return Infer({ method: 'enumerate' }, function(){
     var sentence = sentencePrior();
-    factor(alpha * literalListener(sentence).score([], state));
+    factor(alpha * literalListener(sentence).score(state));
     return sentence;
   });
 });
@@ -212,7 +212,7 @@ var speaker = dp.cache(function(state) {
 var listener = dp.cache(function(sentence) {
   return Infer({ method: 'enumerate' }, function(){
     var state = statePrior();
-    factor(speaker(state).score([], sentence));
+    factor(speaker(state).score(sentence));
     return state;
   })
 });
@@ -574,8 +574,8 @@ var agent = dp.cache(function(t, raisedHands, othersBlueEyes) {
 });
 
 var getRaisedHands = function(t, raisedHands, trueBlueEyes) {
-  var p1 = Math.exp(agent(t, raisedHands, trueBlueEyes - 1).score([], 1));
-  var p2 = Math.exp(agent(t, raisedHands, trueBlueEyes).score([], 1));
+  var p1 = Math.exp(agent(t, raisedHands, trueBlueEyes - 1).score(1));
+  var p2 = Math.exp(agent(t, raisedHands, trueBlueEyes).score(1));
   return binomial(p1, trueBlueEyes) + binomial(p2, numAgents - trueBlueEyes);
 };
 

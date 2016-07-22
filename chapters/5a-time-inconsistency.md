@@ -69,9 +69,9 @@ var display = function(trajectory){
 
 // Actual utility for each destination
 var trueArmToPrizeERP = {
-  0: deltaERP(1),
-  1: deltaERP(0),
-  2: deltaERP(0.5)
+  0: Delta({ v: 1 }),
+  1: Delta({ v: 0 }),
+  2: Delta({ v: 0.5 })
 };
 
 // Constuct Bandit world
@@ -89,10 +89,10 @@ var start = bandit.startState;
 // Agent prior for utility of each destination
 var priorBelief = Infer({ method: 'enumerate' }, function(){
   var armToPrizeERP = {
-    0: deltaERP(1), // Tahoe has known utility 1
+    0: Delta({ v: 1 }), // Tahoe has known utility 1
     1: categorical([0.9, 0.1],
-	               [deltaERP(0), deltaERP(5)]), // Chile has high variance
-	2: uniformDraw([deltaERP(0.5), deltaERP(1.5)])
+	               [Delta({ v: 0 }), Delta({ v: 5 })]), // Chile has high variance
+	2: uniformDraw([Delta({ v: 0.5 }), Delta({ v: 1.5 })])
 	// Switzerland has high expected value
   };
   return makeBanditStartState(numberOfTrials, armToPrizeERP);

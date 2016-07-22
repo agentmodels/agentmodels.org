@@ -59,7 +59,7 @@ var exampleGetPosterior = function(world, prior, observedStateAction){
     map(function (stateAction) {
       var state   = stateAction[0];
       var action  = stateAction[1];
-      factor(agentAction(state, 0).score([], action)) ; 
+      factor(agentAction(state, 0).score(action)) ; 
     }, observedStateAction);
 
     // return parameters and summary statistics
@@ -100,13 +100,13 @@ var displayResults = function(priorERP, posteriorERP) {
   var getPriorProb = function(x){
     var label = _.keys(x)[0];
     var erp = getMarginalObject(priorERP, label);
-    return Math.exp(erp.score([],x));
+    return Math.exp(erp.score(x));
   };
 
   var getPosteriorProb = function(x){
     var label = _.keys(x)[0];
     var erp = getMarginalObject(posteriorERP, label);
-    return Math.exp(erp.score([],x));
+    return Math.exp(erp.score(x));
   };
 
   var sophisticationPriorDataTable = map(function(x){
@@ -241,13 +241,13 @@ var displayResults = function(priorERP, posteriorERP) {
   var getPriorProb = function(x){
     var label = _.keys(x)[0];
     var erp = getMarginalObject(priorERP, label);
-    return Math.exp(erp.score([],x));
+    return Math.exp(erp.score(x));
   };
 
   var getPosteriorProb = function(x){
     var label = _.keys(x)[0];
     var erp = getMarginalObject(posteriorERP, label);
-    return Math.exp(erp.score([],x));
+    return Math.exp(erp.score(x));
   };
 
   var sophisticationPriorDataTable = map(function(x){
@@ -366,13 +366,13 @@ var displayResults = function(priorERP, posteriorERP) {
   var getPriorProb = function(x){
     var label = _.keys(x)[0];
     var erp = getMarginalObject(priorERP, label);
-    return Math.exp(erp.score([],x));
+    return Math.exp(erp.score(x));
   };
 
   var getPosteriorProb = function(x){
     var label = _.keys(x)[0];
     var erp = getMarginalObject(posteriorERP, label);
-    return Math.exp(erp.score([],x));
+    return Math.exp(erp.score(x));
   };
 
   var sophisticationPriorDataTable = map(function(x){
@@ -486,13 +486,13 @@ var displayResults = function(priorERP, posteriorERP) {
   var getPriorProb = function(x){
     var label = _.keys(x)[0];
     var erp = getMarginalObject(priorERP, label);
-    return Math.exp(erp.score([],x));
+    return Math.exp(erp.score(x));
   };
 
   var getPosteriorProb = function(x){
     var label = _.keys(x)[0];
     var erp = getMarginalObject(posteriorERP, label);
-    return Math.exp(erp.score([],x));
+    return Math.exp(erp.score(x));
   };
 
   var vegMinusDonutPriorDataTable = map(function(x){
@@ -603,13 +603,13 @@ var displayResults = function(priorERP, posteriorERP) {
   var getPriorProb = function(x){
     var label = _.keys(x)[0];
     var erp = getMarginalObject(priorERP, label);
-    return Math.exp(erp.score([],x));
+    return Math.exp(erp.score(x));
   };
 
   var getPosteriorProb = function(x){
     var label = _.keys(x)[0];
     var erp = getMarginalObject(posteriorERP, label);
-    return Math.exp(erp.score([],x));
+    return Math.exp(erp.score(x));
   };
 
   var vegMinusDonutPriorDataTable = map(function(x){
@@ -715,13 +715,13 @@ var displayResults = function(priorERP, posteriorERP) {
   var getPriorProb = function(x){
     var label = _.keys(x)[0];
     var erp = getMarginalObject(priorERP, label);
-    return Math.exp(erp.score([],x));
+    return Math.exp(erp.score(x));
   };
 
   var getPosteriorProb = function(x){
     var label = _.keys(x)[0];
     var erp = getMarginalObject(posteriorERP, label);
-    return Math.exp(erp.score([],x));
+    return Math.exp(erp.score(x));
   };
 
   var sophisticationPriorDataTable = map(function(x){
@@ -874,13 +874,13 @@ var displayResults = function(priorERP, posteriorERP) {
   var getPriorProb = function(x){
     var label = _.keys(x)[0];
     var erp = getMarginalObject(priorERP, label);
-    return Math.exp(erp.score([],x));
+    return Math.exp(erp.score(x));
   };
 
   var getPosteriorProb = function(x){
     var label = _.keys(x)[0];
     var erp = getMarginalObject(posteriorERP, label);
-    return Math.exp(erp.score([],x));
+    return Math.exp(erp.score(x));
   };
 
   var alphaPriorDataTable = map(function(x){
@@ -1008,13 +1008,13 @@ var displayResults = function(priorERP, posteriorERP) {
   var getPriorProb = function(x){
     var label = _.keys(x)[0];
     var erp = getMarginalObject(priorERP, label);
-    return Math.exp(erp.score([],x));
+    return Math.exp(erp.score(x));
   };
 
   var getPosteriorProb = function(x){
     var label = _.keys(x)[0];
     var erp = getMarginalObject(posteriorERP, label);
-    return Math.exp(erp.score([],x));
+    return Math.exp(erp.score(x));
   };
 
   var alphaPriorDataTable = map(function(x){

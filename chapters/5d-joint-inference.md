@@ -149,7 +149,7 @@ var getPosterior = function(observedStateAction, useOptimalModel) {
     map(function(stateAction){
       var state = stateAction[0];
       var action = stateAction[1];
-      factor( act(state, 0).score([], action) )
+      factor( act(state, 0).score(action) )
     }, observedStateAction);
 
     return {reward: utilityTable.reward, 
@@ -236,8 +236,8 @@ var displayExpectations = function(getPosterior){
 
 
 var getPosterior = function(numberOfTrials, useOptimalModel) {
-  var trueArmToPrizeERP = {0: deltaERP('chocolate'),
-		                   1: deltaERP('nothing')};
+  var trueArmToPrizeERP = {0: Delta({ v: 'chocolate' }),
+		                   1: Delta({ v: 'nothing' })};
   var bandit = makeBandit({
     numberOfArms: 2,
 	armToPrizeERP: trueArmToPrizeERP,
@@ -246,13 +246,13 @@ var getPosterior = function(numberOfTrials, useOptimalModel) {
 
   var startState = bandit.startState;
   var alternativeArmToPrizeERP = update(trueArmToPrizeERP,
-                                        {1: deltaERP('champagne')});
+                                        {1: Delta({ v: 'champagne' })});
   var alternativeStartState = makeBanditStartState(numberOfTrials,
 	                                               alternativeArmToPrizeERP);
 
-  var priorAgentPrior = deltaERP(categoricalERP([0.7, 0.3],
-						                        [startState,
-						                         alternativeStartState]));
+  var priorAgentPrior = Delta({ v: Categorical({ ps: [0.7, 0.3],
+						                        vs: [startState,
+						                         alternativeStartState] } }));
   
   var priorPrizeToUtility = Infer({ method: 'enumerate' }, function(){
     return {chocolate: uniformDraw(range(20).concat(25)),
@@ -260,7 +260,7 @@ var getPosterior = function(numberOfTrials, useOptimalModel) {
 	        champagne: 20};
   });
   
-  var priorMyopia =  useOptimalModel ? deltaERP({on:false, bound:0}) :
+  var priorMyopia =  useOptimalModel ? Delta({ v: {on:false, bound:0} }) :
       Infer({ method: 'enumerate' }, function(){
         return {bound: categorical([.4, .2, .1, .1, .1, .1], 
                                    [1, 2, 3, 4, 6, 10])};

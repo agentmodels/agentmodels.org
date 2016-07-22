@@ -44,8 +44,8 @@ The next codeboxes show the performance of the Reward-myopic agent on Bandit pro
 // Construct world: One bad arm, one good arm, 100 trials. 
 
 var trueArmToPrizeERP = {
-  0: categoricalERP([0.25, 0.75], [1.5, 0] ),
-  1: categoricalERP([0.5, 0.5], [1, 0])
+  0: Categorical({ ps: [0.25, 0.75], vs: [1.5, 0] }),
+  1: Categorical({ ps: [0.5, 0.5], vs: [1, 0] })
 };
 var numberOfTrials = 100;
 var bandit = makeBandit({
@@ -64,8 +64,8 @@ var startState = bandit.startState;
 var agentPrior = Infer({ method: 'enumerate' }, function(){
   var prob15 = uniformDraw([0, 0.25, 0.5, 0.75, 1]);
   var prob1 = uniformDraw([0, 0.25, 0.5, 0.75, 1]);
-  var armToPrizeERP = {0: categoricalERP([prob15, 1 - prob15], [1.5, 0]),
-		               1: categoricalERP([prob1, 1 - prob1], [1, 0])};
+  var armToPrizeERP = {0: Categorical({ ps: [prob15, 1 - prob15], vs: [1.5, 0] }),
+		               1: Categorical({ ps: [prob1, 1 - prob1], vs: [1, 0] })};
   return makeBanditStartState(numberOfTrials, armToPrizeERP);
 });
 
@@ -112,9 +112,9 @@ var params = {
 };
 ///
 
-var trueArmToPrizeERP = {0: categoricalERP([0.1, 0.9], [3, 0]),
-	                     1: categoricalERP([0.5, 0.5], [1, 0]),
-		                 2: categoricalERP([0.5, 0.5], [2, 0])};
+var trueArmToPrizeERP = {0: Categorical({ ps: [0.1, 0.9], vs: [3, 0] }),
+	                     1: Categorical({ ps: [0.5, 0.5], vs: [1, 0] }),
+		                 2: Categorical({ ps: [0.5, 0.5], vs: [2, 0] })};
 
 var numberOfTrials = 40;
 
@@ -131,9 +131,9 @@ var agentPrior = Infer({ method: 'enumerate' }, function(){
   var prob3 = uniformDraw([0.1, 0.5, 0.9]);
   var prob1 = uniformDraw([0.1, 0.5, 0.9]);
   var prob2 = uniformDraw([0.1, 0.5, 0.9]);
-  var armToPrizeERP = {0: categoricalERP([prob3, 1 - prob3], [3, 0]),
-	                   1: categoricalERP([prob1, 1 - prob1], [1, 0]),
-	                   2: categoricalERP([prob2, 1 - prob2], [2, 0])};
+  var armToPrizeERP = {0: Categorical({ ps: [prob3, 1 - prob3], vs: [3, 0] }),
+	                   1: Categorical({ ps: [prob1, 1 - prob1], vs: [1, 0] }),
+	                   2: Categorical({ ps: [prob2, 1 - prob2], vs: [2, 0] })};
   return makeBanditStartState(numberOfTrials, armToPrizeERP);
 });
 
@@ -245,8 +245,8 @@ var getAgentPrior = function(numberOfTrials, priorArm0, priorArm1){
 // HELPERS FOR CONSTRUCTING WORLD
 
 // Possible distributions for arms
-var probably0ERP = categoricalERP([0.6, 0.4], [0, 1]);
-var probably1ERP = categoricalERP([0.4, 0.6], [0, 1]);
+var probably0ERP = Categorical({ ps: [0.6, 0.4], vs: [0, 1] });
+var probably1ERP = Categorical({ ps: [0.4, 0.6], vs: [0, 1] });
 
 // Construct Bandit POMDP
 var getBandit = function(numberOfTrials){
@@ -267,8 +267,8 @@ var score = function(out){
 // Agent prior on arm rewards
 
 // Possible distributions for arms
-var probably0ERP = categoricalERP([0.6, 0.4], [0, 1]);
-var probably1ERP = categoricalERP([0.4, 0.6], [0, 1]);
+var probably0ERP = Categorical({ ps: [0.6, 0.4], vs: [0, 1] });
+var probably1ERP = Categorical({ ps: [0.4, 0.6], vs: [0, 1] });
 
 // True latentState:
 // arm0 is probably0ERP, arm1 is probably1ERP (and so is better)
@@ -343,8 +343,8 @@ var getAgentPrior = function(numberOfTrials, priorArm0, priorArm1){
 // HELPERS FOR CONSTRUCTING WORLD
 
 // Possible distributions for arms
-var probably1ERP = categoricalERP([0.4, 0.6], [0, 1]);
-var probably0ERP = categoricalERP([0.6, 0.4], [0, 1]);
+var probably1ERP = Categorical({ ps: [0.4, 0.6], vs: [0, 1] });
+var probably0ERP = Categorical({ ps: [0.6, 0.4], vs: [0, 1] });
 
 
 // Construct Bandit POMDP
@@ -366,8 +366,8 @@ var score = function(out){
 // Agent prior on arm rewards
 
 // Possible distributions for arms
-var probably0ERP = categoricalERP([0.6, 0.4], [0, 1]);
-var probably1ERP = categoricalERP([0.4, 0.6], [0, 1]);
+var probably0ERP = Categorical({ ps: [0.6, 0.4], vs: [0, 1] });
+var probably1ERP = Categorical({ ps: [0.4, 0.6], vs: [0, 1] });
 
 // True latentState:
 // arm0 is probably0ERP, arm1 is probably1ERP (and so is better)
