@@ -7,9 +7,24 @@
     - not really working
 [x] let's try the version where I manually recompile
      ./scripts/update-webppl-local
+
 [ ] go through chapters, make srue code runs with latest webppl
-    [ ] rename erp to dist
-    [ ] change Enumerate to Infer syntax
-    [ ] change Rejection to Infer syntax
-[ ] update code in webppl-agents
+    per chapter:
+      [ ] rename erp to dist
+      [ ] change Enumerate to Infer syntax
+      [ ] change Rejection to Infer syntax
+      [ ] categoricalERP
+      [ ] deltaERP
+    - in chapter 3c now - this makes use of makeBandit in webppl-agents, which needs to be upgraded.
+      [ ] update code in webppl-agents
+          [ ] probably can't use .sample check to identify ERPs      
+          [ ] rename erp to dist
+          [x] score doesn't take parameters anymore
+          [x] change Enumerate to Infer syntax
+          [x] change Rejection to Infer syntax
+          [x] categoricalERP
+          [x] deltaERP      
+      [ ] run tests to verify that everything works
+          - not working right now with current webppl
+
 [ ] think about additional refactoring
