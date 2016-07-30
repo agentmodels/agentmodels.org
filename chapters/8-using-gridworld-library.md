@@ -14,11 +14,12 @@ Contents:
 
 1. Write an MDP (use line example from Section 3.1) and run MDP and hyperbolic agents. MDP has `transition` and `stateToAction`. For these agents, we could have a generic *simulateMDP* function, which takes an MDP (with `transition`), a startState, and an agent and computes the trajectory.
 
-2. Write a POMDP. Could be line-world also: if state 1 says so, you go right, otherwise you go left. POMDP has `transition`, `beliefToAction`, `observation` functions. The startState will contain the latentState that agent is uncertain about. Work with `beliefDelay` agent to show comparison between optimal and boundVOI. Maybe discuss beliefAgent in footnotes. [Simulate should be flexible enough to implement some other kinds of agent. What about RL agents who don't know the transition or reward function?]
-
 3. Gridworld MDP version. Show hiking example. Show how to vary the utilities. Run different agents on it. Show how to create variant gridworlds (need nicer interface for "feature").
 
 4. Show how to create your own agent and run it on gridworld. Random agent. Epsilon-greedy agent instead of softmax. 
+
+2. Write a POMDP. Could be line-world also: if state 1 says so, you go right, otherwise you go left. POMDP has `transition`, `beliefToAction`, `observation` functions. The startState will contain the latentState that agent is uncertain about. Work with `beliefDelay` agent to show comparison between optimal and boundVOI. Maybe discuss beliefAgent in footnotes. [Simulate should be flexible enough to implement some other kinds of agent. What about RL agents who don't know the transition or reward function?]
+
 
 5. Bandits. Show how to create bandit problems. Run POMDP agents. Create your own POMDP agent.
 
@@ -29,11 +30,11 @@ Contents:
 
 This is a quick-start guide to using the webppl-agents library. For a more detailed, textbook-style explanation of the library, try [agentmodels.org](http://agentmodels.org). [Maybe provide a bit more info about what's included in agentmodels. e.g. mathematical background to the agents and basics of inference in webppl.]
 
-The library is built around two basic entities: *agents* and *environments*. A *simulation* involves an agent interacting with a specific environment. We provide two standard RL environments as examples (Gridworld and Multi-armed Bandits). We provide four kinds of agent as examples. Many combinations of environment and agent are possible. In addition, it's easy to add your own environments and agents -- as we illustrate below. 
+The library is built around two basic entities: *agents* and *environments*. These entities are combined by *simulating* an agent interacting with a particular environment. The library includes two standard RL environments as examples (Gridworld and Multi-armed Bandits). Four kinds of agent are included. Many combinations of environment and agent are possible. In addition, it's easy to add your own environments and agents -- as we illustrate below. 
 
-Environments and agents can't be freely combined. Among environments, we distinguish MDPs and POMDPs. For a POMDP environment, the agent must be a "POMDP agent", which means they maintain a belief distribution on the state. This separation of POMDPs and MDPs is not necessary, since POMDPs generalize MDPs. However, the separation makes the MDP code very short and perspicuous and also provides performance advantages. 
+Not all environments and agents can be combined. Among environments, we distinguish MDPs (Markov Decision Processes) and POMDPs (Partially Observable Markov Decision Processes). For a POMDP environment, the agent must be a "POMDP agent", which means they maintain a belief distribution on the state. This separation of POMDPs and MDPs is not necessary from a theoretical perspective, since POMDPs generalize MDPs. However, the separation is convenient in practice: it allows the MDP code to be short and perspicuous and it provides performance advantages. 
 
-### Creating an MDP environment
+### Creating your own MDP environment
 
 We begin by creating a very simple MDP environment and running two agents from the library on that environment. 
 
@@ -41,12 +42,12 @@ MDPs are defined [here](http://agentmodels.org/chapters/3a-mdp.html). For use in
 
 >`var myMDPEnvironment = {transition: ...,  stateToActions: ...}`
 
-The `transition` method is a function from state-action pairs to states (as in the function $$T$$ in the MDP definition). The `stateToAction` method is a mapping from states to the actions that are allowed in that state.
+The `transition` method is a function from state-action pairs to states (as in the function $$T$$ in the MDP definition). The `stateToAction` method is a mapping from states to the actions that are allowed in that state. (This is often a constant function). 
 
-MDPs are usually defined to include a *reward* or *utility* function on states or state-action pairs. We don't require that MDP objects include a utility function. But if we run an *agent* on the MDP, the agent must have a utility function defined on the states of the MDP. Since the same state space is used in both the MDP itself and the utility function, we often create the utility function when creating the MDP. 
+To run an agent on an MDP, the agent object must have a `utility` method defined on the MDP's state-action space. This method is the agent's "reward" or "utility" function (we use the terms interchangeably). 
 
-#### The Line MDP environment
-Our first MDP environment is a simply a line where the agent can move left or right (starting from the origin). More precisely, the Line MDP is as follows:
+#### Creating the Line MDP environment
+Our first MDP environment is a discrete line (or one-dimensional gridworld) where the agent can move left or right (starting from the origin). More precisely, the Line MDP is as follows:
 
 - **States:** Points on the integer line (e.g ..., -1, 0, 1, 2, ...).
 
@@ -54,11 +55,12 @@ Our first MDP environment is a simply a line where the agent can move left or ri
 
 In our examples, the agent's `startState` is the origin. The utility is 1 at the origin, 3 at the third state right of the origin ("state 3"), and 0 otherwise.
 
-The transition function must also decrements the time. States are objects with a `terminateAfterAction` attribute, which terminates the MDP when true. In the example below, `terminateAfterAction` is set to `true` when the state's `timeLeft` attribute is set to 1. For the Line MDP, an example state (the `startState`) has form:
+The transition function must also decrement the time. States are objects with a `terminateAfterAction`. In the example below, `terminateAfterAction` is set to `true` when the state's `timeLeft` attribute gets down to 1; this causes the MDP to terminate. Here is an example state for the Line MDP (it's also the `startState`):
 
->`{terminateAfterAction: false, timeLeft:6, loc:0}`
+>`{terminateAfterAction: false, timeLeft:5, loc:0}`
 
-TODO: could say "environment" instead of "world" in the code below. but we used used "world" almost everywhere in the library. 
+NB: The library uses the term "world" in place of "environment".
+
 
 ~~~~
 // helper function that decrements time and triggers termination when time elapsed
@@ -102,6 +104,7 @@ var makeLineMDP = function(totalTime){
   };
 };
 
+// save the MDP constructor for use in other codeboxes
 wpEditor.put('makeLineMDP', makeLineMDP);
 ~~~~
 
@@ -109,17 +112,17 @@ To run an agent on this MDP, we use a `makeAgent` constructor and the library fu
 
 >`makeMDPAgent(params, world)`
 
-For an optimal (non-discounting) agent, the parameters are:
+Agent constructors always have these same two arguments. The `world` argument is required for the agent's internal simulations of possible transitions. The `params` argument specifies the agent's parameters and whether the agent is optimal or biased.
+
+For an optimal agent, the parameters are:
 
 >`{utility: <utility_function>,  alpha: <softmax_alpha>}`
-
-Agent constructors always have these same two arguments. The `world` argument is required for the agent's internal simulations of possible transitions. The `params` argument specifies the agent's parameters and whether the agent is optimal or biased.
 
 An environment (or "world") and agent are combined with the `simulate` function:
 
 >`simulate(startState, world, agent, outputType)`
 
-Given the utility function defined above, the highest utility state is at location 3 (three steps to the right from the origin). So a non-discounting agent will move and stay at this location. 
+Given the utility function defined above, the highest utility state is at location 3 (three steps to the right from the origin). So an optimal agent (who doesn't hyperbolically discount) will move to this location and stay there. 
 
 ~~~~
 ///fold:
@@ -169,7 +172,7 @@ var makeLineMDP = function(totalTime){
 ///
 
 // Construct line MDP environment
-var totalTime = 6;
+var totalTime = 5;
 var lineMDP = makeLineMDP(totalTime);
 var world = lineMDP.world;
 
@@ -189,41 +192,156 @@ var trajectory = simulate(startState, world, agent, 'states');
 print(trajectory)
 ~~~~
 
+We described the agent above as "optimal" because it does not hyperbolically discount and it is not myopic. However, we can adjust its "soft-max" noise by modifying the parameter `alpha` and induce sub-optimal behavior. Moreover, we can change the agent's behavior on this MDP by over-writing the utility method in `params`. 
 
+To construct a time-inconsistent, hyperbolically-discounting MDP agent, we include additional attributes in the `params` argument:
 
-More agents:
+>`{ discount:<discount_parameter>, sophisticatedOrNaive: <boolean> }`
+
+These attributes are explained in the [chapter](/chapters/5a-time-inconsistency.html) on hyperbolic discounting. The discounting agent stays at the origin because it isn't willing to "delay gratification" in order to get a larger total reward at location 3.
 
 ~~~~
-// random MDPAgent
-var makeMDPAgentRandom = function(params, world){
-  var stateToActions = world.stateToActions;
-  var act = function(state){
-    return Enumerate(function(){
-      return uniformDraw(stateToActions(state));
-    });
-  };
-  return {
-    act: act,
-    params: params
-  };
-};
-var agent = makeMDPAgentRandom(params, world);
-var trajectory = simulate(line.startState, world, agent, 'states');
-var locations = getLocations(trajectory);
 
-
-// MDPAgentHyperbolic
-var params = {
-  alpha: 1000,
-  utility: utility,
-  discount: 2,
-  sophisticatedOrNaive: 'naive'
+///fold:
+// helper function that decrements time and triggers termination when time elapsed
+var advanceStateTime = function(state){
+  var newTimeLeft = state.timeLeft - 1;
+  return update(state, { 
+    timeLeft: newTimeLeft,
+    terminateAfterAction: newTimeLeft > 1 ? state.terminateAfterAction : true
+  });
 };
+
+// constructuor for the "line" MDP environment:
+// argument *totalTime* is the time horizon
+var makeLineMDP = function(totalTime){
+
+    var stateToActions = function(state){return [-1, 0, 1];};
+
+    var transition = function(state,action){
+      var newLoc = state.loc + action;
+      var stateNewLoc = update(state,{loc: newLoc});
+      return advanceStateTime(stateNewLoc);
+    };
+
+    var world = {stateToActions:stateToActions, transition:transition};
+    
+    var startState = {timeLeft: totalTime, 
+                      terminateAfterAction: false, 
+                      loc: 0};
+
+    var utility = function(state, action){    
+      var table = {0:1, 3:3};
+      return table[state.loc] ? table[state.loc] : 0;
+    };
+
+    return {world:world, startState:startState, utility:utility};
+  };
+///
+
+// Construct line MDP environment
+var totalTime = 5;
+var lineMDP = makeLineMDP(totalTime);
+var world = lineMDP.world;
+
+// The lineMDP object also includes a utility function and startState
+var utility = lineMDP.utility;
+var startState = lineMDP.startState;
+
+// Construct hyperbolic agent
+var params = {alpha:1000,
+              utility:utility,
+              discount:2,
+              sophisticatedOrNaive: 'naive'};
 var agent = makeMDPAgent(params, world);
-var trajectory = simulate(line.startState, world, agent, 'states');
-var locations = getLocations(trajectory);
+var trajectory = simulate(startState, world, agent, 'states');
+print(trajectory)
 ~~~~
 
+We've shown how to create your own MDP and then run different agents on that MDP. You can also create your own MDP agent, as we illustrate below.
+
+>**Exercise:** Try some variations of the Line MDP by modifying the `transition` method in the `makeLineMDP` constructor above. For example, change the underlying graph structure from a line into a loop. 
+
+-----------
+
+
+### Creating Gridworld MDPs
+Gridworld is a standard toy environment for reinforcement learning problems. The library contains a constructor for making a gridworld with your choice of dimensions and reward function. There is also a function for displaying gridworlds in the browser.
+
+We begin by creating a simple gridworld environment (using `makeGridWorld`) and display it using `GridWorld.draw`.
+
+~~~~
+// Create a constructor for our gridworld
+var makeSimpleGridWorld = function(){
+
+  // '#' indicates a wall, and ' ' indicates a normal cell  
+  var __ = ' ';
+  
+  var features = [[ __ ,  __ ,  __ ],
+	          [ '#' , '#',  __ ],
+	          [ '#' , '#',  __ ],
+	          [ __ ,  __ ,  __ ]];
+
+  // Set the transition noise to zero
+  var options = {gridFeatures: features,
+                 transitionNoiseProbability: 0};
+  
+  return makeGridWorld(options)
+};
+
+var simpleGridWorld = makeGrid();
+var world = simpleGridWorld.world;
+
+var startState = {loc: [0,0],
+    timeLeft: 10,
+    terminateAfterAction: false};
+
+GridWorld.draw(world, {trajectory: [startState]});
+
+~~~~
+
+Gridworld states have a `loc` attribute for the agent's location (using discrete Cartesian coordinates). The agent is able to move up, down, left and right but is not able to stay put.
+
+Having created a gridworld, we construct a utility function (where utility depends only on the agent's grid location) and simulate an optimal MDP agent. 
+
+~~~~
+///fold:
+// Create a constructor for our gridworld
+var makeSimpleGridWorld = function(){
+
+  // '#' indicates a wall, and ' ' indicates a normal cell  
+  var __ = ' ';
+  
+  var features = [[ __ ,  __ ,  __ ],
+	          [ '#' , '#',  __ ],
+	          [ '#' , '#',  __ ],
+	          [ __ ,  __ ,  __ ]];
+
+  // Set the transition noise to zero
+  var options = {gridFeatures: features,
+                 transitionNoiseProbability: 0};
+  
+  return makeGridWorld(options)
+};
+
+var simpleGridWorld = makeGrid();
+var world = simpleGridWorld.world;
+
+var startState = {loc: [0,0],
+    timeLeft: 10,
+    terminateAfterAction: false};
+
+///
+
+var utility = function(state, action){
+  return _.isEqual(state.loc, [0,3]) ? 1 : 0
+};
+
+var params = {utility: utility, alpha: 1000};
+var agent = makeMDPAgent(params, world);
+var trajectory = simulate(startState, world, agent);
+GridWorld.draw(world, {trajectory: trajectory});
+~~~~
 
 
 
