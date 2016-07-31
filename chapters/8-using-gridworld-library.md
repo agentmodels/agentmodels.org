@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: How to use the WebPPL Agent Models library
-description: Constructing various kinds of agents, how to write an MDP or POMDP, how to make your own Gridworld or k-arm bandit problem, how to call generic inference functions. Has codebox examples and links to the library's formal documentation. 
+description: Constructing various kinds of agents, how to write an MDP or POMDP, how to make your own Gridworld or k-arm bandit problem 
 is_section: true
 ---
 
@@ -335,6 +335,8 @@ var startState = {loc: [0,0],
 
 ///
 
+// `isEqual` is part of the underscore library,
+// which is included in webppl-agents
 var utility = function(state, action){
   return _.isEqual(state.loc, [0,3]) ? 1 : 0
 };
@@ -344,3 +346,8 @@ var agent = makeMDPAgent(params, world);
 var trajectory = simulate(startState, world, agent);
 GridWorld.draw(world, {trajectory: trajectory});
 ~~~~
+
+You can create terminal gridworld states by giving the cell a name.
+
+~~~~
+
