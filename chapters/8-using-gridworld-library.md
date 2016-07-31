@@ -30,7 +30,7 @@ Contents:
 
 ### Introduction
 
-This is a quick-start guide to using the `webppl-agents` library. For a more detailed, textbook-style explanation of the library, try [agentmodels.org](http://agentmodels.org). [Maybe provide a bit more info about what's included in agentmodels. e.g. mathematical background to the agents and basics of inference in webppl.]
+This is a quick-start guide to using the `webppl-agents` library. It does not provide background on concepts that are important for the library (e.g. MDPs and POMDPs, optimal vs. biased agents, time-discounting, etc.). For a more detailed, textbook-style explanation of the ideas behind the library, go to [agentmodels.org](http://agentmodels.org). 
 
 The library is built around two basic entities: *agents* and *environments*. These entities are combined by *simulating* an agent interacting with a particular environment. The library includes two standard RL environments as examples (Gridworld and Multi-armed Bandits). Four kinds of agent are included. Many combinations of environment and agent are possible. In addition, it's easy to add your own environments and agents -- as we illustrate below. 
 
