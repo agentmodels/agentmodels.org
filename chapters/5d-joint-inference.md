@@ -327,7 +327,6 @@ The graphs show that as the agent's time horizon increases the inferences of the
 
 Next chapter: [Joint inference of biases and preferences II](/chapters/5e-joint-inference.html)
 
-----
+<br>
 
-
-## Footnotes
+### Footnotes

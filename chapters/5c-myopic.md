@@ -536,8 +536,6 @@ GridWorld.draw(pomdp.mdp, {trajectory: manifestStates});
 
 Next chapter: [Joint inference of biases and preferences I](/chapters/5d-joint-inference.html)
 
--------
-
-
-## Footnotes
 <br>
+
+### Footnotes

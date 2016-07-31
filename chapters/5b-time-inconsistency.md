@@ -328,6 +328,6 @@ map( function(discount){
 
 Next chapter: [Myopia for rewards and belief updates](/chapters/5c-myopic.html)
 
------------
+<br>
 
 ### Footnotes

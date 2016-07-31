@@ -242,6 +242,6 @@ In this simple example, the Naive and Sophisticated agents each take paths that 
 
 Next chapter: [Time inconsistency II](/chapters/5b-time-inconsistency.html)
 
------------
+<br>
 
 ### Footnotes

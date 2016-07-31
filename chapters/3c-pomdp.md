@@ -706,7 +706,7 @@ In the next [chapter](/chapters/4-reasoning-about-agents.html), we will start mo
 -->
 
 
-----
+<br>
 
 ### Footnotes
-<br>
+

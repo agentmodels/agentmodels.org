@@ -96,6 +96,6 @@ We've asserted that humans have cognitive biases and bounds. These lead to syste
 
 Next chapter: [Time inconsistency I](/chapters/5a-time-inconsistency.html)
 
----------
+<br>
 
 ### Footnotes
