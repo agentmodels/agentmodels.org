@@ -443,7 +443,7 @@ var trajectory = simulate(startState, world, agent);
 GridWorld.draw(world, { trajectory: trajectory });
 ~~~~
 
-There are many examples using gridworld in agentmodels.org, starting from this [chapter](chapters/3b-mdp-gridworld.html).
+There are many examples using gridworld in agentmodels.org, starting from this [chapter](/chapters/3b-mdp-gridworld.html).
 
 
 -------
@@ -605,7 +605,7 @@ In addition to writing agents from scratch, you can build on the agents availabl
 
 ### Creating POMDPs
 
-POMDPs are introduced in agentmodels.org in this [chapter](chapters/3c-pomdp.html). This section explains how to create your own POMDPs for use in the library.
+POMDPs are introduced in agentmodels.org in this [chapter](/chapters/3c-pomdp.html). This section explains how to create your own POMDPs for use in the library.
 
 As we explained above, MDPs in webppl-agents are objects with a `transition` method and a `stateToActions` method. POMDPs also have a `transition` method. Instead of `stateToActions`, they have a `beliefToActions` method, which maps a belief distribution over states to a set of available actions. POMDPs also have an `observe` method, which maps states to observations (typically represented as strings).
 
