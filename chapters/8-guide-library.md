@@ -24,14 +24,31 @@ Contents:
 
 -->
 
+### Contents
 
+1. <a href="8-guide-library.html#intro">Introduction</a>
+
+2. Creating MDPs
+
+3. Creating Gridworld MDPs
+
+4. Creating your own agents
+
+5. Creating POMDPs
+
+6. Creating k-armed bandits
+
+
+<a id="intro"></a>
 ### Introduction
 
-This is a quick-start guide to using the `webppl-agents` library. It does not provide background on concepts that are important for the library (e.g. MDPs and POMDPs, optimal vs. biased agents, time-discounting, etc.). For a more detailed, textbook-style explanation of the ideas behind the library, go to [agentmodels.org](http://agentmodels.org). 
+This is a quick-start guide to using the `webppl-agents` library. For a comprehensive explanation of the ideas behind the library (e.g. MDPs, POMDPs, hyperbolic discounting) and diverse examples of its use, go to the online textbook [agentmodels.org](http://agentmodels.org). 
 
-The library is built around two basic entities: *agents* and *environments*. These entities are combined by *simulating* an agent interacting with a particular environment. The library includes two standard RL environments as examples (Gridworld and Multi-armed Bandits). Four kinds of agent are included. Many combinations of environment and agent are possible. In addition, it's easy to add your own environments and agents -- as we illustrate below. 
+The webppl-agents library is built around two basic entities: *agents* and *environments*. These entities are combined by *simulating* an agent interacting with a particular environment. The library includes two standard RL environments as examples (Gridworld and Multi-armed Bandits). Four kinds of agent are included. Many combinations of environment and agent are possible. In addition, it's easy to add your own environments and agents -- as we illustrate below. 
 
-Not all environments and agents can be combined. Among environments, we distinguish MDPs (Markov Decision Processes) and POMDPs (Partially Observable Markov Decision Processes). For a POMDP environment, the agent must be a "POMDP agent", which means they maintain a belief distribution on the state. This separation of POMDPs and MDPs is not necessary from a theoretical perspective, since POMDPs generalize MDPs. However, the separation is convenient in practice: it allows the MDP code to be short and perspicuous and it provides performance advantages. 
+Not all environments and agents can be combined. Among environments, we distinguish MDPs (Markov Decision Processes) and POMDPs (Partially Observable Markov Decision Processes). For a POMDP environment, the agent must be a "POMDP agent", which means they maintain a belief distribution on the state[^separation].
+
+[^separation]: This separation of POMDPs and MDPs is not necessary from a theoretical perspective, since POMDPs generalize MDPs. However, the separation is convenient in practice; it allows the MDP code to be short and perspicuous and it provides performance advantages. 
 
 ### Creating your own MDP environment
 
@@ -39,7 +56,7 @@ We begin by creating a very simple MDP environment and running two agents from t
 
 MDPs are defined [here](http://agentmodels.org/chapters/3a-mdp.html). For use in the library, MDP environments are Javascript objects with the following methods:
 
->`var myMDPEnvironment = {transition: ...,  stateToActions: ...}`
+>`{transition: ...,  stateToActions: ...}`
 
 The `transition` method is a function from state-action pairs to states (as in the function $$T$$ in the MDP definition). The `stateToAction` method is a mapping from states to the actions that are allowed in that state. (This is often a constant function). 
 
@@ -690,7 +707,7 @@ var trajectory = simulate(trueStartState, world, agent, 'states');
 print(trajectory)
 ~~~~
 
-In POMDPs the agent does not directly observe their current state. However, in the Line POMDP (above) the "location" part of the agent's state is always known by the agent. The part of the state that is unknown is whether `treasureAt3` is true. So we could factor the state into attributes that are always known ("manifest") and parts that are not ("latent"). This factoring of the state can speed up the POMDP agent's belief updating and is used for the POMDP environments in the library. The following codebox shows a factored version of the Line POMDP:
+In POMDPs the agent does not directly observe their current state. However, in the Line POMDP (above) the "location" part of the agent's state is always known by the agent. The part of the state that is unknown is whether `treasureAt3` is true. So we could factor the state into attributes that are always known ("manifest") and parts that are not ("latent"). This factoring of the state can speed up the POMDP agent's belief-updating and is used for the POMDP environments in the library. The following codebox shows a factored version of the Line POMDP:
 
 ~~~~
 ///fold:
