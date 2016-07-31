@@ -81,16 +81,16 @@ TODO: ideally we would do this as actual online inference.
 var displayTimeSeries = function(observedStateAction, getPosterior){
   var features = ['reward', 'predictWorkLastMinute', 'alpha', 'discount'];
   
-  // erp on {a:1, b:3, ...} -> [E('a'), E('b') ... ]
-  var erpToMarginalExpectations = function(erp, keys){
+  // dist on {a:1, b:3, ...} -> [E('a'), E('b') ... ]
+  var distToMarginalExpectations = function(dist, keys){
     return map(function(key){
-      return expectation(getMarginal(erp,key));
+      return expectation(getMarginal(dist,key));
     }, keys);
   };
   // condition observations up to *timeIndex* and take expectations
   var inferUpToTimeIndex = function(timeIndex, useOptimalModel){
     var observations = observedStateAction.slice(0,timeIndex);
-    return erpToMarginalExpectations( getPosterior(observations, useOptimalModel), features);
+    return distToMarginalExpectations( getPosterior(observations, useOptimalModel), features);
   };
 
   var getTimeSeries = function(useOptimalModel){
@@ -236,19 +236,19 @@ var displayExpectations = function(getPosterior){
 
 
 var getPosterior = function(numberOfTrials, useOptimalModel) {
-  var trueArmToPrizeERP = {0: Delta({ v: 'chocolate' }),
+  var trueArmToPrizeDist = {0: Delta({ v: 'chocolate' }),
 		                   1: Delta({ v: 'nothing' })};
   var bandit = makeBandit({
     numberOfArms: 2,
-	armToPrizeERP: trueArmToPrizeERP,
+	armToPrizeDist: trueArmToPrizeDist,
 	numberOfTrials: numberOfTrials
   });
 
   var startState = bandit.startState;
-  var alternativeArmToPrizeERP = update(trueArmToPrizeERP,
+  var alternativeArmToPrizeDist = update(trueArmToPrizeDist,
                                         {1: Delta({ v: 'champagne' })});
   var alternativeStartState = makeBanditStartState(numberOfTrials,
-	                                               alternativeArmToPrizeERP);
+	                                               alternativeArmToPrizeDist);
 
   var priorAgentPrior = Delta({ v: Categorical({ ps: [0.7, 0.3],
 						                        vs: [startState,
@@ -277,15 +277,15 @@ var getPosterior = function(numberOfTrials, useOptimalModel) {
 
   var observations = [[startState, 0]];
   
-  var outputERP = inferBandit(bandit, baseAgentParams, prior, observations,
+  var outputDist = inferBandit(bandit, baseAgentParams, prior, observations,
                               'offPolicy', 0, 'beliefDelay');
   
   var marginalChocolate = Infer({ method: 'enumerate' }, function(){
-    return sample(outputERP).prizeToUtility.chocolate;
+    return sample(outputDist).prizeToUtility.chocolate;
   });
   
   return [expectation(marginalChocolate), 
-          expectation(getMarginal(outputERP,'myopiaBound'))]
+          expectation(getMarginal(outputDist,'myopiaBound'))]
 };
 
 print('Prior expected utility for arm0 (chocolate): ' + listMean(range(20).concat(25)) );

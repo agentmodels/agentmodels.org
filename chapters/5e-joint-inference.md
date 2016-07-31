@@ -86,27 +86,27 @@ This inference function allows for inference over the softmax parameter ($$\alph
 var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
 var getPosterior = restaurantHyperbolicInfer.getPosterior;
 
-var displayResults = function(priorERP, posteriorERP) {
+var displayResults = function(priorDist, posteriorDist) {
 
-  var priorUtility = priorERP.MAP().val.utility;
+  var priorUtility = priorDist.MAP().val.utility;
   print('Prior highest-probability utility for Veg: ' + priorUtility['Veg']
 	+ '. Donut: ' + priorUtility['Donut N'] + ' \n');
 
-  var posteriorUtility = posteriorERP.MAP().val.utility;
+  var posteriorUtility = posteriorDist.MAP().val.utility;
   print('Posterior highest-probability utility for Veg: '
 	+ posteriorUtility['Veg'] + '. Donut: ' + posteriorUtility['Donut N']
 	+ ' \n');
   
   var getPriorProb = function(x){
     var label = _.keys(x)[0];
-    var erp = getMarginalObject(priorERP, label);
-    return Math.exp(erp.score(x));
+    var dist = getMarginalObject(priorDist, label);
+    return Math.exp(dist.score(x));
   };
 
   var getPosteriorProb = function(x){
     var label = _.keys(x)[0];
-    var erp = getMarginalObject(posteriorERP, label);
-    return Math.exp(erp.score(x));
+    var dist = getMarginalObject(posteriorDist, label);
+    return Math.exp(dist.score(x));
   };
 
   var sophisticationPriorDataTable = map(function(x){
@@ -227,27 +227,27 @@ Here are the results of inference:
 var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
 var getPosterior = restaurantHyperbolicInfer.getPosterior;
 
-var displayResults = function(priorERP, posteriorERP) {
+var displayResults = function(priorDist, posteriorDist) {
 
-  var priorUtility = priorERP.MAP().val.utility;
+  var priorUtility = priorDist.MAP().val.utility;
   print('Prior highest-probability utility for Veg: ' + priorUtility['Veg']
 	+ '. Donut: ' + priorUtility['Donut N'] + ' \n');
 
-  var posteriorUtility = posteriorERP.MAP().val.utility;
+  var posteriorUtility = posteriorDist.MAP().val.utility;
   print('Posterior highest-probability utility for Veg: '
 	+ posteriorUtility['Veg'] + '. Donut: ' + posteriorUtility['Donut N']
 	+ ' \n');
   
   var getPriorProb = function(x){
     var label = _.keys(x)[0];
-    var erp = getMarginalObject(priorERP, label);
-    return Math.exp(erp.score(x));
+    var dist = getMarginalObject(priorDist, label);
+    return Math.exp(dist.score(x));
   };
 
   var getPosteriorProb = function(x){
     var label = _.keys(x)[0];
-    var erp = getMarginalObject(posteriorERP, label);
-    return Math.exp(erp.score(x));
+    var dist = getMarginalObject(posteriorDist, label);
+    return Math.exp(dist.score(x));
   };
 
   var sophisticationPriorDataTable = map(function(x){
@@ -352,27 +352,27 @@ Here are the results of inference:
 var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
 var getPosterior = restaurantHyperbolicInfer.getPosterior;
 
-var displayResults = function(priorERP, posteriorERP) {
+var displayResults = function(priorDist, posteriorDist) {
 
-  var priorUtility = priorERP.MAP().val.utility;
+  var priorUtility = priorDist.MAP().val.utility;
   print('Prior highest-probability utility for Veg: ' + priorUtility['Veg']
 	+ '. Donut: ' + priorUtility['Donut N'] + ' \n');
 
-  var posteriorUtility = posteriorERP.MAP().val.utility;
+  var posteriorUtility = posteriorDist.MAP().val.utility;
   print('Posterior highest-probability utility for Veg: '
 	+ posteriorUtility['Veg'] + '. Donut: ' + posteriorUtility['Donut N']
 	+ ' \n');
   
   var getPriorProb = function(x){
     var label = _.keys(x)[0];
-    var erp = getMarginalObject(priorERP, label);
-    return Math.exp(erp.score(x));
+    var dist = getMarginalObject(priorDist, label);
+    return Math.exp(dist.score(x));
   };
 
   var getPosteriorProb = function(x){
     var label = _.keys(x)[0];
-    var erp = getMarginalObject(posteriorERP, label);
-    return Math.exp(erp.score(x));
+    var dist = getMarginalObject(posteriorDist, label);
+    return Math.exp(dist.score(x));
   };
 
   var sophisticationPriorDataTable = map(function(x){
@@ -472,27 +472,27 @@ We want to compare a model that assumes an optimal MDP agent with one that allow
 var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
 var getPosterior = restaurantHyperbolicInfer.getPosterior;
 
-var displayResults = function(priorERP, posteriorERP) {
+var displayResults = function(priorDist, posteriorDist) {
 
-  var priorUtility = priorERP.MAP().val.utility;
+  var priorUtility = priorDist.MAP().val.utility;
   print('Prior highest-probability utility for Veg: ' + priorUtility['Veg']
 	+ '. Donut: ' + priorUtility['Donut N'] + ' \n');
 
-  var posteriorUtility = posteriorERP.MAP().val.utility;
+  var posteriorUtility = posteriorDist.MAP().val.utility;
   print('Posterior highest-probability utility for Veg: '
 	+ posteriorUtility['Veg'] + '. Donut: ' + posteriorUtility['Donut N']
 	+ ' \n');
   
   var getPriorProb = function(x){
     var label = _.keys(x)[0];
-    var erp = getMarginalObject(priorERP, label);
-    return Math.exp(erp.score(x));
+    var dist = getMarginalObject(priorDist, label);
+    return Math.exp(dist.score(x));
   };
 
   var getPosteriorProb = function(x){
     var label = _.keys(x)[0];
-    var erp = getMarginalObject(posteriorERP, label);
-    return Math.exp(erp.score(x));
+    var dist = getMarginalObject(posteriorDist, label);
+    return Math.exp(dist.score(x));
   };
 
   var vegMinusDonutPriorDataTable = map(function(x){
@@ -589,27 +589,27 @@ What happens if we observe the agent taking the Naive path *repeatedly*? While n
 var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
 var getPosterior = restaurantHyperbolicInfer.getPosterior;
 
-var displayResults = function(priorERP, posteriorERP) {
+var displayResults = function(priorDist, posteriorDist) {
 
-  var priorUtility = priorERP.MAP().val.utility;
+  var priorUtility = priorDist.MAP().val.utility;
   print('Prior highest-probability utility for Veg: ' + priorUtility['Veg']
 	+ '. Donut: ' + priorUtility['Donut N'] + ' \n');
 
-  var posteriorUtility = posteriorERP.MAP().val.utility;
+  var posteriorUtility = posteriorDist.MAP().val.utility;
   print('Posterior highest-probability utility for Veg: '
 	+ posteriorUtility['Veg'] + '. Donut: ' + posteriorUtility['Donut N']
 	+ ' \n');
   
   var getPriorProb = function(x){
     var label = _.keys(x)[0];
-    var erp = getMarginalObject(priorERP, label);
-    return Math.exp(erp.score(x));
+    var dist = getMarginalObject(priorDist, label);
+    return Math.exp(dist.score(x));
   };
 
   var getPosteriorProb = function(x){
     var label = _.keys(x)[0];
-    var erp = getMarginalObject(posteriorERP, label);
-    return Math.exp(erp.score(x));
+    var dist = getMarginalObject(posteriorDist, label);
+    return Math.exp(dist.score(x));
   };
 
   var vegMinusDonutPriorDataTable = map(function(x){
@@ -701,27 +701,27 @@ We show two different posteriors. The first is after conditioning on the Naive p
 var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
 var getPosterior = restaurantHyperbolicInfer.getPosterior;
 
-var displayResults = function(priorERP, posteriorERP) {
+var displayResults = function(priorDist, posteriorDist) {
 
-  var priorUtility = priorERP.MAP().val.utility;
+  var priorUtility = priorDist.MAP().val.utility;
   print('Prior highest-probability utility for Veg: ' + priorUtility['Veg']
 	+ '. Donut: ' + priorUtility['Donut N'] + ' \n');
 
-  var posteriorUtility = posteriorERP.MAP().val.utility;
+  var posteriorUtility = posteriorDist.MAP().val.utility;
   print('Posterior highest-probability utility for Veg: '
 	+ posteriorUtility['Veg'] + '. Donut: ' + posteriorUtility['Donut N']
 	+ ' \n');
   
   var getPriorProb = function(x){
     var label = _.keys(x)[0];
-    var erp = getMarginalObject(priorERP, label);
-    return Math.exp(erp.score(x));
+    var dist = getMarginalObject(priorDist, label);
+    return Math.exp(dist.score(x));
   };
 
   var getPosteriorProb = function(x){
     var label = _.keys(x)[0];
-    var erp = getMarginalObject(posteriorERP, label);
-    return Math.exp(erp.score(x));
+    var dist = getMarginalObject(posteriorDist, label);
+    return Math.exp(dist.score(x));
   };
 
   var sophisticationPriorDataTable = map(function(x){
@@ -860,27 +860,27 @@ These three can also be combined to explain the behavior.
 var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
 var getPosterior = restaurantHyperbolicInfer.getPosterior;
 
-var displayResults = function(priorERP, posteriorERP) {
+var displayResults = function(priorDist, posteriorDist) {
 
-  var priorUtility = priorERP.MAP().val.utility;
+  var priorUtility = priorDist.MAP().val.utility;
   print('Prior highest-probability utility for Veg: ' + priorUtility['Veg']
 	+ '. Donut: ' + priorUtility['Donut N'] + ' \n');
 
-  var posteriorUtility = posteriorERP.MAP().val.utility;
+  var posteriorUtility = posteriorDist.MAP().val.utility;
   print('Posterior highest-probability utility for Veg: '
 	+ posteriorUtility['Veg'] + '. Donut: ' + posteriorUtility['Donut N']
 	+ ' \n');
   
   var getPriorProb = function(x){
     var label = _.keys(x)[0];
-    var erp = getMarginalObject(priorERP, label);
-    return Math.exp(erp.score(x));
+    var dist = getMarginalObject(priorDist, label);
+    return Math.exp(dist.score(x));
   };
 
   var getPosteriorProb = function(x){
     var label = _.keys(x)[0];
-    var erp = getMarginalObject(posteriorERP, label);
-    return Math.exp(erp.score(x));
+    var dist = getMarginalObject(posteriorDist, label);
+    return Math.exp(dist.score(x));
   };
 
   var alphaPriorDataTable = map(function(x){
@@ -994,27 +994,27 @@ Observe the sophisticated path with possibly positive timeCost:
 var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
 var getPosterior = restaurantHyperbolicInfer.getPosterior;
 
-var displayResults = function(priorERP, posteriorERP) {
+var displayResults = function(priorDist, posteriorDist) {
 
-  var priorUtility = priorERP.MAP().val.utility;
+  var priorUtility = priorDist.MAP().val.utility;
   print('Prior highest-probability utility for Veg: ' + priorUtility['Veg']
 	+ '. Donut: ' + priorUtility['Donut N'] + ' \n');
 
-  var posteriorUtility = posteriorERP.MAP().val.utility;
+  var posteriorUtility = posteriorDist.MAP().val.utility;
   print('Posterior highest-probability utility for Veg: '
 	+ posteriorUtility['Veg'] + '. Donut: ' + posteriorUtility['Donut N']
 	+ ' \n');
   
   var getPriorProb = function(x){
     var label = _.keys(x)[0];
-    var erp = getMarginalObject(priorERP, label);
-    return Math.exp(erp.score(x));
+    var dist = getMarginalObject(priorDist, label);
+    return Math.exp(dist.score(x));
   };
 
   var getPosteriorProb = function(x){
     var label = _.keys(x)[0];
-    var erp = getMarginalObject(posteriorERP, label);
-    return Math.exp(erp.score(x));
+    var dist = getMarginalObject(posteriorDist, label);
+    return Math.exp(dist.score(x));
   };
 
   var alphaPriorDataTable = map(function(x){
