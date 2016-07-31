@@ -1,7 +1,7 @@
 ---
 layout: chapter
-title: How to use the WebPPL Agent Models library
-description: Constructing various kinds of agents, how to write an MDP or POMDP, how to make your own Gridworld or k-arm bandit problem 
+title: Quick-start guide to the webppl-agents library
+description: Create your own MDPs and POMDPs. Create gridworlds and k-armed bandits. Use agents from the library and create your own. 
 is_section: true
 ---
 
