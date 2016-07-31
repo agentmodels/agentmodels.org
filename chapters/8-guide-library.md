@@ -26,7 +26,7 @@ Contents:
 
 ### Contents
 
-1. <a href="8-guide-library.html#intro">Introduction</a>
+1. <a href="#intro">Introduction</a>
 
 2. Creating MDPs
 
@@ -40,6 +40,7 @@ Contents:
 
 
 <a id="intro"></a>
+
 ### Introduction
 
 This is a quick-start guide to using the `webppl-agents` library. For a comprehensive explanation of the ideas behind the library (e.g. MDPs, POMDPs, hyperbolic discounting) and diverse examples of its use, go to the online textbook [agentmodels.org](http://agentmodels.org). 
