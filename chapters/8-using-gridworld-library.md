@@ -381,10 +381,6 @@ var startState = {loc: [0,0],
     timeLeft: 10,
     terminateAfterAction: false};
 
-var utility = function(state, action){
-  return _.isEqual(state.loc, [0,3]) ? 1 : 0
-};
-
 // The *makeUtility* method allows you to define
 // a utility function in terms of named features
 var makeUtility = simpleGridWorld.makeUtility;
@@ -398,3 +394,128 @@ GridWorld.draw(world, {trajectory: trajectory});
 ~~~~
 
 There are many examples using gridworld in agentmodels.org, starting from this [chapter](chapters/3b-mdp-gridworld.html).
+
+
+-------
+
+### Creating your own agents
+As well as creating your own environments, it is straightfoward to create your own agents for MDPs and POMDPs. Much of agentmodels.org is a tutorial on creating agents (e.g. optimal agents, myopic agents, etc.). Rather than recapitulate agentmodels.org, this section is brief and focuses on the basic interface that agents need to present.
+
+We begin by creating an agent that chooses actions uniformly at random. To run on agent on an environment using the `simulate` function, an agent object must have an `act` method and a `params` attribute. The `act` method is a function from states to a distribution on the available actions. The `params` attribute indicates whether or not the agent is an MDP or POMDP agent.
+
+We use the simple gridworld environment from the codebox above. 
+
+~~~~
+// Build gridworld environment
+///fold:
+// Create a constructor for our gridworld
+var makeSimpleGridWorld = function(){
+
+  // '#' indicates a wall, and ' ' indicates a normal cell  
+  var __ = ' ';
+
+  // named features are terminal
+  var G = {name:'gold'};
+  var S = {name:'silver'}
+  
+  var features = [
+    [ G ,  __ ,  __ ],
+    [ S ,  __ ,  __ ],
+    [ '#' , '#',  __ ],
+    [ '#' , '#',  __ ],
+    [ __ ,  __ ,  __ ]
+  ];
+
+  // Set the transition noise to zero
+  var options = {gridFeatures: features,
+                 transitionNoiseProbability: 0};
+  
+  return makeGridWorld(options)
+};
+
+var simpleGridWorld = makeSimpleGridWorld();
+var world = simpleGridWorld.world;
+
+var startState = {loc: [1,0],
+    timeLeft: 15,
+    terminateAfterAction: false};
+
+var makeUtility = simpleGridWorld.makeUtility;
+var table = {'gold':2, 'silver':1.8, 'timeCost':-0.5}
+var utility = makeUtility(table)
+///
+
+var actions = ['u','d','l','r'];
+
+var act = function(state){
+  return Infer({ method: 'enumerate' }, 
+               function(){return uniformDraw(actions);})
+};
+
+// Since params has no *POMDP* attribute, the agent
+// defaults to being an MDP agent
+var randomAgent = {act: act, params: {}};                 
+var trajectory = simulate(startState, world, randomAgent);
+GridWorld.draw(world, {trajectory: trajectory});
+~~~~
+
+In gridworld, the same actions are available in each state. Sometimes the available actions depend on the state. In such cases the agent's `act` function must select an available action and so it must have access to the environments `stateToActions` method. This is a simple change to the code above:
+
+~~~~
+///fold:
+// Create a constructor for our gridworld
+var makeSimpleGridWorld = function(){
+
+  // '#' indicates a wall, and ' ' indicates a normal cell  
+  var __ = ' ';
+
+  // named features are terminal
+  var G = {name:'gold'};
+  var S = {name:'silver'}
+  
+  var features = [
+    [ G ,  __ ,  __ ],
+    [ S ,  __ ,  __ ],
+    [ '#' , '#',  __ ],
+    [ '#' , '#',  __ ],
+    [ __ ,  __ ,  __ ]
+  ];
+
+  // Set the transition noise to zero
+  var options = {gridFeatures: features,
+                 transitionNoiseProbability: 0};
+  
+  return makeGridWorld(options)
+};
+
+var simpleGridWorld = makeSimpleGridWorld();
+var world = simpleGridWorld.world;
+
+var startState = {loc: [1,0],
+    timeLeft: 10,
+    terminateAfterAction: false};
+
+var makeUtility = simpleGridWorld.makeUtility;
+var table = {'gold':2, 'silver':1.8, 'timeCost':-0.5}
+var utility = makeUtility(table)
+///
+
+ 
+var makeRandomAgent = function(world){
+  var stateToActions = world.stateToActions;
+  
+  var act = function(state){
+    return Infer({ method: 'enumerate' }, 
+                 function(){return uniformDraw(stateToActions(state));})
+  };
+ 
+  return {act: act, params: {}};
+};
+
+var randomAgent = makeRandomAgent(world);
+var trajectory = simulate(startState, world, randomAgent);
+GridWorld.draw(world, {trajectory: trajectory});
+~~~~
+
+
+
