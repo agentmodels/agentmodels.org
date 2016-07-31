@@ -59,7 +59,7 @@ var exampleGetPosterior = function(world, prior, observedStateAction){
     map(function(stateAction) {
       var state = stateAction[0];
       var action = stateAction[1];
-      factor(agentAction(state, 0).score(action)) ; 
+      observe(agentAction(state, 0), action); 
     }, observedStateAction);
 
     // return parameters and summary statistics

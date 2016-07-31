@@ -191,10 +191,10 @@ var posterior = Infer({ method: 'enumerate' },  function(){
   var act = agent.act;
   // For each observed state-action pair, compute likekihood of action
   map(function(stateAction){
-    factor( act(stateAction[0]).score(stateAction[1]) );
+    observe(act(stateAction[0]), stateAction[1]);
   }, observedStateAction);
 
-  return {favourite: favourite};
+  return { favourite: favourite };
 });
 
 viz.auto(posterior);
@@ -246,7 +246,7 @@ var posterior = function(observedStateActionSequence){
 
     // For each observed state-action pair, compute likekihood of action
     map( function(stateAction){
-      factor( act(stateAction[0]).score(stateAction[1]) );
+      observe(act(stateAction[0]), stateAction[1]);
     }, observedStateActionSequence );
 
     // Compute whether Donut is preferred to Veg and Noodle
@@ -339,7 +339,7 @@ var posterior = function(observedStateActionSequence){
 
     // For each observed state-action pair, compute likekihood of action
     map( function(stateAction){
-      factor( act(stateAction[0]).score(stateAction[1]));
+      observe(act(stateAction[0]), stateAction[1]);
     }, observedStateActionSequence );
 
     // Compute whether Donut is preferred to Veg and Noodle

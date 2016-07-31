@@ -163,7 +163,7 @@ var getPosterior = function(observedStateAction, useOptimalModel) {
     map(function(stateAction){
       var state = stateAction[0];
       var action = stateAction[1];
-      factor( act(state, 0).score(action) )
+      observe(act(state, 0), action);
     }, observedStateAction);
 
     return {
