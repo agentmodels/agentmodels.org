@@ -28,13 +28,13 @@ Contents:
 
 1. <a href="#intro">Introduction</a>
 
-2. Creating MDPs
+2. <a href="#createMDP">Creating MDPs</a>
 
-3. Creating Gridworld MDPs
+3. <a href="#gridworld">Creating Gridworld MDPs</a>
 
-4. Creating your own agents
+4. <a href="#agents">Creating your own agents</a>
 
-5. Creating POMDPs
+5. <a href="#createPOMDP">Creating POMDPs</a>
 
 6. Creating k-armed bandits
 
@@ -50,6 +50,8 @@ The webppl-agents library is built around two basic entities: *agents* and *envi
 Not all environments and agents can be combined. Among environments, we distinguish MDPs (Markov Decision Processes) and POMDPs (Partially Observable Markov Decision Processes). For a POMDP environment, the agent must be a "POMDP agent", which means they maintain a belief distribution on the state[^separation].
 
 [^separation]: This separation of POMDPs and MDPs is not necessary from a theoretical perspective, since POMDPs generalize MDPs. However, the separation is convenient in practice; it allows the MDP code to be short and perspicuous and it provides performance advantages. 
+
+<a id="createMDP"></a>
 
 ### Creating your own MDP environment
 
@@ -296,6 +298,7 @@ We've shown how to create your own MDP and then run different agents on that MDP
 
 -----------
 
+<a id="gridworld"></a>
 
 ### Creating Gridworld MDPs
 
@@ -444,6 +447,8 @@ There are many examples using gridworld in agentmodels.org, starting from this [
 
 
 -------
+
+<a id="agents"></a>
 
 ### Creating your own agents
 As well as creating your own environments, it is straightfoward to create your own agents for MDPs and POMDPs. Much of agentmodels.org is a tutorial on creating agents (e.g. optimal agents, myopic agents, etc.). Rather than recapitulate agentmodels.org, this section is brief and focuses on the basic interface that agents need to present.
@@ -595,6 +600,8 @@ In addition to writing agents from scratch, you can build on the agents availabl
 >**Exercise:** Start with the optimal MDP agent found [here](https://github.com/agentmodels/webppl-agents/blob/master/src/agents/makeMDPAgent.wppl#L3). Create a variant of this optimal agent that takes "epsilon-greedy" random actions instead of softmax random actions. 
 
 --------
+
+<a id="createPOMDP"></a>
 
 ### Creating POMDPs
 
