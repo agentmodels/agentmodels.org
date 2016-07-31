@@ -501,7 +501,7 @@ var trajectory = simulate(startState, world, randomAgent);
 GridWorld.draw(world, { trajectory: trajectory });
 ~~~~
 
-In gridworld, the same actions are available in each state. Sometimes the available actions depend on the state. In such cases the agent's `act` function must select an available action and so it must have access to the environments `stateToActions` method. This is a simple change to the code above:
+In gridworld the same actions are available in each state. When the actions available depend on the state, the agent's `act` function needs access to the environment's `stateToActions` method.
 
 ~~~~
 ///fold:
@@ -567,5 +567,20 @@ var makeRandomAgent = function(world){
 
 var randomAgent = makeRandomAgent(world);
 var trajectory = simulate(startState, world, randomAgent);
+
 GridWorld.draw(world, { trajectory: trajectory });
 ~~~~
+
+In the example above, the agent constructor `makeRandomAgent` takes the environment (`world`) as an argument in order to access `stateToActions`. Agent constructors will typically also use the environment's `transition` method to internally simulate state transitions.
+
+>**Exercise:** Implement an agent who chooses actions by taking the action with highest expected utility under the random policy. (You can do this by building on the codebox above. Use the `makeRandomAgent` and `simulate` function within a new agent constructor.)
+
+In addition to writing agents from scratch, you can build on the agents available in the library. 
+
+>**Exercise:** Start with the optimal MDP agent found [here](https://github.com/agentmodels/webppl-agents/blob/master/src/agents/makeMDPAgent.wppl#L3). Create a variant of this optimal agent that takes "epsilon-greedy" random actions instead of softmax random actions. 
+
+--------
+
+### 
+
+
