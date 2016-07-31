@@ -291,7 +291,7 @@ var makeSimpleGridWorld = function(){
   return makeGridWorld(options)
 };
 
-var simpleGridWorld = makeGrid();
+var simpleGridWorld = makeSimpleGridWorld();
 var world = simpleGridWorld.world;
 
 var startState = {loc: [0,0],
@@ -326,7 +326,7 @@ var makeSimpleGridWorld = function(){
   return makeGridWorld(options)
 };
 
-var simpleGridWorld = makeGrid();
+var simpleGridWorld = makeSimpleGridWorld();
 var world = simpleGridWorld.world;
 
 var startState = {loc: [0,0],
@@ -335,8 +335,7 @@ var startState = {loc: [0,0],
 
 ///
 
-// `isEqual` is part of the underscore library,
-// which is included in webppl-agents
+// `isEqual` is in *underscore* (included in webppl-agents)
 var utility = function(state, action){
   return _.isEqual(state.loc, [0,3]) ? 1 : 0
 };
@@ -347,7 +346,59 @@ var trajectory = simulate(startState, world, agent);
 GridWorld.draw(world, {trajectory: trajectory});
 ~~~~
 
-You can create terminal gridworld states by giving the cell a name.
+You can create terminal gridworld states by using features with a name. These named-features can also be used to create a utility function without specifying grid coordinates. 
 
 ~~~~
 
+///fold:
+// Create a constructor for our gridworld
+var makeSimpleGridWorld = function(){
+
+  // '#' indicates a wall, and ' ' indicates a normal cell  
+  var __ = ' ';
+
+  // named features are terminal
+  var G = {name:'gold'};
+  var S = {name:'silver'}
+  
+  var features = [
+    [ G ,  __ ,  __ ],
+    [ S ,  __ ,  __ ],
+    [ '#' , '#',  __ ],
+    [ '#' , '#',  __ ],
+    [ __ ,  __ ,  __ ]
+  ];
+
+  // Set the transition noise to zero
+  var options = {gridFeatures: features,
+                 transitionNoiseProbability: 0};
+  
+  return makeGridWorld(options)
+};
+
+var simpleGridWorld = makeSimpleGridWorld();
+var world = simpleGridWorld.world;
+
+var startState = {loc: [0,0],
+    timeLeft: 10,
+    terminateAfterAction: false};
+
+///
+
+var utility = function(state, action){
+  return _.isEqual(state.loc, [0,3]) ? 1 : 0
+};
+
+// The *makeUtility* method allows you to define
+// a utility function in terms of named features
+var makeUtility = simpleGridWorld.makeUtility;
+var table = {'gold':2, 'silver':1.8, 'timeCost':-0.5}
+var utility = makeUtility(table)
+
+var params = {utility: utility, alpha: 1000};
+var agent = makeMDPAgent(params, world);
+var trajectory = simulate(startState, world, agent);
+GridWorld.draw(world, {trajectory: trajectory});
+~~~~
+
+There are many examples using gridworld in agentmodels.org, starting from this [chapter](chapters/3b-mdp-gridworld.html).
