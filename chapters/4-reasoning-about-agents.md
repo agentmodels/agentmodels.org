@@ -420,7 +420,7 @@ $$
 
 ### Application: Bandits
 
-To learn the preferences and beliefs of a POMDP agent we translate Equation (2) into WebPPL. In a later [chapter](/chapters/5e-joint-inference.md), we apply this to the Restaurant Choice problem. Here we focus on the Bandit problems introduced in the [previous chapter](/chapters/3c-pomdp).
+To learn the preferences and beliefs of a POMDP agent we translate Equation (2) into WebPPL. In a later [chapter](/chapters/5e-joint-inference.html), we apply this to the Restaurant Choice problem. Here we focus on the Bandit problems introduced in the [previous chapter](/chapters/3c-pomdp).
 
 In the Bandit problems there is an unknown mapping from arms to non-numeric prizes (or distributions on such prizes) and the agent has preferences over these prizes. The agent tries out arms to discover the mapping and exploits the most promising arms. In the *inverse* problem, we get to observe the agent's actions. Unlike the agent, we already know the mapping from arms to prizes. However, we don't know the agent's preferences or the agent's prior about the mapping[^bandit].
 
