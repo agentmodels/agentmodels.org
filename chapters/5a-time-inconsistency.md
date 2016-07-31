@@ -144,18 +144,24 @@ The crucial difference between the curves is that the hyperbola is initially ste
 ~~~~
 var delays = range(6);
 var expDiscount = function(delay) {
- return Math.pow(0.5, delay); 
+  return Math.pow(0.5, delay); 
 };
 var hypDiscount = function(delay) {
   return 1.0 / (1 + 2*delay);
 };
 var makeExpDatum = function(delay){
-  return {delay: delay, discountFactor: expDiscount(delay),
-          discountType: 'Exponential discounting: 1/2^t'};
+  return {
+    delay: delay, 
+    discountFactor: expDiscount(delay),
+    discountType: 'Exponential discounting: 1/2^t'
+  };
 };
 var makeHypDatum = function(delay){
-  return {delay: delay, discountFactor: hypDiscount(delay),
-          discountType: 'Hyperbolic discounting: 1/(1 + 2t)'};
+  return {
+    delay: delay,
+    discountFactor: hypDiscount(delay),
+    discountType: 'Hyperbolic discounting: 1/(1 + 2t)'
+  };
 };
 var expData = map(makeExpDatum, delays);
 var hypData = map(makeHypDatum, delays);
@@ -199,7 +205,7 @@ The only difference from previous versions of Restaurant Choice is that restaura
 var world = makeRestaurantChoiceMDP();
 var startState = restaurantChoiceStart;
 print('starting state is: ' + JSON.stringify(startState) );
-GridWorld.draw(world, {trajectory:[startState]});
+GridWorld.draw(world, { trajectory: [startState] });
 ~~~~
 
 The next two codeboxes show the behavior of two hyperbolic discounters. Each agent has the same preferences and discount function. They differ only in that the first is Naive and the second is Sophisticated.
@@ -210,7 +216,7 @@ var world = makeRestaurantChoiceMDP();
 var trajectory = restaurantNameToObservationTime11['naive'];
 print('Observations for Naive agent loaded from library function: \n' 
        + JSON.stringify(trajectory) + ' \n');
-GridWorld.draw(world, {trajectory:trajectory});
+GridWorld.draw(world, { trajectory: trajectory });
 ~~~~
 
 ~~~~
@@ -219,7 +225,7 @@ var world = makeRestaurantChoiceMDP();
 var trajectory = restaurantNameToObservationTime11['sophisticated'];
 print('Observations for Sophisticated agent loaded from library function: \n' 
        + JSON.stringify(trajectory) + ' \n');
-GridWorld.draw(world, {trajectory:trajectory});       
+GridWorld.draw(world, { trajectory: trajectory });       
 ~~~~
 
 >**Exercise:** (Try this exercise *before* reading further). Your goal is to do preference inference from the observed actions in the codeboxes above (using only a pen and paper). The discount function is the hyperbola $$D=1/(1+kt)$$, where $$t$$ is the time from the present, $$D$$ is the discount factor (to be multiplied by the utility) and $$k$$ is a positive constant. Find a single setting for the utilities and discount function that produce the behavior in both the codeboxes above. This includes utilities for the restaurants (both *immediate* and *delayed*) and for the `timeCost` (the negative utility for each additional step walked), as well as the discount constant $$k$$. Assume there is no softmax noise. 
