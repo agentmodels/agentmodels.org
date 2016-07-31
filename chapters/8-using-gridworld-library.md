@@ -30,7 +30,7 @@ Contents:
 
 ### Introduction
 
-This is a quick-start guide to using the webppl-agents library. For a more detailed, textbook-style explanation of the library, try [agentmodels.org](http://agentmodels.org). [Maybe provide a bit more info about what's included in agentmodels. e.g. mathematical background to the agents and basics of inference in webppl.]
+This is a quick-start guide to using the `webppl-agents` library. For a more detailed, textbook-style explanation of the library, try [agentmodels.org](http://agentmodels.org). [Maybe provide a bit more info about what's included in agentmodels. e.g. mathematical background to the agents and basics of inference in webppl.]
 
 The library is built around two basic entities: *agents* and *environments*. These entities are combined by *simulating* an agent interacting with a particular environment. The library includes two standard RL environments as examples (Gridworld and Multi-armed Bandits). Four kinds of agent are included. Many combinations of environment and agent are possible. In addition, it's easy to add your own environments and agents -- as we illustrate below. 
 
@@ -57,7 +57,7 @@ Our first MDP environment is a discrete line (or one-dimensional gridworld) wher
 
 In our examples, the agent's `startState` is the origin. The utility is 1 at the origin, 3 at the third state right of the origin ("state 3"), and 0 otherwise.
 
-The transition function must also decrement the time. States are objects with a `terminateAfterAction`. In the example below, `terminateAfterAction` is set to `true` when the state's `timeLeft` attribute gets down to 1; this causes the MDP to terminate. Here is an example state for the Line MDP (it's also the `startState`):
+The transition function must also decrement the time. States are objects with a `terminateAfterAction` property. In the example below, `terminateAfterAction` is set to `true` when the state's `timeLeft` attribute gets down to 1; this causes the MDP to terminate. Here is an example state for the Line MDP (it's also the `startState`):
 
 >`{terminateAfterAction: false, timeLeft:5, loc:0}`
 
@@ -65,7 +65,8 @@ NB: The library uses the term "world" in place of "environment".
 
 
 ~~~~
-// helper function that decrements time and triggers termination when time elapsed
+// helper function that decrements time and triggers termination when 
+// time elapsed
 var advanceStateTime = function(state){
   var newTimeLeft = state.timeLeft - 1;
   return update(state, { 
@@ -78,15 +79,20 @@ var advanceStateTime = function(state){
 // argument *totalTime* is the time horizon
 var makeLineMDP = function(totalTime){
 
-  var stateToActions = function(state){return [-1, 0, 1];};
+  var stateToActions = function(state){
+    return [-1, 0, 1];
+  };
 
-  var transition = function(state,action){
+  var transition = function(state, action){
     var newLoc = state.loc + action;
     var stateNewLoc = update(state,{loc: newLoc});
     return advanceStateTime(stateNewLoc);
   };
 
-  var world = {stateToActions:stateToActions, transition:transition};
+  var world = {
+    stateToActions: stateToActions,
+    transition: transition
+  };
 
   var startState = {
     timeLeft: totalTime, 
@@ -95,7 +101,7 @@ var makeLineMDP = function(totalTime){
   };
 
   var utility = function(state, action){    
-    var table = {0:1, 3:3};
+    var table = { 0: 1, 3: 3 };
     return table[state.loc] ? table[state.loc] : 0;
   };
 
@@ -203,7 +209,6 @@ To construct a time-inconsistent, hyperbolically-discounting MDP agent, we inclu
 These attributes are explained in the [chapter](/chapters/5a-time-inconsistency.html) on hyperbolic discounting. The discounting agent stays at the origin because it isn't willing to "delay gratification" in order to get a larger total reward at location 3.
 
 ~~~~
-
 ///fold:
 // helper function that decrements time and triggers termination when time elapsed
 var advanceStateTime = function(state){
@@ -214,31 +219,39 @@ var advanceStateTime = function(state){
   });
 };
 
-// constructuor for the "line" MDP environment:
+// constructor for the "line" MDP environment:
 // argument *totalTime* is the time horizon
 var makeLineMDP = function(totalTime){
 
-    var stateToActions = function(state){return [-1, 0, 1];};
+  var stateToActions = function(state){return [-1, 0, 1];};
 
-    var transition = function(state,action){
-      var newLoc = state.loc + action;
-      var stateNewLoc = update(state,{loc: newLoc});
-      return advanceStateTime(stateNewLoc);
-    };
-
-    var world = {stateToActions:stateToActions, transition:transition};
-    
-    var startState = {timeLeft: totalTime, 
-                      terminateAfterAction: false, 
-                      loc: 0};
-
-    var utility = function(state, action){    
-      var table = {0:1, 3:3};
-      return table[state.loc] ? table[state.loc] : 0;
-    };
-
-    return {world:world, startState:startState, utility:utility};
+  var transition = function(state,action){
+    var newLoc = state.loc + action;
+    var stateNewLoc = update(state,{loc: newLoc});
+    return advanceStateTime(stateNewLoc);
   };
+
+  var world = {
+    stateToActions: stateToActions,
+    transition: transition
+  };
+
+  var startState = {
+    timeLeft: totalTime, 
+    terminateAfterAction: false, 
+    loc: 0};
+
+  var utility = function(state, action){    
+    var table = {0:1, 3:3};
+    return table[state.loc] ? table[state.loc] : 0;
+  };
+
+  return {
+    world: world,
+    startState: startState,
+    utility: utility
+  };
+};
 ///
 
 // Construct line MDP environment
@@ -251,13 +264,15 @@ var utility = lineMDP.utility;
 var startState = lineMDP.startState;
 
 // Construct hyperbolic agent
-var params = {alpha:1000,
-              utility:utility,
-              discount:2,
-              sophisticatedOrNaive: 'naive'};
+var params = {
+  alpha: 1000,
+  utility: utility,
+  discount: 2,
+  sophisticatedOrNaive: 'naive'
+};
 var agent = makeMDPAgent(params, world);
 var trajectory = simulate(startState, world, agent, 'states');
-print(trajectory)
+print(trajectory);
 ~~~~
 
 We've shown how to create your own MDP and then run different agents on that MDP. You can also create your own MDP agent, as we illustrate below.
@@ -268,6 +283,7 @@ We've shown how to create your own MDP and then run different agents on that MDP
 
 
 ### Creating Gridworld MDPs
+
 Gridworld is a standard toy environment for reinforcement learning problems. The library contains a constructor for making a gridworld with your choice of dimensions and reward function. There is also a function for displaying gridworlds in the browser.
 
 We begin by creating a simple gridworld environment (using `makeGridWorld`) and display it using `GridWorld.draw`.
@@ -277,29 +293,34 @@ We begin by creating a simple gridworld environment (using `makeGridWorld`) and 
 var makeSimpleGridWorld = function(){
 
   // '#' indicates a wall, and ' ' indicates a normal cell  
-  var __ = ' ';
-  
-  var features = [[ __ ,  __ ,  __ ],
-	          [ '#' , '#',  __ ],
-	          [ '#' , '#',  __ ],
-	          [ __ ,  __ ,  __ ]];
+  var ___ = ' ';
+
+  var features = [
+    [ ___, ___, ___],
+    [ '#', '#', ___],
+    [ '#', '#', ___],
+    [ ___, ___, ___]
+  ];
 
   // Set the transition noise to zero
-  var options = {gridFeatures: features,
-                 transitionNoiseProbability: 0};
-  
+  var options = {
+    gridFeatures: features,
+    transitionNoiseProbability: 0
+  };
+
   return makeGridWorld(options)
 };
 
 var simpleGridWorld = makeSimpleGridWorld();
 var world = simpleGridWorld.world;
 
-var startState = {loc: [0,0],
-    timeLeft: 10,
-    terminateAfterAction: false};
+var startState = {
+  loc: [0, 0],
+  timeLeft: 10,
+  terminateAfterAction: false
+};
 
 GridWorld.draw(world, {trajectory: [startState]});
-
 ~~~~
 
 Gridworld states have a `loc` attribute for the agent's location (using discrete Cartesian coordinates). The agent is able to move up, down, left and right but is not able to stay put.
@@ -312,17 +333,21 @@ Having created a gridworld, we construct a utility function (where utility depen
 var makeSimpleGridWorld = function(){
 
   // '#' indicates a wall, and ' ' indicates a normal cell  
-  var __ = ' ';
-  
-  var features = [[ __ ,  __ ,  __ ],
-	          [ '#' , '#',  __ ],
-	          [ '#' , '#',  __ ],
-	          [ __ ,  __ ,  __ ]];
+  var ___ = ' ';
+
+  var features = [
+    [___, ___, ___],
+    ['#', '#', ___],
+    ['#', '#', ___],
+    [___, ___, ___]
+  ];
 
   // Set the transition noise to zero
-  var options = {gridFeatures: features,
-                 transitionNoiseProbability: 0};
-  
+  var options = {
+    gridFeatures: features,
+    transitionNoiseProbability: 0
+  };
+
   return makeGridWorld(options)
 };
 
@@ -337,10 +362,10 @@ var startState = {loc: [0,0],
 
 // `isEqual` is in *underscore* (included in webppl-agents)
 var utility = function(state, action){
-  return _.isEqual(state.loc, [0,3]) ? 1 : 0
+  return _.isEqual(state.loc, [0, 3]) ? 1 : 0
 };
 
-var params = {utility: utility, alpha: 1000};
+var params = { utility: utility, alpha: 1000 };
 var agent = makeMDPAgent(params, world);
 var trajectory = simulate(startState, world, agent);
 GridWorld.draw(world, {trajectory: trajectory});
@@ -349,27 +374,28 @@ GridWorld.draw(world, {trajectory: trajectory});
 You can create terminal gridworld states by using features with a name. These named-features can also be used to create a utility function without specifying grid coordinates. 
 
 ~~~~
-
 var makeSimpleGridWorld = function(){
 
   // '#' indicates a wall, and ' ' indicates a normal cell  
-  var __ = ' ';
+  var ___ = ' ';
 
   // named features are terminal
-  var G = {name:'gold'};
-  var S = {name:'silver'}
+  var G = { name: 'gold' };
+  var S = { name: 'silver' };
   
   var features = [
-    [ G ,  __ ,  __ ],
-    [ S ,  __ ,  __ ],
-    [ '#' , '#',  __ ],
-    [ '#' , '#',  __ ],
-    [ __ ,  __ ,  __ ]
+    [ G , ___, ___],
+    [ S , ___, ___],
+    ['#', '#', ___],
+    ['#', '#', ___],
+    [___, ___, ___]
   ];
 
   // Set the transition noise to zero
-  var options = {gridFeatures: features,
-                 transitionNoiseProbability: 0};
+  var options = {
+    gridFeatures: features,
+    transitionNoiseProbability: 0
+  };
   
   return makeGridWorld(options)
 };
@@ -377,20 +403,26 @@ var makeSimpleGridWorld = function(){
 var simpleGridWorld = makeSimpleGridWorld();
 var world = simpleGridWorld.world;
 
-var startState = {loc: [0,0],
-    timeLeft: 10,
-    terminateAfterAction: false};
+var startState = {
+  loc: [0, 0],
+  timeLeft: 10,
+  terminateAfterAction: false
+};
 
 // The *makeUtility* method allows you to define
 // a utility function in terms of named features
 var makeUtility = simpleGridWorld.makeUtility;
-var table = {'gold':2, 'silver':1.8, 'timeCost':-0.5}
+var table = {
+  gold: 2, 
+  silver: 1.8, 
+  timeCost: -0.5
+};
 var utility = makeUtility(table)
 
-var params = {utility: utility, alpha: 1000};
+var params = { utility: utility, alpha: 1000 };
 var agent = makeMDPAgent(params, world);
 var trajectory = simulate(startState, world, agent);
-GridWorld.draw(world, {trajectory: trajectory});
+GridWorld.draw(world, { trajectory: trajectory });
 ~~~~
 
 There are many examples using gridworld in agentmodels.org, starting from this [chapter](chapters/3b-mdp-gridworld.html).
@@ -408,27 +440,28 @@ We use the simple gridworld environment from the codebox above.
 ~~~~
 // Build gridworld environment
 ///fold:
-// Create a constructor for our gridworld
 var makeSimpleGridWorld = function(){
 
   // '#' indicates a wall, and ' ' indicates a normal cell  
-  var __ = ' ';
+  var ___ = ' ';
 
   // named features are terminal
-  var G = {name:'gold'};
-  var S = {name:'silver'}
+  var G = { name: 'gold' };
+  var S = { name: 'silver' };
   
   var features = [
-    [ G ,  __ ,  __ ],
-    [ S ,  __ ,  __ ],
-    [ '#' , '#',  __ ],
-    [ '#' , '#',  __ ],
-    [ __ ,  __ ,  __ ]
+    [ G , ___, ___],
+    [ S , ___, ___],
+    ['#', '#', ___],
+    ['#', '#', ___],
+    [___, ___, ___]
   ];
 
   // Set the transition noise to zero
-  var options = {gridFeatures: features,
-                 transitionNoiseProbability: 0};
+  var options = {
+    gridFeatures: features,
+    transitionNoiseProbability: 0
+  };
   
   return makeGridWorld(options)
 };
@@ -436,27 +469,36 @@ var makeSimpleGridWorld = function(){
 var simpleGridWorld = makeSimpleGridWorld();
 var world = simpleGridWorld.world;
 
-var startState = {loc: [1,0],
-    timeLeft: 15,
-    terminateAfterAction: false};
+var startState = {
+  loc: [0, 0],
+  timeLeft: 10,
+  terminateAfterAction: false
+};
 
+// The *makeUtility* method allows you to define
+// a utility function in terms of named features
 var makeUtility = simpleGridWorld.makeUtility;
-var table = {'gold':2, 'silver':1.8, 'timeCost':-0.5}
+var table = {
+  gold: 2, 
+  silver: 1.8, 
+  timeCost: -0.5
+};
 var utility = makeUtility(table)
 ///
 
-var actions = ['u','d','l','r'];
+var actions = ['u', 'd', 'l', 'r'];
 
 var act = function(state){
-  return Infer({ method: 'enumerate' }, 
-               function(){return uniformDraw(actions);})
+  return Infer(
+    { method: 'enumerate' }, 
+    function(){ return uniformDraw(actions); })
 };
 
 // Since params has no *POMDP* attribute, the agent
 // defaults to being an MDP agent
-var randomAgent = {act: act, params: {}};                 
+var randomAgent = { act: act, params: {} };
 var trajectory = simulate(startState, world, randomAgent);
-GridWorld.draw(world, {trajectory: trajectory});
+GridWorld.draw(world, { trajectory: trajectory });
 ~~~~
 
 In gridworld, the same actions are available in each state. Sometimes the available actions depend on the state. In such cases the agent's `act` function must select an available action and so it must have access to the environments `stateToActions` method. This is a simple change to the code above:
@@ -467,23 +509,25 @@ In gridworld, the same actions are available in each state. Sometimes the availa
 var makeSimpleGridWorld = function(){
 
   // '#' indicates a wall, and ' ' indicates a normal cell  
-  var __ = ' ';
+  var ___ = ' ';
 
   // named features are terminal
-  var G = {name:'gold'};
-  var S = {name:'silver'}
+  var G = { name: 'gold' };
+  var S = { name: 'silver' };
   
   var features = [
-    [ G ,  __ ,  __ ],
-    [ S ,  __ ,  __ ],
-    [ '#' , '#',  __ ],
-    [ '#' , '#',  __ ],
-    [ __ ,  __ ,  __ ]
+    [ G , ___, ___],
+    [ S , ___, ___],
+    ['#', '#', ___],
+    ['#', '#', ___],
+    [___, ___, ___]
   ];
 
   // Set the transition noise to zero
-  var options = {gridFeatures: features,
-                 transitionNoiseProbability: 0};
+  var options = {
+    gridFeatures: features,
+    transitionNoiseProbability: 0
+  };
   
   return makeGridWorld(options)
 };
@@ -491,12 +535,20 @@ var makeSimpleGridWorld = function(){
 var simpleGridWorld = makeSimpleGridWorld();
 var world = simpleGridWorld.world;
 
-var startState = {loc: [1,0],
-    timeLeft: 10,
-    terminateAfterAction: false};
+var startState = {
+  loc: [0, 0],
+  timeLeft: 10,
+  terminateAfterAction: false
+};
 
+// The *makeUtility* method allows you to define
+// a utility function in terms of named features
 var makeUtility = simpleGridWorld.makeUtility;
-var table = {'gold':2, 'silver':1.8, 'timeCost':-0.5}
+var table = {
+  gold: 2, 
+  silver: 1.8, 
+  timeCost: -0.5
+};
 var utility = makeUtility(table)
 ///
 
@@ -505,17 +557,15 @@ var makeRandomAgent = function(world){
   var stateToActions = world.stateToActions;
   
   var act = function(state){
-    return Infer({ method: 'enumerate' }, 
-                 function(){return uniformDraw(stateToActions(state));})
+    return Infer(
+      { method: 'enumerate' }, 
+      function(){return uniformDraw(stateToActions(state));})
   };
  
-  return {act: act, params: {}};
+  return { act: act, params: {} };
 };
 
 var randomAgent = makeRandomAgent(world);
 var trajectory = simulate(startState, world, randomAgent);
-GridWorld.draw(world, {trajectory: trajectory});
+GridWorld.draw(world, { trajectory: trajectory });
 ~~~~
-
-
-
