@@ -27,8 +27,6 @@ Contents:
 
 -->
 
------------
-
 
 ### Introduction
 

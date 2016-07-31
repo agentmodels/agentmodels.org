@@ -273,3 +273,7 @@ GridWorld.draw(world, {
 ~~~~
 
 So far, our agents all have complete knowledge about the state of the world. In the [next chapter](/chapters/3c-pomdp.html), we will explore partially observable worlds.
+
+<br>
+
+### Footnotes
