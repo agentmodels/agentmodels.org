@@ -18,10 +18,7 @@ Contents:
 
 4. Show how to create your own agent and run it on gridworld. Random agent. Epsilon-greedy agent instead of softmax.
 
-2. Write a POMDP. Could be line-world also: if state 1 says so, you go right, otherwise you go left. POMDP has `transition`, `beliefToAction`, `observation` functions. The startState will contain the latentState that agent is uncertain about. Work with `beliefDelay` agent to show comparison between optimal and boundVOI. Maybe discuss beliefAgent in footnotes. [Simulate should be flexible enough to implement some other kinds of agent. What about RL agents who don't know the transition or reward function?]
-
-2. Write a POMDP. Could be line-world also: if state 1 says so, you go right, otherwise you go left. POMDP has `transition`, `beliefToAction`, `observation` functions. The startState will contain the latentState that agent is uncertain about. Work with `beliefDelay` agent to show comparison between optimal and boundVOI. Maybe discuss beliefAgent in footnotes. [Simulate should be flexible enough to implement some other kinds of agent. What about RL agents who don't know the transition or reward function?]
-
+2. Write a POMDP. Could be line-world also: if state 1 says so, you go right, otherwise you go left. POMDP has `transition`, `beliefToAction`, `observation` functions. The startState will contain the latentState that agent is uncertain about. Work with `beliefDelay` agent to show comparison between optimal and boundVOI. Maybe discuss beliefAgent in footnotes.
 
 5. Bandits. Show how to create bandit problems. Run POMDP agents. Create your own POMDP agent.
 
@@ -573,7 +570,7 @@ GridWorld.draw(world, { trajectory: trajectory });
 
 In the example above, the agent constructor `makeRandomAgent` takes the environment (`world`) as an argument in order to access `stateToActions`. Agent constructors will typically also use the environment's `transition` method to internally simulate state transitions.
 
->**Exercise:** Implement an agent who chooses actions by taking the action with highest expected utility under the random policy. (You can do this by building on the codebox above. Use the `makeRandomAgent` and `simulate` function within a new agent constructor.)
+>**Exercise:** Implement an agent who takes the action with highest expected utility under the random policy. (You can do this by making use of the codebox above. Use the `makeRandomAgent` and `simulate` function within a new agent constructor.)
 
 In addition to writing agents from scratch, you can build on the agents available in the library. 
 
@@ -581,6 +578,185 @@ In addition to writing agents from scratch, you can build on the agents availabl
 
 --------
 
-### 
+### Creating POMDPs
+
+POMDPs are introduced in agentmodels.org in this [chapter](chapters/3c-pomdp.html). This section explains how to create your own POMDPs for use in the library.
+
+As we explained above, MDPs in webppl-agents are objects with a `transition` method and a `stateToActions` method. POMDPs also have a `transition` method. Instead of `stateToActions`, they have a `beliefToActions` method, which maps a belief distribution over states to a set of available actions. POMDPs also have an `observe` method, which maps states to observations (typically represented as strings).
+
+Here is a simple POMDP based on the "Line MDP" example above. The agent moves along the integer line as before. This time the agent is uncertain whether or not there is high reward at location 3. The agent can only find out by moving to location 3 and receiving an observation.
+
+~~~~
+
+// States have the same structure as in MDPs:
+// the transition method needs to decrement
+// the state's *timeLeft* attribute until termination
+
+var advanceStateTime = function(state){
+  var newTimeLeft = state.timeLeft - 1;
+  return update(state, { 
+    timeLeft: newTimeLeft,
+    terminateAfterAction: newTimeLeft > 1 ? state.terminateAfterAction : true
+  });
+};
+
+
+var makeLinePOMDP = function(){
+
+  var beliefToActions = function(belief){return [-1, 0, 1];};
+  
+  var transition = function(state, action){
+    var newLoc = state.loc + action;
+    var stateNewLoc = update(state,{loc: newLoc});
+    return advanceStateTime(stateNewLoc);
+  };
+  
+  var observe = function(state){
+    if (state.loc == 3){
+      return state.treasureAt3 ? 'treasure' : 'no treasure';
+    }
+    return 'noObservation';
+  };
+
+  return {beliefToActions:beliefToActions, 
+          transition:transition, 
+          observe:observe};  
+          
+};
+~~~~
+
+To simulate an agent on this POMDP, we need to create a "POMDP" agent. POMDP agents have an `act` method which maps *beliefs* (rather than *states*) to distributions on actions. They also have an `updateBelief` method, mapping beliefs and observations to an updated belief. 
+
+This example uses the optimal POMDP agent. To construct a POMDP agent, we need to specify the agent's starting belief distribution on states. Here we assume the agent has a uniform distribution on whether or not there is "treasure" at location 3.
+
+~~~~
+///fold:
+var advanceStateTime = function(state){
+  var newTimeLeft = state.timeLeft - 1;
+  return update(state, { 
+    timeLeft: newTimeLeft,
+    terminateAfterAction: newTimeLeft > 1 ? state.terminateAfterAction : true
+  });
+};
+
+var makeLinePOMDP = function(){
+
+  var beliefToActions = function(belief){return [-1, 0, 1];};
+  
+  var transition = function(state, action){
+    var newLoc = state.loc + action;
+    var stateNewLoc = update(state,{loc: newLoc});
+    return advanceStateTime(stateNewLoc);
+  };
+  
+  var observe = function(state){
+    if (state.loc == 3){
+      return state.treasureAt3 ? 'treasure' : 'no treasure';
+    }
+    return 'noObservation';
+  };
+
+  return {beliefToActions:beliefToActions, 
+          transition:transition, 
+          observe:observe};  
+};
+///  
+
+var utility = function(state, action){    
+  if (state.loc==3 && state.treasureAt3){return 5;}
+  if (state.loc==0){return 1;}
+  return 0;
+};
+
+var trueStartState = {timeLeft: 7, 
+                      terminateAfterAction: false, 
+                      loc: 0,
+                      treasureAt3: false};
+
+var alternativeStartState = update(trueStartState, {treasureAt3: true});
+var possibleStates = [trueStartState, alternativeStartState];
+
+var priorBelief = Categorical({ps: [.5, .5], vs: possibleStates});
+
+var params = {alpha:1000,              
+              utility:utility, 
+              priorBelief: priorBelief,  
+              optimal: true
+             };
+
+var world = makeLinePOMDP();
+var agent = makePOMDPAgent(params, world);
+var trajectory = simulate(trueStartState, world, agent, 'states');
+print(trajectory)
+~~~~
+
+In POMDPs the agent does not directly observe their current state. However, in the Line POMDP (above) the "location" part of the agent's state is always known by the agent. The part of the state that is unknown is whether `treasureAt3` is true. So we could factor the state into attributes that are always known ("manifest") and parts that are not ("latent"). This factoring of the state can speed up the POMDP agent's belief updating and is used for the POMDP environments in the library. The following codebox shows a factored version of the Line POMDP:
+
+~~~~
+///fold:
+var advanceStateTime = function(state){
+  var newTimeLeft = state.timeLeft - 1;
+  return update(state, { 
+    timeLeft: newTimeLeft,
+    terminateAfterAction: newTimeLeft > 1 ? state.terminateAfterAction : true
+  });
+};
+///
+
+var makeLinePOMDP = function(){
+  var manifestStateToActions = function(manifestState){return [-1, 0, 1];};
+  
+  var transition = function(state, action){
+    var newLoc = state.manifestState.loc + action;
+    var manifestStateNewLoc = update(state.manifestState,{loc: newLoc});
+    var newManifestState = advanceStateTime(manifestStateNewLoc);
+    return {manifestState: newManifestState, latentState: state.latentState};
+  };
+  
+  var observe = function(state){
+    if (state.manifestState.loc == 3){
+      return state.latentState.treasureAt3 ? 'treasure' : 'no treasure';
+    }
+    return 'noObservation';
+  };
+  
+  return {manifestStateToActions:manifestStateToActions, 
+          transition:transition, 
+          observe:observe};
+};
+
+
+var utility = function(state, action){    
+  if (state.manifestState.loc==3 && state.latentState.treasureAt3){return 5;}
+  if (state.manifestState.loc==0){return 1;}
+  return 0;
+};
+
+var trueStartState = {manifestState: {timeLeft: 7, 
+                                      terminateAfterAction: false, 
+                                      loc: 0},
+                      latentState: {treasureAt3: false}
+                     };
+
+var alternativeStartState = update(trueStartState, 
+                                   {latentState: {treasureAt3: true}});
+var possibleStates = [trueStartState, alternativeStartState];
+
+var priorBelief = Categorical({ps: [.5, .5], vs: possibleStates});
+
+var params = {alpha:1000,              
+              utility:utility, 
+              priorBelief: priorBelief,  
+              optimal: true
+             };
+
+var world = makeLinePOMDP();
+var agent = makePOMDPAgent(params, world);  
+var trajectory = simulate(trueStartState, world, agent, 'states');
+print(trajectory)
+~~~~
+
+
+
 
 
