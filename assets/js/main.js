@@ -37,18 +37,22 @@ var textohtml_map = {
   "\\\"a": "&auml;",
   "\\\"o": "&ouml;",
   "\\'e": "&eacute;",
+  "\\'a": "&aacute;",  
   "\\\"U": "&Uuml;",
   "\\\"A": "&Auml;",
   "\\\"O": "&Ouml;",
   "\\'E": "&Eacute;",
+  "\\'A": "&Aacute;",  
   "\\\"{u}": "&uuml;",
   "\\\"{a}": "&auml;",
   "\\\"{o}": "&ouml;",
   "\\'{e}": "&eacute;",
+  "\\'{a}": "&aacute;",  
   "\\\"{U}": "&Uuml;",
   "\\\"{A}": "&Auml;",
   "\\\"{O}": "&Ouml;",
-  "\\'{E}": "&Eacute;"  
+  "\\'{E}": "&Eacute;",
+  "\\'{A}": "&Aacute;"  
 };
 
 function textohtml(tex) {
