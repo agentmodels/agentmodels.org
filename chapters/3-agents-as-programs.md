@@ -37,8 +37,6 @@ $$
 In WebPPL, we can implement this utility-maximizing agent as a function `maxAgent` that takes a state $$s \in S$$ as input and returns an action. For Tom's choice between restaurants, we assume that the agent starts off in a state `"default"`, denoting whatever Tom does before going off to eat. The program directly translates the decision rule above using the higher-order function `argMax`.
 
 ~~~~
-var argMax = function(f,ar){return maxWith(f,ar)[0]};
-
 // Choose to eat at the Italian or French restaurants
 var actions = ['italian', 'french'];
 
@@ -64,7 +62,7 @@ print("Choice in default state: " + maxAgent("default"));
 There is an alternative way to compute the optimal action for this problem. The idea is to treat choosing an action as an *inference* problem. The previous chapter showed how we can *infer* the probability that a coin landed Heads from the observation that two of three coins were Heads. 
 
 ~~~~
-var twoHeads = Enumerate(function(){
+var twoHeads = Infer({ method: 'enumerate' }, function(){
   var a = flip(0.5);
   var b = flip(0.5);
   var c = flip(0.5);
@@ -87,7 +85,7 @@ var transition = function(state, action){
 };
 
 var inferenceAgent = function(state){
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
     var action = uniformDraw(actions);
     condition(transition(state, action) === 'pizza');
     return action;
@@ -108,11 +106,9 @@ $$
 \max_{a \in A} \mathbb{E}( U(T(s,a)) )
 $$
 
-To represent this in WebPPL, we extend `maxAgent` using the `expectation` function, which maps an ERP with finite support to its (real-valued) expectation:
+To represent this in WebPPL, we extend `maxAgent` using the `expectation` function, which maps a distribution with finite support to its (real-valued) expectation:
 
 ~~~~
-var argMax = function(f,ar){return maxWith(f,ar)[0]};
-
 var actions = ['italian', 'french'];
 
 var transition = function(state, action){
@@ -131,7 +127,7 @@ var utility = function(state){
 
 var maxEUAgent = function(state){
   var expectedUtility = function(action){
-    return expectation(Enumerate(function(){
+    return expectation(Infer({ method: 'enumerate' }, function(){
       return utility(transition(state, action));
     }));
   };
@@ -146,7 +142,7 @@ The `inferenceAgent`, which uses the planning-as-inference idiom, can also be ex
 To illustrate `factor`, consider the following variant of the `twoHeads` example above. Instead of placing a hard constraint on the total number of Heads outcomes, we give each setting of `a`, `b` and `c` a *score* based on the total number of heads. The score is highest when all three coins are Heads, but even the "all tails" outcomes is not ruled out completely.
 
 ~~~~
-var softHeads = Enumerate(function(){
+var softHeads = Infer({ method: 'enumerate' }, function(){
   var a = flip(0.5);
   var b = flip(0.5);
   var c = flip(0.5);
@@ -160,7 +156,7 @@ viz.auto(softHeads);
 As another example, consider the following short program:
 
 ~~~~
-var y = Enumerate(function(){
+var y = Infer({ method: 'enumerate' }, function(){
   var n = uniformDraw([0, 1, 2]);
   factor(n * n);
   return n;
@@ -169,7 +165,7 @@ var y = Enumerate(function(){
 viz.auto(y);
 ~~~~
 
-Without the `factor` statement, each value of the variable `n` has equal probability. Adding the `factor` statements adds `n*n` to the log-score of each value. To get the new probabilities induced by the `factor` statement we compute the normalizing constant given these log-scores. The resulting probability $$P(y=2)$$ that the ERP `y` assigns to output $$2$$ is:
+Without the `factor` statement, each value of the variable `n` has equal probability. Adding the `factor` statements adds `n*n` to the log-score of each value. To get the new probabilities induced by the `factor` statement we compute the normalizing constant given these log-scores. The resulting probability $$P(y=2)$$ is:
 
 $$
 P(y=2) = \frac {e^{2 \cdot 2}} { (e^{0 \cdot 0} + e^{1 \cdot 1} + e^{2 \cdot 2}) }
@@ -195,12 +191,12 @@ var utility = function(state){
 var alpha = 1;
 
 var softMaxAgent = function(state){
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
 
     var action = uniformDraw(['french', 'italian']);
 
     var expectedUtility = function(action){
-      return expectation( Enumerate(function(){
+      return expectation(Infer({ method: 'enumerate' }, function(){
         return utility(transition(state,action));
       }));
     };
@@ -220,7 +216,7 @@ $$
 
 The noise parameter $$\alpha$$ modulates between random choice $$(\alpha=0)$$ and the perfect maximization $$(\alpha = \infty)$$ of the `maxEUAgent`.
 
-Since rational agents will *always* take the best action, why consider softmax agents? If the task is to provide normative advice on how to solve a one-shot decision problem, then "hard" maximization is the way to go. An important goal for this tutorial is to infer the preferences and beliefs of agents from their choices. These agents might not always choose the normatively optimal actions. The softmax agent provides a computationally simple, analytically tractable model of suboptimal choice[^softmax]. This model has been tested empirically on human action selection refp:luce2005individual. Moreover, it has been used extensively in Inverse Reinforcement Learning as a model of human errors refp:kim2014inverse, refp:zheng2014robust. For for this reason, we employ the softmax model throughout this tutorial. When modeling an agent assumed to be optimal, the noise parameter $$\alpha$$ can be set to a large value. <!-- [TODO: Alternatively, agent could output erp.MAP().val instead of erp.] -->
+Since rational agents will *always* take the best action, why consider softmax agents? If the task is to provide normative advice on how to solve a one-shot decision problem, then "hard" maximization is the way to go. An important goal for this tutorial is to infer the preferences and beliefs of agents from their choices. These agents might not always choose the normatively optimal actions. The softmax agent provides a computationally simple, analytically tractable model of suboptimal choice[^softmax]. This model has been tested empirically on human action selection refp:luce2005individual. Moreover, it has been used extensively in Inverse Reinforcement Learning as a model of human errors refp:kim2014inverse, refp:zheng2014robust. For for this reason, we employ the softmax model throughout this tutorial. When modeling an agent assumed to be optimal, the noise parameter $$\alpha$$ can be set to a large value. <!-- [TODO: Alternatively, agent could output dist.MAP().val instead of dist.] -->
 
 [^softmax]: A softmax agent's choice of action is a differentiable function of their utilities. This differentiability makes possible certain techniques for inferring utilities from choices.
 

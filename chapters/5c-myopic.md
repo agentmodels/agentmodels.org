@@ -43,15 +43,15 @@ The next codeboxes show the performance of the Reward-myopic agent on Bandit pro
 
 // Construct world: One bad arm, one good arm, 100 trials. 
 
-var trueArmToPrizeERP = {
-  0: categoricalERP([0.25, 0.75], [1.5, 0] ),
-  1: categoricalERP([0.5, 0.5], [1, 0])
+var trueArmToPrizeDist = {
+  0: Categorical({ ps: [0.25, 0.75], vs: [1.5, 0] }),
+  1: Categorical({ ps: [0.5, 0.5], vs: [1, 0] })
 };
 var numberOfTrials = 100;
 var bandit = makeBandit({
   numberOfTrials: numberOfTrials,
   numberOfArms: 2,
-  armToPrizeERP: trueArmToPrizeERP,
+  armToPrizeDist: trueArmToPrizeDist,
   numericalPrizes: true
 });
 var world = bandit.world;
@@ -61,12 +61,14 @@ var startState = bandit.startState;
 // Construct reward-myopic agent
 
 // Arm0 is a mixture of [0,1.5] and Arm1 of [0,1]
-var agentPrior = Enumerate(function(){
+var agentPrior = Infer({ method: 'enumerate' }, function(){
   var prob15 = uniformDraw([0, 0.25, 0.5, 0.75, 1]);
   var prob1 = uniformDraw([0, 0.25, 0.5, 0.75, 1]);
-  var armToPrizeERP = {0: categoricalERP([prob15, 1 - prob15], [1.5, 0]),
-		               1: categoricalERP([prob1, 1 - prob1], [1, 0])};
-  return makeBanditStartState(numberOfTrials, armToPrizeERP);
+  var armToPrizeDist = {
+    0: Categorical({ ps: [prob15, 1 - prob15], vs: [1.5, 0] }),
+    1: Categorical({ ps: [prob1, 1 - prob1], vs: [1, 0] })
+  };
+  return makeBanditStartState(numberOfTrials, armToPrizeDist);
 });
 
 var rewardMyopicBound = 1;
@@ -112,29 +114,33 @@ var params = {
 };
 ///
 
-var trueArmToPrizeERP = {0: categoricalERP([0.1, 0.9], [3, 0]),
-	                     1: categoricalERP([0.5, 0.5], [1, 0]),
-		                 2: categoricalERP([0.5, 0.5], [2, 0])};
+var trueArmToPrizeDist = {
+  0: Categorical({ ps: [0.1, 0.9], vs: [3, 0] }),
+  1: Categorical({ ps: [0.5, 0.5], vs: [1, 0] }),
+  2: Categorical({ ps: [0.5, 0.5], vs: [2, 0] })
+};
 
 var numberOfTrials = 40;
 
 var bandit = makeBandit({
   numberOfArms: 3,
-  armToPrizeERP: trueArmToPrizeERP,
+  armToPrizeDist: trueArmToPrizeDist,
   numberOfTrials: numberOfTrials,
   numericalPrizes: true
 });
 var world = bandit.world;
 var startState = bandit.startState;
 
-var agentPrior = Enumerate(function(){
+var agentPrior = Infer({ method: 'enumerate' }, function(){
   var prob3 = uniformDraw([0.1, 0.5, 0.9]);
   var prob1 = uniformDraw([0.1, 0.5, 0.9]);
   var prob2 = uniformDraw([0.1, 0.5, 0.9]);
-  var armToPrizeERP = {0: categoricalERP([prob3, 1 - prob3], [3, 0]),
-	                   1: categoricalERP([prob1, 1 - prob1], [1, 0]),
-	                   2: categoricalERP([prob2, 1 - prob2], [2, 0])};
-  return makeBanditStartState(numberOfTrials, armToPrizeERP);
+  var armToPrizeDist = {
+    0: Categorical({ ps: [prob3, 1 - prob3], vs: [3, 0] }),
+    1: Categorical({ ps: [prob1, 1 - prob1], vs: [1, 0] }),
+    2: Categorical({ ps: [prob2, 1 - prob2], vs: [2, 0] })
+  };
+  return makeBanditStartState(numberOfTrials, armToPrizeDist);
 });
 
 var params = update(params, {priorBelief: agentPrior});
@@ -155,11 +161,13 @@ print('Arm2 is best arm and has expected utility 1.\n' +
 -------
 
 ## Myopic Updating: the basic idea
+
 In Chapter 3.3, we noted that solving a finite-horizon Multi-arm bandit problem is intractable in the number of arms and trials. So bounded agents will use a sub-optimal but tractable algorithm for this problem. In this chapter we describe and implement a widely-studied approach to Bandits (and POMDPs generally) that is sub-optimal but which can be very effective in practice. We refer to the approach as *Myopic Updating*, because it is "myopic" or "greedy" with respect to exploration. The idea is that the agent at time $$t_0$$ assumes he can only *explore* (i.e. update beliefs from observations) up to some cutoff point $$C_m$$ steps into the future. After that point he just *exploits* (i.e. he gain rewards but doesn't update from the rewards he observes). In reality, the agent will continue to update beliefs after time $$t_0+C_m$$. The Update-myopic agent, like the Naive hyperbolic discounter, has an incorrect model of his future self. We call an agent that uses Myopic Updating an "Update-myopic Agent". This will be precisely defined below. 
 
 Myopic Updating is an efficient way to solve Bandit problems, yielding an optimal solution in the two-arm case refp:frazier2008knowledge, and also provides a good fit to human performance in Bandit problems refp:zhang2013forgetful. In what follows, we describe Myopic Updating in more detail, explain how to incorporate it into out POMDP agent model, and then exhibit its performance on Bandit problems.
 
 ### Myopic Updating: applications and limitations
+
 As noted above, Myopic Updating has been studied in Machine Learning refp:gonzalez2015glasses and Operations Research refp:ryzhov2012knowledge as part of algorithms for generalized Bandit problems. In most cases, the cutoff point $$C_m$$ after which the agent assumes himself to exploit is set to $$C_m=1$$. This results in a scalable, analytically tractable optimization problem: pull the arm that maximizes the expected value of future exploitation given you pulled that arm. This "future exploitation" means that you pick the arm that is best in expectation for the rest of time.
 
 We've presented Bandit problems with a finite number of arms, and with discrete rewards that are uncorrelated across arms. Myopic Updating works well in this setting but also works for generalized Bandit Problems: e.g. when rewards are correlated, when rewards are continuous, and in the "Bayesian Optimization" setting where instead of a fixed number of arms the goal is to optimize high-dimensional real-valued function refp:ryzhov2012knowledge. 
@@ -236,23 +244,23 @@ var getParams = function(agentPrior){
 };
 
 var getAgentPrior = function(numberOfTrials, priorArm0, priorArm1){
-  return Enumerate(function(){
-    var armToPrizeERP = {0: priorArm0(), 1: priorArm1()};
-    return makeBanditStartState(numberOfTrials, armToPrizeERP);
+  return Infer({ method: 'enumerate' }, function(){
+    var armToPrizeDist = {0: priorArm0(), 1: priorArm1()};
+    return makeBanditStartState(numberOfTrials, armToPrizeDist);
   });
 };
 
 // HELPERS FOR CONSTRUCTING WORLD
 
 // Possible distributions for arms
-var probably0ERP = categoricalERP([0.6, 0.4], [0, 1]);
-var probably1ERP = categoricalERP([0.4, 0.6], [0, 1]);
+var probably0Dist = Categorical({ ps: [0.6, 0.4], vs: [0, 1] });
+var probably1Dist = Categorical({ ps: [0.4, 0.6], vs: [0, 1] });
 
 // Construct Bandit POMDP
 var getBandit = function(numberOfTrials){
   return makeBandit({
     numberOfArms: 2,
-	armToPrizeERP: {0: probably0ERP, 1: probably1ERP},
+	armToPrizeDist: {0: probably0Dist, 1: probably1Dist},
 	numberOfTrials: numberOfTrials,
 	numericalPrizes: true
   });
@@ -267,18 +275,18 @@ var score = function(out){
 // Agent prior on arm rewards
 
 // Possible distributions for arms
-var probably0ERP = categoricalERP([0.6, 0.4], [0, 1]);
-var probably1ERP = categoricalERP([0.4, 0.6], [0, 1]);
+var probably0Dist = Categorical({ ps: [0.6, 0.4], vs: [0, 1] });
+var probably1Dist = Categorical({ ps: [0.4, 0.6], vs: [0, 1] });
 
 // True latentState:
-// arm0 is probably0ERP, arm1 is probably1ERP (and so is better)
+// arm0 is probably0Dist, arm1 is probably1Dist (and so is better)
 
 // Agent prior on arms: arm1 (better arm) has higher EV
 var priorArm0 = function(){
-  return categorical([0.5, 0.5], [probably1ERP, probably0ERP]);
+  return categorical([0.5, 0.5], [probably1Dist, probably0Dist]);
 };
 var priorArm1 = function(){
-  return categorical([0.6, 0.4], [probably1ERP, probably0ERP]);
+  return categorical([0.6, 0.4], [probably1Dist, probably0Dist]);
 };
 
 
@@ -307,7 +315,7 @@ var means = map( function(optimal){
 print('Overall means for [Optimal,Update-Myopic]: ' + means);
 ~~~~
 
->**Exercise**: The above codebox shows that performance for the two agents is similar. Try varying the priors and the `armToPrizeERP` and verify that performance remains similar. How would you provide stronger empirical evidence that the two algorithms are equivalent for this problem?
+>**Exercise**: The above codebox shows that performance for the two agents is similar. Try varying the priors and the `armToPrizeDist` and verify that performance remains similar. How would you provide stronger empirical evidence that the two algorithms are equivalent for this problem?
 
 The following codebox computes the runtime for Update-myopic and Optimal agents as a function of the number of Bandit trials. We see that the Update-myopic agent has better scaling even on a small number of trials. Note that neither agent has been optimized for Bandit problems.
 
@@ -334,26 +342,26 @@ var getParams = function(agentPrior){
 };
 
 var getAgentPrior = function(numberOfTrials, priorArm0, priorArm1){
-  return Enumerate(function(){
-    var armToPrizeERP = {0: priorArm0(), 1: priorArm1()};
-    return makeBanditStartState(numberOfTrials, armToPrizeERP);
+  return Infer({ method: 'enumerate' }, function(){
+    var armToPrizeDist = {0: priorArm0(), 1: priorArm1()};
+    return makeBanditStartState(numberOfTrials, armToPrizeDist);
   });
 };
 
 // HELPERS FOR CONSTRUCTING WORLD
 
 // Possible distributions for arms
-var probably1ERP = categoricalERP([0.4, 0.6], [0, 1]);
-var probably0ERP = categoricalERP([0.6, 0.4], [0, 1]);
+var probably1Dist = Categorical({ ps: [0.4, 0.6], vs: [0, 1] });
+var probably0Dist = Categorical({ ps: [0.6, 0.4], vs: [0, 1] });
 
 
 // Construct Bandit POMDP
 var getBandit = function(numberOfTrials){
   return makeBandit({
     numberOfArms: 2,
-	armToPrizeERP: {0: probably0ERP, 1: probably1ERP},
-	numberOfTrials: numberOfTrials,
-	numericalPrizes: true
+    armToPrizeDist: {0: probably0Dist, 1: probably1Dist},
+    numberOfTrials: numberOfTrials,
+    numericalPrizes: true
   });
 };
 
@@ -366,18 +374,18 @@ var score = function(out){
 // Agent prior on arm rewards
 
 // Possible distributions for arms
-var probably0ERP = categoricalERP([0.6, 0.4], [0, 1]);
-var probably1ERP = categoricalERP([0.4, 0.6], [0, 1]);
+var probably0Dist = Categorical({ ps: [0.6, 0.4], vs: [0, 1] });
+var probably1Dist = Categorical({ ps: [0.4, 0.6], vs: [0, 1] });
 
 // True latentState:
-// arm0 is probably0ERP, arm1 is probably1ERP (and so is better)
+// arm0 is probably0Dist, arm1 is probably1Dist (and so is better)
 
 // Agent prior on arms: arm1 (better arm) has higher EV
 var priorArm0 = function(){
-  return categorical([0.5, 0.5], [probably1ERP, probably0ERP]);
+  return categorical([0.5, 0.5], [probably1Dist, probably0Dist]);
 };
 var priorArm1 = function(){
-  return categorical([0.6, 0.4], [probably1ERP, probably0ERP]);
+  return categorical([0.6, 0.4], [probably1Dist, probably0Dist]);
 };
 
 
@@ -386,7 +394,7 @@ var runAgents = function(numberOfTrials){
   var bandit = getBandit(numberOfTrials);
   var world = bandit.world;
   var startState = bandit.startState;
-  
+
   var agentPrior = getAgentPrior(numberOfTrials, priorArm0, priorArm1);
   var agentParams = getParams(agentPrior);
 
@@ -397,19 +405,21 @@ var runAgents = function(numberOfTrials){
   var runOptimal = function(){
     return score(simulate(startState, world, optimalAgent, 'states')); 
   };
-  
+
   var runMyopic = function(){
     return score(simulate(startState, world, myopicAgent, 'states'));
   };
 
-  var optimalDatum = {numberOfTrials: numberOfTrials,
-                      runtime: timeit(runOptimal).runtimeInMilliseconds*0.001,
-					  agentType: 'optimal'
+  var optimalDatum = {
+    numberOfTrials: numberOfTrials,
+    runtime: timeit(runOptimal).runtimeInMilliseconds*0.001,
+    agentType: 'optimal'
   };
 
-  var myopicDatum = {numberOfTrials: numberOfTrials,
-                     runtime: timeit(runMyopic).runtimeInMilliseconds*0.001,
-					 agentType: 'myopic'
+  var myopicDatum = {
+    numberOfTrials: numberOfTrials,
+    runtime: timeit(runMyopic).runtimeInMilliseconds*0.001,
+    agentType: 'myopic'
   };
 
   return [optimalDatum, myopicDatum];
@@ -419,7 +429,7 @@ var runAgents = function(numberOfTrials){
 // Compute runtime as # Bandit trials increases
 var totalTimeValues = range(9).slice(2);
 
-print('Runtime in s for [Optimal,Myopic] agents:');
+print('Runtime in s for [Optimal, Myopic] agents:');
 
 var runtimeValues = _.flatten(map(runAgents, totalTimeValues));
 
@@ -428,6 +438,7 @@ viz.line(runtimeValues, {groupBy: 'agentType'});
 
 
 ### Myopic Updating for the Restaurant Search Problem
+
 The limitations of Myopic Updating are straightforward. The Update-myopic agent assumes they will not update beliefs after the bound at $$C_m$$. As a result, they won't make plans that involve learning something after the bound.
 
 We illustrate this limitation with a new problem:
@@ -450,13 +461,15 @@ var world = pomdp.world;
 var makeUtility = pomdp.makeUtility;
 var startState = pomdp.startState;
 
-var agentPrior = Enumerate(function(){
-  var rewardD = uniformDraw([0,5]); // D is bad or great (E is opposite)
-  var latentState = {A: 3,
-		             B: uniformDraw(range(6)),
-		             C: uniformDraw(range(6)),
-		             D: rewardD,
-		             E: 5 - rewardD};
+var agentPrior = Infer({ method: 'enumerate' }, function(){
+  var rewardD = uniformDraw([0,5]);  // D is bad or great (E is opposite)
+  var latentState = {
+    A: 3,
+    B: uniformDraw(range(6)),
+    C: uniformDraw(range(6)),
+    D: rewardD,
+    E: 5 - rewardD
+  };
   return buildState(pomdp.startState.manifestState, latentState);
 });
 
@@ -472,7 +485,7 @@ var trajectory = simulate(pomdp.startState, world, agent, 'states');
 var manifestStates = map(function(state){return state.manifestState;},
                          trajectory);
 print('Quality of restaurants: \n'+JSON.stringify(pomdp.startState.latentState));
-GridWorld.draw(pomdp.mdp, {trajectory: manifestStates})
+GridWorld.draw(pomdp.mdp, { trajectory: manifestStates });
 ~~~~
 
 >**Exercise:** The codebox below shows the behavior the Update-myopic agent. Try different values for the `myopicBound` parameter. For values in $$[1,2,3]$$, explain the behavior of the Update-myopic agent. 
@@ -486,15 +499,17 @@ var pomdp = makeRestaurantSearchPOMDP();
 var world = pomdp.world;
 var makeUtility = pomdp.makeUtility;
 
-var agentPrior = Enumerate(function(){
+var agentPrior = Infer({ method: 'enumerate' }, function(){
   var rewardD = uniformDraw([0,5]); // D is bad or great (E is opposite)
-  var latentState = {A: 3,
-		             B: uniformDraw(range(6)),
-		             C: uniformDraw(range(6)),
-		             D: rewardD,
-		             E: 5 - rewardD};
+  var latentState = {
+    A: 3,
+    B: uniformDraw(range(6)),
+    C: uniformDraw(range(6)),
+    D: rewardD,
+    E: 5 - rewardD
+  };
   return buildState(pomdp.startState.manifestState, latentState);
-  });
+});
 ///
 
 var myopicBound = 1;
@@ -518,6 +533,8 @@ print('Rewards for each restaurant: ' + JSON.stringify(pomdp.startState.latentSt
 print('Myopic bound: ' + myopicBound);
 GridWorld.draw(pomdp.mdp, {trajectory: manifestStates});
 ~~~~
+
+Next chapter: [Joint inference of biases and preferences I](/chapters/5d-joint-inference.html)
 
 -------
 

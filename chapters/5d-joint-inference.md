@@ -6,7 +6,8 @@ description: Assuming the agent performs optimally can lead to mistakes in infer
 ---
 
 ### Introduction
-In the opening [chapter](/chapters/5-biases-intro) of this section, we argued that human behavior in sequential decision problems won't always conform to optimal solving of (PO)MDPs. So if our goal is learning about human beliefs and preferences from their actions (i.e. Inverse Reinforcement Learning), then we might do better with more realistic generative models for human behavior. This chapter explores how adding time inconsistency and myopic planning to agent models affects inference of preferences.
+
+In the opening [chapter](/chapters/5-biases-intro.html) of this section, we argued that human behavior in sequential decision problems won't always conform to optimal solving of (PO)MDPs. So if our goal is learning about human beliefs and preferences from their actions (i.e. Inverse Reinforcement Learning), then we might do better with more realistic generative models for human behavior. This chapter explores how adding time inconsistency and myopic planning to agent models affects inference of preferences.
 
 If human behavior in some decision problem always conforms exactly to a particular sub-optimal planning model, then it would be surprising if using the true generative model for inference did not help with accurate recovery of preferences. Biases will only affect some of the humans some of the time. In a narrow domain, experts can learn to avoid biases and they can use specialized approximation algorithms that achieve near-optimal performance in the domain. So our approach is to do *joint inference* over preferences, beliefs and biases and cognitive bounds. If the agent's behavior is consistent with optimal (PO)MDP solving, we will infer this fact and infer preferences accordingly. On the other hand, if there's evidence of biases, this will alter inferences about preferences. We test our approach by comparing to a model that has a fixed assumption of optimality. We show that in simple, intuitive decision problems, assuming optimality leads to mistaken inferences about preferences.
 
@@ -14,6 +15,7 @@ As we discussed in Chapter 4, the identifiability of preferences is a ubiquitous
 
 
 ### Formalization of Joint Inference
+
  <a id="formalization"></a>We formalize joint inference over beliefs, preferences and biases by extending the approach developing in Chapter IV. In Equation (2) of that chapter, an agent was characterized by parameters $$  \left\langle U, \alpha, b_0 \right\rangle$$. To include the possibility of time-inconsistent and Greedy/Myopic agents, an agent $$\theta$$ is now characterized by a tuple of parameters as follows:
 
 $$
@@ -80,17 +82,17 @@ TODO: ideally we would do this as actual online inference.
 ///fold:
 var displayTimeSeries = function(observedStateAction, getPosterior){
   var features = ['reward', 'predictWorkLastMinute', 'alpha', 'discount'];
-  
-  // erp on {a:1, b:3, ...} -> [E('a'), E('b') ... ]
-  var erpToMarginalExpectations = function(erp, keys){
+
+  // dist on {a:1, b:3, ...} -> [E('a'), E('b') ... ]
+  var distToMarginalExpectations = function(dist, keys){
     return map(function(key){
-      return expectation(getMarginal(erp,key));
+      return expectation(getMarginal(dist,key));
     }, keys);
   };
   // condition observations up to *timeIndex* and take expectations
   var inferUpToTimeIndex = function(timeIndex, useOptimalModel){
     var observations = observedStateAction.slice(0,timeIndex);
-    return erpToMarginalExpectations( getPosterior(observations, useOptimalModel), features);
+    return distToMarginalExpectations( getPosterior(observations, useOptimalModel), features);
   };
 
   var getTimeSeries = function(useOptimalModel){
@@ -102,24 +104,36 @@ var displayTimeSeries = function(observedStateAction, getPosterior){
     return map( function(i){
       // get full time series of online inferences for each feature
       return map(function(infer){return infer[i];}, inferAllTimeIndexes);
-      
+
     }, range(features.length) );
   };
 
-   var displayOptimalAndPossiblyDiscountingSeries = function(index){
+  var displayOptimalAndPossiblyDiscountingSeries = function(index){
     print('\n\nfeature: ' + features[index]);
     var optimalSeries = getTimeSeries(true)[index];
     var possiblyDiscountingSeries = getTimeSeries(false)[index];
-    var plotOptimal = map(function(pair){
-      return {t: pair[0], expectation: pair[1], agentModel: 'Optimal'};},
-                          zip(range(observedStateAction.length), optimalSeries));
-    var plotPossiblyDiscounting = map(function(pair){
-      return {t: pair[0], expectation: pair[1], agentModel: 'Possibly Discounting'};},
-                                      zip(range(observedStateAction.length),
-	                                      possiblyDiscountingSeries));
+    var plotOptimal = map(
+      function(pair){
+        return {
+          t: pair[0], 
+          expectation: pair[1], 
+          agentModel: 'Optimal'
+        };
+      },
+      zip(range(observedStateAction.length), optimalSeries));
+    var plotPossiblyDiscounting = map(
+      function(pair){
+        return {
+          t: pair[0],
+          expectation: pair[1],
+          agentModel: 'Possibly Discounting'
+        };
+      },
+      zip(range(observedStateAction.length),
+          possiblyDiscountingSeries));
     viz.line(plotOptimal.concat(plotPossiblyDiscounting), {groupBy: 'agentModel'});
   };
-  
+
   print('Posterior expectation on feature after observing "wait" for t timesteps and "work" when t=9');
   map(displayOptimalAndPossiblyDiscountingSeries, range(features.length));
   return '';
@@ -129,39 +143,40 @@ var displayTimeSeries = function(observedStateAction, getPosterior){
 var getPosterior = function(observedStateAction, useOptimalModel) {
   var world = makeProcrastinationMDP();
   var lastChanceState = secondLast(procrastinateUntilEnd10)[0];
-  
-  return Enumerate(function(){
-   
-   var utilityTable = {
-     reward: uniformDraw([0.5, 2, 3, 4, 5, 6, 7, 8]),
-	 waitCost: -0.1,
-	 workCost: -1};
+
+  return Infer({ method: 'enumerate' }, function(){
+
+    var utilityTable = {
+      reward: uniformDraw([0.5, 2, 3, 4, 5, 6, 7, 8]),
+      waitCost: -0.1,
+      workCost: -1};
     var params = {
       utility: makeProcrastinationUtility(utilityTable),
       alpha: categorical([0.1, 0.2, 0.2, 0.2, 0.3], [0.1, 1, 10, 100, 1000]),
       discount: useOptimalModel ? 0 : uniformDraw([0, .5, 1, 2, 4]),
       sophisticatedOrNaive: 'naive'
     };
-    
+
     var agent = makeMDPAgent(params, world);
     var act = agent.act;
 
     map(function(stateAction){
       var state = stateAction[0];
       var action = stateAction[1];
-      factor( act(state, 0).score([], action) )
+      factor( act(state, 0).score(action) )
     }, observedStateAction);
 
-    return {reward: utilityTable.reward, 
-            alpha: params.alpha, 
-            discount: params.discount, 
-            predictWorkLastMinute: sample( act(lastChanceState, 0) ) == 'work'};
+    return {
+      reward: utilityTable.reward, 
+      alpha: params.alpha, 
+      discount: params.discount, 
+      predictWorkLastMinute: sample( act(lastChanceState, 0) ) == 'work'
+    };
   });
 };
 
 var observedStateAction = procrastinateUntilEnd10;
 displayTimeSeries(observedStateAction, getPosterior);
-null;
 ~~~~
 
 When evaluating the two models, it's worth keeping in mind that the behavior we conditioned on is typical for humans. Suppose you hear someone has still not done a task with only two days left (where the cost for delaying is small and there's no risk of running out of time on the last day). Would you confidently rule out them doing it at the last minute? 
@@ -175,6 +190,7 @@ Suppose you now observe the person doing the task on the final day. What do you 
 
 
 ## Learning from Reward-myopic Agents in Bandits
+
 We've seen that assuming optimality can lead to bad inferences due to systematic deviations between optimal and time-inconsistent agents. For this example we move to a POMDP problem: the IRL Bandit problem of earlier chapters. In Chapter V.2, we noted that the Reward-myopic agent will explore less than an optimal agent. The Reward-myopic agent plans each action as if time runs out in $$C_g$$ steps, where $$C_g$$ is the *bound* or "look ahead". If exploration only pays off in the long-run (after the bound) then the agent won't explore [^bandit1]. This means there are two possible explanations for an agent not exploring: either the agent is greedy or the agent has a low prior on utility of the unknown options.
 
 [^bandit1]: If there's no noise in transitions or in selection of actions, the Reward-myopic agent will *never* explore and will do worse than an agent that optimally solves the POMDP.
@@ -213,7 +229,7 @@ var displayExpectations = function(getPosterior){
     }, range(features.length) );
   };
 
-   var displayOptimalAndPossiblyRewardMyopicSeries = function(index){
+  var displayOptimalAndPossiblyRewardMyopicSeries = function(index){
     print('\n\nfeature: ' + features[index]);
     var optimalSeries = getExpectations(true)[index];
     var possiblyRewardMyopicSeries = getExpectations(false)[index];
@@ -222,12 +238,12 @@ var displayExpectations = function(getPosterior){
                           zip(timeHorizonValues, optimalSeries));
     var plotPossiblyRewardMyopic = map(function(pair){
       return {horizon: pair[0], expectation: pair[1],
-		      agentModel: 'Possibly RewardMyopic'};},
-                                 zip(timeHorizonValues,
-									 possiblyRewardMyopicSeries));
+              agentModel: 'Possibly RewardMyopic'};},
+                                       zip(timeHorizonValues,
+                                           possiblyRewardMyopicSeries));
     viz.line(plotOptimal.concat(plotPossiblyRewardMyopic), {groupBy: 'agentModel'});
   };
-  
+
   print('Posterior expectation on feature after observing no exploration');
   map(displayOptimalAndPossiblyRewardMyopicSeries, range(features.length));
   return '';
@@ -236,56 +252,67 @@ var displayExpectations = function(getPosterior){
 
 
 var getPosterior = function(numberOfTrials, useOptimalModel) {
-  var trueArmToPrizeERP = {0: deltaERP('chocolate'),
-		                   1: deltaERP('nothing')};
+  var trueArmToPrizeDist = {
+    0: Delta({ v: 'chocolate' }),
+    1: Delta({ v: 'nothing' })
+  };
   var bandit = makeBandit({
     numberOfArms: 2,
-	armToPrizeERP: trueArmToPrizeERP,
-	numberOfTrials: numberOfTrials
+    armToPrizeDist: trueArmToPrizeDist,
+    numberOfTrials: numberOfTrials
   });
 
   var startState = bandit.startState;
-  var alternativeArmToPrizeERP = update(trueArmToPrizeERP,
-                                        {1: deltaERP('champagne')});
+  var alternativeArmToPrizeDist = update(trueArmToPrizeDist,
+                                         {1: Delta({ v: 'champagne' })});
   var alternativeStartState = makeBanditStartState(numberOfTrials,
-	                                               alternativeArmToPrizeERP);
+                                                   alternativeArmToPrizeDist);
 
-  var priorAgentPrior = deltaERP(categoricalERP([0.7, 0.3],
-						                        [startState,
-						                         alternativeStartState]));
-  
-  var priorPrizeToUtility = Enumerate(function(){
-    return {chocolate: uniformDraw(range(20).concat(25)),
-	        nothing: 0,
-	        champagne: 20};
+  var priorAgentPrior = Delta({ 
+    v: Categorical({ 
+      ps: [0.7, 0.3],
+      vs: [startState, alternativeStartState] })});
+
+  var priorPrizeToUtility = Infer({ method: 'enumerate' }, function(){
+    return {
+      chocolate: uniformDraw(range(20).concat(25)),
+      nothing: 0,
+      champagne: 20
+    };
   });
-  
-  var priorMyopia =  useOptimalModel ? deltaERP({on:false, bound:0}) :
-      Enumerate(function(){
-        return {bound: categorical([.4, .2, .1, .1, .1, .1], 
-                                   [1, 2, 3, 4, 6, 10])};
-      });
-  
-  var prior = {priorAgentPrior: priorAgentPrior,
-	           priorPrizeToUtility: priorPrizeToUtility,
-               priorMyopia: priorMyopia};
 
-  var baseAgentParams = {alpha: 1000,
-						 sophisticatedOrNaive: 'naive',
-						 discount: 0,
-						 noDelays: useOptimalModel};
+  var priorMyopia =  useOptimalModel ? Delta({ v: {on:false, bound:0} }) :
+  Infer({ method: 'enumerate' }, function(){
+    return { bound: categorical([.4, .2, .1, .1, .1, .1], 
+                                [1, 2, 3, 4, 6, 10]) };
+  });
+
+  var prior = {
+    priorAgentPrior: priorAgentPrior,
+    priorPrizeToUtility: priorPrizeToUtility,
+    priorMyopia: priorMyopia
+  };
+
+  var baseAgentParams = {
+    alpha: 1000,
+    sophisticatedOrNaive: 'naive',
+    discount: 0,
+    noDelays: useOptimalModel
+  };
 
   var observations = [[startState, 0]];
-  
-  var outputERP = inferBandit(bandit, baseAgentParams, prior, observations,
-                              'offPolicy', 0, 'beliefDelay');
-  
-  var marginalChocolate = Enumerate(function(){
-    return sample(outputERP).prizeToUtility.chocolate;
+
+  var outputDist = inferBandit(bandit, baseAgentParams, prior, observations,
+                               'offPolicy', 0, 'beliefDelay');
+
+  var marginalChocolate = Infer({ method: 'enumerate' }, function(){
+    return sample(outputDist).prizeToUtility.chocolate;
   });
-  
-  return [expectation(marginalChocolate), 
-          expectation(getMarginal(outputERP,'myopiaBound'))]
+
+  return [
+    expectation(marginalChocolate), 
+    expectation(getMarginal(outputDist,'myopiaBound'))
+  ];
 };
 
 print('Prior expected utility for arm0 (chocolate): ' + listMean(range(20).concat(25)) );
@@ -298,6 +325,7 @@ The graphs show that as the agent's time horizon increases the inferences of the
 >**Exercise**: Suppose that instead of allowing the agent to be greedy, we allowed the agent to be a hyperbolic discounter. Think about how this would affect inferences from the observations above and for other sequences of observation. Change the code above to test out your predictions.
 <br>
 
+Next chapter: [Joint inference of biases and preferences II](/chapters/5e-joint-inference.html)
 
 ----
 

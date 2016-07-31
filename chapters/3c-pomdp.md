@@ -33,7 +33,7 @@ For a concrete example, consider the Restaurant Choice Problem. Suppose Bob does
 
 
 
-We first define the class of decision probems (POMDPs) and then define an agent model for optimally solving these problems. Our definitions are based on refp:kaelbling1998planning.
+We first define the class of decision probems (POMDPs) and then define an agent model for optimally solving these problems. Our definitions are based on reft:kaelbling1998planning.
 
 A Partially Observable Markov Decision Process (POMDP) is a tuple $$ \left\langle S,A(s),T(s,a),U(s,a),\Omega,O \right\rangle$$, where:
 
@@ -67,7 +67,7 @@ Intuitively, the probability that $$s'$$ is the new state depends on the margina
 
 >(3). The agent transitions to state $$s' \sim T(s,a)$$, where it gets observation $$o \sim O(s',a)$$ and updates its belief to $$b'$$ by updating $$b$$ on the observation $$o$$.
 
-In our previous agent model for MDPs, we defined the expected utility of an action $$a$$ in a state $$s$$ recursively in terms of the expected utility of the resulting pair of state $$s'$$ and action $$a'$$. This same recursive characterization of expected utility still holds. The important difference is that the agent's action $$a'$$ in $$s'$$ depends on their updated belief $$b'(s')$$. Hence the expected utility of $$a$$ in $$s$$ depends on the agent's belief $$b$$ over the state $$s$$. We call the following the **POMDP Expected Utility of State Recursion**. This recursion defines the function $$EU_{b}$$, which is analogous to the *value function*, $$V_{b}$$, in refp:kaelbling1998planning.
+In our previous agent model for MDPs, we defined the expected utility of an action $$a$$ in a state $$s$$ recursively in terms of the expected utility of the resulting pair of state $$s'$$ and action $$a'$$. This same recursive characterization of expected utility still holds. The important difference is that the agent's action $$a'$$ in $$s'$$ depends on their updated belief $$b'(s')$$. Hence the expected utility of $$a$$ in $$s$$ depends on the agent's belief $$b$$ over the state $$s$$. We call the following the **POMDP Expected Utility of State Recursion**. This recursion defines the function $$EU_{b}$$, which is analogous to the *value function*, $$V_{b}$$, in reft:kaelbling1998planning.
 
 <a id="pomdp_eu_state"></a>**POMDP Expected Utility of State Recursion:**
 
@@ -108,7 +108,7 @@ As with the agent model for MDPs, we provide a direct translation of the equatio
 // pomdp_agent
 
 var act = function(belief) {
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
     var action = uniformDraw(actions);
     var eu = expectedUtility(belief, action);
     factor(alpha * eu);
@@ -118,7 +118,7 @@ var act = function(belief) {
 
 var expectedUtility = function(belief, action) {
   return expectation(
-    Enumerate(function(){
+    Infer({ method: 'enumerate' }, function(){
       var state = sample(belief);
 	  var u = utility(state, action);
 	  if (state.terminateAfterAction) {
@@ -129,7 +129,7 @@ var expectedUtility = function(belief, action) {
 	    var nextBelief = updateBelief(belief, nextObservation, action);
 	    var nextAction = sample(act(nextBelief));
 	    return u + expectedUtility(nextBelief, nextAction);
-	    }
+	  }
     }));
 };
 
@@ -153,8 +153,8 @@ var simulate = function(startState, priorBelief) {
     } else {
       var nextState = transition(state, action);
       return output.concat(sampleSequence(nextState, belief, action));
-      }
-    };
+    }
+  };
   return sampleSequence(startState, priorBelief, 'noAction');
 };
 ~~~~
@@ -175,16 +175,17 @@ In our implementation of this problem, the two arms are labeled "0" and "1" resp
 // Defining the Bandits decision problem
 
 // Pull arm0 or arm1
-var actions = [0,1];
+var actions = [0, 1];
 
-// use latent "armToPrizeERP" mapping in
-// state to determine which prize agent gets
+// Use latent "armToPrize" mapping in state to
+// determine which prize agent gets
 var transition = function(state, action){
   var newTimeLeft = state.timeLeft - 1;
-  return update(state, 
-                {prize: state.armToPrize[action], 
-                 timeLeft: newTimeLeft,
-                 terminateAfterAction: newTimeLeft == 1})
+  return update(state, {
+    prize: state.armToPrize[action], 
+    timeLeft: newTimeLeft,
+    terminateAfterAction: newTimeLeft == 1
+  });
 };
 
 // After pulling an arm, agent observes associated prize
@@ -193,12 +194,12 @@ var observe = function(state){return state.prize;};
 // Starting state specifies the latent state that agent tries to learn
 // (In order that *prize* is defined, we set it to 'start', which
 // has zero utilty for the agent). 
-var startState = { prize: 'start',
-                   timeLeft:3, 
-                   terminateAfterAction:false,
-                   armToPrize: {0:'chocolate', 1:'champagne'}
-                 };
-                
+var startState = { 
+  prize: 'start',
+  timeLeft: 3, 
+  terminateAfterAction:false,
+  armToPrize: {0:'chocolate', 1:'champagne'}
+};              
 ~~~~
 
 Having illustrated our implementation of the POMDP agent and the Bandit problem, we put the pieces together and simulate the agent's behavior. The `makeAgent` function is a simplified version of the library function `makeBeliefAgent` used throughout the rest of this tutorial[^makeBelief].
@@ -208,7 +209,6 @@ The <a href="#belief">Belief-Update Formula</a> is implemented by `updateBelief`
 [^makeBelief]: One difference between the functions is that `makeAgent` uses the global variables `transition` and `observation`, instead of having a `world` parameter.
 
 ~~~~
-
 // Bandit problem is defined as above
 ///fold:
 
@@ -216,16 +216,17 @@ The <a href="#belief">Belief-Update Formula</a> is implemented by `updateBelief`
 // Defining the Bandits decision problem
 
 // Pull arm0 or arm1
-var actions = [0,1];
+var actions = [0, 1];
 
 // use latent "armToPrize" mapping in
 // state to determine which prize agent gets
 var transition = function(state, action){
   var newTimeLeft = state.timeLeft - 1;
-  return update(state, 
-                {prize: state.armToPrize[action], 
-                 timeLeft: newTimeLeft,
-                 terminateAfterAction: newTimeLeft == 1})
+  return update(state, {
+    prize: state.armToPrize[action], 
+    timeLeft: newTimeLeft,
+    terminateAfterAction: newTimeLeft == 1
+  });
 };
 
 // After pulling an arm, agent observes associated prize
@@ -238,12 +239,12 @@ var observe = function(state){return state.prize;};
 
 // Agent params include utility function and initial belief (*priorBelief*)
 
-var makeAgent = function(params){
+var makeAgent = function(params) {
   var utility = params.utility;
 
   // Implements *Belief-update formula* in text
   var updateBelief = function(belief, observation, action){
-    return Enumerate(function(){
+    return Infer({ method: 'enumerate' }, function(){
       var state = sample(belief);
       var predictedNextState = transition(state, action);
       var predictedObservation = observe(predictedNextState);
@@ -254,7 +255,7 @@ var makeAgent = function(params){
 
   var act = dp.cache(
     function(belief) {
-      return Enumerate(function(){
+      return Infer({ method: 'enumerate' }, function(){
         var action = uniformDraw(actions);
         var eu = expectedUtility(belief, action);
         factor(1000 * eu);
@@ -265,40 +266,41 @@ var makeAgent = function(params){
   var expectedUtility = dp.cache(
     function(belief, action) {
       return expectation(
-        Enumerate(function(){
-	  var state = sample(belief);
-	  var u = utility(state, action);
-	  if (state.terminateAfterAction) {
-	    return u;
-	  } else {
-	    var nextState = transition(state, action);
-	    var nextObservation = observe(nextState);
-	    var nextBelief = updateBelief(belief, nextObservation, action);
-	    var nextAction = sample(act(nextBelief));
-	    return u + expectedUtility(nextBelief, nextAction);
-	  }
+        Infer({ method: 'enumerate' }, function(){
+          var state = sample(belief);
+          var u = utility(state, action);
+          if (state.terminateAfterAction) {
+            return u;
+          } else {
+            var nextState = transition(state, action);
+            var nextObservation = observe(nextState);
+            var nextBelief = updateBelief(belief, nextObservation, action);
+            var nextAction = sample(act(nextBelief));
+            return u + expectedUtility(nextBelief, nextAction);
+          }
         }));
     });
 
-  return {params: params, 
-          act: act, 
-          expectedUtility: expectedUtility, 
-          updateBelief: updateBelief
-         };
+  return {
+    params: params, 
+    act: act, 
+    expectedUtility: expectedUtility, 
+    updateBelief: updateBelief
+  };
 };
 
-var simulate = function(startState, agent){
+var simulate = function(startState, agent) {
   var act = agent.act;
   var updateBelief = agent.updateBelief;
   var priorBelief = agent.params.priorBelief;
-  
+
   var sampleSequence = function(state, priorBelief, action) {
     var observation = observe(state);
-    var belief = (action === 'noAction') ? priorBelief : 
-        updateBelief(priorBelief, observation, action);
+    var belief = ((action === 'noAction') ? priorBelief : 
+                  updateBelief(priorBelief, observation, action));
     var action = sample(act(belief));
-    var output = [ [state,action] ];
-         
+    var output = [ [state, action] ];
+
     if (state.terminateAfterAction){
       return output;
     } else {
@@ -316,7 +318,7 @@ var simulate = function(startState, agent){
 // Construct the agent
 
 var utility = function(state,action){
-  var prizeToUtility = {chocolate: 1, nothing: 0, champagne: 1.5, start:0};
+  var prizeToUtility = {chocolate: 1, nothing: 0, champagne: 1.5, start: 0};
   return prizeToUtility[state.prize];
 };
 
@@ -325,25 +327,30 @@ var utility = function(state,action){
 // alternate possibility for startState (see Figure 2)
 
 var numberTrials = 1;
-var startState = { prize: 'start',
-                   timeLeft: numberTrials + 1, 
-                   terminateAfterAction:false,
-                   armToPrize: {0:'chocolate', 1:'champagne'}
-                 };
+var startState = { 
+  prize: 'start',
+  timeLeft: numberTrials + 1, 
+  terminateAfterAction: false,
+  armToPrize: { 0: 'chocolate', 1: 'champagne' }
+};
 
-var alternateStartState = update(startState, 
-                                 {armToPrize:{0:'chocolate', 1:'nothing'}});
+var alternateStartState = update(startState, {
+  armToPrize: { 0: 'chocolate', 1: 'nothing' }
+});
 
 // Agent's prior
-var priorBelief = categoricalERP([.5, .5], [startState, alternateStartState]);
+var priorBelief = Categorical({ 
+  ps: [.5, .5], 
+  vs: [startState, alternateStartState]
+});
 
 
-var params = {utility: utility, priorBelief:priorBelief};
+var params = { utility: utility, priorBelief: priorBelief };
 var agent = makeAgent(params);
 var trajectory = simulate(startState, agent);
 
 print('Number of trials: ' + numberTrials);
-print('Arms pulled: ' +  map(second,trajectory));
+print('Arms pulled: ' +  map(second, trajectory));
 ~~~~
 
 You can change the agent's behavior by varying `numberTrials`, `armToPrize` in `startState` or the agent's prior. Note that the agent's final arm pull is random because the agent only gets utility when *leaving* a state.
@@ -367,7 +374,7 @@ For the following codebox, we use library functions for the environment (`makeBa
 ~~~~
 // helper functions defined here:
 ///fold:
-	  
+
 // takes a trajectory containing states and actions and returns one containing
 // locs and actions, getting rid of 'start' and the final meaningless action.
 // unlike the other functions, this is not part of the webppl language
@@ -384,7 +391,7 @@ var display = function(trajectory) {
 
   var printOut = function(n) {
     print('\n Arm: ' + actionsPrizes[2*n] + ' -- Prize: '
-	      + actionsPrizes[2*n + 1]);
+          + actionsPrizes[2*n + 1]);
   };
   return map(printOut, range((actionsPrizes.length)*0.5));
 };
@@ -394,12 +401,12 @@ var display = function(trajectory) {
 // from arms to prizes is specified in the options of makeBandit
 
 // Possible distributions on rewards for Arm1
-var probably1ERP = categoricalERP([0.2, 0.8], [0, 1]);
-var probably0ERP = categoricalERP([0.8, 0.2], [0, 1]);
+var probably1Dist = Categorical({ ps: [0.2, 0.8], vs: [0, 1] });
+var probably0Dist = Categorical({ ps: [0.8, 0.2], vs: [0, 1] });
 
 var options = {
   numberOfArms: 2,
-  armToPrizeERP: {0: deltaERP(0.7), 1: probably1ERP},
+  armToPrizeDist: {0: Delta({ v: 0.7 }), 1: probably1Dist},
   // note that arm 1 is better in EV
   numberOfTrials: 11,
   numericalPrizes: true
@@ -409,14 +416,14 @@ var bandit = makeBandit(options);
 var startState = bandit.startState;
 var world = bandit.world;
 
-// Alternate arm to prize ERP
-var alternateArmToPrizeERP = update(options.armToPrizeERP, {1: probably0ERP});
+// Alternate arm to prize Dist
+var alternateArmToPrizeDist = update(options.armToPrizeDist, {1: probably0Dist});
 
 // Construct agent's prior on the startState
-var priorBelief = Enumerate(function(){
-  var armToPrizeERP = uniformDraw([options.armToPrizeERP,
-	                               alternateArmToPrizeERP]);
-  return update(startState, {latentState: armToPrizeERP});
+var priorBelief = Infer({ method: 'enumerate' }, function(){
+  var armToPrizeDist = uniformDraw([options.armToPrizeDist,
+                                    alternateArmToPrizeDist]);
+  return update(startState, {latentState: armToPrizeDist});
 });
 
 // Construct agent
@@ -434,33 +441,32 @@ Solving Bandit problems optimally quickly becomes intractable without special op
 <!--TODO_daniel fit a quadratic to this data and plot the quadratic on the same axis.-->
 
 ~~~~
-
 // bandit_scaling_number_of_trials
 
 // Construct world and agent priorBelief as above
 ///fold:
 
-var probably1ERP = categoricalERP([0.2, 0.8], [0, 1]);
-var probably0ERP = categoricalERP([0.8, 0.2], [0, 1]);
+var probably1Dist = Categorical({ ps: [0.2, 0.8], vs: [0, 1] });
+var probably0Dist = Categorical({ ps: [0.8, 0.2], vs: [0, 1] });
 
-var trueArmToPrizeERP = {0: deltaERP(0.7), 1: probably1ERP};
-var alternateArmToPrizeERP = update(trueArmToPrizeERP, {1: probably0ERP});
+var trueArmToPrizeDist = {0: Delta({ v: 0.7 }), 1: probably1Dist};
+var alternateArmToPrizeDist = update(trueArmToPrizeDist, {1: probably0Dist});
 
 
 var makeBanditWithNumberOfTrials = function(numberOfTrials) {
   return makeBandit({
     numberOfTrials: numberOfTrials,
 	numberOfArms: 2,
-	armToPrizeERP: trueArmToPrizeERP,
+	armToPrizeDist: trueArmToPrizeDist,
 	numericalPrizes: true
   });
 };
 
 var getPriorBelief = function(numberOfTrials){
-  return Enumerate(function(){
-    var armToPrizeERP = uniformDraw([trueArmToPrizeERP,
-                                     alternateArmToPrizeERP]);
-    return makeBanditStartState(numberOfTrials, armToPrizeERP);
+  return Infer({ method: 'enumerate' }, function(){
+    var armToPrizeDist = uniformDraw([trueArmToPrizeDist,
+                                     alternateArmToPrizeDist]);
+    return makeBanditStartState(numberOfTrials, armToPrizeDist);
   })
 };
 
@@ -500,23 +506,23 @@ Scaling is much worse in the number of arms:
 
 ///fold:
 
-var probably1ERP = categoricalERP([0.2, 0.8], [0, 1]);
-var probably0ERP = categoricalERP([0.8, 0.2], [0, 1]);
+var probably1Dist = Categorical({ ps: [0.2, 0.8], vs: [0, 1] });
+var probably0Dist = Categorical({ ps: [0.8, 0.2], vs: [0, 1] });
 
-var makeArmToPrizeERP = function(numberOfArms) {
-  return map(function(x){return probably1ERP;}, _.range(numberOfArms));
+var makeArmToPrizeDist = function(numberOfArms) {
+  return map(function(x){return probably1Dist;}, _.range(numberOfArms));
 };
 
-var armToPrizeERPSampler = function(numberOfArms) {
-  return map(function(x){return uniformDraw([probably0ERP,
-					                         probably1ERP]);},
+var armToPrizeDistSampler = function(numberOfArms) {
+  return map(function(x){return uniformDraw([probably0Dist,
+					                         probably1Dist]);},
 	         _.range(numberOfArms));
 };
 
 var getPriorBelief = function(numberOfTrials, numberOfArms) {
-  return Enumerate(function(){
-    var armToPrizeERP = armToPrizeERPSampler(numberOfArms);
-    return makeBanditStartState(numberOfTrials, armToPrizeERP);
+  return Infer({ method: 'enumerate' }, function(){
+    var armToPrizeDist = armToPrizeDistSampler(numberOfArms);
+    return makeBanditStartState(numberOfTrials, armToPrizeDist);
   });
 };
 
@@ -524,10 +530,10 @@ var baseParams = {alpha: 1000};
 ///
 
 var getRuntime = function(numberOfArms){
-  var armToPrizeERP = makeArmToPrizeERP(numberOfArms);
+  var armToPrizeDist = makeArmToPrizeDist(numberOfArms);
   var options = {
     numberOfTrials: 5,
-	armToPrizeERP: armToPrizeERP,
+	armToPrizeDist: armToPrizeDist,
 	numberOfArms: numberOfArms,
 	numericalPrizes: true
   };
@@ -556,6 +562,7 @@ viz.line(numberOfArmsList, runtimes);
 
 
 ### Gridworld with observations
+
 As we discussed above, an agent in the Restaurant Choice problem is likely to be uncertain about some features of the environment. We consider a variant of the Restaurant Choice problem where the agent is uncertain about which restaurants are open. The agent can observe whether a restaurant is open by moving to a square on the grid adjacent to the restaurant. If the restaurant is open, the agent can enter it and thereby receive utility. In this POMDP version of Restaurant Choice, a rational agent can exhibit behavior that never occurs in the MDP version:
 
 1. The agent thinks Donut South is closed and Donut North is open, and so goes to the further away Donut North (see next codebox). 
@@ -576,31 +583,40 @@ The next two codeboxes use the same POMDP, where all restaurants are open but fo
 // agent_thinks_donut_south_closed
 ///fold:
 var getPriorBelief = function(startManifestState, latentStateSampler){
-  return Enumerate( function(){
-    return {manifestState:startManifestState, 
-            latentState: latentStateSampler()};
+  return Infer({ method: 'enumerate' },  function(){
+    return {
+      manifestState:startManifestState, 
+      latentState: latentStateSampler()};
   });
 };
 ///
 
 var world = makeRestaurantChoiceWorld({POMDP:true});
-var utilityTable = {'Donut N': 5,
-		            'Donut S': 5,
-					'Veg': 1,
-					'Noodle': 1,
-					'timeCost': -0.1};
+var utilityTable = {
+  'Donut N': 5,
+  'Donut S': 5,
+  'Veg': 1,
+  'Noodle': 1,
+  'timeCost': -0.1
+};
 var utility = makeRestaurantUtilityFunction(world, utilityTable);
-var latent = {'Donut N': true,
-		      'Donut S': true,
-			  'Veg': true,
-			  'Noodle': false};
-var alternativeLatent = update(latent, {'Donut S': false,
-	                                    'Noodle': true});
+var latent = {
+  'Donut N': true,
+  'Donut S': true,
+  'Veg': true,
+  'Noodle': false
+};
+var alternativeLatent = update(latent, {
+  'Donut S': false,
+  'Noodle': true
+});
 
 var startState = {
-  manifestState: { loc: [3,1],
-		           terminateAfterAction: false,
-				   timeLeft: 11},
+  manifestState: { 
+    loc: [3,1],
+    terminateAfterAction: false,
+    timeLeft: 11
+  },
   latentState: latent
 };
 
@@ -609,14 +625,16 @@ var latentStateSampler = function() {
 };
 
 var prior = getPriorBelief(startState.manifestState, latentStateSampler);
-var agent = makePOMDPAgent({utility: utility,
-			                alpha: 100,
-							priorBelief: prior}, world);
+var agent = makePOMDPAgent({
+  utility: utility,
+  alpha: 100,
+  priorBelief: prior
+}, world);
 var trajectory = simulate(startState, world, agent, 'states');
 var manifestStates = map(function(state){return state.manifestState;},
                          trajectory);
 
-GridWorld.draw(world.MDPWorld, {trajectory: manifestStates});
+GridWorld.draw(world.MDPWorld, { trajectory: manifestStates });
 ~~~~
 
 Here is the agent that prefers Noodle and falsely belives that it is open:
@@ -627,24 +645,29 @@ Here is the agent that prefers Noodle and falsely belives that it is open:
 // same world, prior, start state, and latent state as previous codebox
 ///fold:
 var getPriorBelief = function(startManifestState, latentStateSampler){
-  return Enumerate( function(){
+  return Infer({ method: 'enumerate' },  function(){
     return {manifestState:startManifestState, 
             latentState: latentStateSampler()};
-            });
+  });
 };
-  
+
 var world = makeRestaurantChoiceWorld({POMDP:true});
-var latent = {'Donut N': true,
-		      'Donut S': true,
-			  'Veg': true,
-			  'Noodle': false};
-var alternativeLatent = update(latent, {'Donut S': false,
-	                                    'Noodle': true});
+var latent = {
+  'Donut N': true,
+  'Donut S': true,
+  'Veg': true,
+  'Noodle': false};
+var alternativeLatent = update(latent, {
+  'Donut S': false,
+  'Noodle': true
+});
 
 var startState = {
-  manifestState: { loc: [3,1],
-		           terminateAfterAction: false,
-				   timeLeft: 11},
+  manifestState: { 
+    loc: [3,1],
+    terminateAfterAction: false,
+    timeLeft: 11
+  },
   latentState: latent
 };
 
@@ -655,21 +678,27 @@ var latentSampler = function() {
 var prior = getPriorBelief(startState.manifestState, latentSampler);
 ///
 
-var utilityTable = {'Donut N': 1,
-		            'Donut S': 1,
-					'Veg': 3,
-					'Noodle': 5,
-					'timeCost': -0.1};
+var utilityTable = {
+  'Donut N': 1,
+  'Donut S': 1,
+  'Veg': 3,
+  'Noodle': 5,
+  'timeCost': -0.1
+};
 var utility = makeRestaurantUtilityFunction(world, utilityTable);
-var agent = makePOMDPAgent({utility: utility,
-			                alpha: 100,
-			                priorBelief: prior}, world);
+var agent = makePOMDPAgent({
+  utility: utility,
+  alpha: 100,
+  priorBelief: prior
+}, world);
 var trajectory = simulate(startState, world, agent, 'states');
 var manifestStates = map(function(state){return state.manifestState;},
                          trajectory);
 
-GridWorld.draw(world, {trajectory: manifestStates});
+GridWorld.draw(world, { trajectory: manifestStates });
 ~~~~
+
+In the next [chapter](/chapters/4-reasoning-about-agents.html), we will start modeling inferences *about* agents.
 
 <!-- TODO
 ### Possible additions

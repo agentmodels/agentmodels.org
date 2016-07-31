@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: Reasoning about agents
-description: Overview of Inverse Reinformcent Learning. WebPPL examples of inferring utilities and beliefs from choices in Gridworld and Bandits.
+description: Overview of Inverse Planning. WebPPL examples of inferring utilities and beliefs from choices in Gridworld and Bandits.
 is_section: true
 ---
 
@@ -41,7 +41,7 @@ Consider the MDP version of Bob's Restaurant Choice problem. Bob is choosing bet
 ~~~~
 var world = makeRestaurantChoiceMDP(); 
 var observedTrajectory = restaurantNameToObservationTime11['donutSouth'];
-GridWorld.draw(world,{trajectory: observedTrajectory});
+GridWorld.draw(world, { trajectory: observedTrajectory });
 ~~~~
 
 From Bob's actions, we infer that he probably prefers the Donut Store to the other restaurants. An alternative explanation is that Bob cares most about saving time. He might prefer Veg (the Vegetarian Cafe) but his preference is not strong enough to spend extra time getting there.
@@ -72,16 +72,18 @@ var utilityTablePrior = function(){
   );
 };
 
-var posterior = Enumerate( function(){
+var posterior = Infer({ method: 'enumerate' },  function(){
   var utilityTableAndFavourite = utilityTablePrior();
   var utilityTable = utilityTableAndFavourite.table;
   var favourite = utilityTableAndFavourite.favourite;
-  
+
   var utility = makeRestaurantUtilityFunction(world, utilityTable);
-  var params = {utility: utility,
-		        alpha: 1000};
-  var agent  = makeMDPAgent(params, world);
-  
+  var params = {
+    utility: utility,
+    alpha: 1000
+  };
+  var agent = makeMDPAgent(params, world);
+
   var predictedStateAction = simulate(startState, world, agent, 'stateAction');
   condition(_.isEqual(observedStateAction, predictedStateAction));
   return {favourite: favourite};
@@ -128,14 +130,20 @@ For this example we condition on the agent making a single step from $$[3,1]$$ t
 // show_single_step_trajectory
 
 var world = makeRestaurantChoiceMDP();
-var singleStepTrajectory = [{loc: [3,1],
-                             timeLeft: 11,
-							 terminateAfterAction: false},
-						    {loc: [2,1],
-							 timeLeft: 10,
-							 terminateAfterAction: false}];
 
-GridWorld.draw(world,{trajectory: singleStepTrajectory});
+var singleStepTrajectory = [{
+  loc: [3, 1],
+  timeLeft: 11,
+  terminateAfterAction: false
+}, {
+  loc: [2, 1],
+  timeLeft: 10,
+  terminateAfterAction: false
+}];
+
+GridWorld.draw(world, {
+  trajectory: singleStepTrajectory
+});
 ~~~~
 
 Our approach to inference is slightly different than in the example at the start of this chapter. The approach is a direct translation of the expression for the posterior in Equation (1) above. For each observed state-action pair, we compute the likelihood of the agent (with given $$U$$) choosing that action in the state. In contrast, the simple approach above becomes intractable for long, noisy action sequences -- as it will need to loop over all possible sequences. 
@@ -157,30 +165,34 @@ var utilityTablePrior = function(){
     [{table: update(baseUtilityTable, {'Donut N':2, 'Donut S':2}),
       favourite: 'donut'},
      {table: update(baseUtilityTable, {'Veg':2}),
-      favourite: 'veg'},
+     favourite: 'veg'},
      {table: update(baseUtilityTable, {'Noodle':2}),
-      favourite: 'noodle'}]
+     favourite: 'noodle'}]
   );
 };
 var alpha = 1000;
-var observedStateAction = [[{loc: [3,1],
-			                 timeLeft: 11,
-							 terminateAfterAction: false}, 'l']];
+var observedStateAction = [[{
+  loc: [3,1],
+  timeLeft: 11,
+  terminateAfterAction: false
+}, 'l']];
 
-var posterior = Enumerate( function(){
+var posterior = Infer({ method: 'enumerate' },  function(){
   var utilityTableAndFavourite = utilityTablePrior();
   var utilityTable = utilityTableAndFavourite.table;
   var utility = makeRestaurantUtilityFunction(world, utilityTable);
   var favourite = utilityTableAndFavourite.favourite;
 
-  var params = {utility: utility,
-		        alpha: alpha};
+  var params = {
+    utility: utility,
+    alpha: alpha
+  };
   var agent  = makeMDPAgent(params, world);
   var act = agent.act;
   // For each observed state-action pair, compute likekihood of action
-  map( function(stateAction){
-    factor( act(stateAction[0]).score([], stateAction[1]) );
-  }, observedStateAction );
+  map(function(stateAction){
+    factor( act(stateAction[0]).score(stateAction[1]) );
+  }, observedStateAction);
 
   return {favourite: favourite};
 });
@@ -208,39 +220,44 @@ var utilityTablePrior = function(){
   var timeCostValues = [-0.1, -0.3, -0.6];
   var donut = uniformDraw(foodValues);
 
-  return {'Donut N': donut,
-          'Donut S': donut,
-          'Veg': uniformDraw(foodValues),
-          'Noodle': uniformDraw(foodValues),
-          'timeCost': uniformDraw(timeCostValues)};
+  return {
+    'Donut N': donut,
+    'Donut S': donut,
+    'Veg': uniformDraw(foodValues),
+    'Noodle': uniformDraw(foodValues),
+    'timeCost': uniformDraw(timeCostValues)};
 };
 
-var alphaPrior = function(){return uniformDraw([.1,1,10,100]);};
+var alphaPrior = function(){return uniformDraw([.1, 1, 10, 100]);};
 
 var posterior = function(observedStateActionSequence){
-  return Enumerate( function() {
+  return Infer({ method: 'enumerate' },  function() {
     var utilityTable = utilityTablePrior();
     var alpha = alphaPrior();
-    var params = {utility: makeRestaurantUtilityFunction(world, utilityTable),
-		          alpha: alpha};
+    var params = {
+      utility: makeRestaurantUtilityFunction(world, utilityTable),
+      alpha: alpha
+    };
     var agent = makeMDPAgent(params, world);
     var act = agent.act;
 
     var donutBest = utilityTable['Donut N'] >= utilityTable['Veg']
-	  && utilityTable['Donut N'] >= utilityTable['Noodle'];
+    && utilityTable['Donut N'] >= utilityTable['Noodle'];
 
     // For each observed state-action pair, compute likekihood of action
     map( function(stateAction){
-      factor( act(stateAction[0]).score([], stateAction[1]) );
-      }, observedStateActionSequence );
+      factor( act(stateAction[0]).score(stateAction[1]) );
+    }, observedStateActionSequence );
 
     // Compute whether Donut is preferred to Veg and Noodle
     var donut = utilityTable['Donut N'];
     var donutFavorite = donut > utilityTable.Veg && donut > utilityTable.Noodle;
 
-    return {donutFavorite: donutFavorite,
-            alpha: JSON.stringify(alpha),
-		    timeCost: JSON.stringify(utilityTable.timeCost)} 
+    return {
+      donutFavorite: donutFavorite,
+      alpha: JSON.stringify(alpha),
+      timeCost: JSON.stringify(utilityTable.timeCost)
+    };
   });
 };
 
@@ -294,39 +311,46 @@ var utilityTablePrior = function(){
   var timeCostValues = [-0.1, -0.3, -0.6];
   var donut = uniformDraw(foodValues);
 
-  return {'Donut N': donut,
-          'Donut S': donut,
-          Veg: uniformDraw(foodValues),
-          Noodle: uniformDraw(foodValues),
-          timeCost: uniformDraw(timeCostValues)};
+  return {
+    'Donut N': donut,
+    'Donut S': donut,
+    Veg: uniformDraw(foodValues),
+    Noodle: uniformDraw(foodValues),
+    timeCost: uniformDraw(timeCostValues)};
 };
 
-var alphaPrior = function(){return uniformDraw([.1,1,10,100]);};
+var alphaPrior = function(){
+  return uniformDraw([.1, 1, 10, 100]);
+};
 
 var posterior = function(observedStateActionSequence){
-  return Enumerate( function() {
+  return Infer({ method: 'enumerate' },  function() {
     var utilityTable = utilityTablePrior();
     var alpha = alphaPrior();
-    var params = {utility: makeRestaurantUtilityFunction(world, utilityTable),
-		          alpha: alpha};
+    var params = {
+      utility: makeRestaurantUtilityFunction(world, utilityTable),
+      alpha: alpha
+    };
     var agent = makeMDPAgent(params, world);
     var act = agent.act;
 
     var donutBest = utilityTable['Donut N'] >= utilityTable['Veg']
-	  && utilityTable['Donut N'] >= utilityTable['Noodle'];
+    && utilityTable['Donut N'] >= utilityTable['Noodle'];
 
     // For each observed state-action pair, compute likekihood of action
     map( function(stateAction){
-      factor( act(stateAction[0]).score( [], stateAction[1]) );
-      }, observedStateActionSequence );
+      factor( act(stateAction[0]).score(stateAction[1]));
+    }, observedStateActionSequence );
 
     // Compute whether Donut is preferred to Veg and Noodle
     var donut = utilityTable['Donut N'];
     var donutFavorite = donut > utilityTable.Veg && donut > utilityTable.Noodle;
 
-    return {donutFavorite: donutFavorite,
-            alpha: JSON.stringify(alpha),
-		    timeCost: JSON.stringify(utilityTable.timeCost)};
+    return {
+      donutFavorite: donutFavorite,
+      alpha: JSON.stringify(alpha),
+      timeCost: JSON.stringify(utilityTable.timeCost)
+    };
   });
 };
 ///
@@ -343,8 +367,7 @@ print('Posterior');
 var posterior = posterior(observedSequence1.concat(observedSequence2));
 map( function(variableName){
   viz.auto(getMarginalObject(posterior, variableName));
-}, ['donutFavorite', 'alpha', 'timeCost'] );
-  
+}, ['donutFavorite', 'alpha', 'timeCost'] );  
 ~~~~
 <!-- TODO: plot prior and posterior on same axes -->
 
@@ -397,7 +420,7 @@ $$
 
 ### Application: Bandits
 
-To learn the preferences and beliefs of a POMDP agent we translate Equation (2) into WebPPL. In a later [chapter](/chapters/5e-joint-inference.md), we apply this to the Restaurant Choice problem. Here we focus on the Bandit problems introduced in the [previous chapter](/chapters/3c-pomdp).
+To learn the preferences and beliefs of a POMDP agent we translate Equation (2) into WebPPL. In a later [chapter](/chapters/5e-joint-inference.html), we apply this to the Restaurant Choice problem. Here we focus on the Bandit problems introduced in the [previous chapter](/chapters/3c-pomdp).
 
 In the Bandit problems there is an unknown mapping from arms to non-numeric prizes (or distributions on such prizes) and the agent has preferences over these prizes. The agent tries out arms to discover the mapping and exploits the most promising arms. In the *inverse* problem, we get to observe the agent's actions. Unlike the agent, we already know the mapping from arms to prizes. However, we don't know the agent's preferences or the agent's prior about the mapping[^bandit].
 
@@ -426,7 +449,7 @@ var agentModelsBanditInfer = function(baseAgentParams, priorPrizeToUtility,
 				                      priorInitialBelief, bandit,
 									  observedSequence) {
 
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
     var prizeToUtility = priorPrizeToUtility ? sample(priorPrizeToUtility)
 	      : undefined;
     var initialBelief = sample(priorInitialBelief);
@@ -443,17 +466,20 @@ var agentModelsBanditInfer = function(baseAgentParams, priorPrizeToUtility,
         var state = observedSequence[timeIndex].state;
         var observation = observedSequence[timeIndex].observation;
         var nextBelief = agentUpdateBelief(currentBelief, observation, previousAction);
-        var nextActionERP = agentAct(nextBelief);
+        var nextActionDist = agentAct(nextBelief);
         var observedAction = observedSequence[timeIndex].action;
         
-        factor(nextActionERP.score([], observedAction));
+        factor(nextActionDist.score(observedAction));
         
         factorSequence(nextBelief, observedAction, timeIndex + 1);
       }
     };
     factorSequence(initialBelief,'noAction', 0);
     
-    return {prizeToUtility: prizeToUtility, priorBelief:initialBelief};
+    return {
+      prizeToUtility: prizeToUtility, 
+      priorBelief: initialBelief
+    };
   });
 };
 ~~~~
@@ -468,19 +494,19 @@ From the observation, it's obvious that the agent prefers champagne. This is wha
 
 ~~~~
 // true prizes for arms
-var trueArmToPrizeERP = {0: deltaERP('chocolate'),
-		                 1: deltaERP('champagne')};
+var trueArmToPrizeDist = {0: Delta({ v: 'chocolate' }),
+		                 1: Delta({ v: 'champagne' })};
 var bandit = makeBandit({
-  armToPrizeERP: trueArmToPrizeERP,
+  armToPrizeDist: trueArmToPrizeDist,
   numberOfArms: 2,
   numberOfTrials: 5
 });
 
 var simpleAgent_ = {
   // simpleAgent always pulls arm 1
-  act: function(belief){return Enumerate(function() {return 1;});},
+  act: function(belief){return Infer({ method: 'enumerate' }, function() {return 1;});},
   updateBelief: function(belief){return belief;},
-  params: {priorBelief: deltaERP(bandit.startState)}
+  params: {priorBelief: Delta({ v: bandit.startState })}
 };
 
 // necessary for proper functioning of simulatePOMDPAgent
@@ -495,11 +521,11 @@ var observedSequence = simulate(bandit.startState, bandit.world, simpleAgent,
 
 // We know agent's prior, which is that either arm1 yields
 // nothing or it yields champagne.
-var priorInitialBelief = deltaERP(Enumerate(function(){
-  var armToPrizeERP = uniformDraw([trueArmToPrizeERP,
-                                   update(trueArmToPrizeERP,
-								          {1:deltaERP('nothing')})]);
-  return makeBanditStartState(5, armToPrizeERP);
+var priorInitialBelief = Delta({ v: Infer({ method: 'enumerate' }, function( }){
+  var armToPrizeDist = uniformDraw([trueArmToPrizeDist,
+                                   update(trueArmToPrizeDist,
+								          {1:Delta({ v: 'nothing' })})]);
+  return makeBanditStartState(5, armToPrizeDist);
 }));
 
 // Agent either prefers chocolate or champagne.
@@ -509,8 +535,7 @@ var likesChampagne = {nothing: 0,
 var likesChocolate = {nothing: 0,
 		              champagne: 3,
 					  chocolate: 5};
-var priorPrizeToUtility = categoricalERP([0.5, 0.5], 
-                                         [likesChampagne, likesChocolate]);
+var priorPrizeToUtility = categoricalDist({ ps: [0.5, 0.5], vs: [likesChampagne, likesChocolate]);
 var baseParams = {alpha:1000};
 var posterior = agentModelsBanditInfer(baseParams, priorPrizeToUtility,
 	                                   priorInitialBelief, bandit,
@@ -531,66 +556,78 @@ In the codebox above, the agent's preferences are identified by the observations
 We observe the agent's first action, which is pulling `arm0`. Our inference approach is the same as above:
 
 ~~~~
-var trueArmToPrizeERP = {0: deltaERP('chocolate'),
-                         1: deltaERP('champagne')};
+var trueArmToPrizeDist = {
+  0: Delta({ v: 'chocolate' }),
+  1: Delta({ v: 'champagne' })
+};
 var bandit = makeBandit({
   numberOfArms: 2,
-  armToPrizeERP: trueArmToPrizeERP,
+  armToPrizeDist: trueArmToPrizeDist,
   numberOfTrials: 5
 });
 
 var simpleAgent_ = {
   // simpleAgent always pulls arm 0
-  act: function(belief){return Enumerate(function() {return 0;});},
+  act: function(belief){return Infer({ method: 'enumerate' }, function() {return 0;});},
   updateBelief: function(belief){return belief;},
-  params: {priorBelief: deltaERP(bandit.startState)}
+  params: {priorBelief: Delta({ v: bandit.startState })}
 };
 
 var simpleAgent = update(simpleAgent_,
-			             {POMDPFunctions: getPOMDPFunctions(simpleAgent_.params,
-							                                bandit.world)});
+                         {POMDPFunctions: getPOMDPFunctions(simpleAgent_.params,
+                                                            bandit.world)});
 
 var observedSequence = simulate(bandit.startState, bandit.world, simpleAgent,
-	                            'stateObservationAction');
+                                'stateObservationAction');
 
 // Agent either knows that arm1 has prize "champagne"
 // or agent thinks prize is probably "nothing"
 
-var informedPrior = deltaERP(bandit.startState);
-var noChampagnePrior = Enumerate(function(){
-  var armToPrizeERP = categorical([0.05, 0.95],
-                                  [trueArmToPrizeERP,
-								   update(trueArmToPrizeERP,
-								          {1:deltaERP('nothing')})]);
-  return makeBanditStartState(5, armToPrizeERP);
+var informedPrior = Delta({ v: bandit.startState });
+var noChampagnePrior = Infer({ method: 'enumerate' }, function(){
+  var armToPrizeDist = categorical([0.05, 0.95],
+                                   [trueArmToPrizeDist,
+                                    update(trueArmToPrizeDist,
+                                    {1:Delta({ v: 'nothing' })})]);
+  return makeBanditStartState(5, armToPrizeDist);
 });
 
-var priorInitialBelief = categoricalERP([0.5, 0.5], 
-                                        [informedPrior, noChampagnePrior]);
+var priorInitialBelief = Categorical({ 
+  ps: [0.5, 0.5], 
+  vs: [informedPrior, noChampagnePrior]
+});
 
 // We are still uncertain about whether agent prefers chocolate or champagne
-var likesChampagne = {nothing: 0,
-		              champagne: 5,
-					  chocolate: 3};
-var likesChocolate = {nothing: 0,
-		              champagne: 3,
-					  chocolate: 5};
+var likesChampagne = {
+  nothing: 0,
+  champagne: 5,
+  chocolate: 3
+};
+var likesChocolate = {
+  nothing: 0,
+  champagne: 3,
+  chocolate: 5
+};
 
-var priorPrizeToUtility = categoricalERP([0.5, 0.5],
-                                         [likesChampagne,likesChocolate]);
+var priorPrizeToUtility = Categorical({ 
+  ps: [0.5, 0.5], 
+  vs: [likesChampagne, likesChocolate] 
+});
 
 var baseParams = {alpha: 1000};
 var posterior = agentModelsBanditInfer(baseParams, priorPrizeToUtility,
-					                   priorInitialBelief, bandit,
-									   observedSequence);
+                                       priorInitialBelief, bandit,
+                                       observedSequence);
 
-var utilityBeliefPosterior = Enumerate(function(){
+var utilityBeliefPosterior = Infer({ method: 'enumerate' }, function(){
   var utilityBelief = sample(posterior);
   var chocolateUtility = utilityBelief.prizeToUtility.chocolate;
   var likesChocolate = chocolateUtility > 3;
   var isInformed = utilityBelief.priorBelief.support().length === 1;
-  return {likesChocolate: likesChocolate,
-	      isInformed: isInformed};
+  return {
+    likesChocolate: likesChocolate,
+    isInformed: isInformed
+  };
 });
 
 viz.table(utilityBeliefPosterior);
@@ -603,59 +640,73 @@ Exploration is more valuable if there are more Bandit trials in total. If we obs
 
 
 var probLikesChocolate = function(numberOfTrials){
-  var trueArmToPrizeERP = {0: deltaERP('chocolate'),
-		                   1: deltaERP('champagne')};
+  var trueArmToPrizeDist = {
+    0: Delta({ v: 'chocolate' }),
+    1: Delta({ v: 'champagne' })
+  };
   var bandit = makeBandit({
     numberOfArms: 2,
-    armToPrizeERP: trueArmToPrizeERP,
-	numberOfTrials: numberOfTrials
+    armToPrizeDist: trueArmToPrizeDist,
+    numberOfTrials: numberOfTrials
   });
 
   var simpleAgent_ = {
     // simpleAgent always pulls arm 0
-	act: function(belief){return Enumerate(function() {return 0;});},
-	updateBelief: function(belief){return belief;},
-	params: {priorBelief: deltaERP(bandit.startState)}
+    act: function(belief){return Infer({ method: 'enumerate' }, function() {return 0;});},
+    updateBelief: function(belief){return belief;},
+    params: {priorBelief: Delta({ v: bandit.startState })}
   };
 
   var simpleAgent = update(simpleAgent_,
-			               {POMDPFunctions: getPOMDPFunctions(simpleAgent_.params,
-							                                  bandit.world)});
+                           {POMDPFunctions: getPOMDPFunctions(simpleAgent_.params,
+                                                              bandit.world)});
 
   var observedSequence = simulate(bandit.startState, bandit.world, simpleAgent,
-	                              'stateObservationAction');
+                                  'stateObservationAction');
 
   var baseParams = {alpha: 100};
 
-  var noChampagnePrior = Enumerate(function(){
-    var armToPrizeERP = flip(0.2) ? trueArmToPrizeERP
-          : update(trueArmToPrizeERP, {1: deltaERP('nothing')});
-    return makeBanditStartState(numberOfTrials, armToPrizeERP);
+  var noChampagnePrior = Infer({ method: 'enumerate' }, function(){
+    var armToPrizeDist = flip(0.2) ? trueArmToPrizeDist
+    : update(trueArmToPrizeDist, {1: Delta({ v: 'nothing' })});
+    return makeBanditStartState(numberOfTrials, armToPrizeDist);
   });
-  var informedPrior = deltaERP(bandit.startState);
-  var priorInitialBelief = categoricalERP([0.5, 0.5], [noChampagnePrior,
-						                               informedPrior]);
+  var informedPrior = Delta({ v: bandit.startState });
+  var priorInitialBelief = Categorical({ 
+    ps: [0.5, 0.5], 
+    vs: [noChampagnePrior, informedPrior]
+  });
 
-  var likesChampagne = {nothing: 0,
-			            champagne: 5,
-						chocolate: 3};
-  var likesChocolate = {nothing: 0,
-			            champagne: 3,
-						chocolate: 5};
+  var likesChampagne = {
+    nothing: 0,
+    champagne: 5,
+    chocolate: 3
+  };
+  var likesChocolate = {
+    nothing: 0,
+    champagne: 3,
+    chocolate: 5
+  };
 
-  var priorPrizeToUtility = categoricalERP([0.5, 0.5], [likesChampagne,
-							                            likesChocolate]);
+  var priorPrizeToUtility = Categorical({ 
+    ps: [0.5, 0.5], 
+    vs: [likesChampagne, likesChocolate]
+  });
 
   var posterior = agentModelsBanditInfer(baseParams, priorPrizeToUtility,
                                          priorInitialBelief, bandit,
-									     observedSequence);
+                                         observedSequence);
 
-  var likesChocInformed = {prizeToUtility: likesChocolate,
-			               priorBelief: informedPrior};
-  var probLikesChocInformed = Math.exp(posterior.score([], likesChocInformed));
-  var likesChocNoChampagne = {prizeToUtility: likesChocolate,
-			                  priorBelief: noChampagnePrior};
-  var probLikesChocNoChampagne = Math.exp(posterior.score([], likesChocNoChampagne));
+  var likesChocInformed = {
+    prizeToUtility: likesChocolate,
+    priorBelief: informedPrior
+  };
+  var probLikesChocInformed = Math.exp(posterior.score(likesChocInformed));
+  var likesChocNoChampagne = {
+    prizeToUtility: likesChocolate,
+    priorBelief: noChampagnePrior
+  };
+  var probLikesChocNoChampagne = Math.exp(posterior.score(likesChocNoChampagne));
   return probLikesChocInformed + probLikesChocNoChampagne;
 };
 
@@ -665,9 +716,10 @@ var probsLikesChoc = map(probLikesChocolate, lifetimes);
 print('Probability of liking chocolate for lifetimes ' + lifetimes + '\n'
       + probsLikesChoc);
 
-viz.bar(lifetimes, probsLikesChoc)
+viz.bar(lifetimes, probsLikesChoc);
 ~~~~
 
   
 This example of inferring an agent's utilities from a Bandit problem may seem contrived. However, there are practical problems that have a similar structure. Consider a domain where $$k$$ **sources** (arms) produce a stream of content, with each piece of content having a **category** (prizes). At each timestep, a human is observed choosing a source. The human has uncertainty about the stochastic mapping from sources to categories. Our goal is to infer the human's beliefs about the sources and their preferences over categories. The sources could be blogs or feeds that tag posts using the same set of tags. Alternatively, the sources could be channels for TV shows or songs. In this kind of application, the same issue of identifiability arises. An agent may choose a source either because they know it produces content in the best categories or because they have a strong prior belief that it does.
 
+In the next [chapter](/chapters/5-biases-intro.html), we start looking at agents with cognitive bounds and biases.

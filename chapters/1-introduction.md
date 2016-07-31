@@ -44,7 +44,7 @@ One approach to this problem is to assume the agent is a rational utility-maximi
 
 ## Taster: probabilistic programming
 
-Our models of agents, and the corresponding inferences about agents, all run in "code boxes" in the browser, accompanied by animated visualizations agent behavior. The language of the tutorial is [WebPPL](https://webppl.org), an easy-to-learn probabilistic programming language based on Javascript refp:dippl. As a taster, here are two simple code snippets in WebPPL, using the interactive code boxes that we will use throughtout:
+Our models of agents, and the corresponding inferences about agents, all run in "code boxes" in the browser, accompanied by animated visualizations agent behavior. The language of the tutorial is [WebPPL](http://webppl.org), an easy-to-learn probabilistic programming language based on Javascript refp:dippl. As a taster, here are two simple code snippets in WebPPL, using the interactive code boxes that we will use throughtout:
 
 ~~~~
 // Using the stochastic function `flip` we build a function that
@@ -66,9 +66,9 @@ var geometric = function(p) {
   return flip(p) ? 1 + geometric(p) : 1
 };
 
-var boundedGeometric = Enumerate(
-  function(){ return geometric(0.5); }, 
-  20);
+var boundedGeometric = Infer(
+  { method: 'enumerate', maxExecutions: 20 },
+  function(){ return geometric(0.5); });
 
 print('Histogram of (bounded) Geometric distribution');
 viz.auto(boundedGeometric);

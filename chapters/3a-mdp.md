@@ -70,7 +70,7 @@ var utility = function(state){
 
 var makeAgent = function() { 
   var act = function(state, timeLeft){
-    return Enumerate(function(){
+    return Infer({ method: 'enumerate' }, function(){
       var action = uniformDraw([-1, 0, 1]);
       var eu = expectedUtility(state, action, timeLeft);
       factor(100 * eu);
@@ -79,13 +79,13 @@ var makeAgent = function() {
   };
 
   var expectedUtility = function(state, action, timeLeft){
-    var u = utility(state,action);
+    var u = utility(state, action);
     var newTimeLeft = timeLeft - 1;
 
     if (newTimeLeft == 0){
       return u; 
     } else {
-      return u + expectation(Enumerate(function(){
+      return u + expectation(Infer({ method: 'enumerate' }, function(){
         var nextState = transition(state, action); 
         var nextAction = sample(act(nextState, newTimeLeft));
         return expectedUtility(nextState, nextAction, newTimeLeft);
@@ -120,7 +120,7 @@ var utility = function(state){
 
 var makeAgent = function() { 
   var act = function(state, timeLeft){
-    return Enumerate(function(){
+    return Infer({ method: 'enumerate' }, function(){
       var action = uniformDraw([-1, 0, 1]);
       var eu = expectedUtility(state, action, timeLeft);
       factor(100 * eu);
@@ -135,7 +135,7 @@ var makeAgent = function() {
     if (newTimeLeft == 0){
       return u; 
     } else {
-      return u + expectation(Enumerate(function(){
+      return u + expectation(Infer({ method: 'enumerate' }, function(){
         var nextState = transition(state, action); 
         var nextAction = sample(act(nextState, newTimeLeft));
         return expectedUtility(nextState, nextAction, newTimeLeft);
@@ -184,7 +184,7 @@ var utility = function(state){
 
 var makeAgent = function() { 
   var act = function(state, timeLeft){
-    return Enumerate(function(){
+    return Infer({ method: 'enumerate' }, function(){
       var action = uniformDraw([-1, 0, 1]);
       var eu = expectedUtility(state, action, timeLeft);
       factor(100 * eu);
@@ -199,7 +199,7 @@ var makeAgent = function() {
     if (newTimeLeft == 0){
       return u; 
     } else {
-      return u + expectation(Enumerate(function(){
+      return u + expectation(Infer({ method: 'enumerate' }, function(){
         var nextState = transition(state, action); 
         var nextAction = sample(act(nextState, newTimeLeft));
         return expectedUtility(nextState, nextAction, newTimeLeft);
@@ -258,7 +258,7 @@ var utility = function(state){
 
 var makeAgent = function() { 
   var act = dp.cache(function(state, timeLeft){
-    return Enumerate(function(){
+    return Infer({ method: 'enumerate' }, function(){
       var action = uniformDraw([-1, 0, 1]);
       var eu = expectedUtility(state, action, timeLeft);
       factor(100 * eu);
@@ -273,7 +273,7 @@ var makeAgent = function() {
     if (newTimeLeft == 0){
       return u; 
     } else {
-      return u + expectation(Enumerate(function(){
+      return u + expectation(Infer({ method: 'enumerate' }, function(){
         var nextState = transition(state, action); 
         var nextAction = sample(act(nextState, newTimeLeft));
         return expectedUtility(nextState, nextAction, newTimeLeft);
@@ -335,11 +335,12 @@ var stateToActions = world.stateToActions;
 var gridLocationToRestaurant = world.feature;
 
 // Construct agent utility function
-var utilityTable = {'Donut S': 1, 
-                    'Donut N': 1, 
-                    'Veg': 3,
-                    'Noodle': 2, 
-                    'timeCost': -0.1};
+var utilityTable = {
+  'Donut S': 1, 
+  'Donut N': 1, 
+  'Veg': 3,
+  'Noodle': 2, 
+  'timeCost': -0.1};
 
 var tableToUtilityFunction = function(table, feature){
   return function(state, action){
@@ -350,7 +351,7 @@ var tableToUtilityFunction = function(table, feature){
 
 
 var act = dp.cache(function(state){
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
     var action = uniformDraw(stateToActions(state));
     var eu = expectedUtility(state, action);
     factor(100 * eu);
@@ -360,25 +361,25 @@ var act = dp.cache(function(state){
 
 var expectedUtility = dp.cache(function(state, action){
   var u = utility(state, action);
-  
+
   if (state.terminateAfterAction){
     return u; 
   } else {
-    return u + expectation(Enumerate(function(){
+    return u + expectation(Infer({ method: 'enumerate' }, function(){
       var nextState = transition(state, action);
       var nextAction = sample(act(nextState));
       return expectedUtility(nextState, nextAction);
     }));
   }
 });
-    
+
 var utility = tableToUtilityFunction(utilityTable, gridLocationToRestaurant);
 
 
 // Define agent
 var makeAgent = function(){
   var act = dp.cache(function(state){
-    return Enumerate(function(){
+    return Infer({ method: 'enumerate' }, function(){
       var action = uniformDraw(stateToActions(state));
       var eu = expectedUtility(state, action);
       factor(100 * eu);
@@ -392,14 +393,14 @@ var makeAgent = function(){
     if (state.terminateAfterAction){
       return u; 
     } else {
-      return u + expectation(Enumerate(function(){
+      return u + expectation(Infer({ method: 'enumerate' }, function(){
         var nextState = transition(state, action);
         var nextAction = sample(act(nextState));
         return expectedUtility(nextState, nextAction);
       }));
     }
   });
-  return {act:act}
+  return { act: act }
 };
 
 var act = makeAgent().act;
@@ -408,19 +409,23 @@ var simulate = function(startState){
   var sampleSequence = function(state){
     var action = sample(act(state));
     var nextState = transition(state, action);
-	var out = [state, action];
-    return state.terminateAfterAction ? [out]
-	  : [out].concat(sampleSequence(nextState));
+    var out = [state, action];
+    if (state.terminateAfterAction) {
+      return [out];
+    } else {
+      return [out].concat(sampleSequence(nextState));
+    }
   };
   return sampleSequence(startState);
 };
 
-var startState = {loc: [3,1],
-                  timeLeft: 9,
-                  timeAtRestaurant: 1};
+var startState = {
+  loc: [3,1],
+  timeLeft: 9,
+  timeAtRestaurant: 1
+};
 var trajectory = simulate(startState);
 GridWorld.draw(world, {trajectory : map(first, trajectory)});
-
 ~~~~
 
 ### Noisy agents, stochastic environments

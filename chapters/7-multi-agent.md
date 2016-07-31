@@ -24,7 +24,7 @@ var locationPrior = function() {
 };
 
 var alice = function() {
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
     var myLocation = locationPrior();
     return myLocation;
   })
@@ -45,7 +45,7 @@ var locationPrior = function() {
 };
 
 var alice = function() {
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
     var myLocation = locationPrior();
     var bobLocation = sample(bob());
     condition(myLocation === bobLocation);
@@ -54,7 +54,7 @@ var alice = function() {
 };
 
 var bob = function() {
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
     var myLocation = locationPrior();
     return myLocation;
   });
@@ -75,7 +75,7 @@ var locationPrior = function() {
 }
 
 var alice = dp.cache(function(depth) {
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
     var myLocation = locationPrior();
     var bobLocation = sample(bob(depth - 1));
     condition(myLocation === bobLocation);
@@ -84,7 +84,7 @@ var alice = dp.cache(function(depth) {
 });
 
 var bob = dp.cache(function(depth) {
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
     var myLocation = locationPrior();
     if (depth === 0) {
       return myLocation;
@@ -119,7 +119,7 @@ var sentencePrior = function() {
 };
 
 var literalListener = function(sentence) {
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
     var state = statePrior();
     var meaning = literalMeanings[sentence];
     condition(meaning(state));
@@ -152,7 +152,7 @@ var sentencePrior = function() {
 ///
 
 var literalListener = function(sentence) {
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
     var state = statePrior();
     var meaning = literalMeanings[sentence];
     condition(meaning(state));
@@ -161,9 +161,9 @@ var literalListener = function(sentence) {
 };
 
 var speaker = function(state) {
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
     var sentence = sentencePrior();
-    factor(alpha * literalListener(sentence).score([], state));
+    factor(alpha * literalListener(sentence).score(state));
     return sentence;
   });
 }
@@ -193,7 +193,7 @@ var sentencePrior = function() {
 ///
 
 var literalListener = dp.cache(function(sentence) {
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
     var state = statePrior();
     var meaning = literalMeanings[sentence];
     condition(meaning(state));
@@ -202,17 +202,17 @@ var literalListener = dp.cache(function(sentence) {
 });
 
 var speaker = dp.cache(function(state) {
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
     var sentence = sentencePrior();
-    factor(alpha * literalListener(sentence).score([], state));
+    factor(alpha * literalListener(sentence).score(state));
     return sentence;
   });
 });
 
 var listener = dp.cache(function(sentence) {
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
     var state = statePrior();
-    factor(speaker(state).score([], sentence));
+    factor(speaker(state).score(sentence));
     return state;
   })
 });
@@ -232,7 +232,7 @@ var isValidMove = function(state, move) {
 };
 
 var movePrior = dp.cache(function(state){
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
     var move = {
       x: randomInteger(3),
       y: randomInteger(3)
@@ -260,7 +260,7 @@ var isValidMove = function(state, move) {
 };
 
 var movePrior = dp.cache(function(state){
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
     var move = {
       x: randomInteger(3),
       y: randomInteger(3)
@@ -299,7 +299,7 @@ var isValidMove = function(state, move) {
 };
 
 var movePrior = dp.cache(function(state){
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
     var move = {
       x: randomInteger(3),
       y: randomInteger(3)
@@ -358,7 +358,7 @@ var isValidMove = function(state, move) {
 };
 
 var movePrior = dp.cache(function(state){
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
     var move = {
       x: randomInteger(3),
       y: randomInteger(3)
@@ -413,7 +413,7 @@ var utility = function(state, player) {
 };
 
 var act = dp.cache(function(state, player) {
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
     var move = sample(movePrior(state));
     var outcome = transition(state, move, player);
     factor(utility(outcome, player));
@@ -439,7 +439,7 @@ var isValidMove = function(state, move) {
 };
 
 var movePrior = dp.cache(function(state){
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
     var move = {
       x: randomInteger(3),
       y: randomInteger(3)
@@ -507,7 +507,7 @@ var otherPlayer = function(player) {
 };
 
 var act = dp.cache(function(state, player) {
-  return Enumerate(function(){
+  return Infer({ method: 'enumerate' }, function(){
     var move = sample(movePrior(state));
     var outcome = simulate(state, move, player);
     factor(utility(outcome, player));
@@ -515,7 +515,7 @@ var act = dp.cache(function(state, player) {
   });
 });
 
-var simulate = dp.cache(function(state, action, player) {
+var simulate = function(state, action, player) {
   var nextState = transition(state, action, player);
   if (isTerminal(nextState)) {
     return nextState;
@@ -524,7 +524,7 @@ var simulate = dp.cache(function(state, action, player) {
     var nextAction = sample(act(nextState, nextPlayer));
     return simulate(nextState, nextAction, nextPlayer);
   }
-});
+};
 
 var startState = [
   ['?', '?', '?'],
@@ -532,7 +532,7 @@ var startState = [
   ['o', '?', '?']
 ];
 
-viz.auto(act(startState, 'o'))
+viz.auto(act(startState, 'o'));
 ~~~~
 
 ## Induction puzzles
@@ -557,11 +557,11 @@ var baserate = .045;
 
 var agent = dp.cache(function(t, raisedHands, othersBlueEyes) {
   if (1 + othersBlueEyes < raisedHands) {
-    return Enumerate(function(){
+    return Infer({ method: 'enumerate' }, function(){
       return 1;
     })
   } else {
-    return Enumerate(function(){
+    return Infer({ method: 'enumerate' }, function(){
       var myBlueEyes = flip(baserate) ? 1 : 0;
       var totalBlueEyes = myBlueEyes + othersBlueEyes;
       condition(totalBlueEyes >= 0);
@@ -574,8 +574,8 @@ var agent = dp.cache(function(t, raisedHands, othersBlueEyes) {
 });
 
 var getRaisedHands = function(t, raisedHands, trueBlueEyes) {
-  var p1 = Math.exp(agent(t, raisedHands, trueBlueEyes - 1).score([], 1));
-  var p2 = Math.exp(agent(t, raisedHands, trueBlueEyes).score([], 1));
+  var p1 = Math.exp(agent(t, raisedHands, trueBlueEyes - 1).score(1));
+  var p2 = Math.exp(agent(t, raisedHands, trueBlueEyes).score(1));
   return binomial(p1, trueBlueEyes) + binomial(p2, numAgents - trueBlueEyes);
 };
 
@@ -588,5 +588,7 @@ var runGame = function(start, end, raisedHands, trueBlueEyes) {
   }
 };
 
-viz.auto(Enumerate(function(){return runGame( 0, 2, 0, 2);}));
+viz.auto(Infer({ method: 'enumerate' }, function(){return runGame( 0, 2, 0, 2);}));
 ~~~~
+
+Next chapter: [How to use the WebPPL Agent Models library](/chapters/8-using-gridworld-library.html)

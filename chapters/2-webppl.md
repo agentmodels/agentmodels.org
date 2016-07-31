@@ -102,10 +102,10 @@ There are also continuous random variables:
 
 ~~~~
 print('Two samples from standard Gaussian in 1D: ' +
-      [gaussian(0,1), gaussian(0,1)]);
+      [gaussian(0, 1), gaussian(0, 1)]);
 
 print('A single sample from a 2D Gaussian: ' +
-      multivariateGaussian([0,0], [[1,0],[0,10]]));
+      multivariateGaussian(Vector([0, 0]), Matrix([[1, 0], [0, 10]])));
 ~~~~
 
 You can write your own functions to sample from more complex distributions. This example uses recursion to define a sampler for the Geometric distribution:
@@ -118,28 +118,28 @@ var geometric = function(p) {
 geometric(0.8);
 ~~~~
 
-What makes WebPPL different from conventional programming languages is its ability to represent and manipulate *probability distributions*. Elementary Random Primitives (ERPs) are the basic object type that represents distributions. ERP objects have two key features:
+What makes WebPPL different from conventional programming languages is its ability to represent and manipulate *probability distributions*. Distribution objects have two key features:
 
-1. You can draw *random i.i.d. samples* from an ERP using the special function `sample`. That is, you sample $$x \sim P$$ where $$P(x)$$ is the distribution represented by the ERP. 
+1. You can draw *random i.i.d. samples* from a distribution using the special function `sample`. That is, you sample $$x \sim P$$ where $$P(x)$$ is the distribution.
 
-2. You can compute the probability (or density) the distribution assigns to a value. That is, to compute $$\log(P(x))$$, you use `erp.score([], x)`, where `erp` is the ERP in WebPPL.
+2. You can compute the probability (or density) the distribution assigns to a value. That is, to compute $$\log(P(x))$$, you use `dist.score(x)`, where `dist` is the distribution in WebPPL.
 
-The functions above that generate random samples are defined in the WebPPL library in terms of built-in ERPs (e.g. `bernoulliERP` for `flip` and `gaussianERP` for `gaussian`) and the built-in function `sample`:
+The functions above that generate random samples are defined in the WebPPL library in terms of built-in distributions (e.g. `Bernoulli` for `flip` and `Gaussian` for `gaussian`) and the built-in function `sample`:
 
 ~~~~
-var flip = function(theta) {
-  var theta = (theta !== undefined) ? theta : 0.5;
-  return sample(bernoulliERP, [theta]);
+var flip = function(p) {
+  var p = (p !== undefined) ? p : 0.5;
+  return sample(Bernoulli({ p: p }));
 };
 
 var gaussian = function(mu, sigma) {
-  return sample(gaussianERP, [mu, sigma]);
+  return sample(Gaussian({ mu: mu, sigma: sigma }));
 };
 
 [flip(), gaussian(1, 1)];
 ~~~~
 
-To create a new ERP, we pass a (potentially stochastic) function with no arguments---a *thunk*---to a function that performs *marginalization*. For example, we can use `flip` as an ingredient to construct a Binomial distribution using the marginalization function `Enumerate`:
+To create a new distribution, we pass a (potentially stochastic) function with no arguments---a *thunk*---to the function `Infer` that performs *marginalization*. For example, we can use `flip` as an ingredient to construct a Binomial distribution using enumeration:
 
 ~~~~
 var binomial = function(){
@@ -149,19 +149,19 @@ var binomial = function(){
   return a + b + c;
 };
 
-var binomialERP = Enumerate(binomial);
+var MyBinomial = Infer({ method: 'enumerate' }, binomial);
 
-[sample(binomialERP), sample(binomialERP), sample(binomialERP)];
+[sample(MyBinomial), sample(MyBinomial), sample(MyBinomial)];
 ~~~~
 
-The function `Enumerate` is an *inference function* that computes the marginal probability of each possible output of the function `binomial` by enumerating each possible value of the random variables (`a`, `b` and `c`) in the function body.
+`Infer` is the *inference operator* that computes (or estimates) the marginal probability of each possible output of the function `binomial`. Here, we use the enumeration method that enumerates each possible value of each random variables (`a`, `b` and `c`) in the function body.
 
 ### Bayesian inference by conditioning
 
-The most important use of inference functions such as `Enumerate` is for Bayesian inference. Here, our task is to *infer* the value of some unknown parameter by observing data that depends on the parameter. For example, if flipping three separate coins produce exactly two Heads, what is the probability that the first coin landed Heads? To solve this in WebPPL, we can use `Enumerate` to enumerate all values for the random variables `a`, `b` and `c`. We use `condition` to constrain the sum of the variables. The result is an ERP representing the posterior distribution on the first variable `a` having value `true` (i.e. "Heads").  
+The most important use of inference methods is for Bayesian inference. Here, our task is to *infer* the value of some unknown parameter by observing data that depends on the parameter. For example, if flipping three separate coins produce exactly two Heads, what is the probability that the first coin landed Heads? To solve this in WebPPL, we can use `Infer` to enumerate all values for the random variables `a`, `b` and `c`. We use `condition` to constrain the sum of the variables. The result is a distribution representing the posterior distribution on the first variable `a` having value `true` (i.e. "Heads").  
 
 ~~~~
-var twoHeads = Enumerate(function(){
+var twoHeads = Infer({ method: 'enumerate' }, function(){
   var a = flip(0.5);
   var b = flip(0.5);
   var c = flip(0.5);
@@ -170,9 +170,9 @@ var twoHeads = Enumerate(function(){
 });
 
 print('Probability of first coin being Heads (given exactly two Heads) : ');
-print(Math.exp(twoHeads.score([], true)));
+print(Math.exp(twoHeads.score(true)));
 
-var moreThanTwoHeads = Enumerate(function(){
+var moreThanTwoHeads = Infer({ method: 'enumerate' }, function(){
   var a = flip(0.5);
   var b = flip(0.5);
   var c = flip(0.5);
@@ -181,40 +181,40 @@ var moreThanTwoHeads = Enumerate(function(){
 });
 
 print('\Probability of first coin being Heads (given at least two Heads): ');
-print(Math.exp(moreThanTwoHeads.score([], true)));
+print(Math.exp(moreThanTwoHeads.score(true)));
 ~~~~
 
 ### Codeboxes and Plotting
 
-The codeboxes allow you to modify our examples and to write your own WebPPL code. Code is not shared between boxes. You can use the special function `viz.auto` to plot ERPs:
+The codeboxes allow you to modify our examples and to write your own WebPPL code. Code is not shared between boxes. You can use the special function `viz.auto` to plot distributions:
 
 ~~~~
-var appleOrangeERP = Enumerate(function(){ 
+var appleOrangeDist = Infer({ method: 'enumerate' }, function(){ 
   return flip(0.9) ? "apple" : "orange";
 });
 
-viz.auto(appleOrangeERP);
+viz.auto(appleOrangeDist);
 ~~~~
 
 ~~~~
-var fruitTasteERP = Enumerate(function(){
+var fruitTasteDist = Infer({ method: 'enumerate' }, function(){
   return {
     fruit: categorical([0.3, 0.3, 0.4], ["apple", "banana", "orange"]),
     tasty: flip(0.7)
   };
 });
 
-viz.auto(fruitTasteERP);
+viz.auto(fruitTasteDist);
 ~~~~
 
 ~~~~
-var positionERP = Rejection(function(){
+var positionDist = Infer({ method: 'rejection', samples: 1000 }, function(){
   return { 
     X: gaussian(0, 1), 
     Y: gaussian(0, 1)};
-}, 1000);
+});
 
-viz.auto(positionERP);
+viz.auto(positionDist);
 ~~~~
 
 ### Next

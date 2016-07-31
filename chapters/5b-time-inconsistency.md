@@ -35,7 +35,7 @@ $$
 - $$a' \sim C(s'; d_P)$$ where $$d_P=0$$ for Sophisticated and $$d_P=d+1$$ for Naive.
 
 
-The function $$C \colon S \times \mathbb{N} \to A$$ is again the *act* function. For $$C(s'; d+1)$$ we take a softmax over the expected value of each action $$a$$, namely, $$EU[s',a,d+1]$$. The act function now takes a delay argument. We interpret $$C(s';d+1)$$ as "the softmax action the agent would take in state $$s'$$ given that their rewards occur with a delay $$d+1$$".
+The function $$C \colon S \times \mathbb{N} \to A$$ is again the *act* function. For $$C(s'; d+1)$$ we take a softmax over the expected value of each action $$a$$, namely, $$EU[s',a,d+1]$$. The act function now takes a delay argument. We interpret $$C(s';d+1)$$ as "the softmax action the agent would take in state $$s'$$ given that their rewards occur with a delay $$d+1$$".ull
 
 The Naive agent simulates his future actions by computing $$C(s';d+1)$$; the Sophisticated agent computes the action that will *actually* occur, which is $$C(s';0)$$. So if we want to simulate an environment including a hyperbolic discounter, we can compute the agent's action with $$C(s;0)$$ for every state $$s$$. 
 
@@ -57,7 +57,7 @@ var makeAgent = function (params, world) {
 
   var act = dp.cache( 
     function(state, delay){
-      return Enumerate(function(){
+      return Infer({ method: 'enumerate' }, function(){
         var action = uniformDraw(stateToActions(state));
         var eu = expectedUtility(state, action, delay);    
         factor(params.alpha * eu);
@@ -71,7 +71,7 @@ var makeAgent = function (params, world) {
       if (state.terminateAfterAction){
         return u; 
       } else {                     
-        return u + expectation( Enumerate(function(){
+        return u + expectation( Infer({ method: 'enumerate' }, function(){
           var nextState = transition(state, action); 
           var perceivedDelay = isNaive ? delay + 1 : 0;
           var nextAction = sample(act(nextState, perceivedDelay));
@@ -86,7 +86,6 @@ var makeAgent = function (params, world) {
     act: act
   };
 };
-null;
 ~~~~
 
 The next codebox shows the Naive agent on the Restaurant Choice problem. In our earlier discussion we claimed that it's possible for the Naive agent to end up at Donut North, despite this being dominated by other options for any set of (rational) preferences. We now give concrete parameters that lead to this behavior.
@@ -108,28 +107,28 @@ var makeAgent = function (params, world) {
   var paramsDiscountFunction = params.discountFunction;
 
   var discountFunction = paramsDiscountFunction ? paramsDiscountFunction : 
-      function(delay){return 1/(1+params.discount*delay);};
+  function(delay){return 1/(1+params.discount*delay);};
 
   var isNaive = params.sophisticatedOrNaive=='naive';
-    
+
   var act = dp.cache( 
     function(state, delay){
       var delay = delay ? delay : 0; //make sure delay is never undefined
-      return Enumerate(function(){
+      return Infer({ method: 'enumerate' }, function(){
         var action = uniformDraw(stateToActions(state));
         var eu = expectedUtility(state, action, delay);
         factor(params.alpha * eu);
         return action;
       });
     });
-  
+
   var expectedUtility = dp.cache(
     function(state, action, delay){
       var u = discountFunction(delay) * utility(state, action);
       if (state.terminateAfterAction){
         return u; 
       } else {
-        return u + expectation( Enumerate(function(){
+        return u + expectation( Infer({ method: 'enumerate' }, function(){
           var nextState = transition(state, action); 
           var perceivedDelay = isNaive ? delay + 1 : 0;
           var nextAction = sample(act(nextState, perceivedDelay));
@@ -137,7 +136,7 @@ var makeAgent = function (params, world) {
         }));
       }
     });
-  
+
   return {
     params : params,
     expectedUtility : expectedUtility,
@@ -150,22 +149,26 @@ var world = makeRestaurantChoiceMDP();
 var start = restaurantChoiceStart;
 
 var restaurantUtility = makeRestaurantUtilityFunction(world, {
-    'Donut N' : [10, -10],  //[immediate reward, delayed reward]
-    'Donut S' : [10, -10],
-    'Veg'   : [-10, 20],
-    'Noodle': [0, 0],
-    'timeCost': -.01  // cost of taking a single action 
+  'Donut N' : [10, -10],  //[immediate reward, delayed reward]
+  'Donut S' : [10, -10],
+  'Veg'   : [-10, 20],
+  'Noodle': [0, 0],
+  'timeCost': -.01  // cost of taking a single action 
 });
 
 var runAndGraph = function(agent) { 
   var trajectory = simulateMDP(start, world, agent);
   var plans = plannedTrajectories(trajectory, world, agent);
-  GridWorld.draw(world,{trajectory : trajectory, 
-                        dynamicActionExpectedUtilities : plans});
+  GridWorld.draw(world, {
+    trajectory: trajectory, 
+    dynamicActionExpectedUtilities: plans
+  });
 };
 
-var agent = makeAgent({sophisticatedOrNaive:'naive', 
-                       utility: restaurantUtility }, world);
+var agent = makeAgent({
+  sophisticatedOrNaive: 'naive', 
+  utility: restaurantUtility
+}, world);
 
 print('Naive agent: \n\n');
 runAndGraph(agent);
@@ -188,28 +191,28 @@ var makeAgent = function (params, world) {
   var paramsDiscountFunction = params.discountFunction;
 
   var discountFunction = paramsDiscountFunction ? paramsDiscountFunction : 
-      function(delay){return 1/(1+params.discount*delay);};
+  function(delay){return 1/(1+params.discount*delay);};
 
   var isNaive = params.sophisticatedOrNaive=='naive';
-    
+
   var act = dp.cache( 
     function(state, delay){
       var delay = delay ? delay : 0; //make sure delay is never undefined
-      return Enumerate(function(){
+      return Infer({ method: 'enumerate' }, function(){
         var action = uniformDraw(stateToActions(state));
         var eu = expectedUtility(state, action, delay);
         factor(params.alpha * eu);
         return action;
       });
     });
-  
+
   var expectedUtility = dp.cache(
     function(state, action, delay){
       var u = discountFunction(delay) * utility(state, action);
       if (state.terminateAfterAction){
         return u; 
       } else {
-        return u + expectation( Enumerate(function(){
+        return u + expectation( Infer({ method: 'enumerate' }, function(){
           var nextState = transition(state, action); 
           var perceivedDelay = isNaive ? delay + 1 : 0;
           var nextAction = sample(act(nextState, perceivedDelay));
@@ -217,7 +220,7 @@ var makeAgent = function (params, world) {
         }));
       }
     });
-  
+
   return {
     params : params,
     expectedUtility : expectedUtility,
@@ -229,11 +232,11 @@ var world = makeRestaurantChoiceMDP();
 var start = restaurantChoiceStart;
 
 var restaurantUtility = makeRestaurantUtilityFunction(world, {
-    'Donut N' : [10, -10],  //[immediate reward, delayed reward]
-    'Donut S' : [10, -10],
-    'Veg'   : [-10, 20],
-    'Noodle': [0, 0],
-    'timeCost': -.01  // cost of taking a single action 
+  'Donut N' : [10, -10],  //[immediate reward, delayed reward]
+  'Donut S' : [10, -10],
+  'Veg'   : [-10, 20],
+  'Noodle': [0, 0],
+  'timeCost': -.01  // cost of taking a single action 
 });
 
 
@@ -245,8 +248,10 @@ var runAndGraph = function(agent) {
 };
 ///
 
-var agent = makeAgent({sophisticatedOrNaive:'sophisticated', 
-                       utility: restaurantUtility }, world);
+var agent = makeAgent({
+  sophisticatedOrNaive: 'sophisticated', 
+  utility: restaurantUtility
+}, world);
 
 print('Sophisticated agent: \n\n');
 runAndGraph(agent);
@@ -288,14 +293,18 @@ var deadline = 10;
 var world = makeProcrastinationMDP(deadline);
 
 // Agent params
-var utilityTable = {reward: 4.5,
-                    waitCost: -0.1,
-					workCost: -1};
+var utilityTable = {
+  reward: 4.5,
+  waitCost: -0.1,
+  workCost: -1
+};
 
-var params = {utility: makeProcrastinationUtility(utilityTable),
-	          alpha: 1000,
-			  discount: null,
-			  sophisticatedOrNaive: 'sophisticated'};
+var params = {
+  utility: makeProcrastinationUtility(utilityTable),
+  alpha: 1000,
+  discount: null,
+  sophisticatedOrNaive: 'sophisticated'
+};
 
 var getLastState = function(discount){
   var agent = makeMDPAgent(update(params, {discount: discount}), world);
@@ -304,9 +313,9 @@ var getLastState = function(discount){
 };
 
 map( function(discount){
-    var lastState = getLastState(discount);
-    print('Discount: ' + discount + '. Last state: ' + lastState[0] +
-          '. Time: ' + lastState[1] + '\n')
+  var lastState = getLastState(discount);
+  print('Discount: ' + discount + '. Last state: ' + lastState[0] +
+        '. Time: ' + lastState[1] + '\n')
 }, range(8) );
 ~~~~
 
@@ -317,6 +326,7 @@ map( function(discount){
 > 2. Run the codebox above with a Sophisticated agent. Explain the results. 
 
 
+Next chapter: [Myopia for rewards and belief updates](/chapters/5c-myopic.html)
 
 -----------
 

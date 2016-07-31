@@ -94,6 +94,8 @@ Cognitive bounds of time and space (for memory) mean that any realistic agent wi
 ### Learning preferences from bounded and biased agents
 We've asserted that humans have cognitive biases and bounds. These lead to systemtic deviations from optimal performance on (PO)MDP decision problems. As a result, the softmax-optimal agent models from previous chapters will not always be good generative models for human behavior. To learn human beliefs and preferences when such deviations from optimality are present, we extend and elaborate our (PO)MDP agent models to capture these deviations. The next chapter implements time-inconsistent agents via hyperbolic discounting. The subsequent chapter implements "greedy" or "myopic" planning, which is a general strategy for reducing time- and space-complexity. In the final chapter of this section, we show (a) that assuming humans are optimal can lead to mistaken inferences in some decision problems, and (b) that our extended generative models can avoid these mistakes.
 
+Next chapter: [Time inconsistency I](/chapters/5a-time-inconsistency.html)
+
 ---------
 
 ### Footnotes

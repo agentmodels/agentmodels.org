@@ -26,6 +26,7 @@ Contents:
 
 
 ### Introduction
+
 This is a quick-start guide to using the webppl-agents library. For a more detailed, textbook-style explanation of the library, try [agentmodels.org](http://agentmodels.org). [Maybe provide a bit more info about what's included in agentmodels. e.g. mathematical background to the agents and basics of inference in webppl.]
 
 The library is built around two basic entities: *agents* and *environments*. A *simulation* involves an agent interacting with a specific environment. We provide two standard RL environments as examples (Gridworld and Multi-armed Bandits). We provide four kinds of agent as examples. Many combinations of environment and agent are possible. In addition, it's easy to add your own environments and agents -- as we illustrate below. 
@@ -73,27 +74,33 @@ var advanceStateTime = function(state){
 // argument *totalTime* is the time horizon
 var makeLineMDP = function(totalTime){
 
-    var stateToActions = function(state){return [-1, 0, 1];};
+  var stateToActions = function(state){return [-1, 0, 1];};
 
-    var transition = function(state,action){
-      var newLoc = state.loc + action;
-      var stateNewLoc = update(state,{loc: newLoc});
-      return advanceStateTime(stateNewLoc);
-    };
-
-    var world = {stateToActions:stateToActions, transition:transition};
-    
-    var startState = {timeLeft: totalTime, 
-                      terminateAfterAction: false, 
-                      loc: 0};
-
-    var utility = function(state, action){    
-      var table = {0:1, 3:3};
-      return table[state.loc] ? table[state.loc] : 0;
-    };
-
-    return {world:world, startState:startState, utility:utility};
+  var transition = function(state,action){
+    var newLoc = state.loc + action;
+    var stateNewLoc = update(state,{loc: newLoc});
+    return advanceStateTime(stateNewLoc);
   };
+
+  var world = {stateToActions:stateToActions, transition:transition};
+
+  var startState = {
+    timeLeft: totalTime, 
+    terminateAfterAction: false, 
+    loc: 0
+  };
+
+  var utility = function(state, action){    
+    var table = {0:1, 3:3};
+    return table[state.loc] ? table[state.loc] : 0;
+  };
+
+  return {
+    world: world,
+    startState: startState,
+    utility: utility
+  };
+};
 
 wpEditor.put('makeLineMDP', makeLineMDP);
 ~~~~
@@ -115,7 +122,6 @@ An environment (or "world") and agent are combined with the `simulate` function:
 Given the utility function defined above, the highest utility state is at location 3 (three steps to the right from the origin). So a non-discounting agent will move and stay at this location. 
 
 ~~~~
-
 ///fold:
 // helper function that decrements time and triggers termination when time elapsed
 var advanceStateTime = function(state){
@@ -130,27 +136,36 @@ var advanceStateTime = function(state){
 // argument *totalTime* is the time horizon
 var makeLineMDP = function(totalTime){
 
-    var stateToActions = function(state){return [-1, 0, 1];};
+  var stateToActions = function(state){return [-1, 0, 1];};
 
-    var transition = function(state,action){
-      var newLoc = state.loc + action;
-      var stateNewLoc = update(state,{loc: newLoc});
-      return advanceStateTime(stateNewLoc);
-    };
-
-    var world = {stateToActions:stateToActions, transition:transition};
-    
-    var startState = {timeLeft: totalTime, 
-                      terminateAfterAction: false, 
-                      loc: 0};
-
-    var utility = function(state, action){    
-      var table = {0:1, 3:3};
-      return table[state.loc] ? table[state.loc] : 0;
-    };
-
-    return {world:world, startState:startState, utility:utility};
+  var transition = function(state,action){
+    var newLoc = state.loc + action;
+    var stateNewLoc = update(state,{loc: newLoc});
+    return advanceStateTime(stateNewLoc);
   };
+
+  var world = {
+    stateToActions: stateToActions,
+    transition: transition
+  };
+
+  var startState = {
+    timeLeft: totalTime, 
+    terminateAfterAction: false, 
+    loc: 0
+  };
+
+  var utility = function(state, action){    
+    var table = {0:1, 3:3};
+    return table[state.loc] ? table[state.loc] : 0;
+  };
+
+  return {
+    world: world,
+    startState: startState,
+    utility: utility
+  };
+};
 ///
 
 // Construct line MDP environment
@@ -172,7 +187,6 @@ var trajectory = simulate(startState, world, agent, 'states');
 
 // Display start state 
 print(trajectory)
-
 ~~~~
 
 
@@ -180,29 +194,34 @@ print(trajectory)
 More agents:
 
 ~~~~
-
 // random MDPAgent
 var makeMDPAgentRandom = function(params, world){
   var stateToActions = world.stateToActions;
   var act = function(state){
-    return Enumerate(function(){return uniformDraw(stateToActions(state));})
+    return Enumerate(function(){
+      return uniformDraw(stateToActions(state));
+    });
   };
-  return {act:act, params:params};
+  return {
+    act: act,
+    params: params
   };
+};
 var agent = makeMDPAgentRandom(params, world);
 var trajectory = simulate(line.startState, world, agent, 'states');
 var locations = getLocations(trajectory);
 
 
 // MDPAgentHyperbolic
-var params = {alpha:1000,
-              utility:utility,
-              discount:2,
-              sophisticatedOrNaive: 'naive'};
+var params = {
+  alpha: 1000,
+  utility: utility,
+  discount: 2,
+  sophisticatedOrNaive: 'naive'
+};
 var agent = makeMDPAgent(params, world);
 var trajectory = simulate(line.startState, world, agent, 'states');
 var locations = getLocations(trajectory);
-null
 ~~~~
 
 
