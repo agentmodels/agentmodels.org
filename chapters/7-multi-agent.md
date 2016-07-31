@@ -515,7 +515,7 @@ var act = dp.cache(function(state, player) {
   });
 });
 
-var simulate = dp.cache(function(state, action, player) {
+var simulate = function(state, action, player) {
   var nextState = transition(state, action, player);
   if (isTerminal(nextState)) {
     return nextState;
@@ -524,7 +524,7 @@ var simulate = dp.cache(function(state, action, player) {
     var nextAction = sample(act(nextState, nextPlayer));
     return simulate(nextState, nextAction, nextPlayer);
   }
-});
+};
 
 var startState = [
   ['?', '?', '?'],
@@ -532,7 +532,7 @@ var startState = [
   ['o', '?', '?']
 ];
 
-viz.auto(act(startState, 'o'))
+viz.auto(act(startState, 'o'));
 ~~~~
 
 ## Induction puzzles
