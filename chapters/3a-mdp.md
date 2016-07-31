@@ -6,7 +6,7 @@ description: We look at sequential decision problems, how to formalize them math
 
 ## Introduction
 
-The previous [chapter](/chapters/3-agents-as-programs.html) introduced agent models for solving very simple decision problems. From here on, we will tackle more interesting decision problems. Later sections will look at problems where the outcome depends on the decision of another rational agent (as in *game theory*). The next few sections will look at single-agent problems that are *sequential* rather than *one-shot*. In sequential decision problems, an agent's choice of action *now* depends on the action they will choose in the future. As in game-theoretic scenarios, the decision maker must coordinate with another rational agent. But, in sequential decision problems, that rational agent is their future self.
+The [previous chapter](/chapters/3-agents-as-programs.html) introduced agent models for solving very simple decision problems. From here on, we will tackle more interesting decision problems. Later sections will look at problems where the outcome depends on the decision of another rational agent (as in *game theory*). The next few sections will look at single-agent problems that are *sequential* rather than *one-shot*. In sequential decision problems, an agent's choice of action *now* depends on the action they will choose in the future. As in game-theoretic scenarios, the decision maker must coordinate with another rational agent. But, in sequential decision problems, that rational agent is their future self.
 
 As a simple illustration of a sequential decision problem, suppose that an agent, Bob, is looking for a place to eat. Bob gets out of work in a particular location (indicated below by the blue circle). He knows the streets and the restaurants nearby. His decision problem is to take a sequence of actions such that (a) he eats at a restaurant he likes and (b) he does not spend too much time walking. Here is a visualization of the street layout. The labels refer to different types of restaurants: a chain selling Donuts, a Vegetarian Salad Bar and a Noodle Shop. 
 
@@ -430,4 +430,4 @@ GridWorld.draw(world, {trajectory : map(first, trajectory)});
 
 ### Noisy agents, stochastic environments
 
-This section looked at two MDPs that were essentially deterministic. Part of the difficulty of solving MDPs is that actions, rewards and transitions can be stochastic. The next [chapter](/chapters/3b-mdp-gridworld.html) explores both noisy agents and stochastic gridworld environments.
+This section looked at two MDPs that were essentially deterministic. Part of the difficulty of solving MDPs is that actions, rewards and transitions can be stochastic. The [next chapter](/chapters/3b-mdp-gridworld.html) explores both noisy agents and stochastic gridworld environments.

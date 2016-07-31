@@ -160,6 +160,7 @@ viz.auto(trajectoryDist);
 <!-- put up timeCost to -1 or so --> 
 
 ### Noisy transitions vs. Noisy agents
+
 It's important to distinguish noise in the transition function from the softmax noise for the agent's selection of actions. Noise in the transition function is a representation of randomness in the world. This is easiest to think about in casino games and other games of chance [^noise]. In playing a casino game (without cheating) any agent will need to model the randomness in the game. By contrast, softmax noise is a property of an agent. For example, we can vary the behavior otherwise identical agents by varying their parameter $$\alpha$$.
 
 Unlike transition noise, softmax noise will have less influence on the agent's planning for the Hiking Problem. Since it's so bad to fall down the hill, the softmax agent will very rarely do so even if they take the short route. The softmax agent is like a lazy person who takes mildy inefficient routes but "pulls himself together" when the stakes are high.
@@ -172,9 +173,11 @@ Unlike transition noise, softmax noise will have less influence on the agent's p
 // parameters for world
 var transitionNoiseProb = 0.1;
 var world = makeHike(transitionNoiseProb);
-var startState = {loc: [0,1],
-		          timeLeft: 12,
-				  terminateAfterAction: false};
+var startState = {
+  loc: [0,1],
+  timeLeft: 12,
+  terminateAfterAction: false
+};
 
 // parameters for agent
 var alpha = 1;
