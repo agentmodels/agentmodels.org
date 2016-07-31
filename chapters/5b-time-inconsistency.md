@@ -317,6 +317,7 @@ map( function(discount){
 > 2. Run the codebox above with a Sophisticated agent. Explain the results. 
 
 
+Next chapter: [Myopia for rewards and belief updates](/chapters/5c-myopic.html)
 
 -----------
 

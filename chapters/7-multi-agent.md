@@ -590,3 +590,5 @@ var runGame = function(start, end, raisedHands, trueBlueEyes) {
 
 viz.auto(Infer({ method: 'enumerate' }, function(){return runGame( 0, 2, 0, 2);}));
 ~~~~
+
+Next chapter: [How to use the WebPPL Agent Models library](/chapters/8-using-gridworld-library.html)

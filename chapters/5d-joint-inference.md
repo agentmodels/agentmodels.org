@@ -298,6 +298,7 @@ The graphs show that as the agent's time horizon increases the inferences of the
 >**Exercise**: Suppose that instead of allowing the agent to be greedy, we allowed the agent to be a hyperbolic discounter. Think about how this would affect inferences from the observations above and for other sequences of observation. Change the code above to test out your predictions.
 <br>
 
+Next chapter: [Joint inference of biases and preferences II](/chapters/5e-joint-inference.html)
 
 ----
 

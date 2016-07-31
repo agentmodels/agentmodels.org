@@ -1118,4 +1118,5 @@ var posterior = getPosterior(world, prior, observedStateAction);
 displayResults(getPosterior(world, prior, []), posterior);
 ~~~~
 
+Next chapter: [Multi-agent models](/chapters/7-multi-agent.html)
 

@@ -234,6 +234,7 @@ The Sophisticated agent can accurately model what it *would* do if it ended up i
 
 In this simple example, the Naive and Sophisticated agents each take paths that optimal time-consistent MDP agents (without softmax noise) would never take. So this is an example where a bias leads to a *systematic* deviation from optimality and behavior that is not predicted by an optimal model. In Chapter 5.3 we explore inference of preferences for time inconsistent agents.
 
+Next chapter: [Time inconsistency II](/chapters/5b-time-inconsistency.html)
 
 -----------
 
