@@ -350,8 +350,6 @@ You can create terminal gridworld states by using features with a name. These na
 
 ~~~~
 
-///fold:
-// Create a constructor for our gridworld
 var makeSimpleGridWorld = function(){
 
   // '#' indicates a wall, and ' ' indicates a normal cell  
@@ -382,8 +380,6 @@ var world = simpleGridWorld.world;
 var startState = {loc: [0,0],
     timeLeft: 10,
     terminateAfterAction: false};
-
-///
 
 var utility = function(state, action){
   return _.isEqual(state.loc, [0,3]) ? 1 : 0
