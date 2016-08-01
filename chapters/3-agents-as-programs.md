@@ -220,6 +220,76 @@ Since rational agents will *always* take the best action, why consider softmax a
 
 [^softmax]: A softmax agent's choice of action is a differentiable function of their utilities. This differentiability makes possible certain techniques for inferring utilities from choices.
 
+>**Exercise**: Monty Hall. In this exercise inspired by [ProbMods](https://probmods.org/inference-about-inference.html), we will approach the classical statistical puzzle from the perspective of optimal decision-making. Here is a statement of the problem:
+
+> *Alice is on a game show and she’s given the choice of three doors. Behind one door is a car; behind the others, goats. She picks door 1. The host, Monty, knows what’s behind the doors and opens another door, say No. 3, revealing a goat. He then asks Alice if she wants to switch doors. Should she switch?*
+
+> Use the tools introduced above to determine the answer. Here is some code to get you started:
+
+~~~~
+var remove = function(xs, ys) {
+  return _.without.apply(null, [xs].concat(ys));
+};
+
+var doors = [1, 2, 3];
+
+// Monty chooses a door that is neither Alice's door nor the prize door
+var monty = function(aliceDoor, prizeDoor) {
+  return Infer({ method: 'enumerate' }, function() {
+    var door = uniformDraw(doors);
+    // ???
+    return door;
+  });
+};
+
+
+var actions = ['switch', 'stay'];
+
+// If Alice switches, she chooses a door that is neither the one Monty
+// showed nor her previous door
+var transition = function(state, action){
+  if (action === 'switch') {
+    return {
+      prizeDoor: state.prizeDoor,
+      montyDoor: state.montyDoor,
+      aliceDoor: // ???
+    };
+  } else {
+    return state;
+  }
+};
+
+// Utility is high (say 10) if Alice's door matches the prize door,
+// 0 otherwise.
+var utility = function(state){
+  // ???
+};
+
+var sampleState = function() {
+  var aliceDoor = uniformDraw(doors);
+  var prizeDoor = uniformDraw(doors);
+  return {
+    aliceDoor: aliceDoor,
+    prizeDoor: prizeDoor,
+    montyDoor: sample(monty(aliceDoor, prizeDoor))
+  }
+}
+
+var agent = function(){  
+  var action = uniformDraw(actions);
+  var expectedUtility = function(action){    
+    return expectation(Infer({ method: 'enumerate' }, function(){
+      var state = sampleState();
+      return utility(transition(state, action));
+    }));
+  };
+  factor(expectedUtility(action));
+  return { action: action };
+};
+
+viz.auto(Infer({ method: 'enumerate' }, agent));
+~~~~
+
 ### Moving to complex decision problems
 
 This chapter has introduced some of the core concepts that we will need for this tutorial, including *expected utility*, *(stochastic) transition functions*, *soft conditioning* and *softmax decision making*. These concepts would also appear in standard treatments of rational planning and reinforcement learning refp:russell1995modern. The actual decision problems in this chapter are so trivial that our notation and programs are overkill. The [next chapter](/chapters/3a-mdp.html) introduces *sequential* decisions problems. These problems are more complex and interesting, and will require the machinery we have introduced here. 
