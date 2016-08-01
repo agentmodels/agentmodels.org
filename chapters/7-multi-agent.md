@@ -509,8 +509,11 @@ var otherPlayer = function(player) {
 var act = dp.cache(function(state, player) {
   return Infer({ method: 'enumerate' }, function(){
     var move = sample(movePrior(state));
-    var outcome = simulate(state, move, player);
-    factor(utility(outcome, player));
+    var eu = expectation(Infer({ method: 'enumerate'}, function(){
+      var outcome = simulate(state, move, player);
+      return utility(outcome, player);
+    }));
+    factor(eu);
     return move;
   });
 });
@@ -528,11 +531,15 @@ var simulate = function(state, action, player) {
 
 var startState = [
   ['?', '?', '?'],
-  ['?', 'x', 'x'],
-  ['o', '?', '?']
+  ['?', '?', 'x'],
+  ['?', 'o', 'x']
 ];
 
-viz.auto(act(startState, 'o'));
+var actDist = act(startState, 'o');
+
+viz.auto(actDist);
+
+actDist.toString()
 ~~~~
 
 Next chapter: [How to use the WebPPL Agent Models library](/chapters/8-using-gridworld-library.html)
