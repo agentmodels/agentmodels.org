@@ -167,6 +167,10 @@ var totalTime = 4;
 print("Agent's trajectory: " + simulate(startState, totalTime));
 ~~~~
 
+>**Exercise**: Change the world such that it is a loop, i.e. moving right from state `3` moves to state `0`, and moving left from state `0` moves to state `3`. How does this change the agent's sequence of actions?
+
+>**Exercise**: Change the agent's action space such that the agent can also move two steps at a time. How does this change the agent's sequence of actions?
+
 The `expectedUtility` and `simulate` functions are similar. The `expectedUtilty` function includes the agent's own (subjective) simulation of the future distribution on states. In the case of an MDP and an optimal agent, the agent's simulation is identical to the world simulator (up to irreducible random noise in the transition and choice functions). In later chapters, we describe agents whose subjective simulations diverge from the world simulator -- i.e. agents with inaccurate models of their future selves. 
 
 What does the mutual recursion between `act` and `expectedUtility` look like if we unroll it? In this example, where the transition function is deterministic, there is a tree that expands until `timeLeft` reaches zero. The root is the starting state (`startState === 0`) and this branches into three successor states (`-1`, `0`, `1`). This leads to an exponential blow-up in the runtime of a single action (as a function of the number of steps taken into account when considering the future):
@@ -318,15 +322,16 @@ print(_.object(numSteps, runtimes));
 viz.bar(numSteps, runtimes)
 ~~~~
 
+>**Exercise**: Could we also memoize `simulate` or `sampleSequence`? Why or why not?
 
 ## Choosing restaurants in Gridworld
 
 The agent model above that includes memoization allows us to solve Bob's "Restaurant Choice" problem efficiently. 
 
-We extend the agent model above by adding `isTerminal` to halt simulations when the agent reaches a terminal state. For the Restaurant Choice problem, the restaurants are assumed to be terminal states. After computing the agent's trajectory, we use the WebPPL [Gridworld library](https://github.com/agentmodels/webppl-gridworld) to animate it. 
+We extend the agent model above by adding a `terminateAfterAction` to certain states to halt simulations when the agent reaches these states. For the Restaurant Choice problem, the restaurants are assumed to be terminal states. After computing the agent's trajectory, we use the [webppl-agents library](https://github.com/agentmodels/webppl-agents) to animate it. 
 
 ~~~~
-// We use the WebPPL-gridworld library
+// We use the webppl-agents library
 
 // Construct world
 var world = makeRestaurantChoiceMDP();
@@ -428,6 +433,8 @@ var startState = {
 var trajectory = simulate(startState);
 GridWorld.draw(world, {trajectory : map(first, trajectory)});
 ~~~~
+
+>**Exercise**: Change the utility table such that the agent goes to `Donut S`. What ways are there to accomplish this outcome?
 
 ### Noisy agents, stochastic environments
 
