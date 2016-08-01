@@ -171,6 +171,8 @@ print("Agent's trajectory: " + simulate(startState, totalTime));
 
 >**Exercise**: Change the agent's action space such that the agent can also move two steps at a time. How does this change the agent's sequence of actions?
 
+>**Exercise**: Change the agent's utility function such that the agent moves as far as possible to the right, given its available total time.
+
 The `expectedUtility` and `simulate` functions are similar. The `expectedUtilty` function includes the agent's own (subjective) simulation of the future distribution on states. In the case of an MDP and an optimal agent, the agent's simulation is identical to the world simulator (up to irreducible random noise in the transition and choice functions). In later chapters, we describe agents whose subjective simulations diverge from the world simulator -- i.e. agents with inaccurate models of their future selves. 
 
 What does the mutual recursion between `act` and `expectedUtility` look like if we unroll it? In this example, where the transition function is deterministic, there is a tree that expands until `timeLeft` reaches zero. The root is the starting state (`startState === 0`) and this branches into three successor states (`-1`, `0`, `1`). This leads to an exponential blow-up in the runtime of a single action (as a function of the number of steps taken into account when considering the future):
