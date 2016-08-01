@@ -59,6 +59,8 @@ var maxAgent = function(state){
 print("Choice in default state: " + maxAgent("default"));
 ~~~~
 
+>**Exercise**: What ways are there to make the agent choose the French restaurant?
+
 There is an alternative way to compute the optimal action for this problem. The idea is to treat choosing an action as an *inference* problem. The previous chapter showed how we can *infer* the probability that a coin landed Heads from the observation that two of three coins were Heads. 
 
 ~~~~
@@ -95,6 +97,7 @@ var inferenceAgent = function(state){
 viz.auto(inferenceAgent("default"));
 ~~~~
 
+>**Exercise**: Adjust the agent's goal such that they prefer French food.
 
 ## One-shot decisions in a stochastic world
 
@@ -136,6 +139,8 @@ var maxEUAgent = function(state){
 
 maxEUAgent("default");
 ~~~~
+
+>**Exercise**: Adjust the transition probabilities such that the agent prefers Italian food.
 
 The `inferenceAgent`, which uses the planning-as-inference idiom, can also be extended using `expectation`. Previously, the agent's action was conditioned on leading to the best consequence ("pizza"). This time, Tom is not aiming to choose the action most likely to have the best outcome. Instead, he wants the action with better outcomes on average. This can be represented in `inferenceAgent` by switching from a `condition` statement to a `factor` statement. The `condition` statement expresses a "hard" constraint on actions: actions that fail the condition are completely ruled out. The `factor` statement, by contrast, expresses a "soft" condition. Technically, `factor(x)` adds `x` to the unnormalized log-probability of the program execution within which it occurs.
 
@@ -197,7 +202,7 @@ var softMaxAgent = function(state){
 
     var expectedUtility = function(action){
       return expectation(Infer({ method: 'enumerate' }, function(){
-        return utility(transition(state,action));
+        return utility(transition(state, action));
       }));
     };
     factor(alpha * expectedUtility(action));
@@ -246,8 +251,8 @@ var monty = function(aliceDoor, prizeDoor) {
 
 var actions = ['switch', 'stay'];
 
-// If Alice switches, she chooses a door that is neither
-// the one Monty showed nor her previous door
+// If Alice switches, she randomly chooses a door that is
+// neither the one Monty showed nor her previous door
 var transition = function(state, action){
   if (action === 'switch') {
     return {
