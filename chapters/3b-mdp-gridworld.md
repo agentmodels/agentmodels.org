@@ -24,7 +24,7 @@ var startState = {loc: [0, 1]};
 GridWorld.draw(world, {trajectory: [startState]});
 ~~~~
 
-We start with a *deterministic* transition function. In this case, Alice's risk of falling down the steep hill is solely due to softmax noise in her action choice (which is minimal in this case). The agent model is the same as the one at the end of [Chapter III.1](/chapters/3a-mdp.html'). We wrap the functions `agent`, `expectedUtility` and `simulate` in a function `mdpSimulateGridworld`. The following codebox defines this function and we use it later on without defining it (since it's in the WebPPL Gridworld library). 
+We start with a *deterministic* transition function. In this case, Alice's risk of falling down the steep hill is solely due to softmax noise in her action choice (which is minimal in this case). The agent model is the same as the one at the end of [Chapter III.1](/chapters/3a-mdp.html). We wrap the functions `agent`, `expectedUtility` and `simulate` in a function `mdpSimulateGridworld`. The following codebox defines this function and we use it later on without defining it (since it's in the `webppl-agents` library). 
 
 ~~~~
 // define_agent_simulate
@@ -44,21 +44,21 @@ var makeMDPAgent = function(params, world) {
         return action;
       });
     });
-  
+
   var expectedUtility = dp.cache(
     function(state, action){
       var u = utility(state, action);
       if (state.terminateAfterAction){
         return u; 
       } else {
-        return u + expectation( Infer({ method: 'enumerate' }, function(){
+        return u + expectation(Infer({ method: 'enumerate' }, function() {
           var nextState = transition(state, action); 
           var nextAction = sample(act(nextState));
           return expectedUtility(nextState, nextAction);
         }));
       }
     });
-  
+
   return {
     params : params,
     expectedUtility : expectedUtility,
@@ -72,9 +72,11 @@ var simulate = function(startState, world, agent, outputType) {
   var transition = world.transition;
 
   var selectOutput = function(state, action) {
-    var table = {states: state,
-		         actions: action,
-				 stateAction: [state, action]};
+    var table = {
+      states: state,
+      actions: action,
+      stateAction: [state, action]
+    };
     return outputType ? table[outputType] : table.states;
   };
 
@@ -95,12 +97,19 @@ var simulate = function(startState, world, agent, outputType) {
 // parameters for world
 var transitionNoiseProb = 0;
 var world = makeHike(transitionNoiseProb);
-var startState = {loc: [0,1],
-		          timeLeft: 12,
-				  terminateAfterAction: false};
+var startState = {
+  loc: [0, 1],
+  timeLeft: 12,
+  terminateAfterAction: false
+};
 
 // parameters for agent
-var utilityTable = {East: 10, West: 1, Hill: -10, timeCost: -.1};
+var utilityTable = {
+  East: 10,
+  West: 1,
+  Hill: -10,
+  timeCost: -.1
+};
 var utility = makeHikeUtilityFunction(world, utilityTable);
 var agent = makeMDPAgent({utility: utility, alpha: 1000}, world);
 var trajectory = simulate(startState, world, agent);
@@ -137,7 +146,12 @@ var startState = {
 
 // parameters for agent
 var alpha = 1;
-var utilityTable = { East: 10, West: 1, Hill: -10, timeCost: -.1 };
+var utilityTable = { 
+  East: 10, 
+  West: 1,
+  Hill: -10,
+  timeCost: -.1
+};
 var utility = makeHikeUtilityFunction(world, utilityTable);
 var agent = makeMDPAgent({utility: utility, alpha: alpha}, world);
 
@@ -174,7 +188,7 @@ Unlike transition noise, softmax noise will have less influence on the agent's p
 var transitionNoiseProb = 0.1;
 var world = makeHike(transitionNoiseProb);
 var startState = {
-  loc: [0,1],
+  loc: [0, 1],
   timeLeft: 12,
   terminateAfterAction: false
 };
@@ -211,9 +225,9 @@ Consider the example from above where the agent takes the long route because of 
 var transitionNoiseProb = 0.1;
 var world = makeHike(transitionNoiseProb);
 
-// change start from [0,1] to [1,1] and timeLeft to 11
+// change start from [0, 1] to [1, 1] and timeLeft to 11
 var startState = {
-  loc: [1,1],
+  loc: [1, 1],
   timeLeft: 12-1,
   terminateAfterAction: false
 };
@@ -252,7 +266,12 @@ var noiseProb = 0.03;
 var world = makeHike(noiseProb, {big: true});
 
 var alpha = 100;
-var utilityTable = { East: 10, West: 7, Hill : -40, timeCost: -0.4 };
+var utilityTable = { 
+  East: 10, 
+  West: 7, 
+  Hill : -40, 
+  timeCost: -0.4 
+};
 var utility = makeHikeUtilityFunction(world, utilityTable);
 var agent = makeMDPAgent({utility: utility, alpha: alpha}, world);
 
