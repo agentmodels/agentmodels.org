@@ -11,7 +11,7 @@ The [previous chapter](/chapters/3-agents-as-programs.html) introduced agent mod
 As a simple illustration of a sequential decision problem, suppose that an agent, Bob, is looking for a place to eat. Bob gets out of work in a particular location (indicated below by the blue circle). He knows the streets and the restaurants nearby. His decision problem is to take a sequence of actions such that (a) he eats at a restaurant he likes and (b) he does not spend too much time walking. Here is a visualization of the street layout. The labels refer to different types of restaurants: a chain selling Donuts, a Vegetarian Salad Bar and a Noodle Shop. 
 
 ~~~~
-// We use the Webppl-gridworld library
+// We use the webppl-agents library
 var world = makeRestaurantChoiceMDP();
 var startState = restaurantChoiceStart;
 
@@ -65,10 +65,15 @@ var transition = function(state, action){
 };
 
 var utility = function(state){
-  return (state === 3) ? 1 : 0;
+  if (state === 3) {
+    return 1;
+  } else {
+    return 0;
+  }
 };
 
 var makeAgent = function() { 
+  
   var act = function(state, timeLeft){
     return Infer({ method: 'enumerate' }, function(){
       var action = uniformDraw([-1, 0, 1]);
@@ -81,7 +86,6 @@ var makeAgent = function() {
   var expectedUtility = function(state, action, timeLeft){
     var u = utility(state, action);
     var newTimeLeft = timeLeft - 1;
-
     if (newTimeLeft == 0){
       return u; 
     } else {
@@ -115,7 +119,11 @@ var transition = function(state, action){
 };
 
 var utility = function(state){
-  return (state === 3) ? 1 : 0;
+  if (state === 3) {
+    return 1;
+  } else {
+    return 0;
+  }
 };
 
 var makeAgent = function() { 
@@ -131,7 +139,6 @@ var makeAgent = function() {
   var expectedUtility = function(state, action, timeLeft){
     var u = utility(state,action);
     var newTimeLeft = timeLeft - 1;
-
     if (newTimeLeft == 0){
       return u; 
     } else {
@@ -149,17 +156,14 @@ var makeAgent = function() {
 
 var act = makeAgent().act;
 
-var simulate = function(startState, totalTime){
-  var sampleSequence = function(state, timeLeft){
-    if (timeLeft === 0){
-      return [];
-    } else {
-      var action = sample(act(state, timeLeft));
-      var nextState = transition(state,action); 
-      return [state].concat(sampleSequence(nextState, timeLeft - 1))
-    }
-  };
-  return sampleSequence(startState, totalTime);
+var simulate = function(state, timeLeft){
+  if (timeLeft === 0){
+    return [];
+  } else {
+    var action = sample(act(state, timeLeft));
+    var nextState = transition(state, action); 
+    return [state].concat(simulate(nextState, timeLeft - 1))
+  }
 };
 
 var startState = 0;
@@ -185,10 +189,15 @@ var transition = function(state, action){
 };
 
 var utility = function(state){
-  return (state === 3) ? 1 : 0;
+  if (state === 3) {
+    return 1;
+  } else {
+    return 0;
+  }
 };
 
 var makeAgent = function() { 
+  
   var act = function(state, timeLeft){
     return Infer({ method: 'enumerate' }, function(){
       var action = uniformDraw([-1, 0, 1]);
@@ -201,7 +210,6 @@ var makeAgent = function() {
   var expectedUtility = function(state, action, timeLeft){
     var u = utility(state,action);
     var newTimeLeft = timeLeft - 1;
-
     if (newTimeLeft == 0){
       return u; 
     } else {
@@ -219,17 +227,14 @@ var makeAgent = function() {
 
 var act = makeAgent().act;
 
-var simulate = function(startState, totalTime){
-  var sampleSequence = function(state, timeLeft){
-    if (timeLeft === 0){
-      return [];
-    } else {
-      var action = sample(act(state, timeLeft));
-      var nextState = transition(state,action); 
-      return [state].concat(sampleSequence(nextState, timeLeft - 1))
-    }
-  };
-  return sampleSequence(startState, totalTime);
+var simulate = function(state, timeLeft){
+  if (timeLeft === 0){
+    return [];
+  } else {
+    var action = sample(act(state, timeLeft));
+    var nextState = transition(state, action); 
+    return [state].concat(simulate(nextState, timeLeft - 1))
+  }
 };
 ///
 
@@ -246,7 +251,7 @@ var runtimes = map(getRuntime, numSteps);
 
 print('Runtime in ms for for a given number of steps: \n')
 print(_.object(numSteps, runtimes));
-viz.bar(numSteps, runtimes)
+viz.bar(numSteps, runtimes);
 ~~~~
 
 Most of this computation is unnecessary. If the agent starts at `state === 0`, there are three ways the agent could be at `state === 0` again after two steps: either the agent stays put twice or the agent goes one step away and then returns. The code above computes `agent(0, totalTime-2)` three times, while it only needs to be computed once. This problem can be resolved by *memoization*, which stores the results of a function call for re-use when the function is called again on the same input. This use of memoization results in a runtime that is polynomial in the number of states and the total time. <!-- We explore the efficiency of these algorithms in more detail in Section VI. --> In WebPPL, we use the higher-order function `dp.cache` to memoize the `act` and `expectedUtility` functions:
@@ -259,7 +264,11 @@ var transition = function(state, action){
 };
 
 var utility = function(state){
-  return (state === 3) ? 1 : 0;
+  if (state === 3) {
+    return 1;
+  } else {
+    return 0;
+  }
 };
 
 var makeAgent = function() { 
@@ -324,7 +333,7 @@ print(_.object(numSteps, runtimes));
 viz.bar(numSteps, runtimes)
 ~~~~
 
->**Exercise**: Could we also memoize `simulate` or `sampleSequence`? Why or why not?
+>**Exercise**: Could we also memoize `simulate`? Why or why not?
 
 ## Choosing restaurants in Gridworld
 
@@ -335,13 +344,17 @@ We extend the agent model above by adding a `terminateAfterAction` to certain st
 ~~~~
 // We use the webppl-agents library
 
+
 // Construct world
+
 var world = makeRestaurantChoiceMDP();
 var transition = world.transition;
 var stateToActions = world.stateToActions;
 var gridLocationToRestaurant = world.feature;
 
-// Construct agent utility function
+
+// Construct utility function
+
 var utilityTable = {
   'Donut S': 1, 
   'Donut N': 1, 
@@ -357,35 +370,13 @@ var tableToUtilityFunction = function(table, feature){
   };
 };
 
-
-var act = dp.cache(function(state){
-  return Infer({ method: 'enumerate' }, function(){
-    var action = uniformDraw(stateToActions(state));
-    var eu = expectedUtility(state, action);
-    factor(100 * eu);
-    return action;
-  });
-});
-
-var expectedUtility = dp.cache(function(state, action){
-  var u = utility(state, action);
-
-  if (state.terminateAfterAction){
-    return u; 
-  } else {
-    return u + expectation(Infer({ method: 'enumerate' }, function(){
-      var nextState = transition(state, action);
-      var nextAction = sample(act(nextState));
-      return expectedUtility(nextState, nextAction);
-    }));
-  }
-});
-
 var utility = tableToUtilityFunction(utilityTable, gridLocationToRestaurant);
 
 
-// Define agent
+// Construct agent
+
 var makeAgent = function(){
+  
   var act = dp.cache(function(state){
     return Infer({ method: 'enumerate' }, function(){
       var action = uniformDraw(stateToActions(state));
@@ -397,7 +388,6 @@ var makeAgent = function(){
 
   var expectedUtility = dp.cache(function(state, action){
     var u = utility(state, action);
-
     if (state.terminateAfterAction){
       return u; 
     } else {
@@ -408,23 +398,24 @@ var makeAgent = function(){
       }));
     }
   });
-  return { act: act }
+  
+  return { act: act };
 };
 
 var act = makeAgent().act;
 
-var simulate = function(startState){
-  var sampleSequence = function(state){
-    var action = sample(act(state));
-    var nextState = transition(state, action);
-    var out = [state, action];
-    if (state.terminateAfterAction) {
-      return [out];
-    } else {
-      return [out].concat(sampleSequence(nextState));
-    }
-  };
-  return sampleSequence(startState);
+
+// Generate and draw a trajectory
+
+var simulate = function(state){
+  var action = sample(act(state));
+  var nextState = transition(state, action);
+  var out = [state, action];
+  if (state.terminateAfterAction) {
+    return [out];
+  } else {
+    return [out].concat(simulate(nextState));
+  }
 };
 
 var startState = {
@@ -432,7 +423,9 @@ var startState = {
   timeLeft: 9,
   timeAtRestaurant: 1
 };
+
 var trajectory = simulate(startState);
+
 GridWorld.draw(world, {trajectory : map(first, trajectory)});
 ~~~~
 

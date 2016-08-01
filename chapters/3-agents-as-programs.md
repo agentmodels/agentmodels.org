@@ -34,7 +34,7 @@ $$
 {\arg \max}_{a \in A} U(T(s,a))
 $$
 
-In WebPPL, we can implement this utility-maximizing agent as a function `maxAgent` that takes a state $$s \in S$$ as input and returns an action. For Tom's choice between restaurants, we assume that the agent starts off in a state `"default"`, denoting whatever Tom does before going off to eat. The program directly translates the decision rule above using the higher-order function `argMax`.
+In WebPPL, we can implement this utility-maximizing agent as a function `maxAgent` that takes a state $$s \in S$$ as input and returns an action. For Tom's choice between restaurants, we assume that the agent starts off in a state `"initialState"`, denoting whatever Tom does before going off to eat. The program directly translates the decision rule above using the higher-order function `argMax`.
 
 ~~~~
 // Choose to eat at the Italian or French restaurants
@@ -50,7 +50,7 @@ var transition = function(state, action){
 
 var utility = function(state){
   if (state === 'pizza') {
-    return 1;
+    return 10;
   } else {
     return 0;
   }
@@ -64,7 +64,7 @@ var maxAgent = function(state){
     actions);
 };
 
-print("Choice in default state: " + maxAgent("default"));
+print("Choice in initial state: " + maxAgent("initialState"));
 ~~~~
 
 >**Exercise**: What ways are there to make the agent choose the French restaurant?
@@ -106,10 +106,10 @@ var inferenceAgent = function(state){
   });
 };
 
-viz.auto(inferenceAgent("default"));
+viz.auto(inferenceAgent("initialState"));
 ~~~~
 
->**Exercise**: Adjust the agent's goal such that they prefer French food.
+>**Exercise**: Adjust the agent's goal such that they end up going to the French restaurant.
 
 ## One-shot decisions in a stochastic world
 
@@ -133,7 +133,11 @@ var transition = function(state, action){
 };
 
 var utility = function(state){
-  var table = { bad: -10, good: 6, spectacular: 8 };
+  var table = { 
+    bad: -10, 
+    good: 6, 
+    spectacular: 8 
+  };
   return table[state];
 };
 
@@ -146,7 +150,7 @@ var maxEUAgent = function(state){
   return argMax(expectedUtility, actions);
 };
 
-maxEUAgent("default");
+maxEUAgent("initialState");
 ~~~~
 
 >**Exercise**: Adjust the transition probabilities such that the agent prefers Italian food.
@@ -195,7 +199,11 @@ var transition = function(state, action){
 };
 
 var utility = function(state){
-  var table = { bad: -10, good: 6, spectacular: 8 };
+  var table = { 
+    bad: -10, 
+    good: 6, 
+    spectacular: 8 
+  };
   return table[state];
 };
 
@@ -216,7 +224,7 @@ var softMaxAgent = function(state){
   })
 };
 
-viz.auto(softMaxAgent('default'));
+viz.auto(softMaxAgent('initialState'));
 ~~~~
 
 The `softMaxAgent` differs in two ways from the `maxEUAgent` above. First, it uses the planning-as-inference idiom. Second, it does not deterministically choose the action with maximal expected utility. Instead, it implements *soft* maximization, selecting actions with a probability that depends on their expected utility. Formally, let the agent's probability of choosing an action be $$C(a;s)$$ for $$a \in A$$ when in state $$s \in S$$. Then the *softmax* decision rule is:
@@ -238,6 +246,7 @@ Since rational agents will *always* take the best action, why consider softmax a
 > Use the tools introduced above to determine the answer. Here is some code to get you started:
 
 ~~~~
+// Remove each element in array ys from array xs
 var remove = function(xs, ys) {
   return _.without.apply(null, [xs].concat(ys));
 };
@@ -304,7 +313,9 @@ viz.auto(Infer({ method: 'enumerate' }, agent));
 
 ### Moving to complex decision problems
 
-This chapter has introduced some of the core concepts that we will need for this tutorial, including *expected utility*, *(stochastic) transition functions*, *soft conditioning* and *softmax decision making*. These concepts would also appear in standard treatments of rational planning and reinforcement learning refp:russell1995modern. The actual decision problems in this chapter are so trivial that our notation and programs are overkill. The [next chapter](/chapters/3a-mdp.html) introduces *sequential* decisions problems. These problems are more complex and interesting, and will require the machinery we have introduced here. 
+This chapter has introduced some of the core concepts that we will need for this tutorial, including *expected utility*, *(stochastic) transition functions*, *soft conditioning* and *softmax decision making*. These concepts would also appear in standard treatments of rational planning and reinforcement learning refp:russell1995modern. The actual decision problems in this chapter are so trivial that our notation and programs are overkill.
+
+The [next chapter](/chapters/3a-mdp.html) introduces *sequential* decisions problems. These problems are more complex and interesting, and will require the machinery we have introduced here. 
 
 <br>
 

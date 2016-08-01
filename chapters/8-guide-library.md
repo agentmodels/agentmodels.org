@@ -8,7 +8,7 @@ is_section: true
 <!--
 ## Plan for guide
 
-Goal of the guide is to make it easy for people to use the webppl-gridworld library. It should be self-contained, so that people don't need to go through all of agentmodels.org in order to find the guide useful. 
+Goal of the guide is to make it easy for people to use the `webppl-agents` library. It should be self-contained, so that people don't need to go through all of agentmodels.org in order to find the guide useful. 
 
 Contents:
 
