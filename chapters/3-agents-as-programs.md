@@ -41,11 +41,19 @@ In WebPPL, we can implement this utility-maximizing agent as a function `maxAgen
 var actions = ['italian', 'french'];
 
 var transition = function(state, action){
-  return (action === 'italian') ? 'pizza' : 'steak frites';
+  if (action === 'italian') {
+    return 'pizza';
+  } else {
+    return 'steak frites';
+  }
 };
 
 var utility = function(state){
-  return (state === 'pizza') ? 1 : 0;
+  if (state === 'pizza') {
+    return 1;
+  } else {
+    return 0;
+  }
 };
 
 var maxAgent = function(state){
@@ -83,7 +91,11 @@ This idea is known as "planning as inference" refp:botvinick2012planning. It als
 var actions = ['italian', 'french'];
 
 var transition = function(state, action){
-  return (action === 'italian') ? 'pizza' : 'steak frites';
+  if (action === 'italian') {
+    return 'pizza';
+  } else {
+    return 'steak frites';
+  }
 };
 
 var inferenceAgent = function(state){
@@ -116,11 +128,8 @@ var actions = ['italian', 'french'];
 
 var transition = function(state, action){
   var nextStates = ['bad', 'good', 'spectacular'];
-  if (action === 'italian'){ 
-    return categorical([0.2, 0.6, 0.2], nextStates);
-  } else {
-    return categorical([0.05, 0.9, 0.05], nextStates);
-  };
+  var nextProbs = (action === 'italian') ? [0.2, 0.6, 0.2] : [0.05, 0.9, 0.05];
+  return categorical(nextProbs, nextStates);
 };
 
 var utility = function(state){
@@ -181,11 +190,8 @@ Returning to our implementation as planning-as-inference for maximizing *expecte
 ~~~~
 var transition = function(state, action){
   var nextStates = ['bad', 'good', 'spectacular'];
-  if (action === 'italian'){ 
-    return categorical([0.2, 0.6, 0.2], nextStates);
-  } else {
-    return categorical([0.05, 0.9, 0.05], nextStates);
-  };
+  var nextProbs = (action === 'italian') ? [0.2, 0.6, 0.2] : [0.05, 0.9, 0.05];
+  return categorical(nextProbs, nextStates);
 };
 
 var utility = function(state){
@@ -198,7 +204,7 @@ var alpha = 1;
 var softMaxAgent = function(state){
   return Infer({ method: 'enumerate' }, function(){
 
-    var action = uniformDraw(['french', 'italian']);
+    var action = uniformDraw(actions);
 
     var expectedUtility = function(action){
       return expectation(Infer({ method: 'enumerate' }, function(){
