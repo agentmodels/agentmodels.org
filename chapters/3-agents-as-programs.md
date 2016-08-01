@@ -233,7 +233,8 @@ var remove = function(xs, ys) {
 
 var doors = [1, 2, 3];
 
-// Monty chooses a door that is neither Alice's door nor the prize door
+// Monty chooses a door that is neither Alice's door
+// nor the prize door
 var monty = function(aliceDoor, prizeDoor) {
   return Infer({ method: 'enumerate' }, function() {
     var door = uniformDraw(doors);
@@ -245,8 +246,8 @@ var monty = function(aliceDoor, prizeDoor) {
 
 var actions = ['switch', 'stay'];
 
-// If Alice switches, she chooses a door that is neither the one Monty
-// showed nor her previous door
+// If Alice switches, she chooses a door that is neither
+// the one Monty showed nor her previous door
 var transition = function(state, action){
   if (action === 'switch') {
     return {
@@ -259,8 +260,8 @@ var transition = function(state, action){
   }
 };
 
-// Utility is high (say 10) if Alice's door matches the prize door,
-// 0 otherwise.
+// Utility is high (say 10) if Alice's door matches the
+// prize door, 0 otherwise.
 var utility = function(state){
   // ???
 };
