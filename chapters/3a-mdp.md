@@ -143,7 +143,7 @@ var makeAgent = function() {
     }
   };
 
-  return { act : act};
+  return { act : act };
 }
 
 
@@ -207,7 +207,7 @@ var makeAgent = function() {
     }
   };
 
-  return { act : act};
+  return { act : act };
 }
 
 
@@ -243,7 +243,7 @@ print(_.object(numSteps, runtimes));
 viz.bar(numSteps, runtimes)
 ~~~~
 
-Most of this computation is unnecessary. If the agent starts at `state === 0`, there are three ways the agent could be at `state === 0` again after two steps: either the agent stays put twice or the agent goes one step away and then returns. The code above computes `agent(0, totalTime-2)` three times, while it only needs to be computed once. This problem can be resolved by *memoization*, which stores the results of a function call for re-use when the function is called again on the same input. This use of memoization results in a runtime that is polynomial in the number of states and the total time. We explore the efficiency of these algorithms in more detail in Section VI. In WebPPL, we use the higher-order function `dp.cache` to memoize the `act` and `expectedUtility` functions:
+Most of this computation is unnecessary. If the agent starts at `state === 0`, there are three ways the agent could be at `state === 0` again after two steps: either the agent stays put twice or the agent goes one step away and then returns. The code above computes `agent(0, totalTime-2)` three times, while it only needs to be computed once. This problem can be resolved by *memoization*, which stores the results of a function call for re-use when the function is called again on the same input. This use of memoization results in a runtime that is polynomial in the number of states and the total time. <!-- We explore the efficiency of these algorithms in more detail in Section VI. --> In WebPPL, we use the higher-order function `dp.cache` to memoize the `act` and `expectedUtility` functions:
 
 ~~~~
 // transition, utility and makeAgent functions defined exactly as above
@@ -281,7 +281,7 @@ var makeAgent = function() {
     }
   });
 
-  return { act : act};
+  return { act : act };
 }
 
 
@@ -340,7 +340,8 @@ var utilityTable = {
   'Donut N': 1, 
   'Veg': 3,
   'Noodle': 2, 
-  'timeCost': -0.1};
+  'timeCost': -0.1
+};
 
 var tableToUtilityFunction = function(table, feature){
   return function(state, action){
