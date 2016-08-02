@@ -398,7 +398,6 @@ var act = dp.cache(function(state, player) {
   return Infer({ method: 'enumerate' }, function(){
     var move = sample(movePrior(state));
     var eu = expectation(Infer({ method: 'enumerate'}, function(){
-      // var outcome = transition(state, move, player);
       var outcome = simulate(state, move, player);
       return utility(outcome, player);
     }));
