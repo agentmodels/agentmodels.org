@@ -33,7 +33,7 @@ var alice = function() {
 viz.auto(alice());
 ~~~~
 
-Now Alice thinking about Bob:
+Now we model Alice's thinking about Bob:
 
 ~~~~
 var locationPrior = function() {
@@ -63,7 +63,7 @@ var bob = function() {
 viz.auto(alice());
 ~~~~
 
-Now Bob and Alice recursively, also adding caching and a depth parameter (to avoid infinite recursion):
+Now Bob and Alice are thinking recursively about each other. We add caching (to avoid repeated computations) and a depth parameter (to avoid infinite recursion):
 
 ~~~~
 var locationPrior = function() {
@@ -100,127 +100,6 @@ viz.auto(alice(10))
 ~~~~
 
 >**Exercise**: What if Bob wanted to avoid Alice instead of trying to meet up with her, and Alice knows this? What effect does the reasoning depth have in that case? What if recursive reasoning can terminate not just at a fixed depth, but also at random? What if Alice *doesn't* know that Bob wants to avoid her?
-
-## Language understanding
-
-Literal interpretation:
-
-~~~~
-var statePrior = function() {
-  return uniformDraw([0, 1, 2, 3]);
-};
-
-var literalMeanings = {
-  allSprouted: function(state) { return state === 3; },
-  someSprouted: function(state) { return state > 0; },
-  noneSprouted: function(state) { return state === 0; }
-};
-
-var sentencePrior = function() {
-  return uniformDraw(['allSprouted', 'someSprouted', 'noneSprouted']);
-};
-
-var literalListener = function(sentence) {
-  return Infer({ method: 'enumerate' }, function(){
-    var state = statePrior();
-    var meaning = literalMeanings[sentence];
-    condition(meaning(state));
-    return state;
-  })
-};
-
-viz.auto(literalListener('someSprouted'));
-~~~~
-
-A pragmatic speaker, thinking about the literal listener:
-
-~~~~
-var alpha = 2;
-
-///fold: statePrior, literalMeanings, sentencePrior
-var statePrior = function() {
-  return uniformDraw([0, 1, 2, 3]);
-};
-
-var literalMeanings = {
-  allSprouted: function(state) { return state === 3; },
-  someSprouted: function(state) { return state > 0; },
-  noneSprouted: function(state) { return state === 0; }
-};
-
-var sentencePrior = function() {
-  return uniformDraw(['allSprouted', 'someSprouted', 'noneSprouted']);
-};
-///
-
-var literalListener = function(sentence) {
-  return Infer({ method: 'enumerate' }, function(){
-    var state = statePrior();
-    var meaning = literalMeanings[sentence];
-    condition(meaning(state));
-    return state;
-  })
-};
-
-var speaker = function(state) {
-  return Infer({ method: 'enumerate' }, function(){
-    var sentence = sentencePrior();
-    factor(alpha * literalListener(sentence).score(state));
-    return sentence;
-  });
-}
-
-viz.auto(speaker(3));
-~~~~
-
-Pragmatic listener, thinking about speaker:
-
-~~~~
-var alpha = 2;
-
-///fold: statePrior, literalMeanings, sentencePrior
-var statePrior = function() {
-  return uniformDraw([0, 1, 2, 3]);
-};
-
-var literalMeanings = {
-  allSprouted: function(state) { return state === 3; },
-  someSprouted: function(state) { return state > 0; },
-  noneSprouted: function(state) { return state === 0; }
-};
-
-var sentencePrior = function() {
-  return uniformDraw(['allSprouted', 'someSprouted', 'noneSprouted']);
-};
-///
-
-var literalListener = dp.cache(function(sentence) {
-  return Infer({ method: 'enumerate' }, function(){
-    var state = statePrior();
-    var meaning = literalMeanings[sentence];
-    condition(meaning(state));
-    return state;
-  })
-});
-
-var speaker = dp.cache(function(state) {
-  return Infer({ method: 'enumerate' }, function(){
-    var sentence = sentencePrior();
-    factor(alpha * literalListener(sentence).score(state));
-    return sentence;
-  });
-});
-
-var listener = dp.cache(function(sentence) {
-  return Infer({ method: 'enumerate' }, function(){
-    var state = statePrior();
-    factor(speaker(state).score(sentence));
-    return state;
-  })
-});
-
-viz.auto(listener('someSprouted'));
-~~~~
 
 ## Game playing
 
@@ -417,8 +296,11 @@ var utility = function(state, player) {
 var act = dp.cache(function(state, player) {
   return Infer({ method: 'enumerate' }, function(){
     var move = sample(movePrior(state));
-    var outcome = transition(state, move, player);
-    factor(utility(outcome, player));
+    var eu = expectation(Infer({ method: 'enumerate'}, function(){
+      var outcome = transition(state, move, player);
+      return utility(outcome, player);
+    }));
+    factor(eu);    
     return move;
   });
 });
@@ -429,7 +311,7 @@ var startState = [
   ['?', '?', '?']
 ];
 
-viz.auto(act(startState, 'o'))
+viz.auto(act(startState, 'x'));
 ~~~~
 
 And now let's include planning:
@@ -495,12 +377,16 @@ var utility = function(state, player) {
   }
 };
 
-var isTerminal = function(state) {
+var isComplete = function(state) {
   return all(
     function(x){
       return x != '?';
     },
     _.flatten(state));
+}
+
+var isTerminal = function(state) {
+  return hasWon(state, 'x') || hasWon(state, 'o') || isComplete(state);  
 };
 ///
 
@@ -512,10 +398,11 @@ var act = dp.cache(function(state, player) {
   return Infer({ method: 'enumerate' }, function(){
     var move = sample(movePrior(state));
     var eu = expectation(Infer({ method: 'enumerate'}, function(){
+      // var outcome = transition(state, move, player);
       var outcome = simulate(state, move, player);
       return utility(outcome, player);
     }));
-    factor(eu);
+    factor(eu);    
     return move;
   });
 });
@@ -532,16 +419,136 @@ var simulate = function(state, action, player) {
 };
 
 var startState = [
-  ['?', '?', '?'],
+  ['o', '?', '?'],
   ['?', '?', 'x'],
-  ['?', 'o', 'x']
+  ['?', '?', '?']
 ];
 
 var actDist = act(startState, 'o');
 
 viz.auto(actDist);
-
-actDist.toString()
 ~~~~
+
+## Language understanding
+
+Literal interpretation:
+
+~~~~
+var statePrior = function() {
+  return uniformDraw([0, 1, 2, 3]);
+};
+
+var literalMeanings = {
+  allSprouted: function(state) { return state === 3; },
+  someSprouted: function(state) { return state > 0; },
+  noneSprouted: function(state) { return state === 0; }
+};
+
+var sentencePrior = function() {
+  return uniformDraw(['allSprouted', 'someSprouted', 'noneSprouted']);
+};
+
+var literalListener = function(sentence) {
+  return Infer({ method: 'enumerate' }, function(){
+    var state = statePrior();
+    var meaning = literalMeanings[sentence];
+    condition(meaning(state));
+    return state;
+  })
+};
+
+viz.auto(literalListener('someSprouted'));
+~~~~
+
+A pragmatic speaker, thinking about the literal listener:
+
+~~~~
+var alpha = 2;
+
+///fold: statePrior, literalMeanings, sentencePrior
+var statePrior = function() {
+  return uniformDraw([0, 1, 2, 3]);
+};
+
+var literalMeanings = {
+  allSprouted: function(state) { return state === 3; },
+  someSprouted: function(state) { return state > 0; },
+  noneSprouted: function(state) { return state === 0; }
+};
+
+var sentencePrior = function() {
+  return uniformDraw(['allSprouted', 'someSprouted', 'noneSprouted']);
+};
+///
+
+var literalListener = function(sentence) {
+  return Infer({ method: 'enumerate' }, function(){
+    var state = statePrior();
+    var meaning = literalMeanings[sentence];
+    condition(meaning(state));
+    return state;
+  })
+};
+
+var speaker = function(state) {
+  return Infer({ method: 'enumerate' }, function(){
+    var sentence = sentencePrior();
+    factor(alpha * literalListener(sentence).score(state));
+    return sentence;
+  });
+}
+
+viz.auto(speaker(3));
+~~~~
+
+Pragmatic listener, thinking about speaker:
+
+~~~~
+var alpha = 2;
+
+///fold: statePrior, literalMeanings, sentencePrior
+var statePrior = function() {
+  return uniformDraw([0, 1, 2, 3]);
+};
+
+var literalMeanings = {
+  allSprouted: function(state) { return state === 3; },
+  someSprouted: function(state) { return state > 0; },
+  noneSprouted: function(state) { return state === 0; }
+};
+
+var sentencePrior = function() {
+  return uniformDraw(['allSprouted', 'someSprouted', 'noneSprouted']);
+};
+///
+
+var literalListener = dp.cache(function(sentence) {
+  return Infer({ method: 'enumerate' }, function(){
+    var state = statePrior();
+    var meaning = literalMeanings[sentence];
+    condition(meaning(state));
+    return state;
+  })
+});
+
+var speaker = dp.cache(function(state) {
+  return Infer({ method: 'enumerate' }, function(){
+    var sentence = sentencePrior();
+    factor(alpha * literalListener(sentence).score(state));
+    return sentence;
+  });
+});
+
+var listener = dp.cache(function(sentence) {
+  return Infer({ method: 'enumerate' }, function(){
+    var state = statePrior();
+    factor(speaker(state).score(sentence));
+    return state;
+  })
+});
+
+viz.auto(listener('someSprouted'));
+~~~~
+
 
 Next chapter: [How to use the WebPPL Agent Models library](/chapters/8-using-gridworld-library.html)
