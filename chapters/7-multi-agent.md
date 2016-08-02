@@ -99,11 +99,17 @@ var bob = dp.cache(function(depth) {
 viz.auto(alice(10))
 ~~~~
 
->**Exercise**: What if Bob wanted to avoid Alice instead of trying to meet up with her, and Alice knows this? What effect does the reasoning depth have in that case? What if recursive reasoning can terminate not just at a fixed depth, but also at random? What if Alice *doesn't* know that Bob wants to avoid her?
+>**Exercise**: Change the example to the setting where Bob wants to avoid Alice instead of trying to meet up with her, and Alice knows this. How do the predictions change as the reasoning depth grows? How would you model the setting where Alice doesn't know that Bob wants to avoid her?
+
+>**Exercise**: Would any of the answers to the previous exercise change if recursive reasoning could terminate not just at a fixed depth, but also at random?
 
 ## Game playing
 
-We'll look at the two-player game tic-tac-toe.
+We'll look at the two-player game tic-tac-toe [^tictactoeimg]:
+
+[^tictactoeimg]: Image source: [Wikipedia](https://en.wikipedia.org/wiki/Tic-tac-toe#/media/File:Tic-tac-toe-game-1.svg)
+
+<img src="/assets/img/tic-tac-toe-game-1.svg" />
 
 Let's start with a prior on moves:
 
@@ -430,6 +436,8 @@ viz.auto(actDist);
 
 ## Language understanding
 
+A model of pragmatic language interpretation: The speaker chooses a sentence conditioned on the listener inferring the intended state of the world when hearing this sentence; the listener chooses an interpretation conditioned on the speaker selecting the given utterance when intending this meaning.
+
 Literal interpretation:
 
 ~~~~
@@ -549,5 +557,8 @@ var listener = dp.cache(function(sentence) {
 viz.auto(listener('someSprouted'));
 ~~~~
 
-
 Next chapter: [How to use the WebPPL Agent Models library](/chapters/8-using-gridworld-library.html)
+
+<br>
+
+### Footnotes
