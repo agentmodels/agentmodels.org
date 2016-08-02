@@ -99,7 +99,7 @@ var bob = dp.cache(function(depth) {
 viz.auto(alice(10))
 ~~~~
 
->**Exercise**: What if Bob wanted to avoid Alice instead of trying to meet up with her? What effect does the reasoning depth have in that case? What if recursive reasoning can terminate not just at a fixed depth, but also at random?
+>**Exercise**: What if Bob wanted to avoid Alice instead of trying to meet up with her, and Alice knows this? What effect does the reasoning depth have in that case? What if recursive reasoning can terminate not just at a fixed depth, but also at random? What if Alice *doesn't* know that Bob wants to avoid her?
 
 ## Language understanding
 
