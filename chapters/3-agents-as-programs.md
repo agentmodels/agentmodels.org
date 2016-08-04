@@ -192,6 +192,8 @@ $$
 Returning to our implementation as planning-as-inference for maximizing *expected* utility, we use a `factor` statement to implement soft conditioning:
 
 ~~~~
+var actions = ['italian', 'french'];
+
 var transition = function(state, action){
   var nextStates = ['bad', 'good', 'spectacular'];
   var nextProbs = (action === 'italian') ? [0.2, 0.6, 0.2] : [0.05, 0.9, 0.05];
