@@ -521,12 +521,12 @@ var observedSequence = simulate(bandit.startState, bandit.world, simpleAgent,
 
 // We know agent's prior, which is that either arm1 yields
 // nothing or it yields champagne.
-var priorInitialBelief = Delta({ v: Infer({ method: 'enumerate' }, function( }){
+var priorInitialBelief = Delta({ v: Infer({ method: 'enumerate' }, function( ){
   var armToPrizeDist = uniformDraw([trueArmToPrizeDist,
                                    update(trueArmToPrizeDist,
 								          {1:Delta({ v: 'nothing' })})]);
   return makeBanditStartState(5, armToPrizeDist);
-}));
+})});
 
 // Agent either prefers chocolate or champagne.
 var likesChampagne = {nothing: 0,
@@ -535,7 +535,7 @@ var likesChampagne = {nothing: 0,
 var likesChocolate = {nothing: 0,
 		              champagne: 3,
 					  chocolate: 5};
-var priorPrizeToUtility = categoricalDist({ ps: [0.5, 0.5], vs: [likesChampagne, likesChocolate]);
+var priorPrizeToUtility = Categorical({ ps: [0.5, 0.5], vs: [likesChampagne, likesChocolate]});
 var baseParams = {alpha:1000};
 var posterior = agentModelsBanditInfer(baseParams, priorPrizeToUtility,
 	                                   priorInitialBelief, bandit,
