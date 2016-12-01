@@ -7,15 +7,13 @@ is_section: true
 
 ## Introduction
 
-The goal for this section is to implement agents that compute rational *policies*. We can think of policies as *plans* for achieving good outcomes in situations where:
+Our goal is to implement agents that compute rational *policies*. Policies are *plans* for achieving good outcomes in environments where:
 
-- The agent makes a *sequence* of *distinct* choices, rather than choosing once or playing the same game repeatedly (as in multiple rounds of roulette). 
+- The agent makes a *sequence* of *distinct* choices, rather than choosing once.
 
-- The environment is *stochastic* and so the agent's plans must take into account unlikely contingencies (e.g. avoiding a series of actions that has unlikely but calamitous risks). 
+- The environment is *stochastic* (or "random").
 
-- The environment contains features which are not stochastic, but which are initially *unknown* to the agent. The agent's plans should value gaining information by *observation* that will facilitate better future plans. 
-
-As a concrete example, consider navigating a foreign city to efficiently find a good coffee shop.
+- Some features of the environment are initially *unknown* to the agent. (So the agent chooses to gain information in order to improve future decisions.)
 
 To build up to agents that form such policies, we start with agents that solve the very simplest decision problems. These are *one-shot* problems, where the agent selects a single action (not a sequence of actions). The problems can be trivially solved with pen and paper. We use WebPPL to solve them in order to illustrate the core concepts and idioms that we will use to tackle more complex problems. 
 
