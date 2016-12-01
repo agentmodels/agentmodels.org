@@ -54,13 +54,15 @@ var baseParams = {
 };
 
 var armToPlace = function(arm){
-  return {0: "Tahoe",
-          1: "Chile",
-          2: "Switzerland"}[arm];
+  return {
+    0: "Tahoe",
+    1: "Chile",
+    2: "Switzerland"
+  }[arm];
 };
 
-var display = function(trajectory){
-  return map( armToPlace, most(trajectory) );
+var display = function(trajectory) {
+  return map(armToPlace, most(trajectory));
 };
 ///
 
@@ -79,7 +81,7 @@ var numberOfTrials = 10;
 var bandit = makeBandit({
   numberOfArms: 3,
   armToPrizeDist: trueArmToPrizeDist,
-  numberOfTrials: numberOfTrials,
+  numberOfTrials,
   numericalPrizes: true
 });
 
@@ -87,28 +89,29 @@ var world = bandit.world;
 var start = bandit.startState;
 
 // Agent prior for utility of each destination
-var priorBelief = Infer({ method: 'enumerate' }, function(){
+var priorBelief = Infer({ model() {
   var armToPrizeDist = {
-    0: Delta({ v: 1 }), // Tahoe has known utility 1
+    // Tahoe has known utility 1:
+    0: Delta({ v: 1 }),
+    // Chile has high variance:
     1: categorical([0.9, 0.1],
-	               [Delta({ v: 0 }), Delta({ v: 5 })]), // Chile has high variance
-	2: uniformDraw([Delta({ v: 0.5 }), Delta({ v: 1.5 })])
-	// Switzerland has high expected value
+                   [Delta({ v: 0 }), Delta({ v: 5 })]),
+    // Switzerland has high expected value:
+    2: uniformDraw([Delta({ v: 0.5 }), Delta({ v: 1.5 })])    
   };
   return makeBanditStartState(numberOfTrials, armToPrizeDist);
-});
+}});
 
 var discountFunction = function(delay) {
   return Math.pow(0.5, delay);
 };
 
-var exponentialParams = update(baseParams, {discountFunction: discountFunction,
-                                            priorBelief: priorBelief});
+var exponentialParams = update(baseParams, { discountFunction, priorBelief });
 var exponentialAgent = makeBanditAgent(exponentialParams, bandit,
-	                                   'beliefDelay');
+                                       'beliefDelay');
 var exponentialTrajectory = simulate(start, world, exponentialAgent, 'actions');
 
-var optimalParams = update(baseParams, {priorBelief: priorBelief});
+var optimalParams = update(baseParams, { priorBelief });
 var optimalAgent = makeBanditAgent(optimalParams, bandit, 'belief');
 var optimalTrajectory = simulate(start, world, optimalAgent, 'actions');
 
@@ -151,21 +154,21 @@ var hypDiscount = function(delay) {
 };
 var makeExpDatum = function(delay){
   return {
-    delay: delay, 
+    delay, 
     discountFactor: expDiscount(delay),
     discountType: 'Exponential discounting: 1/2^t'
   };
 };
 var makeHypDatum = function(delay){
   return {
-    delay: delay,
+    delay,
     discountFactor: hypDiscount(delay),
     discountType: 'Hyperbolic discounting: 1/(1 + 2t)'
   };
 };
 var expData = map(makeExpDatum, delays);
 var hypData = map(makeHypDatum, delays);
-viz.line(expData.concat(hypData), {groupBy: 'discountType'});
+viz.line(expData.concat(hypData), { groupBy: 'discountType' });
 ~~~~
 
 >**Figure 2:** Graph comparing exponential and hyperbolic discount curves. 
@@ -176,6 +179,7 @@ viz.line(expData.concat(hypData), {groupBy: 'discountType'});
 >2. The discounted utility of the $100 and $110 rewards relative to Day 4 (i.e. how much each option is valued when the rewards are 0 or 1 day away).
 
 ### Time inconsistency and sequential decision problems
+
 We have shown that hyperbolic discounters have different preferences over the $100 and $110 depending on when they make the evaluation. This conflict in preferences leads to complexities in planning that don't occur in the optimal (PO)MDP agents which either discount exponentially or do not discount at all.
 
 Returning to the previous example (see exercise above), imagine you have time inconsistent preferences. On Day 0, you write down your preference but on Day 4 you'll be free to change your mind. If you know your future self would choose the $100 immediately, you'd pay a small cost now to *pre-commit* your future self. However, if you believe your future self will share your current preferences, you won't pay this cost (and so you'll end up taking the $100). This illustrates a key distinction between Naive and Sophisticated agents:
@@ -190,6 +194,7 @@ Both kinds of agents will value rewards differently at different times. To disti
 
 
 ### Naive and Sophisticated Agents: Gridworld Example
+
 Before describing our formal model and implementation of Naive and Sophisticated hyperbolic discounters, we illustrate their contrasting behavior using the Restaurant Choice example. We use the MDP version, where the agent has full knowledge of the locations of restaurants and of which restaurants are open. Recall the problem setup: 
 
 >**Restaurant Choice**: Bob is looking for a place to eat. His decision problem is to take a sequence of actions such that (a) he eats at a restaurant he likes and (b) he does not spend too much time walking. The restaurant options are: the Donut Store, the Vegetarian Salad Bar, and the Noodle Shop. The Donut Store is a chain with two local branches. We assume each branch has identical utility for Bob. We abbreviate the restaurant names as "Donut South", "Donut North", "Veg" and "Noodle".
@@ -216,7 +221,7 @@ var world = makeRestaurantChoiceMDP();
 var trajectory = restaurantNameToObservationTime11['naive'];
 print('Observations for Naive agent loaded from library function: \n' 
        + JSON.stringify(trajectory) + ' \n');
-GridWorld.draw(world, { trajectory: trajectory });
+GridWorld.draw(world, { trajectory });
 ~~~~
 
 ~~~~
@@ -225,7 +230,7 @@ var world = makeRestaurantChoiceMDP();
 var trajectory = restaurantNameToObservationTime11['sophisticated'];
 print('Observations for Sophisticated agent loaded from library function: \n' 
        + JSON.stringify(trajectory) + ' \n');
-GridWorld.draw(world, { trajectory: trajectory });       
+GridWorld.draw(world, { trajectory });
 ~~~~
 
 >**Exercise:** (Try this exercise *before* reading further). Your goal is to do preference inference from the observed actions in the codeboxes above (using only a pen and paper). The discount function is the hyperbola $$D=1/(1+kt)$$, where $$t$$ is the time from the present, $$D$$ is the discount factor (to be multiplied by the utility) and $$k$$ is a positive constant. Find a single setting for the utilities and discount function that produce the behavior in both the codeboxes above. This includes utilities for the restaurants (both *immediate* and *delayed*) and for the `timeCost` (the negative utility for each additional step walked), as well as the discount constant $$k$$. Assume there is no softmax noise. 
