@@ -175,9 +175,9 @@ print("Agent's trajectory: " + simulate(startState, totalTime));
 
 >**Exercise**: Change the agent's utility function such that the agent moves as far as possible to the right, given its available total time.
 
-The `expectedUtility` and `simulate` functions are similar. The `expectedUtilty` function includes the agent's own (subjective) simulation of the future distribution on states. In the case of an MDP and an optimal agent, the agent's simulation is identical to the world simulator (up to irreducible random noise in the transition and choice functions). In later chapters, we describe agents whose subjective simulations diverge from the world simulator -- i.e. agents with inaccurate models of their future selves. 
+The `expectedUtility` and `simulate` functions are similar. The `expectedUtilty` function includes the agent's own (*subjective*) simulation of the future distribution on states. In the case of an MDP and optimal agent, the agent's simulation is identical to the world simulator. In later chapters, we describe agents whose subjective simulations differ from the world simulator. These agents either have inaccurate models of their own future choices or innacurate models of the world.
 
-What does the mutual recursion between `act` and `expectedUtility` look like if we unroll it? In this example, where the transition function is deterministic, there is a tree that expands until `timeLeft` reaches zero. The root is the starting state (`startState === 0`) and this branches into three successor states (`-1`, `0`, `1`). This leads to an exponential blow-up in the runtime of a single action (as a function of the number of steps taken into account when considering the future):
+We already mentioned the mutual recursion between `act` and `expectedUtility`. What does this recursion look like if we unroll it? In this example we get a tree that expands until `timeLeft` reaches zero. The root is the starting state (`startState === 0`) and this branches into three successor states (`-1`, `0`, `1`). This leads to an exponential blow-up in the runtime of a single action (which depends on how long into the future the agent plans):
 
 ~~~~
 // transition, utility and makeAgent functions defined exactly as above
@@ -334,6 +334,8 @@ viz.bar(numSteps, runtimes)
 The agent model above that includes memoization allows us to solve Bob's "Restaurant Choice" problem efficiently. 
 
 We extend the agent model above by adding a `terminateAfterAction` to certain states to halt simulations when the agent reaches these states. For the Restaurant Choice problem, the restaurants are assumed to be terminal states. After computing the agent's trajectory, we use the [webppl-agents library](https://github.com/agentmodels/webppl-agents) to animate it. 
+
+<!-- TODO try to simplify the code above or explain a bit more about how webppl-agents and gridworld stuff works -->
 
 ~~~~
 // We use the webppl-agents library
