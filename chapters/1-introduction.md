@@ -11,11 +11,11 @@ Imagine a dataset that records how individuals move through a city. The figure b
 
 Given Bob's movements alone, what can we infer about his preferences and beliefs? Since Bob spent a long time at the Donut Store, we infer that he bought something there. Since Bob could easily have walked to one of the other nearby eateries, we infer that Bob prefers donuts to noodles or salad.
 
-Assuming Bob likes donuts, why did he not choose the store closer to his starting point ("Donut South")? The cause might be Bob's *beliefs* rather than his *preferences*. He may not know about "Donut South", maybe because it just opened. Or Donut South may have different hours than Donut North and Bob may know about this.
+Assuming Bob likes donuts, why didn't he choose the store closer to his starting point ("Donut South")? The cause might be Bob's *beliefs* and *knowledge* rather than his *preferences*. Perhaps Bob doesn't know about "Donut South" because it just opened. Or perhaps Bob knows about Donut South but chose Donut North because it is open later.
 
 A different explanation is that Bob *intended* to go to the healthier "Vegetarian Salad Bar". However, the most efficient route to the Salad Bar takes him directly past Donut North, and once outside, he found donuts more tempting than salad.
 
-We have described a variety of inferences about Bob which would explain his behavior. This tutorial develops models for inference that represent these different explanations and quantitatively compare their plausibility. These models can also simulate an agent's behavior in novel scenarios: for example, predicting Bob's behavior if he looked for food in a different part of the city. 
+We have described a variety of inferences about Bob which would explain his behavior. This tutorial develops models for inference that represent these different explanations and allow us to compute which explanations are most plausible. These models can also simulate an agent's behavior in novel scenarios: for example, predicting Bob's behavior if he looked for food in a different part of the city. 
 
 <!-- Remove because we don't do hierarchical case
 Now, suppose that our dataset shows that a significant number of different individuals took exactly the same path as Bob. How would this change our conclusions about him? It could be that everyone is tempted away from healthy food in the way Bob potentially was. But this seems unlikely. Instead, it is now more plausible that Donut South is closed or that it is a new branch that few people know about. 
