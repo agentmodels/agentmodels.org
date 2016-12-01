@@ -27,7 +27,7 @@ var world = makeRestaurantChoiceMDP();
 var trajectory = restaurantNameToObservationTime11['naive'];
 print('Observations loaded from library function: \n' 
        + JSON.stringify(trajectory) + ' \n');
-GridWorld.draw(world, {trajectory:trajectory});
+GridWorld.draw(world, { trajectory });
 ~~~~
 
 For inference, we specialize the approach in the previous <a href="/chapters/5d-joint-inference.html#formalization">chapter</a> for agents in MDPs that are potentially time inconsistent. So we infer $$\nu$$ and $$k$$ (the hyperbolic discounting parameters) but not the initial belief state $$b_0$$. The function `exampleGetPosterior` is a slightly simplified version of the library function we use below.
@@ -36,7 +36,7 @@ For inference, we specialize the approach in the previous <a href="/chapters/5d-
 // getPosterior_function
 
 var exampleGetPosterior = function(world, prior, observedStateAction){
-  return Infer({ method: 'enumerate' }, function () {
+  return Infer({ model() {
 
     // Sample parameters from prior
     var priorUtility = prior.priorUtility;
@@ -45,6 +45,7 @@ var exampleGetPosterior = function(world, prior, observedStateAction){
     var sophisticatedOrNaive = priorDiscounting().sophisticatedOrNaive;
 
     var priorAlpha = prior.priorAlpha;
+    
     // Create agent with those parameters
     var agent = makeMDPAgent({ 
       utility: makeRestaurantUtilityFunction(world, utilityTable),
@@ -69,10 +70,10 @@ var exampleGetPosterior = function(world, prior, observedStateAction){
       utility: utilityTable, 
       sophisticatedOrNaive: discounting.sophisticatedOrNaive,
       discount: discounting.discount, 
-      alpha: alpha,
-      vegMinusDonut: vegMinusDonut,
+      alpha,
+      vegMinusDonut,
     };
-  });
+  }});
 };
 ~~~~
 
@@ -109,7 +110,7 @@ var displayResults = function(priorDist, posteriorDist) {
   };
 
   var sophisticationPriorDataTable = map(
-    function(x){
+    function(x) {
       return {
         sophisticatedOrNaive: x,
         probability: getPriorProb({sophisticatedOrNaive: x}),
@@ -159,7 +160,7 @@ var displayResults = function(priorDist, posteriorDist) {
   viz.bar(vegMinusDonutDataTable, { groupBy: 'distribution' });
 
   var donutTemptingPriorDataTable = map(
-    function(x){
+    function(x) {
       return {
         donutTempting: x,
         probability: getPriorProb({donutTempting: x}),
@@ -169,7 +170,7 @@ var displayResults = function(priorDist, posteriorDist) {
     [true, false]);
 
   var donutTemptingPosteriorDataTable = map(
-    function(x){
+    function(x) {
       return {
         donutTempting: x,
         probability: getPosteriorProb({donutTempting: x}),
@@ -208,7 +209,7 @@ var priorDiscounting = function(){
     sophisticatedOrNaive: uniformDraw(['naive','sophisticated'])
   };
 };
-var priorAlpha = function(){return 1000;};
+var priorAlpha = function(){ return 1000; };
 var prior = {
   utility: priorUtility,
   discounting: priorDiscounting,
@@ -236,7 +237,7 @@ Using the same prior, we condition on the "Sophisticated" path (i.e. the path di
 // draw_sophisticated_path
 var world = makeRestaurantChoiceMDP();
 var trajectory = restaurantNameToObservationTime11['sophisticated'];
-GridWorld.draw(world, { trajectory: trajectory });
+GridWorld.draw(world, { trajectory });
 ~~~~
 
 Here are the results of inference: 
@@ -261,13 +262,13 @@ var displayResults = function(priorDist, posteriorDist) {
         + posteriorUtility['Veg'] + '. Donut: ' + posteriorUtility['Donut N']
         + ' \n');
 
-  var getPriorProb = function(x){
+  var getPriorProb = function(x) {
     var label = _.keys(x)[0];
     var dist = getMarginalObject(priorDist, label);
     return Math.exp(dist.score(x));
   };
 
-  var getPosteriorProb = function(x){
+  var getPosteriorProb = function(x) {
     var label = _.keys(x)[0];
     var dist = getMarginalObject(posteriorDist, label);
     return Math.exp(dist.score(x));
@@ -275,12 +276,12 @@ var displayResults = function(priorDist, posteriorDist) {
 
   var sophisticationPriorDataTable = map(
     function(x){
-    return {
-      sophisticatedOrNaive: x,
-      probability: getPriorProb({sophisticatedOrNaive: x}),
-      distribution: 'prior'
-    };
-  },
+      return {
+        sophisticatedOrNaive: x,
+        probability: getPriorProb({sophisticatedOrNaive: x}),
+        distribution: 'prior'
+      };
+    },
     ['naive', 'sophisticated']);
 
   var sophisticationPosteriorDataTable = map(
@@ -299,7 +300,7 @@ var displayResults = function(priorDist, posteriorDist) {
   viz.bar(sophisticatedOrNaiveDataTable, { groupBy: 'distribution' });
 
   var vegMinusDonutPriorDataTable = map(
-    function(x){
+    function(x) {
       return {
         vegMinusDonut: x,
         probability: getPriorProb({vegMinusDonut: x}),
@@ -309,7 +310,7 @@ var displayResults = function(priorDist, posteriorDist) {
     [-60, -50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50, 60]);
 
   var vegMinusDonutPosteriorDataTable = map(
-    function(x){
+    function(x) {
       return {
         vegMinusDonut: x,
         probability: getPosteriorProb({vegMinusDonut: x}),
@@ -321,23 +322,23 @@ var displayResults = function(priorDist, posteriorDist) {
   var vegMinusDonutDataTable = append(vegMinusDonutPriorDataTable,
                                       vegMinusDonutPosteriorDataTable);
 
-  viz.bar(vegMinusDonutDataTable, {groupBy: 'distribution'});
+  viz.bar(vegMinusDonutDataTable, { groupBy: 'distribution' });
 
   var donutTemptingPriorDataTable = map(
-    function(x){
+    function(x) {
       return {
         donutTempting: x,
-        probability: getPriorProb({donutTempting: x}),
+        probability: getPriorProb({ donutTempting: x }),
         distribution: 'prior'
       };
     },
     [true, false]);
 
   var donutTemptingPosteriorDataTable = map(
-    function(x){
+    function(x) {
       return {
         donutTempting: x,
-        probability: getPosteriorProb({donutTempting: x}),
+        probability: getPosteriorProb({ donutTempting: x }),
         distribution: 'posterior'
       };
     },
@@ -350,7 +351,7 @@ var displayResults = function(priorDist, posteriorDist) {
 };
 
 // Prior on agent's utility function
-var priorUtility = function(){
+var priorUtility = function() {
   var utilityValues =  [-10, 0, 10, 20];
   var donut = [uniformDraw(utilityValues), uniformDraw(utilityValues)];
   var veg = [uniformDraw(utilityValues), uniformDraw(utilityValues)];
@@ -369,7 +370,7 @@ var priorDiscounting = function(){
     sophisticatedOrNaive: uniformDraw(['naive','sophisticated'])
   };
 };
-var priorAlpha = function(){return 1000;};
+var priorAlpha = function(){ return 1000; };
 var prior = {
   utility: priorUtility,
   discounting: priorDiscounting,
@@ -390,7 +391,7 @@ If the agent goes directly to Veg, then they don't provide information about whe
 // draw_vegDirect_path
 var world = makeRestaurantChoiceMDP();
 var trajectory = restaurantNameToObservationTime11['vegDirect'];
-GridWorld.draw(world, { trajectory: trajectory });
+GridWorld.draw(world, { trajectory });
 ~~~~
 
 Here are the results of inference: 
@@ -414,25 +415,25 @@ var displayResults = function(priorDist, posteriorDist) {
 	+ posteriorUtility['Veg'] + '. Donut: ' + posteriorUtility['Donut N']
 	+ ' \n');
   
-  var getPriorProb = function(x){
+  var getPriorProb = function(x) {
     var label = _.keys(x)[0];
     var dist = getMarginalObject(priorDist, label);
     return Math.exp(dist.score(x));
   };
 
-  var getPosteriorProb = function(x){
+  var getPosteriorProb = function(x) {
     var label = _.keys(x)[0];
     var dist = getMarginalObject(posteriorDist, label);
     return Math.exp(dist.score(x));
   };
 
-  var sophisticationPriorDataTable = map(function(x){
+  var sophisticationPriorDataTable = map(function(x) {
     return {sophisticatedOrNaive: x,
 	        probability: getPriorProb({sophisticatedOrNaive: x}),
 			distribution: 'prior'};
   }, ['naive', 'sophisticated']);
 
-  var sophisticationPosteriorDataTable = map(function(x){
+  var sophisticationPosteriorDataTable = map(function(x) {
     return {sophisticatedOrNaive: x,
 	        probability: getPosteriorProb({sophisticatedOrNaive: x}),
 	        distribution: 'posterior'};
@@ -441,12 +442,14 @@ var displayResults = function(priorDist, posteriorDist) {
   var sophisticatedOrNaiveDataTable = append(sophisticationPriorDataTable,
 					                         sophisticationPosteriorDataTable);
 
-  viz.bar(sophisticatedOrNaiveDataTable, {groupBy: 'distribution'});
+  viz.bar(sophisticatedOrNaiveDataTable, { groupBy: 'distribution' });
 
   var vegMinusDonutPriorDataTable = map(function(x){
-    return {vegMinusDonut: x,
-	        probability: getPriorProb({vegMinusDonut: x}),
-	        distribution: 'prior'};
+    return {
+      vegMinusDonut: x,
+      probability: getPriorProb({vegMinusDonut: x}),
+      distribution: 'prior'
+    };
   }, [-60, -50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50, 60]);
 
   var vegMinusDonutPosteriorDataTable = map(function(x){
@@ -462,45 +465,53 @@ var displayResults = function(priorDist, posteriorDist) {
 
   
   var donutTemptingPriorDataTable = map(function(x){
-    return {donutTempting: x,
-	        probability: getPriorProb({donutTempting: x}),
-			distribution: 'prior'};
+    return {
+      donutTempting: x,
+      probability: getPriorProb({donutTempting: x}),
+      distribution: 'prior'
+    };
   }, [true, false]);
 
   var donutTemptingPosteriorDataTable = map(function(x){
-    return {donutTempting: x,
-	        probability: getPosteriorProb({donutTempting: x}),
-			distribution: 'posterior'};
+    return {
+      donutTempting: x,
+      probability: getPosteriorProb({donutTempting: x}),
+      distribution: 'posterior'
+    };
   }, [true, false]);
 
   var donutTemptingDataTable = append(donutTemptingPriorDataTable,
 				                      donutTemptingPosteriorDataTable);
 
-  viz.bar(donutTemptingDataTable, {groupBy: 'distribution'});
+  viz.bar(donutTemptingDataTable, { groupBy: 'distribution' });
 };
 
 // Prior on agent's utility function
-var priorUtility = function(){
+var priorUtility = function() {
   var utilityValues =  [-10, 0, 10, 20];
   var donut = [uniformDraw(utilityValues), uniformDraw(utilityValues)];
   var veg = [uniformDraw(utilityValues), uniformDraw(utilityValues)];
   return {
-    'Donut N' : donut,
-    'Donut S' : donut,
-    'Veg'     : veg,
-    'Noodle'  : [-10, -10],
+    'Donut N': donut,
+    'Donut S': donut,
+    'Veg': veg,
+    'Noodle': [-10, -10],
     'timeCost': -.01
   };
 };
 
-var priorDiscounting = function(){ 
+var priorDiscounting = function() {
   return {
     discount: 1,
     sophisticatedOrNaive: uniformDraw(['naive','sophisticated'])
   };
 };
 var priorAlpha = function(){return 1000;};
-var prior = {utility:priorUtility, discounting:priorDiscounting, alpha:priorAlpha};
+var prior = {
+  utility: priorUtility,
+  discounting: priorDiscounting, 
+  alpha: priorAlpha
+};
 ///
 
 // Get world and observations
@@ -535,13 +546,13 @@ var displayResults = function(priorDist, posteriorDist) {
         + posteriorUtility['Veg'] + '. Donut: ' + posteriorUtility['Donut N']
         + ' \n');
 
-  var getPriorProb = function(x){
+  var getPriorProb = function(x) {
     var label = _.keys(x)[0];
     var dist = getMarginalObject(priorDist, label);
     return Math.exp(dist.score(x));
   };
 
-  var getPosteriorProb = function(x){
+  var getPosteriorProb = function(x) {
     var label = _.keys(x)[0];
     var dist = getMarginalObject(posteriorDist, label);
     return Math.exp(dist.score(x));
@@ -551,7 +562,7 @@ var displayResults = function(priorDist, posteriorDist) {
     function(x){
       return {
         vegMinusDonut: x,
-        probability: getPriorProb({vegMinusDonut: x}),
+        probability: getPriorProb({ vegMinusDonut: x }),
         distribution: 'prior'
       };
     }, 
@@ -561,7 +572,7 @@ var displayResults = function(priorDist, posteriorDist) {
     function(x){
       return {
         vegMinusDonut: x,
-        probability: getPosteriorProb({vegMinusDonut: x}),
+        probability: getPosteriorProb({ vegMinusDonut: x }),
         distribution: 'posterior'
       };
     },
@@ -570,13 +581,13 @@ var displayResults = function(priorDist, posteriorDist) {
   var vegMinusDonutDataTable = append(vegMinusDonutPriorDataTable,
                                       vegMinusDonutPosteriorDataTable);
 
-  viz.bar(vegMinusDonutDataTable, {groupBy: 'distribution'});
+  viz.bar(vegMinusDonutDataTable, { groupBy: 'distribution' });
 
   var alphaPriorDataTable = map(
     function(x){
       return {
         alpha: x,
-        probability: getPriorProb({alpha: x}),
+        probability: getPriorProb({ alpha: x }),
         distribution: 'prior'
       };
     },
@@ -586,7 +597,7 @@ var displayResults = function(priorDist, posteriorDist) {
     function(x){
       return {
         alpha: x,
-        probability: getPosteriorProb({alpha: x}),
+        probability: getPosteriorProb({ alpha: x }),
         distribution: 'posterior'
       };
     },
@@ -595,13 +606,13 @@ var displayResults = function(priorDist, posteriorDist) {
   var alphaDataTable = append(alphaPriorDataTable,
                               alphaPosteriorDataTable);
 
-  viz.bar(alphaDataTable, {groupBy: 'distribution'});
+  viz.bar(alphaDataTable, { groupBy: 'distribution' });
 };
 ///
 
 // Prior on agent's utility function
-var priorUtility = function(){
-  var utilityValues = [-10,0,10,20,30,40];
+var priorUtility = function() {
+  var utilityValues = [-10, 0, 10, 20, 30, 40];
   // with no discounting, delayed utilities are ommitted
   var donut = [uniformDraw(utilityValues), 0];
   var veg = [uniformDraw(utilityValues), 0];
@@ -615,15 +626,19 @@ var priorUtility = function(){
 };
 
 // We assume no discounting (so *sophisticated* has no effect here)
-var priorDiscounting = function(){
+var priorDiscounting = function() {
   return {
     discount: 0,
     sophisticatedOrNaive: 'sophisticated'
   };
 };
 
-var priorAlpha = function(){return uniformDraw([0.1, 10, 100, 1000]);};
-var prior = {utility:priorUtility, discounting:priorDiscounting, alpha:priorAlpha};
+var priorAlpha = function(){ return uniformDraw([0.1, 10, 100, 1000]); };
+var prior = {
+  utility: priorUtility,
+  discounting: priorDiscounting,
+  alpha: priorAlpha
+};
 
 // Get world and observations
 var world = makeRestaurantChoiceMDP();
@@ -668,23 +683,23 @@ var displayResults = function(priorDist, posteriorDist) {
         + posteriorUtility['Veg'] + '. Donut: ' + posteriorUtility['Donut N']
         + ' \n');
 
-  var getPriorProb = function(x){
+  var getPriorProb = function(x) {
     var label = _.keys(x)[0];
     var dist = getMarginalObject(priorDist, label);
     return Math.exp(dist.score(x));
   };
 
-  var getPosteriorProb = function(x){
+  var getPosteriorProb = function(x) {
     var label = _.keys(x)[0];
     var dist = getMarginalObject(posteriorDist, label);
     return Math.exp(dist.score(x));
   };
 
   var vegMinusDonutPriorDataTable = map(
-    function(x){
+    function(x) {
       return {
         vegMinusDonut: x,
-        probability: getPriorProb({vegMinusDonut: x}),
+        probability: getPriorProb({ vegMinusDonut: x }),
         distribution: 'prior'
       };
     },
@@ -694,7 +709,7 @@ var displayResults = function(priorDist, posteriorDist) {
     function(x){
       return {
         vegMinusDonut: x,
-        probability: getPosteriorProb({vegMinusDonut: x}),
+        probability: getPosteriorProb({ vegMinusDonut: x }),
         distribution: 'posterior'
       };
     },
@@ -703,7 +718,7 @@ var displayResults = function(priorDist, posteriorDist) {
   var vegMinusDonutDataTable = append(vegMinusDonutPriorDataTable,
                                       vegMinusDonutPosteriorDataTable);
 
-  viz.bar(vegMinusDonutDataTable, {groupBy: 'distribution'});
+  viz.bar(vegMinusDonutDataTable, { groupBy: 'distribution' });
 
   var alphaPriorDataTable = map(
     function(x){
@@ -732,8 +747,8 @@ var displayResults = function(priorDist, posteriorDist) {
 };
 
 // Prior on agent's utility function
-var priorUtility = function(){
-  var utilityValues = [-10,0,10,20,30,40];
+var priorUtility = function() {
+  var utilityValues = [-10, 0, 10, 20, 30, 40];
   // with no discounting, delayed utilities are ommitted
   var donut = [uniformDraw(utilityValues), 0];
   var veg = [uniformDraw(utilityValues), 0];
@@ -754,7 +769,9 @@ var priorDiscounting = function(){
   };
 };
 
-var priorAlpha = function(){return uniformDraw([0.1, 10, 100, 1000]);};
+var priorAlpha = function(){
+  return uniformDraw([0.1, 10, 100, 1000]);
+};
 var prior = {
   utility: priorUtility,
   discounting: priorDiscounting,
@@ -800,33 +817,33 @@ var displayResults = function(priorDist, posteriorDist) {
         + posteriorUtility['Veg'] + '. Donut: ' + posteriorUtility['Donut N']
         + ' \n');
 
-  var getPriorProb = function(x){
+  var getPriorProb = function(x) {
     var label = _.keys(x)[0];
     var dist = getMarginalObject(priorDist, label);
     return Math.exp(dist.score(x));
   };
 
-  var getPosteriorProb = function(x){
+  var getPosteriorProb = function(x) {
     var label = _.keys(x)[0];
     var dist = getMarginalObject(posteriorDist, label);
     return Math.exp(dist.score(x));
   };
 
   var sophisticationPriorDataTable = map(
-    function(x){
+    function(x) {
       return {
         sophisticatedOrNaive: x,
-        probability: getPriorProb({sophisticatedOrNaive: x}),
+        probability: getPriorProb({ sophisticatedOrNaive: x }),
         distribution: 'prior'
       };
     }, 
     ['naive', 'sophisticated']);
 
   var sophisticationPosteriorDataTable = map(
-    function(x){
+    function(x) {
       return {
         sophisticatedOrNaive: x,
-        probability: getPosteriorProb({sophisticatedOrNaive: x}),
+        probability: getPosteriorProb({ sophisticatedOrNaive: x }),
         distribution: 'posterior'
       };
     },
@@ -835,23 +852,23 @@ var displayResults = function(priorDist, posteriorDist) {
   var sophisticatedOrNaiveDataTable = append(sophisticationPosteriorDataTable,
                                              sophisticationPriorDataTable);
 
-  viz.bar(sophisticatedOrNaiveDataTable, {groupBy: 'distribution'});
+  viz.bar(sophisticatedOrNaiveDataTable, { groupBy: 'distribution' });
 
   var vegMinusDonutPriorDataTable = map(
-    function(x){
+    function(x) {
       return {
         vegMinusDonut: x,
-        probability: getPriorProb({vegMinusDonut: x}),
+        probability: getPriorProb({ vegMinusDonut: x }),
         distribution: 'prior'
       };
     },
     [-10, 0, 10, 20, 30, 40, 50, 60, 70]);
 
   var vegMinusDonutPosteriorDataTable = map(
-    function(x){
+    function(x) {
       return {
         vegMinusDonut: x,
-        probability: getPosteriorProb({vegMinusDonut: x}),
+        probability: getPosteriorProb({ vegMinusDonut: x }),
         distribution: 'posterior'
       };
     },
@@ -860,10 +877,10 @@ var displayResults = function(priorDist, posteriorDist) {
   var vegMinusDonutDataTable = append(vegMinusDonutPriorDataTable,
                                       vegMinusDonutPosteriorDataTable);
 
-  viz.bar(vegMinusDonutDataTable, {groupBy: 'distribution'});
+  viz.bar(vegMinusDonutDataTable, { groupBy: 'distribution' });
 
   var donutTemptingPriorDataTable = map(
-    function(x){
+    function(x) {
       return {
         donutTempting: x,
         probability: getPriorProb({donutTempting: x}),
@@ -876,7 +893,7 @@ var displayResults = function(priorDist, posteriorDist) {
     function(x){
       return {
         donutTempting: x,
-        probability: getPosteriorProb({donutTempting: x}),
+        probability: getPosteriorProb({ donutTempting: x }),
         distribution: 'posterior'
       };
     },
@@ -885,7 +902,7 @@ var displayResults = function(priorDist, posteriorDist) {
   var donutTemptingDataTable = append(donutTemptingPriorDataTable,
                                       donutTemptingPosteriorDataTable);
 
-  viz.bar(donutTemptingDataTable, {groupBy: 'distribution'});
+  viz.bar(donutTemptingDataTable, { groupBy: 'distribution' });
 
   var alphaPriorDataTable = map(
     function(x){
@@ -901,7 +918,7 @@ var displayResults = function(priorDist, posteriorDist) {
     function(x){
       return {
         alpha: x,
-        probability: getPosteriorProb({alpha: x}),
+        probability: getPosteriorProb({ alpha: x }),
         distribution: 'posterior'
       };
     },
@@ -917,7 +934,7 @@ var displayResults = function(priorDist, posteriorDist) {
 
 // Prior on agent's utility function. We fix the delayed utilities
 // to make inference faster
-var priorUtility = function(){
+var priorUtility = function() {
   var utilityValues =  [-10, 0, 10, 20, 30];
   var donut = [uniformDraw(utilityValues), -10];
   var veg = [uniformDraw(utilityValues), 20];
@@ -930,13 +947,15 @@ var priorUtility = function(){
   };
 };
 
-var priorDiscounting = function(){ 
+var priorDiscounting = function() {
   return {
-    discount: uniformDraw([0,1]),
+    discount: uniformDraw([0, 1]),
     sophisticatedOrNaive: uniformDraw(['naive','sophisticated'])
   };
 };
-var priorAlpha = function(){return uniformDraw([.1, 10, 1000]);};
+var priorAlpha = function(){
+  return uniformDraw([.1, 10, 1000]);
+};
 var prior = {
   utility: priorUtility, 
   discounting: priorDiscounting, 
@@ -966,6 +985,7 @@ In summary, if we observe the agent repeatedly take the Naive path, the "Optimal
 ------
 
 ### Preferences for the two Donut Store branches can vary
+
 Another explanation of the Naive path is that the agent has a preference for the "Donut N" branch of the Donut Store over the "Donut S" branch. Maybe this branch is better run or has more space. If we add this to our set of possible preferences, inference changes significantly.
 
 To speed up inference, we use a fixed assumption that the agent is Naive. There are three explanations of the agent's path:
@@ -993,20 +1013,20 @@ var displayResults = function(priorDist, posteriorDist) {
         + posteriorUtility['Veg'] + '. Donut: ' + posteriorUtility['Donut N']
         + ' \n');
 
-  var getPriorProb = function(x){
+  var getPriorProb = function(x) {
     var label = _.keys(x)[0];
     var dist = getMarginalObject(priorDist, label);
     return Math.exp(dist.score(x));
   };
 
-  var getPosteriorProb = function(x){
+  var getPosteriorProb = function(x) {
     var label = _.keys(x)[0];
     var dist = getMarginalObject(posteriorDist, label);
     return Math.exp(dist.score(x));
   };
 
   var alphaPriorDataTable = map(
-    function(x){
+    function(x) {
       return {
         alpha: x,
         probability: getPriorProb({alpha: x}),
@@ -1016,7 +1036,7 @@ var displayResults = function(priorDist, posteriorDist) {
     [0.1, 100, 1000]);
 
   var alphaPosteriorDataTable = map(
-    function(x){
+    function(x) {
       return {
         alpha: x,
         probability: getPosteriorProb({alpha: x}),
@@ -1031,20 +1051,20 @@ var displayResults = function(priorDist, posteriorDist) {
   viz.bar(alphaDataTable, { groupBy: 'distribution' });
 
   var donutTemptingPriorDataTable = map(
-    function(x){
+    function(x) {
       return {
         donutTempting: x,
-        probability: getPriorProb({donutTempting: x}),
+        probability: getPriorProb({ donutTempting: x }),
         distribution: 'prior'
       };
     },
     [true, false]);
 
   var donutTemptingPosteriorDataTable = map(
-    function(x){
+    function(x) {
       return {
         donutTempting: x,
-        probability: getPosteriorProb({donutTempting: x}),
+        probability: getPosteriorProb({ donutTempting: x }),
         distribution: 'posterior'
       };
     },
@@ -1053,23 +1073,23 @@ var displayResults = function(priorDist, posteriorDist) {
   var donutTemptingDataTable = append(donutTemptingPriorDataTable,
                                       donutTemptingPosteriorDataTable);
 
-  viz.bar(donutTemptingDataTable, {groupBy: 'distribution'});
+  viz.bar(donutTemptingDataTable, { groupBy: 'distribution' });
 
   var discountPriorDataTable = map(
-    function(x){
+    function(x) {
       return {
         discount: x,
-        probability: getPriorProb({discount: x}),
+        probability: getPriorProb({ discount: x }),
         distribution: 'prior'
       };
     },
     [0, 1]);
 
   var discountPosteriorDataTable = map(
-    function(x){
+    function(x) {
       return {
         discount: x,
-        probability: getPosteriorProb({discount: x}),
+        probability: getPosteriorProb({ discount: x }),
         distribution: 'posterior'
       };
     },
@@ -1078,23 +1098,23 @@ var displayResults = function(priorDist, posteriorDist) {
   var discountDataTable = append(discountPriorDataTable,
                                  discountPosteriorDataTable);
 
-  viz.bar(discountDataTable, {groupBy: 'distribution'});
+  viz.bar(discountDataTable, { groupBy: 'distribution' });
 
   var donutNvsSPriorDataTable = map(
-    function(x){
+    function(x) {
       return {
         donutNGreaterDonutS: x,
-        probability: getPriorProb({donutNGreaterDonutS: x}),
+        probability: getPriorProb({ donutNGreaterDonutS: x }),
         distribution: 'prior'
       };
     },
     [false, true]);
 
   var donutNvsSPosteriorDataTable = map(
-    function(x){
+    function(x) {
       return {
         donutNGreaterDonutS: x,
-        probability: getPosteriorProb({donutNGreaterDonutS: x}),
+        probability: getPosteriorProb({ donutNGreaterDonutS: x }),
         distribution: 'posterior'
       };
     },
@@ -1108,9 +1128,8 @@ var displayResults = function(priorDist, posteriorDist) {
 ///
 
 // Prior on agent's utility function
-var priorUtility = function(){
+var priorUtility = function() {
   var utilityValues = [-10, 0, 10, 20];
-
   return {
     'Donut N': [uniformDraw(utilityValues), -10],
     'Donut S': [uniformDraw(utilityValues), -10],
@@ -1120,13 +1139,15 @@ var priorUtility = function(){
   };
 };
 
-var priorDiscounting = function(){ 
+var priorDiscounting = function() { 
   return {
-    discount: uniformDraw([0,1]),
+    discount: uniformDraw([0, 1]),
     sophisticatedOrNaive: 'naive'
   };
 };
-var priorAlpha = function(){return uniformDraw([.1, 100, 1000]);};
+var priorAlpha = function(){
+  return uniformDraw([.1, 100, 1000]);
+};
 var prior = {
   utility: priorUtility,
   discounting: priorDiscounting, 
@@ -1163,20 +1184,20 @@ var displayResults = function(priorDist, posteriorDist) {
         + posteriorUtility['Veg'] + '. Donut: ' + posteriorUtility['Donut N']
         + ' \n');
 
-  var getPriorProb = function(x){
+  var getPriorProb = function(x) {
     var label = _.keys(x)[0];
     var dist = getMarginalObject(priorDist, label);
     return Math.exp(dist.score(x));
   };
 
-  var getPosteriorProb = function(x){
+  var getPosteriorProb = function(x) {
     var label = _.keys(x)[0];
     var dist = getMarginalObject(posteriorDist, label);
     return Math.exp(dist.score(x));
   };
 
   var alphaPriorDataTable = map(
-    function(x){
+    function(x) {
       return {
         alpha: x,
         probability: getPriorProb({alpha: x}),
@@ -1186,7 +1207,7 @@ var displayResults = function(priorDist, posteriorDist) {
     [0.1, 100, 1000]);
 
   var alphaPosteriorDataTable = map(
-    function(x){
+    function(x) {
       return {
         alpha: x,
         probability: getPosteriorProb({alpha: x}),
@@ -1201,20 +1222,20 @@ var displayResults = function(priorDist, posteriorDist) {
   viz.bar(alphaDataTable, { groupBy: 'distribution' });
 
   var donutTemptingPriorDataTable = map(
-    function(x){
+    function(x) {
       return {
         donutTempting: x,
-        probability: getPriorProb({donutTempting: x}),
+        probability: getPriorProb({ donutTempting: x }),
         distribution: 'prior'
       };
     },
     [true, false]);
 
   var donutTemptingPosteriorDataTable = map(
-    function(x){
+    function(x) {
       return {
         donutTempting: x,
-        probability: getPosteriorProb({donutTempting: x}),
+        probability: getPosteriorProb({ donutTempting: x }),
         distribution: 'posterior'
       };
     },
@@ -1229,7 +1250,7 @@ var displayResults = function(priorDist, posteriorDist) {
     function(x){
       return {
         discount: x,
-        probability: getPriorProb({discount: x}),
+        probability: getPriorProb({ discount: x }),
         distribution: 'prior'
       };
     }, 
@@ -1239,7 +1260,7 @@ var displayResults = function(priorDist, posteriorDist) {
     function(x){
       return {
         discount: x,
-        probability: getPosteriorProb({discount: x}),
+        probability: getPosteriorProb({ discount: x }),
         distribution: 'posterior'
       };
     }, 
@@ -1251,20 +1272,20 @@ var displayResults = function(priorDist, posteriorDist) {
   viz.bar(discountDataTable, { groupBy: 'distribution' });
 
   var timeCostPriorDataTable = map(
-    function(x){
+    function(x) {
       return {
         timeCost: x,
-        probability: getPriorProb({timeCost: x}),
+        probability: getPriorProb({ timeCost: x }),
         distribution: 'prior'
       };
     },
     [-0.01, 0.1, 1]);
 
   var timeCostPosteriorDataTable = map(
-    function(x){
+    function(x) {
       return {
         timeCost: x,
-        probability: getPosteriorProb({timeCost: x}),
+        probability: getPosteriorProb({ timeCost: x }),
         distribution: 'posterior'
       };
     },
@@ -1279,7 +1300,7 @@ var displayResults = function(priorDist, posteriorDist) {
 
 
 // Prior on agent's utility function
-var priorUtility = function(){
+var priorUtility = function() {
   var utilityValues =  [-10, 0, 10, 20, 30];
   var donut = [uniformDraw(utilityValues), -10]
   var veg = [uniformDraw(utilityValues), 20];
@@ -1292,13 +1313,15 @@ var priorUtility = function(){
   };
 };
 
-var priorDiscounting = function(){ 
+var priorDiscounting = function() {
   return {
-    discount: uniformDraw([0,1]),
+    discount: uniformDraw([0, 1]),
     sophisticatedOrNaive: 'sophisticated'
   };
 };
-var priorAlpha = function(){return uniformDraw([0.1, 100, 1000]);};
+var priorAlpha = function(){
+  return uniformDraw([0.1, 100, 1000]);
+};
 var prior = {
   utility: priorUtility,
   discounting: priorDiscounting,
