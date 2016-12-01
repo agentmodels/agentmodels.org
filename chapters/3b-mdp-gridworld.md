@@ -187,12 +187,12 @@ var transitionNoiseProb = 0.1;
 var world = makeHike(transitionNoiseProb);
 var startState = {
   loc: [0, 1],
-  timeLeft: 12,
+  timeLeft: 13,
   terminateAfterAction: false
 };
 
 // parameters for agent
-var alpha = 1;
+var alpha = 100;
 var utilityTable = { East: 10, West: 1, Hill: -10, timeCost: -.1 };
 var utility = makeHikeUtilityFunction(world, utilityTable);
 var agent = makeMDPAgent({ utility, alpha }, world);
@@ -203,7 +203,7 @@ GridWorld.draw(world, { trajectory });
 
 // run 100 iid samples of the function *sampleTrajectoryLength*
 var sampleTrajectoryLength = function(){
-  return simulate(startState, world, agent).length;
+  return {trajectoryLength: simulate(startState, world, agent).length};
 };
 var trajectoryDist = Infer({ 
   model: sampleTrajectoryLength,
