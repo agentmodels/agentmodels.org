@@ -5,22 +5,23 @@ description: "We give an example of inferring human preferences from observed ch
 is_section: true
 ---
 
-Imagine a dataset that records how individuals move through a city. The figure below shows what a datapoint from this set might look like. It depicts an individual, who we'll call Bob, moving along a street and then dwelling in the location of a restaurant. This restaurant is one of two nearby branches of a chain of Donut Stores. Two other nearby restaurants are also shown on the map.
+Imagine a dataset that records how individuals move through a city. The figure below shows what a datapoint from this set might look like. It depicts an individual, who we'll call Bob, moving along a street and then stopping at a restaurant. This restaurant is one of two nearby branches of a chain of Donut Stores. Two other nearby restaurants are also shown on the map.
 
 ![Donut temptation gridworld](/assets/img/ch1_donut_new.png)
 
-Given Bob's movements alone, what can we infer about his preferences and beliefs? Since Bob spent a long time at the Donut Store, we infer that he bought some food or drink there. Since Bob could easily have walked to one of the other nearby eateries, we infer that Bob has a preference for donuts over noodles or salad.
+Given Bob's movements alone, what can we infer about his preferences and beliefs? Since Bob spent a long time at the Donut Store, we infer that he bought something there. Since Bob could easily have walked to one of the other nearby eateries, we infer that Bob prefers donuts to noodles or salad.
 
-Assuming Bob does like donuts, why did he not choose the store closer to his starting point ("Donut South")? The cause might be Bob's *beliefs* rather than his *preferences*. He may not know about "Donut South", maybe because it just opened. Or Donut South may have different hours than Donut North and Bob may know about this.
+Assuming Bob likes donuts, why did he not choose the store closer to his starting point ("Donut South")? The cause might be Bob's *beliefs* rather than his *preferences*. He may not know about "Donut South", maybe because it just opened. Or Donut South may have different hours than Donut North and Bob may know about this.
 
-A different explanation is that Bob *intended* to go to the healthier "Vegetarian Salad Bar". However, the most efficient route to the Salad Bar takes him directly past Donut North, and once standing right nextto it, he may suddenly have found the donuts more tempting than the salad.
+A different explanation is that Bob *intended* to go to the healthier "Vegetarian Salad Bar". However, the most efficient route to the Salad Bar takes him directly past Donut North, and once outside, he found donuts more tempting than salad.
 
-We have described a variety of inferences about Bob which would explain his behavior. This tutorial develops models for inference that can consider all of these different explanations and quantitatively compare their plausibility in the context of particular (formalized) background assumptions. These models can also simulate an agent's behavior in novel scenarios: for example, we could predict Bob's behavior if he had started looking for food in a different part of the city. 
+We have described a variety of inferences about Bob which would explain his behavior. This tutorial develops models for inference that represent these different explanations and quantitatively compare their plausibility. These models can also simulate an agent's behavior in novel scenarios: for example, predicting Bob's behavior if he looked for food in a different part of the city. 
 
+<!-- Remove because we don't do hierarchical case
 Now, suppose that our dataset shows that a significant number of different individuals took exactly the same path as Bob. How would this change our conclusions about him? It could be that everyone is tempted away from healthy food in the way Bob potentially was. But this seems unlikely. Instead, it is now more plausible that Donut South is closed or that it is a new branch that few people know about. 
 
 This kind of reasoning, where we make assumptions about the distributions of beliefs within populations, will be formalized and simulated in later chapters. We will also consider multi-agent behavior where coordination or competition become important. 
-
+-->
 
 ## Agents as programs
 
