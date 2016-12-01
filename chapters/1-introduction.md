@@ -50,7 +50,7 @@ Our models of agents, and the corresponding inferences about agents, all run in 
 // Using the stochastic function `flip` we build a function that
 // returns 'H' and 'T' with equal probability:
 
-var coin = function(){
+var coin = function() {
   return flip(.5) ? 'H' : 'T';
 };
 
@@ -66,12 +66,13 @@ var geometric = function(p) {
   return flip(p) ? 1 + geometric(p) : 1
 };
 
-var boundedGeometric = Infer(
-  { method: 'enumerate', maxExecutions: 20 },
-  function(){ return geometric(0.5); });
+var boundedGeometric = Infer({ 
+  model() { return geometric(0.5); },
+  maxExecutions: 20 
+});
 
 print('Histogram of (bounded) Geometric distribution');
-viz.auto(boundedGeometric);
+viz(boundedGeometric);
 ~~~~
 
 In the [next chapter](/chapters/2-webppl.html), we will introduce WebPPL in more detail.
