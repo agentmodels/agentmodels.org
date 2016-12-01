@@ -53,16 +53,16 @@ As with the MDP and POMDP agents, our WebPPL implementation directly translates 
 This codebox simplifies the code for the hyperbolic discounter by omitting definitions of `transition`, `utility` and so on:
 
 ~~~~
-var makeAgent = function (params, world) {
+var makeAgent = function(params, world) {
 
   var act = dp.cache( 
     function(state, delay){
-      return Infer({ method: 'enumerate' }, function(){
+      return Infer({ model() {
         var action = uniformDraw(stateToActions(state));
         var eu = expectedUtility(state, action, delay);    
         factor(params.alpha * eu);
         return action;
-      });      
+      }});      
     });
   
   var expectedUtility = dp.cache(
@@ -71,20 +71,16 @@ var makeAgent = function (params, world) {
       if (state.terminateAfterAction){
         return u; 
       } else {                     
-        return u + expectation( Infer({ method: 'enumerate' }, function(){
+        return u + expectation(Infer({ model() {
           var nextState = transition(state, action); 
           var perceivedDelay = isNaive ? delay + 1 : 0;
           var nextAction = sample(act(nextState, perceivedDelay));
           return expectedUtility(nextState, nextAction, delay+1);  
-        }));
+        }}));
       }                      
     });
   
-  return {
-    params : params,
-    expectedUtility : expectedUtility,
-    act: act
-  };
+  return { params, expectedUtility, act };
 };
 ~~~~
 
@@ -95,10 +91,10 @@ The display below shows the agent's trajectory along with a visualization of the
 ~~~~
 //simulate_hyperbolic_agent
 ///fold: 
-var makeAgent = function (params, world) {
+var makeAgent = function(params, world) {
   var defaultParams = {
-    alpha : 500, 
-    discount : 1
+    alpha: 500, 
+    discount: 1
   };
   var params = update(defaultParams, params);
   var stateToActions = world.stateToActions;
@@ -106,42 +102,40 @@ var makeAgent = function (params, world) {
   var utility = params.utility;
   var paramsDiscountFunction = params.discountFunction;
 
-  var discountFunction = paramsDiscountFunction ? paramsDiscountFunction : 
-  function(delay){return 1/(1+params.discount*delay);};
+  var discountFunction = (
+    paramsDiscountFunction ? 
+    paramsDiscountFunction : 
+    function(delay){ return 1/(1 + params.discount*delay); });
 
-  var isNaive = params.sophisticatedOrNaive=='naive';
+  var isNaive = params.sophisticatedOrNaive === 'naive';
 
   var act = dp.cache( 
-    function(state, delay){
-      var delay = delay ? delay : 0; //make sure delay is never undefined
-      return Infer({ method: 'enumerate' }, function(){
+    function(state, delay) {
+      var delay = delay || 0; // make sure delay is never undefined
+      return Infer({ model() {
         var action = uniformDraw(stateToActions(state));
         var eu = expectedUtility(state, action, delay);
         factor(params.alpha * eu);
         return action;
-      });
+      }});
     });
 
   var expectedUtility = dp.cache(
-    function(state, action, delay){
+    function(state, action, delay) {
       var u = discountFunction(delay) * utility(state, action);
       if (state.terminateAfterAction){
         return u; 
       } else {
-        return u + expectation( Infer({ method: 'enumerate' }, function(){
+        return u + expectation(Infer({ model() {
           var nextState = transition(state, action); 
           var perceivedDelay = isNaive ? delay + 1 : 0;
           var nextAction = sample(act(nextState, perceivedDelay));
           return expectedUtility(nextState, nextAction, delay+1);
-        }));
+        }}));
       }
     });
 
-  return {
-    params : params,
-    expectedUtility : expectedUtility,
-    act: act
-  };
+  return { params, expectedUtility, act };
 };
 ///
 
@@ -149,9 +143,9 @@ var world = makeRestaurantChoiceMDP();
 var start = restaurantChoiceStart;
 
 var restaurantUtility = makeRestaurantUtilityFunction(world, {
-  'Donut N' : [10, -10],  //[immediate reward, delayed reward]
-  'Donut S' : [10, -10],
-  'Veg'   : [-10, 20],
+  'Donut N': [10, -10],  // [immediate reward, delayed reward]
+  'Donut S': [10, -10],
+  'Veg': [-10, 20],
   'Noodle': [0, 0],
   'timeCost': -.01  // cost of taking a single action 
 });
@@ -160,7 +154,7 @@ var runAndGraph = function(agent) {
   var trajectory = simulateMDP(start, world, agent);
   var plans = plannedTrajectories(trajectory, world, agent);
   GridWorld.draw(world, {
-    trajectory: trajectory, 
+    trajectory, 
     dynamicActionExpectedUtilities: plans
   });
 };
@@ -179,10 +173,10 @@ We run the Sophisticated agent with the same parameters and visualization.
 ~~~~
 //simulate_hyperbolic_agent_sophisticated
 ///fold: 
-var makeAgent = function (params, world) {
+var makeAgent = function(params, world) {
   var defaultParams = {
-    alpha : 500, 
-    discount : 1
+    alpha: 500, 
+    discount: 1
   };
   var params = update(defaultParams, params);
   var stateToActions = world.stateToActions;
@@ -190,61 +184,60 @@ var makeAgent = function (params, world) {
   var utility = params.utility;
   var paramsDiscountFunction = params.discountFunction;
 
-  var discountFunction = paramsDiscountFunction ? paramsDiscountFunction : 
-  function(delay){return 1/(1+params.discount*delay);};
+  var discountFunction = (
+    paramsDiscountFunction ? 
+    paramsDiscountFunction : 
+    function(delay){ return 1/(1+params.discount*delay); });
 
-  var isNaive = params.sophisticatedOrNaive=='naive';
+  var isNaive = params.sophisticatedOrNaive === 'naive';
 
   var act = dp.cache( 
-    function(state, delay){
-      var delay = delay ? delay : 0; //make sure delay is never undefined
-      return Infer({ method: 'enumerate' }, function(){
+    function(state, delay) {
+      var delay = delay || 0; // make sure delay is never undefined
+      return Infer({ model() {
         var action = uniformDraw(stateToActions(state));
         var eu = expectedUtility(state, action, delay);
         factor(params.alpha * eu);
         return action;
-      });
+      }});
     });
 
   var expectedUtility = dp.cache(
-    function(state, action, delay){
+    function(state, action, delay) {
       var u = discountFunction(delay) * utility(state, action);
       if (state.terminateAfterAction){
         return u; 
       } else {
-        return u + expectation( Infer({ method: 'enumerate' }, function(){
+        return u + expectation(Infer({ model() {
           var nextState = transition(state, action); 
           var perceivedDelay = isNaive ? delay + 1 : 0;
           var nextAction = sample(act(nextState, perceivedDelay));
           return expectedUtility(nextState, nextAction, delay+1);
-        }));
+        }}));
       }
     });
 
-  return {
-    params : params,
-    expectedUtility : expectedUtility,
-    act: act
-  };
+  return { params, expectedUtility, act };
 };
 
 var world = makeRestaurantChoiceMDP();
 var start = restaurantChoiceStart;
 
 var restaurantUtility = makeRestaurantUtilityFunction(world, {
-  'Donut N' : [10, -10],  //[immediate reward, delayed reward]
-  'Donut S' : [10, -10],
-  'Veg'   : [-10, 20],
+  'Donut N': [10, -10],  // [immediate reward, delayed reward]
+  'Donut S': [10, -10],
+  'Veg': [-10, 20],
   'Noodle': [0, 0],
   'timeCost': -.01  // cost of taking a single action 
 });
 
-
 var runAndGraph = function(agent) { 
   var trajectory = simulateMDP(start, world, agent);
   var plans = plannedTrajectories(trajectory, world, agent);
-  GridWorld.draw(world,{trajectory : trajectory, 
-                        dynamicActionExpectedUtilities : plans});
+  GridWorld.draw(world, {
+    trajectory, 
+    dynamicActionExpectedUtilities: plans
+  });
 };
 ///
 
@@ -307,16 +300,16 @@ var params = {
 };
 
 var getLastState = function(discount){
-  var agent = makeMDPAgent(update(params, {discount: discount}), world);
+  var agent = makeMDPAgent(update(params, { discount: discount }), world);
   var states = simulate(world.startState, world, agent, 'states');
   return [last(states).loc, states.length];
 };
 
-map( function(discount){
+map(function(discount) {
   var lastState = getLastState(discount);
   print('Discount: ' + discount + '. Last state: ' + lastState[0] +
         '. Time: ' + lastState[1] + '\n')
-}, range(8) );
+}, range(8));
 ~~~~
 
 
