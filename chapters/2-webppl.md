@@ -85,11 +85,11 @@ It is possible to use normal Javascript functions (which make *internal* use of 
 
 ### Sampling from random variables
 
-WebPPL has a number of built-in functions for sampling from random variables from different distributions. Many of these are found in scientific computing libraries. A full list of functions is in the WebPPL library [source](https://github.com/probmods/webppl/blob/dev/src/header.wppl). Try clicking the "Run" button repeatedly to get different i.i.d. random samples:
+WebPPL has a large [library](http://docs.webppl.org/en/master/distributions.html) of primitive probability distributions. Try clicking "Run" repeatedly to get different i.i.d. random samples:
 
 ~~~~
-print('Fair coins: ' + [flip(0.5), flip(0.5)]);
-print('Biased coins: ' + [flip(0.9), flip(0.9)]);
+print('Fair coins (Bernoulli distribution): ' + [flip(0.5), flip(0.5)]);
+print('Biased coins (Bernoulli distribution): ' + [flip(0.9), flip(0.9)]);
 
 var coinWithSide = function(){
   return categorical([.49, .49, .02], ['heads', 'tails', 'side']);
@@ -118,13 +118,13 @@ var geometric = function(p) {
 geometric(0.8);
 ~~~~
 
-What makes WebPPL different from conventional programming languages is its ability to represent and manipulate *probability distributions*. Distribution objects have two key features:
+What makes WebPPL different from conventional programming languages is its ability to perform *inference* operations using these primitive probability distributions. Distribution objects in WebPPL have two key features:
 
 1. You can draw *random i.i.d. samples* from a distribution using the special function `sample`. That is, you sample $$x \sim P$$ where $$P(x)$$ is the distribution.
 
 2. You can compute the probability (or density) the distribution assigns to a value. That is, to compute $$\log(P(x))$$, you use `dist.score(x)`, where `dist` is the distribution in WebPPL.
 
-The functions above that generate random samples are defined in the WebPPL library in terms of built-in distributions (e.g. `Bernoulli` for `flip` and `Gaussian` for `gaussian`) and the built-in function `sample`:
+The functions above that generate random samples are defined in the WebPPL library in terms of primitive distributions (e.g. `Bernoulli` for `flip` and `Gaussian` for `gaussian`) and the built-in function `sample`:
 
 ~~~~
 var flip = function(p) {
@@ -154,7 +154,7 @@ var MyBinomial = Infer({ model: binomial });
 [sample(MyBinomial), sample(MyBinomial), sample(MyBinomial)];
 ~~~~
 
-`Infer` is the *inference operator* that computes (or estimates) the marginal probability of each possible output of the function `binomial`. If not explicit inference method is specified, `Infer` defaults to enumerating each possible value of each random variables (`a`, `b` and `c`) in the function body.
+`Infer` is the *inference operator* that computes (or estimates) the marginal probability of each possible output of the function `binomial`. If no explicit inference method is specified, `Infer` defaults to enumerating each possible value of each random variable in the function body.
 
 ### Bayesian inference by conditioning
 
