@@ -36,7 +36,7 @@ The first section of the tutorial implements agent models for sequential decisio
 
 ### Learning preferences from behavior
 
-The example of Bob (above) was not primarily about *simulating* a rational agent, but rather about the problem of *learning* (or *inferring*) an agent's preferences and beliefs from their choices. This problem is important to both economics and psychology. Predicting preferences from past choices is also a major area of applied machine learning; for example, consider the recommendation systems used by Netflix and Facebook.
+The example of Bob was not primarily about *simulating* a rational agent, but rather about the problem of *learning* (or *inferring*) an agent's preferences and beliefs from their choices. This problem is important to both economics and psychology. Predicting preferences from past choices is also a major area of applied machine learning; for example, consider the recommendation systems used by Netflix and Facebook.
 
 One approach to this problem is to assume the agent is a rational utility-maximizer, to assume the environment is an MDP or POMDP, and to infer the utilities and beliefs and predict the observed behavior. This approach is called "structural estimation" in economics refp:aguirregabiria2010dynamic, "inverse planning" in cognitive science refp:ullman2009help, and "inverse reinforcement learning" (IRL) in machine learning and AI refp:ng2000algorithms. It has been applied to inferring the perceived rewards of education from observed work and education choices, preferences for health outcomes from smoking behavior, and the preferences of a nomadic group over areas of land (see cites in reft:evans2015learning). 
 
@@ -45,7 +45,7 @@ One approach to this problem is to assume the agent is a rational utility-maximi
 
 ## Taster: probabilistic programming
 
-Our models of agents, and the corresponding inferences about agents, all run in "code boxes" in the browser, accompanied by animated visualizations agent behavior. The language of the tutorial is [WebPPL](http://webppl.org), an easy-to-learn probabilistic programming language based on Javascript refp:dippl. As a taster, here are two simple code snippets in WebPPL, using the interactive code boxes that we will use throughtout:
+Our models of agents, and the corresponding inferences about agents, all run in "code boxes" in the browser, accompanied by animated visualizations of agent behavior. The language of the tutorial is [WebPPL](http://webppl.org), an easy-to-learn probabilistic programming language based on Javascript refp:dippl. As a taster, here are two simple code snippets in WebPPL:
 
 ~~~~
 // Using the stochastic function `flip` we build a function that
