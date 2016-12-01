@@ -218,32 +218,45 @@ As with the Procrastination example above, we compare the inferences of two mode
 var timeHorizonValues = range(10).slice(2);
 var features = ['Utility of arm 0 (chocolate)', 'Greediness bound'];
 
-var displayExpectations = function(getPosterior){
+var displayExpectations = function(getPosterior) {
 
-  var getExpectations = function(useOptimalModel){
+  var getExpectations = function(useOptimalModel) {
 
-    var inferAllTimeHorizons = map( function(horizon){
+    var inferAllTimeHorizons = map(function(horizon) {
       return getPosterior(horizon, useOptimalModel);
     }, timeHorizonValues);
 
-    return map( function(i){
-      return map(function(infer){return infer[i];}, inferAllTimeHorizons);
-    }, range(features.length) );
+    return map(
+      function(i) {
+        return map(function(infer){return infer[i];}, inferAllTimeHorizons);
+      }, 
+      range(features.length));
   };
 
-  var displayOptimalAndPossiblyRewardMyopicSeries = function(index){
+  var displayOptimalAndPossiblyRewardMyopicSeries = function(index) {
     print('\n\nfeature: ' + features[index]);
     var optimalSeries = getExpectations(true)[index];
     var possiblyRewardMyopicSeries = getExpectations(false)[index];
-    var plotOptimal = map(function(pair){
-      return {horizon: pair[0], expectation: pair[1], agentModel: 'Optimal'};},
-                          zip(timeHorizonValues, optimalSeries));
-    var plotPossiblyRewardMyopic = map(function(pair){
-      return {horizon: pair[0], expectation: pair[1],
-              agentModel: 'Possibly RewardMyopic'};},
-                                       zip(timeHorizonValues,
-                                           possiblyRewardMyopicSeries));
-    viz.line(plotOptimal.concat(plotPossiblyRewardMyopic), {groupBy: 'agentModel'});
+    var plotOptimal = map(
+      function(pair) {
+        return {
+          horizon: pair[0], 
+          expectation: pair[1], 
+          agentModel: 'Optimal'
+        };
+      },
+      zip(timeHorizonValues, optimalSeries));
+    var plotPossiblyRewardMyopic = map(
+      function(pair){
+        return {
+          horizon: pair[0], 
+          expectation: pair[1],
+          agentModel: 'Possibly RewardMyopic'
+        };
+      },
+      zip(timeHorizonValues, possiblyRewardMyopicSeries));
+    viz.line(plotOptimal.concat(plotPossiblyRewardMyopic), 
+             { groupBy: 'agentModel' });
   };
 
   print('Posterior expectation on feature after observing no exploration');
@@ -266,34 +279,36 @@ var getPosterior = function(numberOfTrials, useOptimalModel) {
 
   var startState = bandit.startState;
   var alternativeArmToPrizeDist = update(trueArmToPrizeDist,
-                                         {1: Delta({ v: 'champagne' })});
+                                         { 1: Delta({ v: 'champagne' }) });
   var alternativeStartState = makeBanditStartState(numberOfTrials,
                                                    alternativeArmToPrizeDist);
 
   var priorAgentPrior = Delta({ 
     v: Categorical({ 
-      ps: [0.7, 0.3],
-      vs: [startState, alternativeStartState] })});
+      vs: [startState, alternativeStartState],      
+      ps: [0.7, 0.3]
+    })
+  });
 
-  var priorPrizeToUtility = Infer({ method: 'enumerate' }, function(){
+  var priorPrizeToUtility = Infer({ model() {
     return {
       chocolate: uniformDraw(range(20).concat(25)),
       nothing: 0,
       champagne: 20
     };
-  });
+  }});
 
-  var priorMyopia =  useOptimalModel ? Delta({ v: {on:false, bound:0} }) :
-  Infer({ method: 'enumerate' }, function(){
-    return { bound: categorical([.4, .2, .1, .1, .1, .1], 
-                                [1, 2, 3, 4, 6, 10]) };
-  });
+  var priorMyopia =  (
+    useOptimalModel ? 
+    Delta({ v: { on: false, bound:0 }}) :
+    Infer({ model() {
+      return { 
+        bound: categorical([.4, .2, .1, .1, .1, .1], 
+                           [1, 2, 3, 4, 6, 10]) 
+      };
+    }}));
 
-  var prior = {
-    priorAgentPrior: priorAgentPrior,
-    priorPrizeToUtility: priorPrizeToUtility,
-    priorMyopia: priorMyopia
-  };
+  var prior = { priorAgentPrior, priorPrizeToUtility, priorMyopia };
 
   var baseAgentParams = {
     alpha: 1000,
@@ -301,15 +316,15 @@ var getPosterior = function(numberOfTrials, useOptimalModel) {
     discount: 0,
     noDelays: useOptimalModel
   };
-
+  
   var observations = [[startState, 0]];
 
   var outputDist = inferBandit(bandit, baseAgentParams, prior, observations,
                                'offPolicy', 0, 'beliefDelay');
 
-  var marginalChocolate = Infer({ method: 'enumerate' }, function(){
+  var marginalChocolate = Infer({ model() {
     return sample(outputDist).prizeToUtility.chocolate;
-  });
+  }});
 
   return [
     expectation(marginalChocolate), 
@@ -317,7 +332,8 @@ var getPosterior = function(numberOfTrials, useOptimalModel) {
   ];
 };
 
-print('Prior expected utility for arm0 (chocolate): ' + listMean(range(20).concat(25)) );
+print('Prior expected utility for arm0 (chocolate): ' + 
+      listMean(range(20).concat(25)) );
 
 displayExpectations(getPosterior);
 ~~~~
