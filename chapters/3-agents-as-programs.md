@@ -40,7 +40,7 @@ In WebPPL, we can implement this utility-maximizing agent as a function `maxAgen
 // Choose to eat at the Italian or French restaurants
 var actions = ['italian', 'french'];
 
-var transition = function(state, action){
+var transition = function(state, action) {
   if (action === 'italian') {
     return 'pizza';
   } else {
@@ -48,7 +48,7 @@ var transition = function(state, action){
   }
 };
 
-var utility = function(state){
+var utility = function(state) {
   if (state === 'pizza') {
     return 10;
   } else {
@@ -56,9 +56,9 @@ var utility = function(state){
   }
 };
 
-var maxAgent = function(state){
+var maxAgent = function(state) {
   return argMax(
-    function(action){
+    function(action) {
       return utility(transition(state, action));
     },
     actions);
@@ -72,15 +72,17 @@ print("Choice in initial state: " + maxAgent("initialState"));
 There is an alternative way to compute the optimal action for this problem. The idea is to treat choosing an action as an *inference* problem. The previous chapter showed how we can *infer* the probability that a coin landed Heads from the observation that two of three coins were Heads. 
 
 ~~~~
-var twoHeads = Infer({ method: 'enumerate' }, function(){
-  var a = flip(0.5);
-  var b = flip(0.5);
-  var c = flip(0.5);
-  condition(a + b + c === 2);
-  return a;
+var twoHeads = Infer({ 
+  model() {
+    var a = flip(0.5);
+    var b = flip(0.5);
+    var c = flip(0.5);
+    condition(a + b + c === 2);
+    return a;
+  }
 });
 
-viz.auto(twoHeads);
+viz(twoHeads);
 ~~~~
 
 The same inference machinery can compute the optimal action in Tom's decision problem. We sample random actions with `uniformDraw` and condition on the preferred outcome happening. Intuitively, we imagine observing the consequence we prefer (e.g. pizza) and then *infer* from this the action that caused this consequence. <!-- address evidential vs causal decision theory? -->
@@ -90,7 +92,7 @@ This idea is known as "planning as inference" refp:botvinick2012planning. It als
 ~~~~
 var actions = ['italian', 'french'];
 
-var transition = function(state, action){
+var transition = function(state, action) {
   if (action === 'italian') {
     return 'pizza';
   } else {
@@ -98,15 +100,17 @@ var transition = function(state, action){
   }
 };
 
-var inferenceAgent = function(state){
-  return Infer({ method: 'enumerate' }, function(){
-    var action = uniformDraw(actions);
-    condition(transition(state, action) === 'pizza');
-    return action;
+var inferenceAgent = function(state) {
+  return Infer({ 
+    model() {
+      var action = uniformDraw(actions);
+      condition(transition(state, action) === 'pizza');
+      return action;
+    }
   });
-};
+}
 
-viz.auto(inferenceAgent("initialState"));
+viz(inferenceAgent("initialState"));
 ~~~~
 
 >**Exercise**: Adjust the agent's goal such that they end up going to the French restaurant.
@@ -126,13 +130,13 @@ To represent this in WebPPL, we extend `maxAgent` using the `expectation` functi
 ~~~~
 var actions = ['italian', 'french'];
 
-var transition = function(state, action){
+var transition = function(state, action) {
   var nextStates = ['bad', 'good', 'spectacular'];
   var nextProbs = (action === 'italian') ? [0.2, 0.6, 0.2] : [0.05, 0.9, 0.05];
   return categorical(nextProbs, nextStates);
 };
 
-var utility = function(state){
+var utility = function(state) {
   var table = { 
     bad: -10, 
     good: 6, 
@@ -141,10 +145,12 @@ var utility = function(state){
   return table[state];
 };
 
-var maxEUAgent = function(state){
-  var expectedUtility = function(action){
-    return expectation(Infer({ method: 'enumerate' }, function(){
-      return utility(transition(state, action));
+var maxEUAgent = function(state) {
+  var expectedUtility = function(action) {
+    return expectation(Infer({ 
+      model() {
+        return utility(transition(state, action));
+      }
     }));
   };
   return argMax(expectedUtility, actions);
@@ -160,27 +166,31 @@ The `inferenceAgent`, which uses the planning-as-inference idiom, can also be ex
 To illustrate `factor`, consider the following variant of the `twoHeads` example above. Instead of placing a hard constraint on the total number of Heads outcomes, we give each setting of `a`, `b` and `c` a *score* based on the total number of heads. The score is highest when all three coins are Heads, but even the "all tails" outcomes is not ruled out completely.
 
 ~~~~
-var softHeads = Infer({ method: 'enumerate' }, function(){
-  var a = flip(0.5);
-  var b = flip(0.5);
-  var c = flip(0.5);
-  factor(a + b + c);
-  return a;
+var softHeads = Infer({ 
+  model() {
+    var a = flip(0.5);
+    var b = flip(0.5);
+    var c = flip(0.5);
+    factor(a + b + c);
+    return a;
+  }
 });
 
-viz.auto(softHeads);
+viz(softHeads);
 ~~~~
 
 As another example, consider the following short program:
 
 ~~~~
-var y = Infer({ method: 'enumerate' }, function(){
-  var n = uniformDraw([0, 1, 2]);
-  factor(n * n);
-  return n;
+var y = Infer({ 
+  model() {
+    var n = uniformDraw([0, 1, 2]);
+    factor(n * n);
+    return n;
+  }
 });
 
-viz.auto(y);
+viz(y);
 ~~~~
 
 Without the `factor` statement, each value of the variable `n` has equal probability. Adding the `factor` statements adds `n*n` to the log-score of each value. To get the new probabilities induced by the `factor` statement we compute the normalizing constant given these log-scores. The resulting probability $$P(y=2)$$ is:
@@ -194,13 +204,13 @@ Returning to our implementation as planning-as-inference for maximizing *expecte
 ~~~~
 var actions = ['italian', 'french'];
 
-var transition = function(state, action){
+var transition = function(state, action) {
   var nextStates = ['bad', 'good', 'spectacular'];
   var nextProbs = (action === 'italian') ? [0.2, 0.6, 0.2] : [0.05, 0.9, 0.05];
   return categorical(nextProbs, nextStates);
 };
 
-var utility = function(state){
+var utility = function(state) {
   var table = { 
     bad: -10, 
     good: 6, 
@@ -211,22 +221,28 @@ var utility = function(state){
 
 var alpha = 1;
 
-var softMaxAgent = function(state){
-  return Infer({ method: 'enumerate' }, function(){
+var softMaxAgent = function(state) {
+  return Infer({ 
+    model() {
 
-    var action = uniformDraw(actions);
+      var action = uniformDraw(actions);
 
-    var expectedUtility = function(action){
-      return expectation(Infer({ method: 'enumerate' }, function(){
-        return utility(transition(state, action));
-      }));
-    };
-    factor(alpha * expectedUtility(action));
-    return action;
-  })
+      var expectedUtility = function(action) {
+        return expectation(Infer({ 
+          model() {
+            return utility(transition(state, action));
+          }
+        }));
+      };
+      
+      factor(alpha * expectedUtility(action));
+      
+      return action;
+    }
+  });
 };
 
-viz.auto(softMaxAgent('initialState'));
+viz(softMaxAgent('initialState'));
 ~~~~
 
 The `softMaxAgent` differs in two ways from the `maxEUAgent` above. First, it uses the planning-as-inference idiom. Second, it does not deterministically choose the action with maximal expected utility. Instead, it implements *soft* maximization, selecting actions with a probability that depends on their expected utility. Formally, let the agent's probability of choosing an action be $$C(a;s)$$ for $$a \in A$$ when in state $$s \in S$$. Then the *softmax* decision rule is:
@@ -258,11 +274,11 @@ var doors = [1, 2, 3];
 // Monty chooses a door that is neither Alice's door
 // nor the prize door
 var monty = function(aliceDoor, prizeDoor) {
-  return Infer({ method: 'enumerate' }, function() {
+  return Infer({ model() {
     var door = uniformDraw(doors);
     // ???
     return door;
-  });
+  }});
 };
 
 
@@ -270,7 +286,7 @@ var actions = ['switch', 'stay'];
 
 // If Alice switches, she randomly chooses a door that is
 // neither the one Monty showed nor her previous door
-var transition = function(state, action){
+var transition = function(state, action) {
   if (action === 'switch') {
     return {
       prizeDoor: state.prizeDoor,
@@ -284,7 +300,7 @@ var transition = function(state, action){
 
 // Utility is high (say 10) if Alice's door matches the
 // prize door, 0 otherwise.
-var utility = function(state){
+var utility = function(state) {
   // ???
 };
 
@@ -292,25 +308,25 @@ var sampleState = function() {
   var aliceDoor = uniformDraw(doors);
   var prizeDoor = uniformDraw(doors);
   return {
-    aliceDoor: aliceDoor,
-    prizeDoor: prizeDoor,
+    aliceDoor,
+    prizeDoor,
     montyDoor: sample(monty(aliceDoor, prizeDoor))
   }
 }
 
-var agent = function(){  
+var agent = function() {  
   var action = uniformDraw(actions);
   var expectedUtility = function(action){    
-    return expectation(Infer({ method: 'enumerate' }, function(){
+    return expectation(Infer({ model(){
       var state = sampleState();
       return utility(transition(state, action));
-    }));
+    }}));
   };
   factor(expectedUtility(action));
-  return { action: action };
+  return { action };
 };
 
-viz.auto(Infer({ method: 'enumerate' }, agent));
+viz(Infer({ model: agent }));
 ~~~~
 
 ### Moving to complex decision problems
