@@ -244,9 +244,9 @@ var trajectory = simulate(startState, world, agent, 'states');
 GridWorld.draw(world, { trajectory });
 ~~~~
 
-Extending this idea, we can return and visualize the expected values of each action the agent *could have taken* during their trajectory. For each state in a trajectory, we compute the expected value of each possible action (given the state and remaining time). The resulting numbers are analogous to Q-values in infinite-horizon MDPs. 
+Extending this idea, we can display the expected values of each action the agent *could have taken* during their trajectory. These expected values numbers are analogous to state-action Q-values in infinite-horizon MDPs. 
 
-The expected values are already being computed implicitly: we add a function addition to `getExpectedUtilitiesMDP` in order to return them. We then plot these on the Gridworld itself. The numbers in each grid cell are the expected utilities of moving in the corresponding directions. This allows us to see how close the agent was to taking the short route as opposed to the long route. (Also note that if the difference in expected utility between two actions is small then a noisy agent will take each of them with nearly equal probability). 
+The expected values were already being computed implicitly; we now use `getExpectedUtilitiesMDP` to access them. The displayed numbers in each grid cell are the expected utilities of moving in the corresponding directions. For example, we can read off how close the agent was to taking the short route as opposed to the long route. (Note that if the difference in expected utility between two actions is small then a noisy agent will take each of them with nearly equal probability). 
 
 ~~~~
 // trajectory must consist only of states. This can be done by calling
