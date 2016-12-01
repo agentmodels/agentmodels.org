@@ -60,11 +60,11 @@ We illustrate this agent model with a trival example of an MDP and return to Bob
 Here is a WebPPL agent that starts at the origin (`state === 0`) and that takes a first step (to the right):
 
 ~~~~
-var transition = function(state, action){
+var transition = function(state, action) {
   return state + action;
 };
 
-var utility = function(state){
+var utility = function(state) {
   if (state === 3) {
     return 1;
   } else {
@@ -74,13 +74,13 @@ var utility = function(state){
 
 var makeAgent = function() { 
   
-  var act = function(state, timeLeft){
-    return Infer({ method: 'enumerate' }, function(){
+  var act = function(state, timeLeft) {
+    return Infer({ model() {
       var action = uniformDraw([-1, 0, 1]);
       var eu = expectedUtility(state, action, timeLeft);
       factor(100 * eu);
       return action;
-    });
+    }});
   };
 
   var expectedUtility = function(state, action, timeLeft){
@@ -89,17 +89,15 @@ var makeAgent = function() {
     if (newTimeLeft == 0){
       return u; 
     } else {
-      return u + expectation(Infer({ method: 'enumerate' }, function(){
+      return u + expectation(Infer({ model() {
         var nextState = transition(state, action); 
         var nextAction = sample(act(nextState, newTimeLeft));
         return expectedUtility(nextState, nextAction, newTimeLeft);
-      }));
+      }}));
     }
   };
 
-  return { 
-    act : act
-  };
+  return { act };
 }
 
 var act = makeAgent().act;
@@ -114,11 +112,11 @@ print("Agent's action: " + sample(act(startState, totalTime)));
 This code computes the agent's initial action, given that the agent will get to take four actions in total. To simulate the agent's entire trajectory, we add a third function `simulate`, which updates and stores the world state in response to the agent's actions: 
 
 ~~~~
-var transition = function(state, action){
+var transition = function(state, action) {
   return state + action;
 };
 
-var utility = function(state){
+var utility = function(state) {
   if (state === 3) {
     return 1;
   } else {
@@ -127,30 +125,30 @@ var utility = function(state){
 };
 
 var makeAgent = function() { 
-  var act = function(state, timeLeft){
-    return Infer({ method: 'enumerate' }, function(){
+  var act = function(state, timeLeft) {
+    return Infer({ model() {
       var action = uniformDraw([-1, 0, 1]);
       var eu = expectedUtility(state, action, timeLeft);
       factor(100 * eu);
       return action;
-    });
+    }});
   };
 
-  var expectedUtility = function(state, action, timeLeft){
-    var u = utility(state,action);
+  var expectedUtility = function(state, action, timeLeft) {
+    var u = utility(state, action);
     var newTimeLeft = timeLeft - 1;
-    if (newTimeLeft == 0){
+    if (newTimeLeft === 0) {
       return u; 
     } else {
-      return u + expectation(Infer({ method: 'enumerate' }, function(){
+      return u + expectation(Infer({ model() {
         var nextState = transition(state, action); 
         var nextAction = sample(act(nextState, newTimeLeft));
         return expectedUtility(nextState, nextAction, newTimeLeft);
-      }));
+      }}));
     }
   };
 
-  return { act : act };
+  return { act };
 }
 
 
@@ -184,11 +182,11 @@ What does the mutual recursion between `act` and `expectedUtility` look like if 
 ~~~~
 // transition, utility and makeAgent functions defined exactly as above
 ///fold:
-var transition = function(state, action){
+var transition = function(state, action) {
   return state + action;
 };
 
-var utility = function(state){
+var utility = function(state) {
   if (state === 3) {
     return 1;
   } else {
@@ -197,31 +195,30 @@ var utility = function(state){
 };
 
 var makeAgent = function() { 
-  
-  var act = function(state, timeLeft){
-    return Infer({ method: 'enumerate' }, function(){
+  var act = function(state, timeLeft) {
+    return Infer({ model() {
       var action = uniformDraw([-1, 0, 1]);
       var eu = expectedUtility(state, action, timeLeft);
       factor(100 * eu);
       return action;
-    });
+    }});
   };
 
-  var expectedUtility = function(state, action, timeLeft){
-    var u = utility(state,action);
+  var expectedUtility = function(state, action, timeLeft) {
+    var u = utility(state, action);
     var newTimeLeft = timeLeft - 1;
-    if (newTimeLeft == 0){
+    if (newTimeLeft === 0) {
       return u; 
     } else {
-      return u + expectation(Infer({ method: 'enumerate' }, function(){
+      return u + expectation(Infer({ model() {
         var nextState = transition(state, action); 
         var nextAction = sample(act(nextState, newTimeLeft));
         return expectedUtility(nextState, nextAction, newTimeLeft);
-      }));
+      }}));
     }
   };
 
-  return { act : act };
+  return { act };
 }
 
 
@@ -240,9 +237,9 @@ var simulate = function(state, timeLeft){
 
 var startState = 0;
 
-var getRuntime = function(totalTime){
-  return timeit(function(){
-    return act(startState,totalTime);
+var getRuntime = function(totalTime) {
+  return timeit(function() {
+    return act(startState, totalTime);
   }).runtimeInMilliseconds.toPrecision(4);
 };
 
@@ -257,13 +254,14 @@ viz.bar(numSteps, runtimes);
 Most of this computation is unnecessary. If the agent starts at `state === 0`, there are three ways the agent could be at `state === 0` again after two steps: either the agent stays put twice or the agent goes one step away and then returns. The code above computes `agent(0, totalTime-2)` three times, while it only needs to be computed once. This problem can be resolved by *memoization*, which stores the results of a function call for re-use when the function is called again on the same input. This use of memoization results in a runtime that is polynomial in the number of states and the total time. <!-- We explore the efficiency of these algorithms in more detail in Section VI. --> In WebPPL, we use the higher-order function `dp.cache` to memoize the `act` and `expectedUtility` functions:
 
 ~~~~
-// transition, utility and makeAgent functions defined exactly as above
+// transition, utility and makeAgent functions defined as above,
+// with `act` and `expectedUtility` wrapped in `dp.cache`
 ///fold:
-var transition = function(state, action){
+var transition = function(state, action) {
   return state + action;
 };
 
-var utility = function(state){
+var utility = function(state) {
   if (state === 3) {
     return 1;
   } else {
@@ -272,55 +270,51 @@ var utility = function(state){
 };
 
 var makeAgent = function() { 
-  var act = dp.cache(function(state, timeLeft){
-    return Infer({ method: 'enumerate' }, function(){
+  var act = dp.cache(function(state, timeLeft) {
+    return Infer({ model() {
       var action = uniformDraw([-1, 0, 1]);
       var eu = expectedUtility(state, action, timeLeft);
       factor(100 * eu);
       return action;
-    });
+    }});
   });
 
-  var expectedUtility = dp.cache(function(state, action, timeLeft){
-    var u = utility(state,action);
+  var expectedUtility = dp.cache(function(state, action, timeLeft) {
+    var u = utility(state, action);
     var newTimeLeft = timeLeft - 1;
-
-    if (newTimeLeft == 0){
+    if (newTimeLeft === 0) {
       return u; 
     } else {
-      return u + expectation(Infer({ method: 'enumerate' }, function(){
+      return u + expectation(Infer({ model() {
         var nextState = transition(state, action); 
         var nextAction = sample(act(nextState, newTimeLeft));
         return expectedUtility(nextState, nextAction, newTimeLeft);
-      }));
+      }}));
     }
   });
 
-  return { act : act };
+  return { act };
 }
 
 
 var act = makeAgent().act;
 
-var simulate = function(startState, totalTime){
-  var sampleSequence = function(state, timeLeft){
-    if (timeLeft === 0){
-      return [];
-    } else {
-      var action = sample(act(state, timeLeft));
-      var nextState = transition(state,action); 
-      return [state].concat(sampleSequence(nextState, timeLeft - 1))
-    }
-  };
-  return sampleSequence(startState, totalTime);
+var simulate = function(state, timeLeft){
+  if (timeLeft === 0){
+    return [];
+  } else {
+    var action = sample(act(state, timeLeft));
+    var nextState = transition(state, action); 
+    return [state].concat(simulate(nextState, timeLeft - 1))
+  }
 };
 ///
 
 var startState = 0;
 
-var getRuntime = function(totalTime){
-  return timeit(function(){
-    return act(startState,totalTime);
+var getRuntime = function(totalTime) {
+  return timeit(function() {
+    return act(startState, totalTime);
   }).runtimeInMilliseconds.toPrecision(4);
 };
 
@@ -363,8 +357,8 @@ var utilityTable = {
   'timeCost': -0.1
 };
 
-var tableToUtilityFunction = function(table, feature){
-  return function(state, action){
+var tableToUtilityFunction = function(table, feature) {
+  return function(state, action) {
     var stateFeatureName = feature(state).name;
     return stateFeatureName ? table[stateFeatureName] : table.timeCost;
   };
@@ -375,15 +369,15 @@ var utility = tableToUtilityFunction(utilityTable, gridLocationToRestaurant);
 
 // Construct agent
 
-var makeAgent = function(){
+var makeAgent = function() {
   
-  var act = dp.cache(function(state){
-    return Infer({ method: 'enumerate' }, function(){
+  var act = dp.cache(function(state) {
+    return Infer({ model() {
       var action = uniformDraw(stateToActions(state));
       var eu = expectedUtility(state, action);
       factor(100 * eu);
       return action;
-    });
+    }});
   });
 
   var expectedUtility = dp.cache(function(state, action){
@@ -391,15 +385,15 @@ var makeAgent = function(){
     if (state.terminateAfterAction){
       return u; 
     } else {
-      return u + expectation(Infer({ method: 'enumerate' }, function(){
+      return u + expectation(Infer({ model() {
         var nextState = transition(state, action);
         var nextAction = sample(act(nextState));
         return expectedUtility(nextState, nextAction);
-      }));
+      }}));
     }
   });
   
-  return { act: act };
+  return { act };
 };
 
 var act = makeAgent().act;
@@ -407,7 +401,7 @@ var act = makeAgent().act;
 
 // Generate and draw a trajectory
 
-var simulate = function(state){
+var simulate = function(state) {
   var action = sample(act(state));
   var nextState = transition(state, action);
   var out = [state, action];
@@ -419,14 +413,14 @@ var simulate = function(state){
 };
 
 var startState = {
-  loc: [3,1],
+  loc: [3, 1],
   timeLeft: 9,
   timeAtRestaurant: 1
 };
 
 var trajectory = simulate(startState);
 
-GridWorld.draw(world, {trajectory : map(first, trajectory)});
+GridWorld.draw(world, {trajectory: map(first, trajectory)});
 ~~~~
 
 >**Exercise**: Change the utility table such that the agent goes to `Donut S`. What ways are there to accomplish this outcome?
