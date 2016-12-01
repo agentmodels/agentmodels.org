@@ -80,40 +80,39 @@ TODO: ideally we would do this as actual online inference.
 
 // helper function to assemble and display time-series
 ///fold:
-var displayTimeSeries = function(observedStateAction, getPosterior){
+var displayTimeSeries = function(observedStateAction, getPosterior) {
   var features = ['reward', 'predictWorkLastMinute', 'alpha', 'discount'];
 
   // dist on {a:1, b:3, ...} -> [E('a'), E('b') ... ]
-  var distToMarginalExpectations = function(dist, keys){
-    return map(function(key){
-      return expectation(getMarginal(dist,key));
+  var distToMarginalExpectations = function(dist, keys) {
+    return map(function(key) {
+      return expectation(getMarginal(dist, key));
     }, keys);
   };
   // condition observations up to *timeIndex* and take expectations
-  var inferUpToTimeIndex = function(timeIndex, useOptimalModel){
-    var observations = observedStateAction.slice(0,timeIndex);
-    return distToMarginalExpectations( getPosterior(observations, useOptimalModel), features);
+  var inferUpToTimeIndex = function(timeIndex, useOptimalModel) {
+    var observations = observedStateAction.slice(0, timeIndex);
+    return distToMarginalExpectations(getPosterior(observations, useOptimalModel), features);
   };
 
-  var getTimeSeries = function(useOptimalModel){
+  var getTimeSeries = function(useOptimalModel) {
 
-    var inferAllTimeIndexes = map( function(index){
+    var inferAllTimeIndexes = map(function(index) {
       return inferUpToTimeIndex(index, useOptimalModel);
     }, range(observedStateAction.length));
 
-    return map( function(i){
+    return map(function(i) {
       // get full time series of online inferences for each feature
       return map(function(infer){return infer[i];}, inferAllTimeIndexes);
-
-    }, range(features.length) );
+    }, range(features.length));
   };
 
-  var displayOptimalAndPossiblyDiscountingSeries = function(index){
+  var displayOptimalAndPossiblyDiscountingSeries = function(index) {
     print('\n\nfeature: ' + features[index]);
     var optimalSeries = getTimeSeries(true)[index];
     var possiblyDiscountingSeries = getTimeSeries(false)[index];
     var plotOptimal = map(
-      function(pair){
+      function(pair){ 
         return {
           t: pair[0], 
           expectation: pair[1], 
@@ -131,10 +130,12 @@ var displayTimeSeries = function(observedStateAction, getPosterior){
       },
       zip(range(observedStateAction.length),
           possiblyDiscountingSeries));
-    viz.line(plotOptimal.concat(plotPossiblyDiscounting), {groupBy: 'agentModel'});
+    viz.line(plotOptimal.concat(plotPossiblyDiscounting), 
+             { groupBy: 'agentModel' });
   };
 
-  print('Posterior expectation on feature after observing "wait" for t timesteps and "work" when t=9');
+  print('Posterior expectation on feature after observing ' +
+        '"wait" for t timesteps and "work" when t=9');
   map(displayOptimalAndPossiblyDiscountingSeries, range(features.length));
   return '';
 };
@@ -144,12 +145,13 @@ var getPosterior = function(observedStateAction, useOptimalModel) {
   var world = makeProcrastinationMDP();
   var lastChanceState = secondLast(procrastinateUntilEnd10)[0];
 
-  return Infer({ method: 'enumerate' }, function(){
+  return Infer({ model() {
 
     var utilityTable = {
       reward: uniformDraw([0.5, 2, 3, 4, 5, 6, 7, 8]),
       waitCost: -0.1,
-      workCost: -1};
+      workCost: -1
+    };
     var params = {
       utility: makeProcrastinationUtility(utilityTable),
       alpha: categorical([0.1, 0.2, 0.2, 0.2, 0.3], [0.1, 1, 10, 100, 1000]),
@@ -160,7 +162,7 @@ var getPosterior = function(observedStateAction, useOptimalModel) {
     var agent = makeMDPAgent(params, world);
     var act = agent.act;
 
-    map(function(stateAction){
+    map(function(stateAction) {
       var state = stateAction[0];
       var action = stateAction[1];
       observe(act(state, 0), action);
@@ -170,9 +172,9 @@ var getPosterior = function(observedStateAction, useOptimalModel) {
       reward: utilityTable.reward, 
       alpha: params.alpha, 
       discount: params.discount, 
-      predictWorkLastMinute: sample( act(lastChanceState, 0) ) == 'work'
+      predictWorkLastMinute: sample(act(lastChanceState, 0)) === 'work'
     };
-  });
+  }});
 };
 
 var observedStateAction = procrastinateUntilEnd10;
