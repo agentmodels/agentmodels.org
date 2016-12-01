@@ -174,13 +174,13 @@ viz(trajectoryDist);
 
 ### Noisy transitions vs. Noisy agents
 
-It's important to distinguish noise in the transition function from the softmax noise in the agent's selection of actions. Noise in the transition function is a representation of randomness in the world. This is easiest to think about in casino games and other games of chance [^noise]. In playing a casino game any agent will need to model the randomness in the game. By contrast, softmax noise is a property of an agent. For example, we can vary the behavior of otherwise identical agents by varying their parameter $$\alpha$$.
+It's important to distinguish noise in the transition function from the softmax noise in the agent's selection of actions. Noise (or "stochasticity") in the transition function is a representation of randomness in the world. This is easiest to think about in games of chance[^noise]. In a game of chance (e.g. slot machines or poker) rational agents will take into account the randomness in the game. By contrast, softmax noise is a property of an agent. For example, we can vary the behavior of otherwise identical agents by varying their parameter $$\alpha$$.
 
-Unlike transition noise, softmax noise will have less influence on the agent's planning for the Hiking Problem. Since it's so bad to fall down the hill, the softmax agent will rarely do so even if they take the short route. The softmax agent is like a lazy person who takes mildy inefficient routes but "pulls themself together" when stakes are high.
+Unlike transition noise, softmax noise has little influence on the agent's planning for the Hiking Problem. Since it's so bad to fall down the hill, the softmax agent will rarely do so even if they take the short route. The softmax agent is like a person who takes inefficient routes when stakes are low but "pulls themself together" when stakes are high.
 
-[^noise]: An agent's world model might treat a complex set of deterministic rules as random. In this sense, agents will vary in whether they represent an MDP as stochastic or not. We won't consider that case in this tutorial. 
+[^noise]: An agent's world model might treat a complex set of deterministic rules as random. In this sense, agents will vary in whether they represent an MDP as stochastic or not. We won't consider that case in this tutorial.
 
->**Exercise:** Use the codebox below to explore different levels of softmax noise. Find a setting of `utilityTable` and `alpha` such that the agent goes to West and East equally often and nearly always takes the most direct route to both East and West. Included below is code for simulating many trajectories and returning the trajectory length. You can extend this code to measure whether the route taken by the agent is direct or not. (Note that while the softmax agent here is able to "backtrack" or return to its previous location, in later Gridworld examples we rule out backtracking as a possible action).  
+>**Exercise:** Use the codebox below to explore different levels of softmax noise. Find a setting of `utilityTable` and `alpha` such that the agent goes to West and East equally often and nearly always takes the most direct route to both East and West. Included below is code for simulating many trajectories and returning the trajectory length. You can extend this code to measure whether the route taken by the agent is direct or not. (Note that while the softmax agent here is able to "backtrack" or return to its previous location, in later Gridworld examples we disalllow backtracking as a possible action).  
 
 ~~~~
 // parameters for world
@@ -219,7 +219,7 @@ viz(trajectoryDist);
 
 We return to the case of a stochastic environment with very low softmax action noise. In a stochastic environment, the agent sometimes finds themself in a state they did not intend to reach. The functions `agent` and `expectedUtility` (inside `makeMDPAgent`) implicitly compute the expected utility of actions for every possible future state, including states that the agent will try to avoid. In the MDP literature, this function from states and remaining time to actions is called a *policy*. (For infinite-horizon MDPs, policies are functions from states to actions.) Since policies take into account every possible contingency, they are quite different from the everyday notion of a plan. 
 
-Consider the example from above where the agent takes the long route because of the risk of falling down the hill. If we generate a single trajectory for the agent, they will likely take the long route. However, if we generated many trajectories, we would sometimes see the agent move "right" instead of "up" on their first move. Before taking this first action, the agent implicitly computes what to do if they end up moving right. The next codebox illustrates what they'd do: 
+Consider the example from above where the agent takes the long route because of the risk of falling down the hill. If we generate a single trajectory for the agent, they will likely take the long route. However, if we generated many trajectories, we would sometimes see the agent move "right" instead of "up" on their first move. Before taking this first action, the agent implicitly computes what they *would* do if they end up moving right. To find out what they would do, we can artificially start the agent in $[1,1]$ instead of $[0,1]$:
 
 ~~~~
 // policy
@@ -228,7 +228,7 @@ Consider the example from above where the agent takes the long route because of 
 var transitionNoiseProb = 0.1;
 var world = makeHike(transitionNoiseProb);
 
-// change start from [0, 1] to [1, 1] and timeLeft to 11
+// change start from [0, 1] to [1, 1] and timeLeft to 11 instead of 12
 var startState = {
   loc: [1, 1],
   timeLeft: 12-1,
@@ -246,7 +246,7 @@ GridWorld.draw(world, { trajectory });
 
 Extending this idea, we can return and visualize the expected values of each action the agent *could have taken* during their trajectory. For each state in a trajectory, we compute the expected value of each possible action (given the state and remaining time). The resulting numbers are analogous to Q-values in infinite-horizon MDPs. 
 
-The expected values we seek to display are already being computed implicitly: we add a function addition to `getExpectedUtilitiesMDP` in order to return them. We then plot these on the Gridworld itself. The numbers in each grid cell are the expected utilities of moving in the corresponding directions. This allows us to see how close the agent was to taking the short route as opposed to the long route. (Also note that if the difference in expected utility between two actions is small then a noisy agent will take each of them with nearly equal probability). 
+The expected values are already being computed implicitly: we add a function addition to `getExpectedUtilitiesMDP` in order to return them. We then plot these on the Gridworld itself. The numbers in each grid cell are the expected utilities of moving in the corresponding directions. This allows us to see how close the agent was to taking the short route as opposed to the long route. (Also note that if the difference in expected utility between two actions is small then a noisy agent will take each of them with nearly equal probability). 
 
 ~~~~
 // trajectory must consist only of states. This can be done by calling
