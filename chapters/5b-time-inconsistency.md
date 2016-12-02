@@ -18,7 +18,7 @@ The Naive agent at objective time $$t$$ assumes his future self at objective tim
 
 To be more concrete, suppose both Naive and Sophisticated have a discount function $$1/(1+kd)$$, where $$d$$ is the time the reward is received. When simulating his future self at $$t+c$$, the Naive agent assumes he'll discount immediate gains at rate $$1/(1+kc)$$ and the Sophisticated agent (correctly) assumes a rate of $$(1/(1+0)$$. 
 
-Adding delays to our model is straightforward. In defining the MDP agent, we <a href=/chapters/3a-mdp.html#mdp-recursion>presented</a> Bellman-style recursions for the expected utility of state-action pairs. Discounting agents evaluate states and actions differently depending on their *delay* from the present. So we now define expected utilities of state-action-delay triples:
+Adding delays to our model is straightforward. In defining the MDP agent, we <a href="/chapters/3a-mdp.html#mdp-recursion">presented</a> Bellman-style recursions for the expected utility of state-action pairs. Discounting agents evaluate states and actions differently depending on their *delay* from the present. So we now define expected utilities of state-action-delay triples:
 
 $$
 EU[s,a,d] = \delta(d)U(s, a) + \mathbb{E}_{s', a'}(EU[s', a',d+1])
