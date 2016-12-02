@@ -171,9 +171,9 @@ print('Arm2 is best arm and has expected utility 1.\n' +
 
 ## Myopic Updating: the basic idea
 
-In Chapter 3.3, we noted that solving a finite-horizon Multi-arm bandit problem is intractable in the number of arms and trials. So bounded agents will use a sub-optimal but tractable algorithm for this problem. In this chapter we describe and implement a widely-studied approach to Bandits (and POMDPs generally) that is sub-optimal but which can be very effective in practice. We refer to the approach as *Myopic Updating*, because it is "myopic" or "greedy" with respect to exploration. The idea is that the agent at time $$t_0$$ assumes he can only *explore* (i.e. update beliefs from observations) up to some cutoff point $$C_m$$ steps into the future. After that point he just *exploits* (i.e. he gain rewards but doesn't update from the rewards he observes). In reality, the agent will continue to update beliefs after time $$t_0+C_m$$. The Update-myopic agent, like the Naive hyperbolic discounter, has an incorrect model of his future self. We call an agent that uses Myopic Updating an "Update-myopic Agent". This will be precisely defined below. 
+In Chapter 3.3, we noted that solving a finite-horizon Multi-arm bandit problem is intractable in the number of arms and trials. So bounded agents will use a sub-optimal but tractable algorithm for this problem. In this chapter we describe and implement a widely-studied approach to Bandits that is sub-optimal but often effective in practice. We refer to the approach as *Myopic Updating*, because it is "myopic" or "greedy" with respect to exploration. The idea is that the agent at time $$t_0$$ assumes he can only *explore* (i.e. update beliefs from observations) up to some cutoff point $$C_m$$ steps into the future. After that point he just *exploits* (i.e. he gain rewards but doesn't update from the rewards he observes). In reality, the agent continues to update beliefs after time $$t_0+C_m$$. The Update-myopic agent, like the Naive hyperbolic discounter, has an incorrect model of his future self. We call an agent that uses Myopic Updating an "Update-myopic Agent". This will be precisely defined below. 
 
-Myopic Updating is an efficient way to solve Bandit problems, yielding an optimal solution in the two-arm case refp:frazier2008knowledge, and also provides a good fit to human performance in Bandit problems refp:zhang2013forgetful. In what follows, we describe Myopic Updating in more detail, explain how to incorporate it into out POMDP agent model, and then exhibit its performance on Bandit problems.
+Myopic Updating is an efficient way to solve certain Bandit problems, yielding an optimal solution in the Gaussian two-arm case refp:frazier2008knowledge,<!-- TODO verify this: or is it only for best-arm ident?--> and also provides a good fit to human performance in Bernoulli Bandit problems refp:zhang2013forgetful. In what follows, we describe Myopic Updating in more detail, explain how to incorporate it into out POMDP agent model, and then exhibit its performance on Bandits.
 
 ### Myopic Updating: applications and limitations
 
@@ -224,7 +224,7 @@ The implementation of the Update-myopic agent in WebPPL is a direct translation 
 
 ### Myopic Updating for Bandits
 
-The Update-myopic agent performs well on a variety of Bandit problems. The following codeboxes compare the Update-myopic agent to the Optimal POMDP agent on binary, two-arm Bandits (see the specific example in Figure 3). TODO: add statement about equivalent performance. 
+The Update-myopic agent performs well on a variety of Bandit problems. The following codeboxes compare the Update-myopic agent to the Optimal POMDP agent on binary, two-arm Bandits (see the specific example in Figure 3). <!--TODO: add statement about equivalent performance. -->
 
 <img src="/assets/img/5b-myopic-bandit.png" alt="diagram" style="width: 600px;"/>
 
