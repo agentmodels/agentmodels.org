@@ -24,13 +24,13 @@ var locationPrior = function() {
 };
 
 var alice = function() {
-  return Infer({ method: 'enumerate' }, function(){
+  return Infer({ model() {
     var myLocation = locationPrior();
     return myLocation;
-  })
+  }});
 };
 
-viz.auto(alice());
+viz(alice());
 ~~~~
 
 Now we model Alice's thinking about Bob:
@@ -45,22 +45,22 @@ var locationPrior = function() {
 };
 
 var alice = function() {
-  return Infer({ method: 'enumerate' }, function(){
+  return Infer({ model() {
     var myLocation = locationPrior();
     var bobLocation = sample(bob());
     condition(myLocation === bobLocation);
     return myLocation;
-  });
+  }});
 };
 
 var bob = function() {
-  return Infer({ method: 'enumerate' }, function(){
+  return Infer({ model() {
     var myLocation = locationPrior();
     return myLocation;
-  });
+  }});
 };
 
-viz.auto(alice());
+viz(alice());
 ~~~~
 
 Now Bob and Alice are thinking recursively about each other. We add caching (to avoid repeated computations) and a depth parameter (to avoid infinite recursion):
@@ -75,16 +75,16 @@ var locationPrior = function() {
 }
 
 var alice = dp.cache(function(depth) {
-  return Infer({ method: 'enumerate' }, function(){
+  return Infer({ model() {
     var myLocation = locationPrior();
     var bobLocation = sample(bob(depth - 1));
     condition(myLocation === bobLocation);
     return myLocation;
-  });
+  }});
 });
 
 var bob = dp.cache(function(depth) {
-  return Infer({ method: 'enumerate' }, function(){
+  return Infer({ model() {
     var myLocation = locationPrior();
     if (depth === 0) {
       return myLocation;
@@ -93,10 +93,10 @@ var bob = dp.cache(function(depth) {
       condition(myLocation === aliceLocation);
       return myLocation;
     }
-  });
+  }});
 });
 
-viz.auto(alice(10))
+viz(alice(10));
 ~~~~
 
 >**Exercise**: Change the example to the setting where Bob wants to avoid Alice instead of trying to meet up with her, and Alice knows this. How do the predictions change as the reasoning depth grows? How would you model the setting where Alice doesn't know that Bob wants to avoid her?
@@ -119,14 +119,14 @@ var isValidMove = function(state, move) {
 };
 
 var movePrior = dp.cache(function(state){
-  return Infer({ method: 'enumerate' }, function(){
+  return Infer({ model() {
     var move = {
       x: randomInteger(3),
       y: randomInteger(3)
     };
     condition(isValidMove(state, move));
     return move;
-  });
+  }});
 });
 
 var startState = [
@@ -135,7 +135,7 @@ var startState = [
   ['?', '?', '?']
 ];
 
-viz.auto(movePrior(startState));
+viz.table(movePrior(startState));
 ~~~~
 
 Now let's add a deterministic transition function:
@@ -147,14 +147,14 @@ var isValidMove = function(state, move) {
 };
 
 var movePrior = dp.cache(function(state){
-  return Infer({ method: 'enumerate' }, function(){
+  return Infer({ model() {
     var move = {
       x: randomInteger(3),
       y: randomInteger(3)
     };
     condition(isValidMove(state, move));
     return move;
-  });
+  }});
 });
 ///
 
@@ -174,7 +174,7 @@ var startState = [
   ['?', '?', '?']
 ];
 
-transition(startState, {x: 1, y: 0}, 'o')
+transition(startState, {x: 1, y: 0}, 'o');
 ~~~~
 
 We need to be able to check if a player has won:
@@ -186,14 +186,14 @@ var isValidMove = function(state, move) {
 };
 
 var movePrior = dp.cache(function(state){
-  return Infer({ method: 'enumerate' }, function(){
+  return Infer({ model() {
     var move = {
       x: randomInteger(3),
       y: randomInteger(3)
     };
     condition(isValidMove(state, move));
     return move;
-  });
+  }});
 });
 
 var assign = function(obj, k, v) {
@@ -233,7 +233,7 @@ var startState = [
   ['?', '?', '?']
 ];
 
-hasWon(startState, 'x')
+hasWon(startState, 'x');
 ~~~~
 
 Now let's implement an agent that chooses a single action, but can't plan ahead:
@@ -245,14 +245,14 @@ var isValidMove = function(state, move) {
 };
 
 var movePrior = dp.cache(function(state){
-  return Infer({ method: 'enumerate' }, function(){
+  return Infer({ model() {
     var move = {
       x: randomInteger(3),
       y: randomInteger(3)
     };
     condition(isValidMove(state, move));
     return move;
-  });
+  }});
 });
 
 var assign = function(obj, k, v) {
@@ -300,15 +300,15 @@ var utility = function(state, player) {
 };
 
 var act = dp.cache(function(state, player) {
-  return Infer({ method: 'enumerate' }, function(){
+  return Infer({ model() {
     var move = sample(movePrior(state));
-    var eu = expectation(Infer({ method: 'enumerate'}, function(){
+    var eu = expectation(Infer({ model() {
       var outcome = transition(state, move, player);
       return utility(outcome, player);
-    }));
+    }}));
     factor(eu);    
     return move;
-  });
+  }});
 });
 
 var startState = [
@@ -317,7 +317,7 @@ var startState = [
   ['?', '?', '?']
 ];
 
-viz.auto(act(startState, 'x'));
+viz.table(act(startState, 'x'));
 ~~~~
 
 And now let's include planning:
@@ -329,14 +329,14 @@ var isValidMove = function(state, move) {
 };
 
 var movePrior = dp.cache(function(state){
-  return Infer({ method: 'enumerate' }, function(){
+  return Infer({ model() {
     var move = {
       x: randomInteger(3),
       y: randomInteger(3)
     };
     condition(isValidMove(state, move));
     return move;
-  });
+  }});
 });
 
 var assign = function(obj, k, v) {
@@ -401,15 +401,15 @@ var otherPlayer = function(player) {
 };
 
 var act = dp.cache(function(state, player) {
-  return Infer({ method: 'enumerate' }, function(){
+  return Infer({ model() {
     var move = sample(movePrior(state));
-    var eu = expectation(Infer({ method: 'enumerate'}, function(){
+    var eu = expectation(Infer({ model() {
       var outcome = simulate(state, move, player);
       return utility(outcome, player);
-    }));
+    }}));
     factor(eu);    
     return move;
-  });
+  }});
 });
 
 var simulate = function(state, action, player) {
@@ -431,7 +431,7 @@ var startState = [
 
 var actDist = act(startState, 'o');
 
-viz.auto(actDist);
+viz.table(actDist);
 ~~~~
 
 ## Language understanding
@@ -456,15 +456,15 @@ var sentencePrior = function() {
 };
 
 var literalListener = function(sentence) {
-  return Infer({ method: 'enumerate' }, function(){
+  return Infer({ model() {
     var state = statePrior();
     var meaning = literalMeanings[sentence];
     condition(meaning(state));
     return state;
-  })
+  }});
 };
 
-viz.auto(literalListener('someSprouted'));
+viz(literalListener('someSprouted'));
 ~~~~
 
 A pragmatic speaker, thinking about the literal listener:
@@ -489,23 +489,23 @@ var sentencePrior = function() {
 ///
 
 var literalListener = function(sentence) {
-  return Infer({ method: 'enumerate' }, function(){
+  return Infer({ model() {
     var state = statePrior();
     var meaning = literalMeanings[sentence];
     condition(meaning(state));
     return state;
-  })
+  }});
 };
 
 var speaker = function(state) {
-  return Infer({ method: 'enumerate' }, function(){
+  return Infer({ model() {
     var sentence = sentencePrior();
     factor(alpha * literalListener(sentence).score(state));
     return sentence;
-  });
+  }});
 }
 
-viz.auto(speaker(3));
+viz(speaker(3));
 ~~~~
 
 Pragmatic listener, thinking about speaker:
@@ -530,31 +530,31 @@ var sentencePrior = function() {
 ///
 
 var literalListener = dp.cache(function(sentence) {
-  return Infer({ method: 'enumerate' }, function(){
+  return Infer({ model() {
     var state = statePrior();
     var meaning = literalMeanings[sentence];
     condition(meaning(state));
     return state;
-  })
+  }});
 });
 
 var speaker = dp.cache(function(state) {
-  return Infer({ method: 'enumerate' }, function(){
+  return Infer({ model() {
     var sentence = sentencePrior();
     factor(alpha * literalListener(sentence).score(state));
     return sentence;
-  });
+  }});
 });
 
 var listener = dp.cache(function(sentence) {
-  return Infer({ method: 'enumerate' }, function(){
+  return Infer({ model() {
     var state = statePrior();
     factor(speaker(state).score(sentence));
     return state;
-  })
+  }});
 });
 
-viz.auto(listener('someSprouted'));
+viz(listener('someSprouted'));
 ~~~~
 
 Next chapter: [How to use the WebPPL Agent Models library](/chapters/8-using-gridworld-library.html)
