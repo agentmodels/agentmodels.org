@@ -144,6 +144,40 @@ header, footer {
     padding: 30px;
 }
 
+div#authors {
+    text-align: center;
+    background-color: hsla(186,8%,90%,1);
+    padding-top: 10px;
+    padding-bottom: 10px;
+    font-size: 13px;
+    color: #666;
+}
+
+div#authors a, div#authors a:hover, div#authors a:visited {
+    color: #666;
+}
+
+div#authors a, div#authors a:visited {
+    text-decoration: none;
+}
+
+div#authors a:hover {
+    text-decoration: underline;
+}
+
+pre#bibtex {
+    display: none;
+}
+
+img#cover {
+    width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+    margin-top: -40px;
+}
+
+
 footer {
     font-size: 80%;
     text-align: center;

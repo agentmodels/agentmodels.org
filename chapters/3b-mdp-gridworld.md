@@ -388,13 +388,9 @@ var utility = makeUtility({
 var agent = makeMDPAgent({ utility, alpha: 100 }, mdp.world);
 
 var trajectory = simulateMDP(mdp.startState, mdp.world, agent, 'states');
-var locs1 = map(function(state) { return state.loc; }, trajectory);
-var eus = getExpectedUtilitiesMDP(trajectory, mdp.world, agent);
+var actionExpectedUtilities = getExpectedUtilitiesMDP(trajectory, mdp.world, agent);
 
-GridWorld.draw(mdp.world, { 
-  trajectory,
-  actionExpectedUtilities: eus
-});
+GridWorld.draw(mdp.world, { trajectory, actionExpectedUtilities });
 ~~~~
 
 So far, our agents all have complete knowledge about the state of the world. In the [next chapter](/chapters/3c-pomdp.html), we will explore partially observable worlds.

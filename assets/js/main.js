@@ -25,8 +25,7 @@ function github_page_url(page_url) {
 // WebPPL editor
 
 $(function(){
-  var preEls = Array.prototype.slice.call(document.querySelectorAll("pre"));
-  preEls.map(function(el) { wpEditor.setup(el, {language: 'webppl'}); });          
+  var preEls = $("pre:not(#bibtex)").map(function(i, el) { wpEditor.setup(el, {language: 'webppl'}); });          
 });
 
 
@@ -178,6 +177,19 @@ $(function(){
   }
   document.body.className += " math_finished";
 });
+
+
+// Date
+
+function setDate(){
+  var today = new Date();
+  var dd = today.getDate();
+  var mm = today.getMonth() + 1; //January is 0!
+  var yyyy = today.getFullYear();
+  $(".date").text(yyyy+'-'+mm+'-'+dd);
+}
+
+$(setDate);
 
 
 // Analytics
