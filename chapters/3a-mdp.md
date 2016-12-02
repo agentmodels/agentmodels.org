@@ -30,7 +30,7 @@ C(a; s) \propto e^{\alpha EU_{s}[a]}
 $$
 
 The expected utility depends on both immediate utility and, recursively, on future expected utility:
-<a id="mdp-recursion"></a>
+<a id="recursion"></a>
 <br>**Expected Utility Recursion**:
 
 $$
