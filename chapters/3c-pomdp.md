@@ -346,7 +346,7 @@ var startState = {
   armToPrize: { 0: 'chocolate', 1: 'champagne' }
 };
 
-var alternateStartState = update(startState, {
+    var alternateStartState = update(startState, {
   armToPrize: { 0: 'chocolate', 1: 'nothing' }
 });
 
@@ -449,7 +449,7 @@ var params = { priorBelief, alpha: 1000 };
 var agent = makeBanditAgent(params, bandit, 'belief');
 
 // Simulate agent and return state-action pairs
-var trajectory = simulate(startState, world, agent, 'stateAction');
+var trajectory = simulatePOMDP(startState, world, agent, 'stateAction');
 display(trajectory);
 ~~~~
 
@@ -505,7 +505,7 @@ var getRuntime = function(numberOfTrials) {
   var agent = makeBanditAgent(params, bandit, 'belief');
 
   var f = function() {
-    return simulate(startState, world, agent, 'stateAction');
+    return simulatePOMDP(startState, world, agent, 'stateAction');
   };
   
   return timeit(f).runtimeInMilliseconds.toPrecision(3) * 0.001;
@@ -569,7 +569,7 @@ var getRuntime = function(numberOfArms) {
   var agent = makeBanditAgent(params, bandit, 'belief');
 
   var f = function() {
-    return simulate(startState, world, agent, 'stateAction');
+    return simulatePOMDP(startState, world, agent, 'stateAction');
   };
 
   return timeit(f).runtimeInMilliseconds.toPrecision(3) * 0.001;
@@ -649,7 +649,7 @@ var latentStateSampler = function() {
 
 var priorBelief = getPriorBelief(startState.manifestState, latentStateSampler);
 var agent = makePOMDPAgent({ utility, priorBelief, alpha: 100 }, world);
-var trajectory = simulate(startState, world, agent, 'states');
+var trajectory = simulatePOMDP(startState, world, agent, 'states');
 var manifestStates = map(function(state) { return state.manifestState; },
                          trajectory);
 
@@ -709,7 +709,7 @@ var utilityTable = {
 };
 var utility = makeRestaurantUtilityFunction(world, utilityTable);
 var agent = makePOMDPAgent({ utility, priorBelief, alpha: 100 }, world);
-var trajectory = simulate(startState, world, agent, 'states');
+var trajectory = simulatePOMDP(startState, world, agent, 'states');
 var manifestStates = map(function(state) { return state.manifestState; },
                          trajectory);
 

@@ -84,7 +84,7 @@ var posterior = Infer({ model() {
   };
   var agent = makeMDPAgent(params, world);
 
-  var predictedStateAction = simulate(startState, world, agent, 'stateAction');
+  var predictedStateAction = simulateMDP(startState, world, agent, 'stateAction');
   condition(_.isEqual(observedStateAction, predictedStateAction));
   return { favourite };
 }});
@@ -530,8 +530,8 @@ var simpleAgent = update(simpleAgent_, {
   POMDPFunctions: getPOMDPFunctions(simpleAgent_.params, bandit.world)
 });
 
-var observedSequence = simulate(bandit.startState, bandit.world, simpleAgent,
-                                'stateObservationAction');
+var observedSequence = simulatePOMDP(bandit.startState, bandit.world, simpleAgent,
+                                    'stateObservationAction');
 
 // Priors for inference
 
@@ -603,8 +603,8 @@ var simpleAgent = update(simpleAgent_, {
                                     bandit.world)
 });
 
-var observedSequence = simulate(bandit.startState, bandit.world, simpleAgent,
-                                'stateObservationAction');
+var observedSequence = simulatePOMDP(bandit.startState, bandit.world, simpleAgent,
+                                     'stateObservationAction');
 
 // Agent either knows that arm1 has prize "champagne"
 // or agent thinks prize is probably "nothing"
@@ -687,8 +687,8 @@ var probLikesChocolate = function(numberOfTrials){
                                       bandit.world)
   });
 
-  var observedSequence = simulate(bandit.startState, bandit.world, simpleAgent,
-                                  'stateObservationAction');
+  var observedSequence = simulatePOMDP(bandit.startState, bandit.world, simpleAgent,
+                                       'stateObservationAction');
 
   var baseParams = { alpha: 100 };
 

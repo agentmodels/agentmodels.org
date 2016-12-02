@@ -150,12 +150,12 @@ var utility = makeHikeUtilityFunction(world, utilityTable);
 var agent = makeMDPAgent({ utility, alpha }, world);
 
 // generate a single trajectory
-var trajectory = simulate(startState, world, agent, 'states');
+var trajectory = simulateMDP(startState, world, agent, 'states');
 GridWorld.draw(world, { trajectory });
 
 // run 100 iid samples of the function *sampleTrajectoryLength*
 var sampleTrajectoryLength = function(){
-  return {trajectoryLength: simulate(startState, world, agent).length};
+  return {trajectoryLength: simulateMDP(startState, world, agent).length};
 };
 
 var trajectoryDist = Infer({ 
@@ -199,12 +199,12 @@ var utility = makeHikeUtilityFunction(world, utilityTable);
 var agent = makeMDPAgent({ utility, alpha }, world);
 
 // generate a single trajectory
-var trajectory = simulate(startState, world, agent, 'states');
+var trajectory = simulateMDP(startState, world, agent, 'states');
 GridWorld.draw(world, { trajectory });
 
 // run 100 iid samples of the function *sampleTrajectoryLength*
 var sampleTrajectoryLength = function(){
-  return {trajectoryLength: simulate(startState, world, agent).length};
+  return {trajectoryLength: simulateMDP(startState, world, agent).length};
 };
 var trajectoryDist = Infer({ 
   model: sampleTrajectoryLength,
@@ -239,7 +239,7 @@ var startState = {
 var utilityTable = { East: 10, West: 1, Hill: -10, timeCost: -.1 };
 var utility = makeHikeUtilityFunction(world, utilityTable);
 var agent = makeMDPAgent({utility: utility, alpha: 1000}, world);
-var trajectory = simulate(startState, world, agent, 'states');
+var trajectory = simulateMDP(startState, world, agent, 'states');
 
 GridWorld.draw(world, { trajectory });
 ~~~~
@@ -284,7 +284,7 @@ var startState = {
   terminateAfterAction: false
 };
 
-var trajectory = simulate(startState, world, agent, 'states');
+var trajectory = simulateMDP(startState, world, agent, 'states');
 var locs1 = map(function(state) { return state.loc; }, trajectory);
 var eus = getExpectedUtilitiesMDP(trajectory, world, agent);
 

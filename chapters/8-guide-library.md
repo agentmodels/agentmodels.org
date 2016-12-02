@@ -126,7 +126,7 @@ var makeLineMDP = function(totalTime) {
 wpEditor.put('makeLineMDP', makeLineMDP);
 ~~~~
 
-To run an agent on this MDP, we use a `makeAgent` constructor and the library function `simulate`. The constructor for MDP agents is `makeMDPAgent`:
+To run an agent on this MDP, we use a `makeAgent` constructor and the library function `simulateMDP`. The constructor for MDP agents is `makeMDPAgent`:
 
 >`makeMDPAgent(params, world)`
 
@@ -136,9 +136,9 @@ For an optimal agent, the parameters are:
 
 >`{utility: <utility_function>,  alpha: <softmax_alpha>}`
 
-An environment (or "world") and agent are combined with the `simulate` function:
+An environment (or "world") and agent are combined with the `simulateMDP` function:
 
->`simulate(startState, world, agent, outputType)`
+>`simulateMDP(startState, world, agent, outputType)`
 
 Given the utility function defined above, the highest utility state is at location 3 (three steps to the right from the origin). So an optimal agent (who doesn't hyperbolically discount) will move to this location and stay there. 
 
@@ -200,7 +200,7 @@ var params = { alpha: 1000, utility };
 var agent = makeMDPAgent(params, world);
 
 // Simulate the agent on the lineMDP with *outputType* set to *states*
-var trajectory = simulate(startState, world, agent, 'states');
+var trajectory = simulateMDP(startState, world, agent, 'states');
 
 // Display start state 
 print(trajectory);
@@ -274,7 +274,7 @@ var params = {
   sophisticatedOrNaive: 'naive'
 };
 var agent = makeMDPAgent(params, world);
-var trajectory = simulate(startState, world, agent, 'states');
+var trajectory = simulateMDP(startState, world, agent, 'states');
 print(trajectory);
 ~~~~
 
@@ -372,7 +372,7 @@ var utility = function(state, action) {
 
 var params = { utility, alpha: 1000 };
 var agent = makeMDPAgent(params, world);
-var trajectory = simulate(startState, world, agent);
+var trajectory = simulateMDP(startState, world, agent);
 GridWorld.draw(world, {trajectory: trajectory});
 ~~~~
 
@@ -426,7 +426,7 @@ var utility = makeUtility(table);
 
 var params = { utility, alpha: 1000 };
 var agent = makeMDPAgent(params, world);
-var trajectory = simulate(startState, world, agent);
+var trajectory = simulateMDP(startState, world, agent);
 GridWorld.draw(world, { trajectory });
 ~~~~
 
@@ -441,7 +441,7 @@ There are many examples using gridworld in agentmodels.org, starting from this [
 
 As well as creating your own environments, it is straightfoward to create your own agents for MDPs and POMDPs. Much of agentmodels.org is a tutorial on creating agents (e.g. optimal agents, myopic agents, etc.). Rather than recapitulate agentmodels.org, this section is brief and focuses on the basic interface that agents need to present.
 
-We begin by creating an agent that chooses actions uniformly at random. To run on agent on an environment using the `simulate` function, an agent object must have an `act` method and a `params` attribute. The `act` method is a function from states to a distribution on the available actions. The `params` attribute indicates whether or not the agent is an MDP or POMDP agent.
+We begin by creating an agent that chooses actions uniformly at random. To run on agent on an environment using the `simulateMDP` function, an agent object must have an `act` method and a `params` attribute. The `act` method is a function from states to a distribution on the available actions. The `params` attribute indicates whether or not the agent is an MDP or POMDP agent.
 
 We use the simple gridworld environment from the codebox above. 
 
@@ -500,10 +500,8 @@ var act = function(state){
   return Infer({ model(){ return uniformDraw(actions); }});
 };
 
-// Since params has no *POMDP* attribute, the agent
-// defaults to being an MDP agent
 var randomAgent = { act, params: {} };
-var trajectory = simulate(startState, world, randomAgent);
+var trajectory = simulateMDP(startState, world, randomAgent);
 GridWorld.draw(world, { trajectory });
 ~~~~
 
@@ -569,14 +567,14 @@ var makeRandomAgent = function(world) {
 };
 
 var randomAgent = makeRandomAgent(world);
-var trajectory = simulate(startState, world, randomAgent);
+var trajectory = simulateMDP(startState, world, randomAgent);
 
 GridWorld.draw(world, { trajectory });
 ~~~~
 
 In the example above, the agent constructor `makeRandomAgent` takes the environment (`world`) as an argument in order to access `stateToActions`. Agent constructors will typically also use the environment's `transition` method to internally simulate state transitions.
 
->**Exercise:** Implement an agent who takes the action with highest expected utility under the random policy. (You can do this by making use of the codebox above. Use the `makeRandomAgent` and `simulate` function within a new agent constructor.)
+>**Exercise:** Implement an agent who takes the action with highest expected utility under the random policy. (You can do this by making use of the codebox above. Use the `makeRandomAgent` and `simulateMDP` function within a new agent constructor.)
 
 In addition to writing agents from scratch, you can build on the agents available in the library. 
 
@@ -700,7 +698,7 @@ var params = {
 
 var world = makeLinePOMDP();
 var agent = makePOMDPAgent(params, world);
-var trajectory = simulate(trueStartState, world, agent, 'states');
+var trajectory = simulatePOMDP(trueStartState, world, agent, 'states');
 print(trajectory);
 ~~~~
 
@@ -779,7 +777,7 @@ var params = {
 
 var world = makeLinePOMDP();
 var agent = makePOMDPAgent(params, world);  
-var trajectory = simulate(trueStartState, world, agent, 'states');
+var trajectory = simulatePOMDP(trueStartState, world, agent, 'states');
 print(trajectory);
 ~~~~
 

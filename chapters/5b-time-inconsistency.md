@@ -301,7 +301,7 @@ var params = {
 
 var getLastState = function(discount){
   var agent = makeMDPAgent(update(params, { discount: discount }), world);
-  var states = simulate(world.startState, world, agent, 'states');
+  var states = simulateMDP(world.startState, world, agent, 'states');
   return [last(states).loc, states.length];
 };
 
