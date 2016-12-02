@@ -57,15 +57,15 @@ Here are some examples of systematic deviations from optimal action:
 
 >**Systematic deviations from optimal action**
 
-- Smoking every week (i.e. systematically) while simultaneously trying to quit (e.g. using patches, throwing out cigarette packets).
+- Smoking every week (i.e. systematically) while simultaneously trying to quit (e.g. by using patches and throwing away cigarettes).
 
-- Always completing assignments just before the deadline, while always planning to complete the assignment as early as possible. 
+- Finishing assignments just before the deadline, while always planning to finish them as early as possible. 
 
-- Forgetting random strings (passwords or ID numbers) within a few hours -- assuming they weren't explicitly memorized[^strings].
+- Forgetting random strings of letters or numbers (e.g. passwords or ID numbers) -- assuming they weren't explicitly memorized[^strings].
 
 - Making mistakes on arithmetic problems[^math] (e.g. long division).
 
-[^strings]: With effort people can memorize these strings and store them in mind for longer periods. The claim is that if people do not make an attempt to memorize a random string, they will systematically forget the string within a short duration. This can't be easily explained on a POMDP model, where the agent has perfect memory.
+[^strings]: With effort people can memorize these strings and keep them in memory for long periods. The claim is that if people do not make an attempt to memorize a random string, they will systematically forget the string within a short duration. This can't be easily explained on a POMDP model, where the agent has perfect memory.
 
 [^math]: People learn the algorithm for long division but still make mistakes -- even when stakes are relatively high (e.g. important school exams). While humans vary in their math skill, all humans have severe limitations (compared to computers) at doing arithmetic. See refp:dehaene2011number for various robust, systematic limitations in human numerical cognition. 
 
@@ -74,21 +74,21 @@ These examples suggest that human behavior in everyday decision problems will no
 
 ### Human deviations from optimal action: Cognitive Bounds
 
-Humans perform sub-optimally on some MDPs and POMDPs due to basic computational constraints. Such constraints have been investigated in work on *bounded rationality* and *bounded optimality* refp:gershman2015computational. A simple example was mentioned above: people cannot quickly memorize random strings (even if the stakes are high). Similarly, consider the real-life version of our Restaurant Choice example. If you walk around a big city for the first time, you will forget the location of most of the restaurants you see on the way. If you try a few days later to find a restaurant, you are likely to take an inefficient route. This contrasts with the optimal POMDP-solving agent: he never forgets anything.
+Humans perform sub-optimally on some MDPs and POMDPs due to basic computational constraints. Such constraints have been investigated in work on *bounded rationality* and *bounded optimality* refp:gershman2015computational. A simple example was mentioned above: people cannot quickly memorize random strings (even if the stakes are high). Similarly, consider the real-life version of our Restaurant Choice example. If you walk around a big city for the first time, you will forget the location of most of the restaurants you see on the way. If you try a few days later to find a restaurant, you are likely to take an inefficient route. This contrasts with the optimal POMDP-solving agent who never forgets anything.
 
-Limitations in memory are hardly unique to humans. For any current autonomous robot, there is some number of random bits that it cannot quickly place in permanent storage. In addition to constraints on memory, humans and machines have constraints on time. The simplest POMDPs, such as Bandit problems, are <a href="/chapters/3c-pomdp.html#complexity">intractable</a>: the time needed to solve them will grow exponentially (or worse) in the problem size refp:cassandra1994acting,  refp:madani1999undecidability. The issue is that optimal planning requires taking into account all possible sequences of actions and states. These explode in number as the number of states, actions, and possible sequences of observations grows[^grows].
+Limitations in memory are hardly unique to humans. For any autonomous robot, there is some number of random bits that it cannot quickly place in permanent storage. In addition to constraints on memory, humans and machines have constraints on time. The simplest POMDPs, such as Bandit problems, are intractable: the time needed to solve them will grow exponentially (or worse) in the problem size refp:cassandra1994acting,  refp:madani1999undecidability. The issue is that optimal planning requires taking into account all possible sequences of actions and states. These explode in number as the number of states, actions, and possible sequences of observations grows[^grows].
 
-[^grows]: Dynamic programming helps but does not tame the beast. There are many POMDPs that are small enough to be easily described (i.e. they don't have a very long problem description) but which we can't solve optimally -- even with the best computers. 
+[^grows]: Dynamic programming helps but does not tame the beast. There are many POMDPs that are small enough to be easily described (i.e. they don't have a very long problem description) but which we can't solve optimally in practice.
 
 So for any agent with limited time there will be POMDPs that they cannot solve exactly. It's plausible that humans often encounter POMDPs of this kind. For example, in lab experiments humans make systematic errors in small POMDPs that are easy to solve with computers refp:zhang2013forgetful and refp:doshi2011comparison. Real-world tasks with the structure of POMDPs, such as choosing how to invest resources or deciding on a sequence of scientific experiments, are much more complex and so presumably can't be solved by humans exactly.
 
 ### Human deviations from optimal action: Cognitive Biases
 
-Cognitive bounds of time and space (for memory) mean that any realistic agent will perform sub-optimally on some problems. By contrast, the term "cognitive biases" is usually applied to errors that are idiosyncratic to humans and would not arise in AI systems[^biases]. There is a large literature on cognitive biases in psychology and behavioral economics refp:kahneman2011thinking, refp:kahneman1984choices. One relevant example is the cluster of biases summarized by *Prospect Theory* refp:kahneman1979prospect. In one-shot choices between "lotteries", people are subject to framing effects (e.g. Loss Aversion) and to erroneous computation of expected utility[^prospect]. Another important bias is *time inconsistency*. This bias has been used to explain addiction, procrastination, impulsive behavior and the use of pre-commitment devices. We describe and implement time-inconsistent agents in the next chapter. 
+Cognitive bounds of time and space (for memory) mean that any realistic agent will perform sub-optimally on some problems. By contrast, the term "cognitive biases" is usually applied to errors that are idiosyncratic to humans and would not arise in AI systems[^biases]. There is a large literature on cognitive biases in psychology and behavioral economics refp:kahneman2011thinking, refp:kahneman1984choices. One relevant example is the cluster of biases summarized by *Prospect Theory* refp:kahneman1979prospect. In one-shot choices between "lotteries", people are subject to framing effects (e.g. Loss Aversion) and to erroneous computation of expected utility[^prospect]. Another important bias is *time inconsistency*. This bias has been used to explain addiction, procrastination, impulsive behavior and the use of pre-commitment devices. The next chapter describes and implements time-inconsistent agents. 
 
 [^biases]: We do not presuppose a well substantiated scientific distinction between cognitive bounds and biases. Many have argued that biases result from heuristics and that the heuristics are a fine-tuned shortcut for dealing with cognitive bounds. For our purposes, the main distinction is between intractable decision problems (such that any agent will fail on large enough instances of the problem) and decision problems that appear trivial for simple computational systems but hard for some proportion of humans. For example, time-inconsistent behavior appears easy to avoid for computational systems but hard to avoid for humans. 
 
-[^prospect]: The problems descriptions are extremely simple. So this doesn't look like an issue of bounds on time or memory forcing people to use a heuristic or approximate approach. 
+[^prospect]: The problems descriptions are extremely simple. So this doesn't look like an issue of bounds on time or memory forcing people to use a heuristic approach. 
 
 
 ### Learning preferences from bounded and biased agents
