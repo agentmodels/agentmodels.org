@@ -4,6 +4,12 @@ html {
     background-color: #333333;    
 }
 
+body {
+    /* The fixes here are required since we include webppl.org/homepage.css at editor.html. */
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
 h1 {
     font-size: 160%;
     color: #444;
