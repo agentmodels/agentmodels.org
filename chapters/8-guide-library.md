@@ -290,7 +290,7 @@ We've shown how to create your own MDP and then run different agents on that MDP
 
 Gridworld is a standard toy environment for reinforcement learning problems. The library contains a constructor for making a gridworld with your choice of dimensions and reward function. There is also a function for displaying gridworlds in the browser.
 
-We begin by creating a simple gridworld environment (using `makeGridWorld`) and display it using `GridWorld.draw`.
+We begin by creating a simple gridworld environment (using `makeGridWorldMDP`) and display it using `GridWorld.draw`.
 
 ~~~~
 // Create a constructor for our gridworld
@@ -312,7 +312,7 @@ var makeSimpleGridWorld = function() {
     transitionNoiseProbability: 0
   };
 
-  return makeGridWorld(options)
+  return makeGridWorldMDP(options)
 };
 
 var simpleGridWorld = makeSimpleGridWorld();
@@ -352,7 +352,7 @@ var makeSimpleGridWorld = function() {
     transitionNoiseProbability: 0
   };
 
-  return makeGridWorld(options)
+  return makeGridWorldMDP(options)
 };
 
 var simpleGridWorld = makeSimpleGridWorld();
@@ -402,7 +402,7 @@ var makeSimpleGridWorld = function() {
     transitionNoiseProbability: 0
   };
   
-  return makeGridWorld(options)
+  return makeGridWorldMDP(options)
 };
 
 var simpleGridWorld = makeSimpleGridWorld();
@@ -471,7 +471,7 @@ var makeSimpleGridWorld = function() {
     transitionNoiseProbability: 0
   };
   
-  return makeGridWorld(options)
+  return makeGridWorldMDP(options)
 };
 
 var simpleGridWorld = makeSimpleGridWorld();
@@ -533,7 +533,7 @@ var makeSimpleGridWorld = function() {
     transitionNoiseProbability: 0
   };
   
-  return makeGridWorld(options)
+  return makeGridWorldMDP(options)
 };
 
 var simpleGridWorld = makeSimpleGridWorld();
