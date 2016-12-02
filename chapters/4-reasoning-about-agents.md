@@ -455,9 +455,9 @@ The codeboxes below implements this example. The translation of Equation (2) is 
 - $$a_i$$ is `observedAction`
 
 ~~~~
-var agentModelsBanditInfer = function(baseAgentParams, priorPrizeToUtility,
-                                       priorInitialBelief, bandit,
-                                       observedSequence) {
+var inferBeliefsAndPreferences = function(baseAgentParams, priorPrizeToUtility,
+                                          priorInitialBelief, bandit,
+                                          observedSequence) {
 
   return Infer({ model() {
 
@@ -505,6 +505,47 @@ We start with a very simple example. The agent is observed pulling `arm1` five t
 From the observation, it's obvious that the agent prefers champagne. This is what we infer below:
 
 ~~~~
+///fold:
+var inferBeliefsAndPreferences = function(baseAgentParams, priorPrizeToUtility,
+                                          priorInitialBelief, bandit,
+                                          observedSequence) {
+
+  return Infer({ model() {
+
+    // 1. Sample utilities
+    var prizeToUtility = (priorPrizeToUtility ? sample(priorPrizeToUtility)
+                          : undefined);
+
+    // 2. Sample beliefs
+    var initialBelief = sample(priorInitialBelief);
+
+    // 3. Construct agent given utilities and beliefs
+    var newAgentParams = update(baseAgentParams, { priorBelief: initialBelief });
+    var agent = makeBanditAgent(newAgentParams, bandit, 'belief', prizeToUtility);
+    var agentAct = agent.act;
+    var agentUpdateBelief = agent.updateBelief;
+
+    // 4. Condition on observations
+    var factorSequence = function(currentBelief, previousAction, timeIndex){
+      if (timeIndex < observedSequence.length) { 
+        var state = observedSequence[timeIndex].state;
+        var observation = observedSequence[timeIndex].observation;
+        var nextBelief = agentUpdateBelief(currentBelief, observation, previousAction);
+        var nextActionDist = agentAct(nextBelief);
+        var observedAction = observedSequence[timeIndex].action;        
+        factor(nextActionDist.score(observedAction));        
+        factorSequence(nextBelief, observedAction, timeIndex + 1);
+      }
+    };
+    factorSequence(initialBelief,'noAction', 0);
+
+    return {
+      prizeToUtility, 
+      priorBelief: initialBelief
+    };
+  }});
+};
+///
 // true prizes for arms
 var trueArmToPrizeDist = {
   0: Delta({ v: 'chocolate' }),
@@ -560,9 +601,9 @@ var priorPrizeToUtility = Categorical({
   ps: [0.5, 0.5]
 });
 var baseParams = { alpha: 1000 };
-var posterior = agentModelsBanditInfer(baseParams, priorPrizeToUtility,
-                                       priorInitialBelief, bandit,
-                                       observedSequence);
+var posterior = inferBeliefsAndPreferences(baseParams, priorPrizeToUtility,
+                                           priorInitialBelief, bandit,
+                                           observedSequence);
 
 print("After observing agent choose arm1, what are agent's utilities?");
 print('Posterior on agent utilities:');
@@ -579,6 +620,47 @@ In the codebox above, the agent's preferences are identified by the observations
 We observe the agent's first action, which is pulling `arm0`. Our inference approach is the same as above:
 
 ~~~~
+///fold:
+var inferBeliefsAndPreferences = function(baseAgentParams, priorPrizeToUtility,
+                                          priorInitialBelief, bandit,
+                                          observedSequence) {
+
+  return Infer({ model() {
+
+    // 1. Sample utilities
+    var prizeToUtility = (priorPrizeToUtility ? sample(priorPrizeToUtility)
+                          : undefined);
+
+    // 2. Sample beliefs
+    var initialBelief = sample(priorInitialBelief);
+
+    // 3. Construct agent given utilities and beliefs
+    var newAgentParams = update(baseAgentParams, { priorBelief: initialBelief });
+    var agent = makeBanditAgent(newAgentParams, bandit, 'belief', prizeToUtility);
+    var agentAct = agent.act;
+    var agentUpdateBelief = agent.updateBelief;
+
+    // 4. Condition on observations
+    var factorSequence = function(currentBelief, previousAction, timeIndex){
+      if (timeIndex < observedSequence.length) { 
+        var state = observedSequence[timeIndex].state;
+        var observation = observedSequence[timeIndex].observation;
+        var nextBelief = agentUpdateBelief(currentBelief, observation, previousAction);
+        var nextActionDist = agentAct(nextBelief);
+        var observedAction = observedSequence[timeIndex].action;        
+        factor(nextActionDist.score(observedAction));        
+        factorSequence(nextBelief, observedAction, timeIndex + 1);
+      }
+    };
+    factorSequence(initialBelief,'noAction', 0);
+
+    return {
+      prizeToUtility, 
+      priorBelief: initialBelief
+    };
+  }});
+};
+///
 var trueArmToPrizeDist = {
   0: Delta({ v: 'chocolate' }),
   1: Delta({ v: 'champagne' })
@@ -641,9 +723,9 @@ var priorPrizeToUtility = Categorical({
 });
 
 var baseParams = {alpha: 1000};
-var posterior = agentModelsBanditInfer(baseParams, priorPrizeToUtility,
-                                       priorInitialBelief, bandit,
-                                       observedSequence);
+var posterior = inferBeliefsAndPreferences(baseParams, priorPrizeToUtility,
+                                           priorInitialBelief, bandit,
+                                           observedSequence);
 
 var utilityBeliefPosterior = Infer({ model() {
   var utilityBelief = sample(posterior);
@@ -660,7 +742,47 @@ Exploration is more valuable if there are more Bandit trials in total. If we obs
 
 ~~~~
 // TODO simplify the code here or merge with previous example. 
+///fold:
+var inferBeliefsAndPreferences = function(baseAgentParams, priorPrizeToUtility,
+                                           priorInitialBelief, bandit,
+                                           observedSequence) {
 
+  return Infer({ model() {
+
+    // 1. Sample utilities
+    var prizeToUtility = (priorPrizeToUtility ? sample(priorPrizeToUtility)
+                          : undefined);
+
+    // 2. Sample beliefs
+    var initialBelief = sample(priorInitialBelief);
+
+    // 3. Construct agent given utilities and beliefs
+    var newAgentParams = update(baseAgentParams, { priorBelief: initialBelief });
+    var agent = makeBanditAgent(newAgentParams, bandit, 'belief', prizeToUtility);
+    var agentAct = agent.act;
+    var agentUpdateBelief = agent.updateBelief;
+
+    // 4. Condition on observations
+    var factorSequence = function(currentBelief, previousAction, timeIndex){
+      if (timeIndex < observedSequence.length) { 
+        var state = observedSequence[timeIndex].state;
+        var observation = observedSequence[timeIndex].observation;
+        var nextBelief = agentUpdateBelief(currentBelief, observation, previousAction);
+        var nextActionDist = agentAct(nextBelief);
+        var observedAction = observedSequence[timeIndex].action;        
+        factor(nextActionDist.score(observedAction));        
+        factorSequence(nextBelief, observedAction, timeIndex + 1);
+      }
+    };
+    factorSequence(initialBelief,'noAction', 0);
+
+    return {
+      prizeToUtility, 
+      priorBelief: initialBelief
+    };
+  }});
+};
+///
 
 var probLikesChocolate = function(numberOfTrials){
   var trueArmToPrizeDist = {
@@ -721,9 +843,9 @@ var probLikesChocolate = function(numberOfTrials){
     ps: [0.5, 0.5], 
   });
 
-  var posterior = agentModelsBanditInfer(baseParams, priorPrizeToUtility,
-                                         priorInitialBelief, bandit,
-                                         observedSequence);
+  var posterior = inferBeliefsAndPreferences(baseParams, priorPrizeToUtility,
+                                             priorInitialBelief, bandit,
+                                             observedSequence);
 
   var likesChocInformed = {
     prizeToUtility: likesChocolate,
