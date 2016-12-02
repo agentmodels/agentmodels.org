@@ -205,9 +205,8 @@ GridWorld.draw(mdp.world, { trajectory });
 // Run 100 iid samples of the function *sampleTrajectoryLength*
 
 var sampleTrajectoryLength = function(){
-  return {
-    trajectoryLength: simulateMDP(mdp.startState, mdp.world, agent).length
-  };
+  var trajectoryLength = simulateMDP(mdp.startState, mdp.world, agent).length;
+  return { trajectoryLength };
 };
 
 var trajectoryDist = Infer({ 
@@ -280,8 +279,9 @@ var trajectory = simulateMDP(startState, world, agent, 'states');
 GridWorld.draw(world, { trajectory });
 
 // Run 100 iid samples of the function *sampleTrajectoryLength*
-var sampleTrajectoryLength = function(){
-  return {trajectoryLength: simulateMDP(startState, world, agent).length};
+var sampleTrajectoryLength = function() {
+  var trajectoryLength = simulateMDP(startState, world, agent).length;
+  return { trajectoryLength };
 };
 var trajectoryDist = Infer({ 
   model: sampleTrajectoryLength,
