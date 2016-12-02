@@ -7,7 +7,7 @@ is_section: true
 
 
 ## Introduction
-The previous chapters have shown how to compute optimal actions for agents in MDPs and POMDPs. In many practical applications, this is all we want to compute. For example, if we are controlling a robot, we would want the robot to act optimally given the utility function we have designed for it. If we want to come up with an optimal gambling strategy, we might use a POMDP agent model like that used for the Bandit problems in the [previous chapter](/chapters/3c-pomdp).
+The previous chapters have shown how to compute optimal actions for agents in MDPs and POMDPs. In many practical applications, this is the goal. For example, when controlling a robot, the goal is for the robot to act optimally given its utility function. When playing the stock market or poker, the goal is make money and one might use an approach based on the POMDP agent model from the [previous chapter](/chapters/3c-pomdp).
 
 In other settings, however, the goal is to *learn* or *reason about* an agent based on their behavior. For example, in social science or psychology researchers often seek to learn about people's preferences (denoted $$U$$) and beliefs (denoted $$b$$). The relevant *data* (denoted $$\{a_i\}$$) are usually observations of human actions. In this situation, models of optimal action can be used as *generative models* of human actions. The generative model predicts the behavior *given* preferences and beliefs. That is:
 
@@ -25,9 +25,9 @@ This approach, using generative models of sequential decision making, has been u
 
 [^generative]: The approach in economics closest to the one we outline here (with models of action based on sequential decision making) is called "Structural Estimation". Some particular examples are reft:aguirregabiria2010dynamic and reft:darden2010smoking. A related piece of work in AI or computational social science is reft:ermon2014learning.
 
-Agent models are also used as generative models in Machine Learning, under the label "Inverse Reinforcement Learning" (IRL). One motivation for learning human preferences and beliefs is to give humans helpful recommendations (e.g. for products they are likely to enjoy). A different goal is to build systems that mimic human expert performance. For some tasks, it is hard for humans to directly specify a utility/reward function that is both correct and that can be tractably optimized. An alternative is to *learn* the human's utility function by watching them perform the task. Once learned, the system can use standard RL techniques to optimize the function. This has been applied to building systems to park cars, to fly helicopters, to control human-like bots in videogames, and to play table-tennis[^inverse].
+Agent models are also used as generative models in Machine Learning, under the label "Inverse Reinforcement Learning" (IRL). One motivation for learning human preferences and beliefs is to give humans helpful recommendations (e.g. for products they are likely to enjoy). A different goal is to build systems that mimic human expert performance. For some tasks, it is hard for humans to directly specify a utility/reward function that is both correct and that can be tractably optimized. An alternative is to *learn* the human's utility function by watching them perform the task. Once learned, the system can use standard RL techniques to optimize the function. This has been applied to building systems to park cars, to fly helicopters, to control human-like bots in videogames, and to play table tennis[^inverse].
 
-[^inverse]:  TODO add citations. 
+[^inverse]: The relevant papers on applications of IRL: parking cars in reft:abbeel2008apprenticeship, flying helicopters in reft:abbeel2010autonomous, controlling videogame bots in reft:lee2010learning, and table tennis in reft:muelling2014learning.
 
 <!-- TODO: potentially add a bit more discussion about the promise of IRL. Or maybe this should go somewhere later -->
 
