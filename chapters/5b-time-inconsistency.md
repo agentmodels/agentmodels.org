@@ -86,9 +86,7 @@ var makeAgent = function(params, world) {
 };
 ~~~~
 
-The next codebox shows the Naive agent on the Restaurant Choice problem. In our earlier discussion we claimed that it's possible for the Naive agent to end up at Donut North, despite this being dominated by other options for any set of (rational) preferences. We now give concrete parameters that lead to this behavior.
-
-The display below shows the agent's trajectory along with a visualization of the agent's planning process. The agent first moves in the direction of Veg, which initially looks better than Donut South. Once the agent is right outside Donut North, discounting makes it look better than Veg. We show this precisely by pulling out the agent's expected utility calculations at different steps along its trajectory. The crucial values are the `expectedValue` of going left at [3,5] when `delay=0` compared with `delay=4`. The function `plannedTrajectories` uses `expectedValue` to pull out all of these values. For each timestep, we plot the agent's position and the expected utility of each action they might perform in the future. 
+The next codebox shows how the Naive agent can end up at Donut North in the Restaurant Choice problem, despite this being dominated for any possible utility function. The Naive agent first moves in the direction of Veg, which initially looks better than Donut South. When right outside Donut North, discounting makes it look better than Veg. To visualize this, we display the agent's expected utility calculations at different steps along its trajectory. The crucial values are the `expectedValue` of going left at [3,5] when `delay=0` compared with `delay=4`. The function `plannedTrajectories` uses `expectedValue` to access these values. For each timestep, we plot the agent's position and the expected utility of each action they might perform in the future. 
  
 ~~~~
 //simulate_hyperbolic_agent
