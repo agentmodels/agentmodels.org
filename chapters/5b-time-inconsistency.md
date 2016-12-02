@@ -87,7 +87,7 @@ var makeAgent = function(params, world) {
 ~~~~
 
 The next codebox shows how the Naive agent can end up at Donut North in the Restaurant Choice problem, despite this being dominated for any possible utility function. The Naive agent first moves in the direction of Veg, which initially looks better than Donut South. When right outside Donut North, discounting makes it look better than Veg. To visualize this, we display the agent's expected utility calculations at different steps along its trajectory. The crucial values are the `expectedValue` of going left at [3,5] when `delay=0` compared with `delay=4`. The function `plannedTrajectories` uses `expectedValue` to access these values. For each timestep, we plot the agent's position and the expected utility of each action they might perform in the future. 
- 
+ <!-- TODO codebox broken fixme -->
 ~~~~
 //simulate_hyperbolic_agent
 ///fold: 
@@ -257,7 +257,7 @@ runAndGraph(agent);
 
 ### Example: Procrastinating on a task
 
-In the examples above, time-inconsistency leads to behavior that optimal agents never exhibit. However, given enough softmax noise (or some other random noise model), the Naive path will occur with non-trivial probability. If the agent goes "up" instead of "left" at $$[3,1]$$, then they will continue on to Donut North if they prefer Donuts. As we discuss in Chapter 3.3, the explanation of this behavior in terms of noise becomes less likely if we see this behavior repeatedly. However, it might be unlikely that a human would repeatedly (e.g. on multiple different days) take the Naive path. So we turn to an example from everyday life where time inconsistency leads to behavior that becomes arbitrarily unlikely on the softmax model.
+Compared to the Restaurant Choice problem, procrastination leads to (systematically biased) behavior that is especially hard to explain on the softmax noise mode.
 
 > **The Procrastination Problem**
 > <br>You have a hard deadline of ten days to complete a task (e.g. write a paper for a class, complete an application or tax return). Completing the task takes a full day and has a *cost* (e.g. it's unpleasant work). After the task is complete you get a *reward* (typically exceeding the cost). There is an incentive to finish early: every day you delay finishing, your reward gets slightly smaller. (Imagine that it's good for your reputation to complete tasks early or that early applicants are considered first).
