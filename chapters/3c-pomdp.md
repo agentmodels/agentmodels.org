@@ -346,7 +346,7 @@ var startState = {
   armToPrize: { 0: 'chocolate', 1: 'champagne' }
 };
 
-    var alternateStartState = update(startState, {
+var alternateStartState = update(startState, {
   armToPrize: { 0: 'chocolate', 1: 'nothing' }
 });
 
