@@ -17,15 +17,34 @@ We represent Alice's hiking problem with a Gridworld similar to Bob's Restaurant
 
 ~~~~
 // draw_hike
-var world = makeHike(0);
-var startState = { loc: [0, 1] };
-GridWorld.draw(world, { trajectory: [startState] });
+
+var H = { name: 'Hill' };
+var W = { name: 'West' };
+var E = { name: 'East' };
+var ___ = ' ';
+
+var gridFeatures = [
+  [___, ___, ___, ___, ___],
+  [___, '#', ___, ___, ___],
+  [___, '#',  W , '#',  E ],
+  [___, ___, ___, ___, ___],
+  [ H ,  H ,  H ,  H ,  H ]
+];
+
+var startingLocation = [0, 1];
+
+var mdp = makeGridWorldMDP({ gridFeatures, startingLocation });
+
+GridWorld.draw(mdp.world, { trajectory: [mdp.startState] });
 ~~~~
 
 We start with a *deterministic* transition function. In this case, Alice's risk of falling down the steep hill is solely due to softmax noise in her action choice (which is minimal in this case). The agent model is the same as the one at the end of [Chapter III.1](/chapters/3a-mdp.html). We place the functions `act`, `expectedUtility` in a function `makeMDPAgent`. The following codebox defines this function and we use it later on without defining it (since it's in the `webppl-agents` library). 
 
 ~~~~
 // define_agent_simulate
+
+
+// Set up agent structure
 
 var makeMDPAgent = function(params, world) {
   var stateToActions = world.stateToActions;
@@ -60,52 +79,64 @@ var makeMDPAgent = function(params, world) {
   return { params, expectedUtility, act };
 };
 
-var simulate = function(startState, world, agent, outputType) {
+var simulate = function(startState, world, agent) {
   // if outputType is undefined, default to states
   var act = agent.act;
   var transition = world.transition;
-<!--TODO can we remove this?-->
-  var selectOutput = function(state, action) {
-    var table = {
-      states: state,
-      actions: action,
-      stateAction: [state, action]
-    };
-    return outputType ? table[outputType] : table.states;
-  };
-
   var sampleSequence = function(state) {
     var action = sample(act(state));
     var nextState = transition(state, action);
-    var out = selectOutput(state, action);
     if (state.terminateAfterAction) {
-      return [out];
+      return [state];
     } else {
-      return [out].concat(sampleSequence(nextState));
+      return [state].concat(sampleSequence(nextState));
     }    
   };
   return sampleSequence(startState);
 };
 
 
-// parameters for world
-var transitionNoiseProb = 0;
-var world = makeHike(transitionNoiseProb);
-var startState = {
-  loc: [0, 1],
-  timeLeft: 12,
-  terminateAfterAction: false
-};
+// Set up world
 
-// parameters for agent
-var utilityTable = {
+var makeHikeMDP = function(options) {
+  var H = { name: 'Hill' };
+  var W = { name: 'West' };
+  var E = { name: 'East' };
+  var ___ = ' ';
+  var gridFeatures = [
+    [___, ___, ___, ___, ___],
+    [___, '#', ___, ___, ___],
+    [___, '#',  W , '#',  E ],
+    [___, ___, ___, ___, ___],
+    [ H ,  H ,  H ,  H ,  H ]
+  ];
+  return makeGridWorldMDP(_.assign({ gridFeatures }, options));
+};
+  
+var mdp = makeHikeMDP({
+  startingLocation: [0, 1], 
+  totalTime: 12,
+  transitionNoiseProb: 0
+});
+
+var world = mdp.world;
+var startState = mdp.startState;
+var makeUtility = mdp.makeUtility;
+
+
+// Create parameterized agent
+
+var utility = makeUtility({
   East: 10,
   West: 1,
   Hill: -10,
   timeCost: -.1
-};
-var utility = makeHikeUtilityFunction(world, utilityTable);
-var agent = makeMDPAgent({utility: utility, alpha: 1000}, world);
+});
+var agent = makeMDPAgent({ utility, alpha: 1000 }, world);
+
+
+// Run agent on world
+
 var trajectory = simulate(startState, world, agent);
 
 
@@ -129,33 +160,59 @@ To model bad weather, we assume that at every timestep, there is a constant inde
 Setting `transitionNoiseProb=0.1`, the agent's first action is now to move "up" instead of "right". 
 
 ~~~~
-// parameters for world
-var transitionNoiseProb = 0.1;
-var world = makeHike(transitionNoiseProb);
-var startState = {
-  loc: [0, 1],
-  timeLeft: 13,
-  terminateAfterAction: false
+///fold: makeHikeMDP
+var makeHikeMDP = function(options) {
+  var H = { name: 'Hill' };
+  var W = { name: 'West' };
+  var E = { name: 'East' };
+  var ___ = ' ';
+  var gridFeatures = [
+    [___, ___, ___, ___, ___],
+    [___, '#', ___, ___, ___],
+    [___, '#',  W , '#',  E ],
+    [___, ___, ___, ___, ___],
+    [ H ,  H ,  H ,  H ,  H ]
+  ];
+  return makeGridWorldMDP(_.assign({ gridFeatures }, options));
 };
+///
 
-// parameters for agent
-var alpha = 100;
-var utilityTable = { 
+// Set up world
+
+var mdp = makeHikeMDP({
+  startingLocation: [0, 1], 
+  totalTime: 13,
+  transitionNoiseProb: 0.1  // <- NEW
+});
+
+var world = mdp.world;
+var startState = mdp.startState;
+var makeUtility = mdp.makeUtility;
+
+
+// Create parameterized agent
+
+var utility = makeUtility({ 
   East: 10, 
   West: 1,
   Hill: -10,
   timeCost: -.1
-};
-var utility = makeHikeUtilityFunction(world, utilityTable);
-var agent = makeMDPAgent({ utility, alpha }, world);
+});
+var agent = makeMDPAgent({ utility, alpha: 100 }, world);
 
-// generate a single trajectory
+
+// Generate a single trajectory
+
 var trajectory = simulateMDP(startState, world, agent, 'states');
 GridWorld.draw(world, { trajectory });
 
-// run 100 iid samples of the function *sampleTrajectoryLength*
+
+// Run 100 iid samples of the function *sampleTrajectoryLength*
+
 var sampleTrajectoryLength = function(){
-  return {trajectoryLength: simulateMDP(startState, world, agent).length};
+  return {
+    trajectoryLength: simulateMDP(startState, world, agent).length
+  };
 };
 
 var trajectoryDist = Infer({ 
@@ -163,6 +220,7 @@ var trajectoryDist = Infer({
   method: 'forward', 
   samples: 100
 });
+
 viz(trajectoryDist);
 ~~~~
 
@@ -183,26 +241,50 @@ Unlike transition noise, softmax noise has little influence on the agent's plann
 >**Exercise:** Use the codebox below to explore different levels of softmax noise. Find a setting of `utilityTable` and `alpha` such that the agent goes to West and East equally often and nearly always takes the most direct route to both East and West. Included below is code for simulating many trajectories and returning the trajectory length. You can extend this code to measure whether the route taken by the agent is direct or not. (Note that while the softmax agent here is able to "backtrack" or return to its previous location, in later Gridworld examples we disalllow backtracking as a possible action).  
 
 ~~~~
-// parameters for world
-var transitionNoiseProb = 0.1;
-var world = makeHike(transitionNoiseProb);
-var startState = {
-  loc: [0, 1],
-  timeLeft: 13,
-  terminateAfterAction: false
+///fold: makeHikeMDP, set up world
+var makeHikeMDP = function(options) {
+  var H = { name: 'Hill' };
+  var W = { name: 'West' };
+  var E = { name: 'East' };
+  var ___ = ' ';
+  var gridFeatures = [
+    [___, ___, ___, ___, ___],
+    [___, '#', ___, ___, ___],
+    [___, '#',  W , '#',  E ],
+    [___, ___, ___, ___, ___],
+    [ H ,  H ,  H ,  H ,  H ]
+  ];
+  return makeGridWorldMDP(_.assign({ gridFeatures }, options));
 };
 
-// parameters for agent
-var alpha = 1;
-var utilityTable = { East: 10, West: 1, Hill: -10, timeCost: -.1 };
-var utility = makeHikeUtilityFunction(world, utilityTable);
+var mdp = makeHikeMDP({
+  startingLocation: [0, 1], 
+  totalTime: 13,
+  transitionNoiseProb: 0.1
+});
+
+var world = mdp.world;
+var startState = mdp.startState;
+var makeUtility = mdp.makeUtility;
+///
+
+// Create parameterized agent
+
+var utility = makeUtility({ 
+  East: 10, 
+  West: 1,
+  Hill: -10,
+  timeCost: -.1
+});
+var alpha = 1;  // <- SOFTMAX NOISE
 var agent = makeMDPAgent({ utility, alpha }, world);
 
-// generate a single trajectory
+
+// Generate a single trajectory
 var trajectory = simulateMDP(startState, world, agent, 'states');
 GridWorld.draw(world, { trajectory });
 
-// run 100 iid samples of the function *sampleTrajectoryLength*
+// Run 100 iid samples of the function *sampleTrajectoryLength*
 var sampleTrajectoryLength = function(){
   return {trajectoryLength: simulateMDP(startState, world, agent).length};
 };
@@ -223,22 +305,37 @@ Consider the example from above where the agent takes the long route because of 
 
 ~~~~
 // policy
+///fold: makeHikeMDP
+var makeHikeMDP = function(options) {
+  var H = { name: 'Hill' };
+  var W = { name: 'West' };
+  var E = { name: 'East' };
+  var ___ = ' ';
+  var gridFeatures = [
+    [___, ___, ___, ___, ___],
+    [___, '#', ___, ___, ___],
+    [___, '#',  W , '#',  E ],
+    [___, ___, ___, ___, ___],
+    [ H ,  H ,  H ,  H ,  H ]
+  ];
+  return makeGridWorldMDP(_.assign({ gridFeatures }, options));
+};
+///
 
 // parameters for world
-var transitionNoiseProb = 0.1;
-var world = makeHike(transitionNoiseProb);
+var mdp = makeHikeMDP({
+  startingLocation: [1, 1],  // Previously: [0, 1]
+  totalTime: 11,             // Previously: 12
+  transitionNoiseProb: 0.1
+});
 
-// change start from [0, 1] to [1, 1] and timeLeft to 11 instead of 12
-var startState = {
-  loc: [1, 1],
-  timeLeft: 12-1,
-  terminateAfterAction: false
-};
+var world = mdp.world;
+var startState = mdp.startState;
+var makeUtility = mdp.makeUtility;
 
 // parameters for agent
-var utilityTable = { East: 10, West: 1, Hill: -10, timeCost: -.1 };
-var utility = makeHikeUtilityFunction(world, utilityTable);
-var agent = makeMDPAgent({utility: utility, alpha: 1000}, world);
+var utility = makeUtility({ East: 10, West: 1, Hill: -10, timeCost: -.1 });
+var agent = makeMDPAgent({ utility, alpha: 1000 }, world);
 var trajectory = simulateMDP(startState, world, agent, 'states');
 
 GridWorld.draw(world, { trajectory });
@@ -249,6 +346,23 @@ Extending this idea, we can display the expected values of each action the agent
 The expected values were already being computed implicitly; we now use `getExpectedUtilitiesMDP` to access them. The displayed numbers in each grid cell are the expected utilities of moving in the corresponding directions. For example, we can read off how close the agent was to taking the short route as opposed to the long route. (Note that if the difference in expected utility between two actions is small then a noisy agent will take each of them with nearly equal probability). 
 
 ~~~~
+///fold: makeBigHikeMDP, getExpectedUtilitiesMDP
+var makeBigHikeMDP = function(options) {
+  var H = { name: 'Hill' };
+  var W = { name: 'West' };
+  var E = { name: 'East' };
+  var ___ = ' ';
+  var gridFeatures = [
+    [___, ___, ___, ___, ___, ___],
+    [___, ___, ___, ___, ___, ___],
+    [___, ___, '#', ___, ___, ___],
+    [___, ___, '#',  W , '#',  E ],
+    [___, ___, ___, ___, ___, ___],
+    [ H ,  H ,  H ,  H ,  H ,  H ]
+  ];
+  return makeGridWorldMDP(_.assign({ gridFeatures }, options));
+};
+
 // trajectory must consist only of states. This can be done by calling
 // *simulate* with an additional final argument 'states'.
 var getExpectedUtilitiesMDP = function(stateTrajectory, world, agent) {
@@ -262,27 +376,28 @@ var getExpectedUtilitiesMDP = function(stateTrajectory, world, agent) {
   };
   return map(getAllExpectedUtilities, stateTrajectory);
 };
+///
 
-// long route better and takes long route
+// Long route is better, agent takes long route
 
-var noiseProb = 0.03;
-var world = makeHike(noiseProb, { big: true });
+var mdp = makeBigHikeMDP({
+  startingLocation: [1, 1],
+  totalTime: 12,
+  transitionNoiseProbability: 0.03
+});
 
-var alpha = 100;
-var utilityTable = { 
+var world = mdp.world;
+var startState = mdp.startState;
+var makeUtility = mdp.makeUtility;
+
+var utility = makeUtility({ 
   East: 10, 
   West: 7, 
   Hill : -40, 
   timeCost: -0.4 
-};
-var utility = makeHikeUtilityFunction(world, utilityTable);
-var agent = makeMDPAgent({ utility, alpha }, world);
+});
+var agent = makeMDPAgent({ utility, alpha: 100 }, world);
 
-var startState = {
-  loc: [1, 1],
-  timeLeft: 12,
-  terminateAfterAction: false
-};
 
 var trajectory = simulateMDP(startState, world, agent, 'states');
 var locs1 = map(function(state) { return state.loc; }, trajectory);
