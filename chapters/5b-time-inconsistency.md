@@ -282,6 +282,83 @@ We simulate the behavior of hyperbolic discounters on the Procrastination Proble
 
 ~~~~
 // procrastinate
+///fold: makeProcrastinationMDP, makeProcrastinationUtility
+var makeProcrastinationMDP = function(deadlineTime) {
+  var stateLocs = ["wait_state", "reward_state"];
+  var actions = ["wait", "work", "relax"];
+
+  var stateToActions = function(state) {
+    return (state.loc === "wait_state" ? 
+            ["wait", "work"] :
+            ["relax"]);
+  };
+
+  var advanceTime = function (state) {
+    var newTimeLeft = state.timeLeft - 1;
+    var terminateAfterAction = (newTimeLeft === 1 || 
+                                state.loc === "reward_state");
+    return update(state, {
+      timeLeft: newTimeLeft,
+      terminateAfterAction: terminateAfterAction
+    });
+  };
+
+  var transition = function(state, action) {
+    assert.ok(_.contains(stateLocs, state.loc) && _.contains(actions, action), 
+              'procrastinate transition:' + [state.loc,action]);
+    
+    if (state.loc === "reward_state") {
+      return advanceTime(state);
+    } else if (action === "wait") {
+      var waitSteps = state.waitSteps + 1;
+      return update(advanceTime(state), { waitSteps });
+    } else {
+      var newState = update(state, { loc: "reward_state" });
+      return advanceTime(newState);
+    }
+  };
+
+  var feature = function(state) {
+    return state.loc;
+  };
+
+  var startState = {
+    loc: "wait_state",
+    waitSteps: 0,
+    timeLeft: deadlineTime,
+    terminateAfterAction: false
+  };
+
+  return {
+    actions,
+    stateToActions,
+    transition,
+    feature,
+    startState
+  };
+};
+
+
+var makeProcrastinationUtility = function(utilityTable) {
+  assert.ok(hasProperties(utilityTable, ['waitCost', 'workCost', 'reward']),
+            'makeProcrastinationUtility args');
+  var waitCost = utilityTable.waitCost;
+  var workCost = utilityTable.workCost;
+  var reward = utilityTable.reward;
+
+  // NB: you receive the *workCost* when you leave the *wait_state*
+  // You then receive the reward when leaving the *reward_state* state
+  return function(state, action) {
+    if (state.loc === "reward_state") {
+      return reward + state.waitSteps * waitCost;
+    } else if (action === "work") {
+      return workCost;
+    } else {
+      return 0;
+    }
+  };
+};
+///
 
 // Construct Procrastinate world 
 var deadline = 10;
