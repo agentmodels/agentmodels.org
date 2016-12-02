@@ -84,7 +84,7 @@ NB: The library uses the term "world" in place of "environment".
 ~~~~
 // helper function that decrements time and triggers termination when 
 // time elapsed
-var advanceStateTime = function(state){
+var advanceStateTime = function(state) {
   var newTimeLeft = state.timeLeft - 1;
   return update(state, { 
     timeLeft: newTimeLeft,
@@ -94,22 +94,19 @@ var advanceStateTime = function(state){
 
 // constructuor for the "line" MDP environment:
 // argument *totalTime* is the time horizon
-var makeLineMDP = function(totalTime){
+var makeLineMDP = function(totalTime) {
 
-  var stateToActions = function(state){
+  var stateToActions = function(state) {
     return [-1, 0, 1];
   };
 
-  var transition = function(state, action){
+  var transition = function(state, action) {
     var newLoc = state.loc + action;
-    var stateNewLoc = update(state,{loc: newLoc});
+    var stateNewLoc = update(state, {loc: newLoc});
     return advanceStateTime(stateNewLoc);
   };
 
-  var world = {
-    stateToActions: stateToActions,
-    transition: transition
-  };
+  var world = { stateToActions, transition };
 
   var startState = {
     timeLeft: totalTime, 
@@ -122,11 +119,7 @@ var makeLineMDP = function(totalTime){
     return table[state.loc] ? table[state.loc] : 0;
   };
 
-  return {
-    world: world,
-    startState: startState,
-    utility: utility
-  };
+  return { world, startState, utility };
 };
 
 // save the MDP constructor for use in other codeboxes
@@ -151,8 +144,9 @@ Given the utility function defined above, the highest utility state is at locati
 
 ~~~~
 ///fold:
-// helper function that decrements time and triggers termination when time elapsed
-var advanceStateTime = function(state){
+// helper function that decrements time and triggers termination when 
+// time elapsed
+var advanceStateTime = function(state) {
   var newTimeLeft = state.timeLeft - 1;
   return update(state, { 
     timeLeft: newTimeLeft,
@@ -162,20 +156,19 @@ var advanceStateTime = function(state){
 
 // constructuor for the "line" MDP environment:
 // argument *totalTime* is the time horizon
-var makeLineMDP = function(totalTime){
+var makeLineMDP = function(totalTime) {
 
-  var stateToActions = function(state){return [-1, 0, 1];};
+  var stateToActions = function(state) {
+    return [-1, 0, 1];
+  };
 
-  var transition = function(state,action){
+  var transition = function(state, action) {
     var newLoc = state.loc + action;
-    var stateNewLoc = update(state,{loc: newLoc});
+    var stateNewLoc = update(state, {loc: newLoc});
     return advanceStateTime(stateNewLoc);
   };
 
-  var world = {
-    stateToActions: stateToActions,
-    transition: transition
-  };
+  var world = { stateToActions, transition };
 
   var startState = {
     timeLeft: totalTime, 
@@ -184,15 +177,11 @@ var makeLineMDP = function(totalTime){
   };
 
   var utility = function(state, action){    
-    var table = {0:1, 3:3};
+    var table = { 0: 1, 3: 3 };
     return table[state.loc] ? table[state.loc] : 0;
   };
 
-  return {
-    world: world,
-    startState: startState,
-    utility: utility
-  };
+  return { world, startState, utility };
 };
 ///
 
@@ -207,14 +196,14 @@ var startState = lineMDP.startState;
 
 
 // Construct MDP agent
-var params = {alpha:1000, utility:utility};
+var params = { alpha: 1000, utility };
 var agent = makeMDPAgent(params, world);
 
 // Simulate the agent on the lineMDP with *outputType* set to *states*
 var trajectory = simulate(startState, world, agent, 'states');
 
 // Display start state 
-print(trajectory)
+print(trajectory);
 ~~~~
 
 We described the agent above as "optimal" because it does not hyperbolically discount and it is not myopic. However, we can adjust its "soft-max" noise by modifying the parameter `alpha` and induce sub-optimal behavior. Moreover, we can change the agent's behavior on this MDP by over-writing the utility method in `params`. 
@@ -227,8 +216,9 @@ These attributes are explained in the [chapter](/chapters/5a-time-inconsistency.
 
 ~~~~
 ///fold:
-// helper function that decrements time and triggers termination when time elapsed
-var advanceStateTime = function(state){
+// helper function that decrements time and triggers termination when 
+// time elapsed
+var advanceStateTime = function(state) {
   var newTimeLeft = state.timeLeft - 1;
   return update(state, { 
     timeLeft: newTimeLeft,
@@ -236,38 +226,34 @@ var advanceStateTime = function(state){
   });
 };
 
-// constructor for the "line" MDP environment:
+// constructuor for the "line" MDP environment:
 // argument *totalTime* is the time horizon
-var makeLineMDP = function(totalTime){
+var makeLineMDP = function(totalTime) {
 
-  var stateToActions = function(state){return [-1, 0, 1];};
+  var stateToActions = function(state) {
+    return [-1, 0, 1];
+  };
 
-  var transition = function(state,action){
+  var transition = function(state, action) {
     var newLoc = state.loc + action;
-    var stateNewLoc = update(state,{loc: newLoc});
+    var stateNewLoc = update(state, {loc: newLoc});
     return advanceStateTime(stateNewLoc);
   };
 
-  var world = {
-    stateToActions: stateToActions,
-    transition: transition
-  };
+  var world = { stateToActions, transition };
 
   var startState = {
     timeLeft: totalTime, 
     terminateAfterAction: false, 
-    loc: 0};
+    loc: 0
+  };
 
   var utility = function(state, action){    
-    var table = {0:1, 3:3};
+    var table = { 0: 1, 3: 3 };
     return table[state.loc] ? table[state.loc] : 0;
   };
 
-  return {
-    world: world,
-    startState: startState,
-    utility: utility
-  };
+  return { world, startState, utility };
 };
 ///
 
@@ -283,7 +269,7 @@ var startState = lineMDP.startState;
 // Construct hyperbolic agent
 var params = {
   alpha: 1000,
-  utility: utility,
+  utility,
   discount: 2,
   sophisticatedOrNaive: 'naive'
 };
@@ -308,7 +294,7 @@ We begin by creating a simple gridworld environment (using `makeGridWorld`) and 
 
 ~~~~
 // Create a constructor for our gridworld
-var makeSimpleGridWorld = function(){
+var makeSimpleGridWorld = function() {
 
   // '#' indicates a wall, and ' ' indicates a normal cell  
   var ___ = ' ';
@@ -348,16 +334,16 @@ Having created a gridworld, we construct a utility function (where utility depen
 ~~~~
 ///fold:
 // Create a constructor for our gridworld
-var makeSimpleGridWorld = function(){
+var makeSimpleGridWorld = function() {
 
   // '#' indicates a wall, and ' ' indicates a normal cell  
   var ___ = ' ';
 
   var features = [
-    [___, ___, ___],
-    ['#', '#', ___],
-    ['#', '#', ___],
-    [___, ___, ___]
+    [ ___, ___, ___],
+    [ '#', '#', ___],
+    [ '#', '#', ___],
+    [ ___, ___, ___]
   ];
 
   // Set the transition noise to zero
@@ -372,18 +358,19 @@ var makeSimpleGridWorld = function(){
 var simpleGridWorld = makeSimpleGridWorld();
 var world = simpleGridWorld.world;
 
-var startState = {loc: [0,0],
-    timeLeft: 10,
-    terminateAfterAction: false};
-
+var startState = {
+  loc: [0,0],
+  timeLeft: 10,
+  terminateAfterAction: false
+};
 ///
 
 // `isEqual` is in *underscore* (included in webppl-agents)
-var utility = function(state, action){
-  return _.isEqual(state.loc, [0, 3]) ? 1 : 0
+var utility = function(state, action) {
+  return _.isEqual(state.loc, [0, 3]) ? 1 : 0;
 };
 
-var params = { utility: utility, alpha: 1000 };
+var params = { utility, alpha: 1000 };
 var agent = makeMDPAgent(params, world);
 var trajectory = simulate(startState, world, agent);
 GridWorld.draw(world, {trajectory: trajectory});
@@ -392,7 +379,7 @@ GridWorld.draw(world, {trajectory: trajectory});
 You can create terminal gridworld states by using features with a name. These named-features can also be used to create a utility function without specifying grid coordinates. 
 
 ~~~~
-var makeSimpleGridWorld = function(){
+var makeSimpleGridWorld = function() {
 
   // '#' indicates a wall, and ' ' indicates a normal cell  
   var ___ = ' ';
@@ -435,12 +422,12 @@ var table = {
   silver: 1.8, 
   timeCost: -0.5
 };
-var utility = makeUtility(table)
+var utility = makeUtility(table);
 
-var params = { utility: utility, alpha: 1000 };
+var params = { utility, alpha: 1000 };
 var agent = makeMDPAgent(params, world);
 var trajectory = simulate(startState, world, agent);
-GridWorld.draw(world, { trajectory: trajectory });
+GridWorld.draw(world, { trajectory });
 ~~~~
 
 There are many examples using gridworld in agentmodels.org, starting from this [chapter](/chapters/3b-mdp-gridworld.html).
@@ -451,6 +438,7 @@ There are many examples using gridworld in agentmodels.org, starting from this [
 <a id="agents"></a>
 
 ### Creating your own agents
+
 As well as creating your own environments, it is straightfoward to create your own agents for MDPs and POMDPs. Much of agentmodels.org is a tutorial on creating agents (e.g. optimal agents, myopic agents, etc.). Rather than recapitulate agentmodels.org, this section is brief and focuses on the basic interface that agents need to present.
 
 We begin by creating an agent that chooses actions uniformly at random. To run on agent on an environment using the `simulate` function, an agent object must have an `act` method and a `params` attribute. The `act` method is a function from states to a distribution on the available actions. The `params` attribute indicates whether or not the agent is an MDP or POMDP agent.
@@ -460,7 +448,7 @@ We use the simple gridworld environment from the codebox above.
 ~~~~
 // Build gridworld environment
 ///fold:
-var makeSimpleGridWorld = function(){
+var makeSimpleGridWorld = function() {
 
   // '#' indicates a wall, and ' ' indicates a normal cell  
   var ___ = ' ';
@@ -503,22 +491,20 @@ var table = {
   silver: 1.8, 
   timeCost: -0.5
 };
-var utility = makeUtility(table)
+var utility = makeUtility(table);
 ///
 
 var actions = ['u', 'd', 'l', 'r'];
 
 var act = function(state){
-  return Infer(
-    { method: 'enumerate' }, 
-    function(){ return uniformDraw(actions); })
+  return Infer({ model(){ return uniformDraw(actions); }});
 };
 
 // Since params has no *POMDP* attribute, the agent
 // defaults to being an MDP agent
-var randomAgent = { act: act, params: {} };
+var randomAgent = { act, params: {} };
 var trajectory = simulate(startState, world, randomAgent);
-GridWorld.draw(world, { trajectory: trajectory });
+GridWorld.draw(world, { trajectory });
 ~~~~
 
 In gridworld the same actions are available in each state. When the actions available depend on the state, the agent's `act` function needs access to the environment's `stateToActions` method.
@@ -526,7 +512,7 @@ In gridworld the same actions are available in each state. When the actions avai
 ~~~~
 ///fold:
 // Create a constructor for our gridworld
-var makeSimpleGridWorld = function(){
+var makeSimpleGridWorld = function() {
 
   // '#' indicates a wall, and ' ' indicates a normal cell  
   var ___ = ' ';
@@ -569,26 +555,23 @@ var table = {
   silver: 1.8, 
   timeCost: -0.5
 };
-var utility = makeUtility(table)
+var utility = makeUtility(table);
 ///
 
- 
-var makeRandomAgent = function(world){
-  var stateToActions = world.stateToActions;
-  
-  var act = function(state){
-    return Infer(
-      { method: 'enumerate' }, 
-      function(){return uniformDraw(stateToActions(state));})
-  };
- 
-  return { act: act, params: {} };
+var makeRandomAgent = function(world) {
+  var stateToActions = world.stateToActions;  
+  var act = function(state) {
+    return Infer({ model() {
+      return uniformDraw(stateToActions(state));
+    }});
+  }; 
+  return { act, params: {} };
 };
 
 var randomAgent = makeRandomAgent(world);
 var trajectory = simulate(startState, world, randomAgent);
 
-GridWorld.draw(world, { trajectory: trajectory });
+GridWorld.draw(world, { trajectory });
 ~~~~
 
 In the example above, the agent constructor `makeRandomAgent` takes the environment (`world`) as an argument in order to access `stateToActions`. Agent constructors will typically also use the environment's `transition` method to internally simulate state transitions.
@@ -612,12 +595,11 @@ As we explained above, MDPs in webppl-agents are objects with a `transition` met
 Here is a simple POMDP based on the "Line MDP" example above. The agent moves along the integer line as before. This time the agent is uncertain whether or not there is high reward at location 3. The agent can only find out by moving to location 3 and receiving an observation.
 
 ~~~~
-
 // States have the same structure as in MDPs:
 // the transition method needs to decrement
 // the state's *timeLeft* attribute until termination
 
-var advanceStateTime = function(state){
+var advanceStateTime = function(state) {
   var newTimeLeft = state.timeLeft - 1;
   return update(state, { 
     timeLeft: newTimeLeft,
@@ -626,26 +608,26 @@ var advanceStateTime = function(state){
 };
 
 
-var makeLinePOMDP = function(){
+var makeLinePOMDP = function() {
 
-  var beliefToActions = function(belief){return [-1, 0, 1];};
+  var beliefToActions = function(belief){
+    return [-1, 0, 1];
+  };
   
-  var transition = function(state, action){
+  var transition = function(state, action) {
     var newLoc = state.loc + action;
-    var stateNewLoc = update(state,{loc: newLoc});
+    var stateNewLoc = update(state, {loc: newLoc});
     return advanceStateTime(stateNewLoc);
   };
   
-  var observe = function(state){
-    if (state.loc == 3){
+  var observe = function(state) {
+    if (state.loc == 3) {
       return state.treasureAt3 ? 'treasure' : 'no treasure';
     }
     return 'noObservation';
   };
 
-  return {beliefToActions:beliefToActions, 
-          transition:transition, 
-          observe:observe};  
+  return { beliefToActions, transition, observe };
           
 };
 ~~~~
@@ -656,7 +638,7 @@ This example uses the optimal POMDP agent. To construct a POMDP agent, we need t
 
 ~~~~
 ///fold:
-var advanceStateTime = function(state){
+var advanceStateTime = function(state) {
   var newTimeLeft = state.timeLeft - 1;
   return update(state, { 
     timeLeft: newTimeLeft,
@@ -664,62 +646,69 @@ var advanceStateTime = function(state){
   });
 };
 
-var makeLinePOMDP = function(){
+var makeLinePOMDP = function() {
 
-  var beliefToActions = function(belief){return [-1, 0, 1];};
-  
-  var transition = function(state, action){
+  var beliefToActions = function(belief){
+    return [-1, 0, 1];
+  };
+
+  var transition = function(state, action) {
     var newLoc = state.loc + action;
-    var stateNewLoc = update(state,{loc: newLoc});
+    var stateNewLoc = update(state, {loc: newLoc});
     return advanceStateTime(stateNewLoc);
   };
-  
-  var observe = function(state){
-    if (state.loc == 3){
+
+  var observe = function(state) {
+    if (state.loc == 3) {
       return state.treasureAt3 ? 'treasure' : 'no treasure';
     }
     return 'noObservation';
   };
 
-  return {beliefToActions:beliefToActions, 
-          transition:transition, 
-          observe:observe};  
+  return { beliefToActions, transition, observe };
+
 };
 ///  
 
-var utility = function(state, action){    
-  if (state.loc==3 && state.treasureAt3){return 5;}
-  if (state.loc==0){return 1;}
+var utility = function(state, action) {
+  if (state.loc==3 && state.treasureAt3){ return 5; }
+  if (state.loc==0){ return 1; }
   return 0;
 };
 
-var trueStartState = {timeLeft: 7, 
-                      terminateAfterAction: false, 
-                      loc: 0,
-                      treasureAt3: false};
+var trueStartState = {
+  timeLeft: 7, 
+  terminateAfterAction: false, 
+  loc: 0,
+  treasureAt3: false
+};
 
 var alternativeStartState = update(trueStartState, {treasureAt3: true});
 var possibleStates = [trueStartState, alternativeStartState];
 
-var priorBelief = Categorical({ps: [.5, .5], vs: possibleStates});
+var priorBelief = Categorical({
+  vs: possibleStates,
+  ps: [.5, .5]
+});
 
-var params = {alpha:1000,              
-              utility:utility, 
-              priorBelief: priorBelief,  
-              optimal: true
-             };
+var params = {
+  alpha: 1000,              
+  utility, 
+  priorBelief,  
+  optimal: true
+};
 
 var world = makeLinePOMDP();
 var agent = makePOMDPAgent(params, world);
 var trajectory = simulate(trueStartState, world, agent, 'states');
-print(trajectory)
+print(trajectory);
 ~~~~
 
 In POMDPs the agent does not directly observe their current state. However, in the Line POMDP (above) the "location" part of the agent's state is always known by the agent. The part of the state that is unknown is whether `treasureAt3` is true. So we could factor the state into attributes that are always known ("manifest") and parts that are not ("latent"). This factoring of the state can speed up the POMDP agent's belief-updating and is used for the POMDP environments in the library. The following codebox shows a factored version of the Line POMDP:
 
 ~~~~
 ///fold:
-var advanceStateTime = function(state){
+var advanceStateTime = function(state) {
   var newTimeLeft = state.timeLeft - 1;
   return update(state, { 
     timeLeft: newTimeLeft,
@@ -728,57 +717,70 @@ var advanceStateTime = function(state){
 };
 ///
 
-var makeLinePOMDP = function(){
-  var manifestStateToActions = function(manifestState){return [-1, 0, 1];};
-  
-  var transition = function(state, action){
+var makeLinePOMDP = function() {
+  var manifestStateToActions = function(manifestState){
+    return [-1, 0, 1];
+  };
+
+  var transition = function(state, action) {
     var newLoc = state.manifestState.loc + action;
     var manifestStateNewLoc = update(state.manifestState,{loc: newLoc});
     var newManifestState = advanceStateTime(manifestStateNewLoc);
-    return {manifestState: newManifestState, latentState: state.latentState};
+    return {
+      manifestState: newManifestState, 
+      latentState: state.latentState
+    };
   };
-  
-  var observe = function(state){
+
+  var observe = function(state) {
     if (state.manifestState.loc == 3){
       return state.latentState.treasureAt3 ? 'treasure' : 'no treasure';
     }
     return 'noObservation';
   };
-  
-  return {manifestStateToActions:manifestStateToActions, 
-          transition:transition, 
-          observe:observe};
+
+  return { manifestStateToActions, transition, observe};
 };
 
 
-var utility = function(state, action){    
-  if (state.manifestState.loc==3 && state.latentState.treasureAt3){return 5;}
-  if (state.manifestState.loc==0){return 1;}
+var utility = function(state, action) {
+  if (state.manifestState.loc==3 && state.latentState.treasureAt3){ return 5; }
+  if (state.manifestState.loc==0){ return 1; }
   return 0;
 };
 
-var trueStartState = {manifestState: {timeLeft: 7, 
-                                      terminateAfterAction: false, 
-                                      loc: 0},
-                      latentState: {treasureAt3: false}
-                     };
+var trueStartState = {
+  manifestState: {
+    timeLeft: 7, 
+    terminateAfterAction: false, 
+    loc: 0
+  },
+  latentState: {
+    treasureAt3: false
+  }
+};
 
-var alternativeStartState = update(trueStartState, 
-                                   {latentState: {treasureAt3: true}});
+var alternativeStartState = update(trueStartState, { 
+  latentState: { treasureAt3: true }
+});
 var possibleStates = [trueStartState, alternativeStartState];
 
-var priorBelief = Categorical({ps: [.5, .5], vs: possibleStates});
+var priorBelief = Categorical({
+  vs: possibleStates,
+  ps: [.5, .5]
+});
 
-var params = {alpha:1000,              
-              utility:utility, 
-              priorBelief: priorBelief,  
-              optimal: true
-             };
+var params = {
+  alpha: 1000,              
+  utility, 
+  priorBelief,  
+  optimal: true
+};
 
 var world = makeLinePOMDP();
 var agent = makePOMDPAgent(params, world);  
 var trajectory = simulate(trueStartState, world, agent, 'states');
-print(trajectory)
+print(trajectory);
 ~~~~
 
 
