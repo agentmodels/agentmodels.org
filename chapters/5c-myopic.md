@@ -40,6 +40,12 @@ The next codeboxes show the performance of the Reward-myopic agent on Bandit pro
 
 ~~~~
 // noisy_reward_myopic_regret_ratio
+///fold: getUtility
+var getUtility = function(state, action) {
+  var prize = state.manifestState.loc;
+  return prize === 'start' ? 0 : prize;
+};
+///
 
 // Construct world: One bad arm, one good arm, 100 trials. 
 
@@ -84,7 +90,7 @@ var params = {
 };
 var agent = makeBanditAgent(params, bandit, 'beliefDelay');
 var trajectory = simulatePOMDP(startState, world, agent, 'states');
-var averageUtility = listMean(map(numericBanditUtility, trajectory));
+var averageUtility = listMean(map(getUtility, trajectory));
 print('Arm1 is best arm and has expected utility 0.5.\n' + 
       'So ideal performance gives average score of: 0.5 \n' + 
       'The average score over 100 trials for rewardMyopic agent: '
@@ -111,6 +117,11 @@ var params = {
   noDelays: false,
   discount: 0,
   sophisticatedOrNaive: 'naive'
+};
+
+var getUtility = function(state, action) {
+  var prize = state.manifestState.loc;
+  return prize === 'start' ? 0 : prize;
 };
 ///
 
@@ -143,14 +154,14 @@ var agentPrior = Infer({ model() {
   return makeBanditStartState(numberOfTrials, armToPrizeDist);
 }});
 
-var params = update(params, {priorBelief: agentPrior});
+var params = update(params, { priorBelief: agentPrior });
 var agent = makeBanditAgent(params, bandit, 'beliefDelay');
 var trajectory = simulatePOMDP(startState, world, agent, 'stateAction');
 
 print("Agent's first 20 actions (during exploration phase): \n" + 
       map(second,trajectory.slice(0,20)));
 
-var averageUtility = listMean(map(numericBanditUtility, map(first,trajectory)));
+var averageUtility = listMean(map(getUtility, map(first,trajectory)));
 print('Arm2 is best arm and has expected utility 1.\n' + 
       'So ideal performance gives average score of: 1 \n' + 
       'The average score over 40 trials for rewardMyopic agent: '
@@ -266,9 +277,14 @@ var getBandit = function(numberOfTrials){
   });
 };
 
+var getUtility = function(state, action) {
+  var prize = state.manifestState.loc;
+  return prize === 'start' ? 0 : prize;
+};
+
 // Get score for a single episode of bandits
 var score = function(out) {
-  return listMean(map(numericBanditUtility, out));
+  return listMean(map(getUtility, out));
 };
 ///
 
@@ -365,9 +381,14 @@ var getBandit = function(numberOfTrials) {
   });
 };
 
+var getUtility = function(state, action) {
+  var prize = state.manifestState.loc;
+  return prize === 'start' ? 0 : prize;
+};
+
 // Get score for a single episode of bandits
 var score = function(out) {
-  return listMean(map(numericBanditUtility, out));
+  return listMean(map(getUtility, out));
 };
 
 
