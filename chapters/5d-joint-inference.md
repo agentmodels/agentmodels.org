@@ -79,7 +79,7 @@ TODO: ideally we would do this as actual online inference.
 // infer_procrastination
 
 // helper function to assemble and display time-series
-///fold:
+///fold: displayTimeSeries, procrastinationData
 var displayTimeSeries = function(observedStateAction, getPosterior) {
   var features = ['reward', 'predictWorkLastMinute', 'alpha', 'discount'];
 
@@ -139,11 +139,13 @@ var displayTimeSeries = function(observedStateAction, getPosterior) {
   map(displayOptimalAndPossiblyDiscountingSeries, range(features.length));
   return '';
 };
+
+var procrastinationData = [[{"loc":"wait_state","waitSteps":0,"timeLeft":10,"terminateAfterAction":false},"wait"],[{"loc":"wait_state","waitSteps":1,"timeLeft":9,"terminateAfterAction":false},"wait"],[{"loc":"wait_state","waitSteps":2,"timeLeft":8,"terminateAfterAction":false},"wait"],[{"loc":"wait_state","waitSteps":3,"timeLeft":7,"terminateAfterAction":false},"wait"],[{"loc":"wait_state","waitSteps":4,"timeLeft":6,"terminateAfterAction":false},"wait"],[{"loc":"wait_state","waitSteps":5,"timeLeft":5,"terminateAfterAction":false},"wait"],[{"loc":"wait_state","waitSteps":6,"timeLeft":4,"terminateAfterAction":false},"wait"],[{"loc":"wait_state","waitSteps":7,"timeLeft":3,"terminateAfterAction":false},"wait"],[{"loc":"wait_state","waitSteps":8,"timeLeft":2,"terminateAfterAction":false},"work"],[{"loc":"reward_state","waitSteps":8,"timeLeft":1,"terminateAfterAction":true},"relax"]];
 ///
 
 var getPosterior = function(observedStateAction, useOptimalModel) {
   var world = makeProcrastinationMDP();
-  var lastChanceState = secondLast(procrastinateUntilEnd10)[0];
+  var lastChanceState = secondLast(procrastinationData)[0];
 
   return Infer({ model() {
 
@@ -177,8 +179,7 @@ var getPosterior = function(observedStateAction, useOptimalModel) {
   }});
 };
 
-var observedStateAction = procrastinateUntilEnd10;
-displayTimeSeries(observedStateAction, getPosterior);
+displayTimeSeries(procrastinationData, getPosterior);
 ~~~~
 
 When evaluating the two models, it's worth keeping in mind that the behavior we conditioned on is typical for humans. Suppose you hear someone has still not done a task with only two days left (where the cost for delaying is small and there's no risk of running out of time on the last day). Would you confidently rule out them doing it at the last minute? 
