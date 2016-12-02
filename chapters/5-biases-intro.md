@@ -14,7 +14,7 @@ Use (1): **Solve practical decision problems** (preferably with a fast algorithm
 
 Use (2): **Learn the preferences and beliefs of humans** (e.g. to predict future behavior or to provide recommendations/advice)
 
-The table below provides more detail about these two uses[^table]. The first chapters of the book focused on Use (1) and described agent models for solving MDPs and POMDPs optimally. Chapter IV ("[Reasoning about Agents](/chapters/4-reasoning-about-agents.html)", by contrast, was on Use (2), employing agent models as *generative models* of human behavior which are inverted to learn human preferences. 
+The table below provides more detail about these two uses[^table]. The first chapters of the book focused on Use (1) and described agent models for solving MDPs and POMDPs optimally. Chapter IV ("[Reasoning about Agents](/chapters/4-reasoning-about-agents.html)"), by contrast, was on Use (2), employing agent models as *generative models* of human behavior which are inverted to learn human preferences. 
 
 The present chapter discusses the limitations of using optimal agent modes as generative models for Use (2). We argue that developing models of *biased* or *bounded* decision making can address these limitations. 
 
@@ -23,7 +23,7 @@ The present chapter discusses the limitations of using optimal agent modes as ge
 >**Table 1:** Two uses for formal models of sequential decision making. The heading "Optimality" means "Are optimal models of decision making used?".
 <br>
 
-[^table]: Note that there are important interactions between Use (1) and Use (2). A challenge with Use (1) is that it's often hard to write down an appropriate utility function to optimize. The ideal utility function is one that reflects actual human preferences. So by solving (2) we can solve one of the "key tasks" in (1). This is exactly the approach taken in various applications of IRL. See work on Apprenticeship Learning reft:abbeel2004apprenticeship. 
+[^table]: Note that there are important interactions between Use (1) and Use (2). A challenge with Use (1) is that it's often hard to write down an appropriate utility function to optimize. The ideal utility function is one that reflects actual human preferences. So by solving (2) we can solve one of the "key tasks" in (1). This is exactly the approach taken in various applications of IRL. See work on Apprenticeship Learning refp:abbeel2004apprenticeship. 
 
 <!-- TABLE. TODO: find nice html/markdown rendering:
 
