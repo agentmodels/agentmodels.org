@@ -7,7 +7,7 @@ is_section: true
 
 
 ## Introduction
-The previous chapters have shown how to compute optimal actions for agents in MDPs and POMDPs. In many practical applications, this is all we want to compute. For example, if we are controlling a robot, we would want the robot to act optimally given the utility function we have designed for it. If we want to come up with an optimal gambling strategy, we might use a POMDP agent model like that used for the Bandit problems in the [previous chapter](/chapters/3c-pomdp).
+The previous chapters have shown how to compute optimal actions for agents in MDPs and POMDPs. In many practical applications, this is the goal. For example, when controlling a robot, the goal is for the robot to act optimally given its utility function. When playing the stock market or poker, the goal is make money and one might use an approach based on the POMDP agent model from the [previous chapter](/chapters/3c-pomdp).
 
 In other settings, however, the goal is to *learn* or *reason about* an agent based on their behavior. For example, in social science or psychology researchers often seek to learn about people's preferences (denoted $$U$$) and beliefs (denoted $$b$$). The relevant *data* (denoted $$\{a_i\}$$) are usually observations of human actions. In this situation, models of optimal action can be used as *generative models* of human actions. The generative model predicts the behavior *given* preferences and beliefs. That is:
 
