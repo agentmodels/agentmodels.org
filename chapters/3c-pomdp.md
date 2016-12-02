@@ -27,7 +27,7 @@ In a POMDP, the agent does not directly observe transitions or utilities. Instea
 
 The environment in a POMDP has same structure as an MDP, with the addition of an observation function. In an MDP, the agent always "knows" the current state and chooses an action given that knowledge. In a POMDP, the agent has a probability distribution over the current state. At every timestep, they update this distribution on the current observation and then choose an action (based on their updated distribution over states). Their chosen action causes a state transition exactly as in an MDP. 
 
-For a concrete example, consider the Restaurant Choice Problem. Suppose Bob doesn't know whether the Noodle Shop is open. Previously, the agent's state consisted of Bob's *location* on the grid as well as the remaining time. In the POMDP case, the state also represents whether or not the Noodle Shop is open. This fact about the state determines whether Bob transitions to inside the Noodle Shop if he stands adjactent to it. When Bob is close to the Noodle Shop, he gets to observe (via the observation function) whether or not it's open (without having to actually try it).
+For a concrete example, consider the Restaurant Choice Problem. Suppose Bob doesn't know whether the Noodle Shop is open. Previously, the agent's state consisted of Bob's *location* on the grid as well as the remaining time. In the POMDP case, the state also represents whether or not the Noodle Shop is open. This fact about the state determines whether Bob can enter the Noodle Shop. When Bob is next to the Noodle Shop, he gets to observe (via the observation function) whether or not it's open.
 
 
 
@@ -162,7 +162,7 @@ var simulate = function(startState, priorBelief) {
 ## Applying the POMDP agent model
 
 ### Two-arm, deterministic, IRL Bandits
-We apply the POMDP agent to a simplified variant of the Multi-arm Bandit Problem. In this variant, pulling an arm produces a *prize* deterministically. The agent begins with uncertainty about the mapping from arms to prizes and learns over time by trying the arms. In our concrete example, there are only two arms. The first arm is known to have the prize "chocolate" and the second arm either has "champagne" or has no prize at all ("nothing"). See Figure 2 (below) for details. We refer to Bandit problems with prizes (e.g. chocolate) as "IRL Bandits" to distinguish them from the standard Bandit problems with numerical rewards. <!-- I don't like this explanation of the term "IRL bandit" - reading the paragraph, you don't get an explanation why "IRL" was chosen or what it has to do with inverse reinforcement learning. - Daniel -->
+We apply the POMDP agent to a simplified variant of the Multi-arm Bandit Problem. In this variant, pulling an arm produces a *prize* deterministically. The agent begins with uncertainty about the mapping from arms to prizes and learns over time by trying the arms. In our concrete example, there are only two arms. The first arm is known to have the prize "chocolate" and the second arm either has "champagne" or has no prize at all ("nothing"). See Figure 2 (below) for details. We refer to Bandit problems with prizes (e.g. chocolate) as "IRL Bandits" to distinguish them from the standard Bandit problems with numerical rewards. <!-- TODO I don't like this explanation of the term "IRL bandit" - reading the paragraph, you don't get an explanation why "IRL" was chosen or what it has to do with inverse reinforcement learning. - Daniel -->
 
 <img src="/assets/img/3c-irl-bandit.png" alt="diagram" style="width: 500px;"/>
 
@@ -586,21 +586,25 @@ viz.line(numberOfArmsList, runtimes);
 
 ### Gridworld with observations
 
-As we discussed above, an agent in the Restaurant Choice problem is likely to be uncertain about some features of the environment. We consider a variant of the Restaurant Choice problem where the agent is uncertain about which restaurants are open. The agent can observe whether a restaurant is open by moving to a square on the grid adjacent to the restaurant. If the restaurant is open, the agent can enter it and thereby receive utility. In this POMDP version of Restaurant Choice, a rational agent can exhibit behavior that never occurs in the MDP version:
+A person looking for a place to eat will not be *fully* informed about all local restaurants. This section extends the Restaurant Choice problem to represent an agent with uncertainty about which restaurants are open. The agent *observes* whether a restaurant is open by moving to one of the grid locations adjacent to the restaurant. If the restaurant is open, the agent can enter and receive utility. 
+
+<!-- Removed to slim down the text
+In this POMDP version of Restaurant Choice, a rational agent can exhibit behavior that never occurs in the MDP version:
 
 1. The agent thinks Donut South is closed and Donut North is open, and so goes to the further away Donut North (see next codebox). 
 
 2. The agent goes to Noodle, see that it's closed and so takes the loop round to Veg. This route that doesn't make sense if Noodle is known to be closed (see second codebox). 
+-->
 
 The POMDP version of Restaurant Choice (`makeRestaurantChoiceWorld({POMDP:true})`) is built from the MDP version. States now have the form:
 
 >`{manifestState: { ... }, latentState: { ... }}`
 
-The `manifestState` contains the features of the world that the agent always observes directly (and so always knows). This includes the remaining time and (for Gridworld environments) the agent's location in the grid. The `latentState` contains features that may only be observable in certain states. In our examples, the `latentState` specifies whether each restaurant is open or closed.
+The `manifestState` contains the features of the world that the agent always observes directly (and so always knows). This includes the remaining time and the agent's location in the grid. The `latentState` contains features that are only observable in certain states. In our examples, `latentState` specifies whether each restaurant is open or closed.
 
 The transition function for the POMDP case is essentially the same as in the MDP case. The main difference is that if a restaurant is closed the agent cannot transition to its location. The observation function allows the agent to observe whether a restaurant is open or closed only if the agent is adjacent to the restaurant.
 
-The next two codeboxes use the same POMDP, where all restaurants are open but for Noodle. The first agent prefers the Donut Store and believes (falsely) that Donut South is likely closed. The second agent prefers Noodle and belives (falsely) that Noodle is likely open.
+The next two codeboxes use the same POMDP, where all restaurants are open but for Noodle. The first agent prefers the Donut Store and believes (falsely) that Donut South is likely closed. The second agent prefers Noodle and believes (falsely) that Noodle is likely open.
 
 ~~~~
 // agent_thinks_donut_south_closed
