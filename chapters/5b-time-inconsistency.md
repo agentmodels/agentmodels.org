@@ -260,7 +260,7 @@ runAndGraph(agent);
 Compared to the Restaurant Choice problem, procrastination leads to (systematically biased) behavior that is especially hard to explain on the softmax noise mode.
 
 > **The Procrastination Problem**
-> <br>You have a hard deadline of ten days to complete a task (e.g. write a paper for a class, complete an application or tax return). Completing the task takes a full day and has a *cost* (e.g. it's unpleasant work). After the task is complete you get a *reward* (typically exceeding the cost). There is an incentive to finish early: every day you delay finishing, your reward gets slightly smaller. (Imagine that it's good for your reputation to complete tasks early or that early applicants are considered first).
+> <br>You have a hard deadline of ten days to complete a task (e.g. write a paper for class, apply for a school or job). Completing the task takes a full day and has a *cost* (it's unpleasant work). After the task is complete you get a *reward* (typically exceeding the cost). There is an incentive to finish early: every day you delay finishing, your reward gets slightly smaller. (Imagine that it's good for your reputation to complete tasks early or that early applicants are considered first).
 
 Note that if the task is worth doing at the last minute, then you should do it immediately (because the reward diminishes over time). Yet people often do this kind of task at the last minute -- the worst possible time to do it!
 
