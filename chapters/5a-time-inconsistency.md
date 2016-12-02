@@ -171,7 +171,7 @@ viz.line(expData.concat(hypData), { groupBy: 'discountType' });
 ~~~~
 
 >**Figure 2:** Graph comparing exponential and hyperbolic discount curves. 
-
+<a id="exercise"></a>
 >**Exercise:** We return to our running example but with slightly different numbers. The agent chooses between receiving $100 after 4 days or $110 after 5 days. The goal is to compute the preferences over each option for both exponential and hyperbolic discounters, using the discount curves shown in Figure 2. Compute the following:
 
 > 1. The discounted utility of the $100 and $110 rewards relative to Day 0 (i.e. how much the agent values each option when the rewards are 4 or 5 days away).
@@ -181,13 +181,13 @@ viz.line(expData.concat(hypData), { groupBy: 'discountType' });
 
 We have shown that hyperbolic discounters have different preferences over the $100 and $110 depending on when they make the evaluation. This conflict in preferences leads to complexities in planning that don't occur in the optimal (PO)MDP agents which either discount exponentially or do not discount at all.
 
-Returning to the previous example (see exercise above), imagine you have time inconsistent preferences. On Day 0, you write down your preference but on Day 4 you'll be free to change your mind. If you know your future self would choose the $100 immediately, you'd pay a small cost now to *pre-commit* your future self. However, if you believe your future self will share your current preferences, you won't pay this cost (and so you'll end up taking the $100). This illustrates a key distinction between Naive and Sophisticated agents:
+Consider the example in the exercise <a href=#exericse>above</a> and imagine you have time inconsistent preferences. On Day 0, you write down your preference but on Day 4 you'll be free to change your mind. If you know your future self would choose the $100 immediately, you'd pay a small cost now to *pre-commit* your future self. However, if you believe your future self will share your current preferences, you won't pay this cost (and so you'll end up taking the $100). This illustrates a key distinction. Time inconsistent agents can be "Naive" or "Sophisticated":
 
 - **Naive agent**: assumes his future self shares his current time preference. For example, a Naive hyperbolic discounter assumes his far future self has a nearly flat discount curve (rather than the "steep then flat" discount curve he actually has). 
 
 - **Sophisticated agent**: has the correct model of his future self's time preference. A Sophisticated hyperbolic discounter has a nearly flat discount curve for the far future but is aware that his future self does not share this discount curve.
 
-Both kinds of agents will value rewards differently at different times. To distinguish a hyperbolic discounter's current and future selves, we refer to the agent acting at time $$t_i$$ as the $$t_i$$-agent. A Sophisticated agent, unlike a Naive agent, has an accurate model of his future selves. The Sophisticated $$t_0$$-agent predicts the actions of the $$t$$-agents (for $$t>t_0$$) that would conflict with his preferences. To prevent these actions, the $$t_0$$-agent tries to take actions that *pre-commit* the future agents to outcomes the $$t_0$$-agent prefers[^sophisticated].
+Both kinds of agents evaluate rewards differently at different times. To distinguish a hyperbolic discounter's current and future selves, we refer to the agent acting at time $$t_i$$ as the $$t_i$$-agent. A Sophisticated agent, unlike a Naive agent, has an accurate model of his future selves. The Sophisticated $$t_0$$-agent predicts the actions of the $$t$$-agents (for $$t>t_0$$) that would conflict with his preferences. To prevent these actions, the $$t_0$$-agent tries to take actions that *pre-commit* the future agents to outcomes the $$t_0$$-agent prefers[^sophisticated].
 
 [^sophisticated]: As has been pointed out previously, there is a kind of "inter-generational" conflict between agent's future selves. If pre-commitment actions are available at time $$t_0$$, the $$t_0$$-agent does better in expectation if it is Sophisticated rather than Naive. Equivalently, the $$t_0$$-agent's future selves will do better if the agent is Naive.
 
@@ -200,7 +200,7 @@ Before describing our formal model and implementation of Naive and Sophisticated
 
 The only difference from previous versions of Restaurant Choice is that restaurants now have *two* utilities. On entering a restaurant, the agent first receives the *immediate reward* (i.e. how good the food tastes) and at the next timestep receives the *delayed reward* (i.e. how good the person feels after eating it).
 
-**Exercise:** Before scrolling down, predict how Naive and Sophisticated hyperbolic discounters with identical preferences could differ for the Restaurant Choice problem shown in the codebox immediately below.
+**Exercise:** Run the codebox immediately below. Think of ways in which Naive and Sophisticated hyperbolic discounters with identical preferences (i.e. identical utilities for each restaurant) might differ for this decision problem. 
 
 ----------
 
