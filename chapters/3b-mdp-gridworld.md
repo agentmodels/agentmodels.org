@@ -116,11 +116,9 @@ var makeHikeMDP = function(options) {
 var mdp = makeHikeMDP({
   startingLocation: [0, 1], 
   totalTime: 12,
-  transitionNoiseProb: 0
+  transitionNoiseProbability: 0
 });
 
-var world = mdp.world;
-var startState = mdp.startState;
 var makeUtility = mdp.makeUtility;
 
 
@@ -132,15 +130,15 @@ var utility = makeUtility({
   Hill: -10,
   timeCost: -.1
 });
-var agent = makeMDPAgent({ utility, alpha: 1000 }, world);
+var agent = makeMDPAgent({ utility, alpha: 1000 }, mdp.world);
 
 
 // Run agent on world
 
-var trajectory = simulate(startState, world, agent);
+var trajectory = simulate(mdp.startState, mdp.world, agent);
 
 
-GridWorld.draw(world, { trajectory });
+GridWorld.draw(mdp.world, { trajectory });
 ~~~~
 
 >**Exercise**: Adjust the parameters of `utilityTable` in order to produce the following behaviors:
@@ -155,9 +153,9 @@ GridWorld.draw(world, { trajectory });
 
 Imagine that the weather is very wet and windy. As a result, Alice will sometimes intend to go one way but actually go another way (because she slips in the mud). In this case, the shorter route to the peaks might be too risky for Alice.
 
-To model bad weather, we assume that at every timestep, there is a constant independent probability `transitionNoiseProb` of the agent moving orthogonally to their intended direction. The independence assumption is unrealistic (if a location is slippery at one timestep it is more likely slippery the next), but it is simple and satisfies the Markov assumption for MDPs.
+To model bad weather, we assume that at every timestep, there is a constant independent probability `transitionNoiseProbability` of the agent moving orthogonally to their intended direction. The independence assumption is unrealistic (if a location is slippery at one timestep it is more likely slippery the next), but it is simple and satisfies the Markov assumption for MDPs.
 
-Setting `transitionNoiseProb=0.1`, the agent's first action is now to move "up" instead of "right". 
+Setting `transitionNoiseProbability=0.1`, the agent's first action is now to move "up" instead of "right". 
 
 ~~~~
 ///fold: makeHikeMDP
@@ -182,11 +180,8 @@ var makeHikeMDP = function(options) {
 var mdp = makeHikeMDP({
   startingLocation: [0, 1], 
   totalTime: 13,
-  transitionNoiseProb: 0.1  // <- NEW
+  transitionNoiseProbability: 0.1  // <- NEW
 });
-
-var world = mdp.world;
-var startState = mdp.startState;
 var makeUtility = mdp.makeUtility;
 
 
@@ -198,20 +193,20 @@ var utility = makeUtility({
   Hill: -10,
   timeCost: -.1
 });
-var agent = makeMDPAgent({ utility, alpha: 100 }, world);
+var agent = makeMDPAgent({ utility, alpha: 100 }, mdp.world);
 
 
 // Generate a single trajectory
 
-var trajectory = simulateMDP(startState, world, agent, 'states');
-GridWorld.draw(world, { trajectory });
+var trajectory = simulateMDP(mdp.startState, mdp.world, agent, 'states');
+GridWorld.draw(mdp.world, { trajectory });
 
 
 // Run 100 iid samples of the function *sampleTrajectoryLength*
 
 var sampleTrajectoryLength = function(){
   return {
-    trajectoryLength: simulateMDP(startState, world, agent).length
+    trajectoryLength: simulateMDP(mdp.startState, mdp.world, agent).length
   };
 };
 
@@ -226,8 +221,8 @@ viz(trajectoryDist);
 
 >**Exercise:**
 
->1. Keeping `transitionNoiseProb=0.1`, find settings for `utilityTable` such that the agent goes "right" instead of "up".
->2. Set `transitionNoiseProb=0.01`. Change a single parameter in `utilityTable` such that the agent goes "right" (there are multiple ways to do this). 
+>1. Keeping `transitionNoiseProbability=0.1`, find settings for `utilityTable` such that the agent goes "right" instead of "up".
+>2. Set `transitionNoiseProbability=0.01`. Change a single parameter in `utilityTable` such that the agent goes "right" (there are multiple ways to do this). 
 <!-- put up timeCost to -1 or so --> 
 
 ### Noisy transitions vs. Noisy agents
@@ -260,7 +255,7 @@ var makeHikeMDP = function(options) {
 var mdp = makeHikeMDP({
   startingLocation: [0, 1], 
   totalTime: 13,
-  transitionNoiseProb: 0.1
+  transitionNoiseProbability: 0.1
 });
 
 var world = mdp.world;
@@ -326,19 +321,16 @@ var makeHikeMDP = function(options) {
 var mdp = makeHikeMDP({
   startingLocation: [1, 1],  // Previously: [0, 1]
   totalTime: 11,             // Previously: 12
-  transitionNoiseProb: 0.1
+  transitionNoiseProbability: 0.1
 });
-
-var world = mdp.world;
-var startState = mdp.startState;
 var makeUtility = mdp.makeUtility;
 
 // parameters for agent
 var utility = makeUtility({ East: 10, West: 1, Hill: -10, timeCost: -.1 });
-var agent = makeMDPAgent({ utility, alpha: 1000 }, world);
-var trajectory = simulateMDP(startState, world, agent, 'states');
+var agent = makeMDPAgent({ utility, alpha: 1000 }, mdp.world);
+var trajectory = simulateMDP(mdp.startState, mdp.world, agent, 'states');
 
-GridWorld.draw(world, { trajectory });
+GridWorld.draw(mdp.world, { trajectory });
 ~~~~
 
 Extending this idea, we can display the expected values of each action the agent *could have taken* during their trajectory. These expected values numbers are analogous to state-action Q-values in infinite-horizon MDPs. 
@@ -385,9 +377,6 @@ var mdp = makeBigHikeMDP({
   totalTime: 12,
   transitionNoiseProbability: 0.03
 });
-
-var world = mdp.world;
-var startState = mdp.startState;
 var makeUtility = mdp.makeUtility;
 
 var utility = makeUtility({ 
@@ -396,14 +385,13 @@ var utility = makeUtility({
   Hill : -40, 
   timeCost: -0.4 
 });
-var agent = makeMDPAgent({ utility, alpha: 100 }, world);
+var agent = makeMDPAgent({ utility, alpha: 100 }, mdp.world);
 
-
-var trajectory = simulateMDP(startState, world, agent, 'states');
+var trajectory = simulateMDP(mdp.startState, mdp.world, agent, 'states');
 var locs1 = map(function(state) { return state.loc; }, trajectory);
-var eus = getExpectedUtilitiesMDP(trajectory, world, agent);
+var eus = getExpectedUtilitiesMDP(trajectory, mdp.world, agent);
 
-GridWorld.draw(world, { 
+GridWorld.draw(mdp.world, { 
   trajectory,
   actionExpectedUtilities: eus
 });
