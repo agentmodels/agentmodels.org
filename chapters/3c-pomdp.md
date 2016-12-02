@@ -8,7 +8,7 @@ description: Mathematical framework, implementation in WebPPL, Restaurant Choice
  
 ## Introduction: Learning about the world from observation
 
-The previous chapters included MDPs where the transition function is *stochastic*. As a consequence of stochasticity, the agent is *uncertain* about the result of taking an action in a given state. For instance, the agent in the Hiking Problem is uncertain whether choosing the move "right" will result in going right or falling down the hill. This kind of uncertainty cannot be altered or reduced observation. Transitions occur according to a fixed probability distribution with no parameters the agent can learn from experience. In terms of an agent's uncertainty, an MDP is like a fair lottery, where observing the winning ticket one week does not reduce the agent's uncertainty over the outcome the following week[^mdp].
+The previous chapters included MDPs where the transition function is *stochastic*. As a consequence of stochasticity, the agent is *uncertain* about the result of taking an action in a given state. For instance, the agent in the Hiking Problem is uncertain whether choosing the move "right" will result in going right or falling down the hill. This kind of uncertainty cannot be altered or reduced by observation. Transitions occur according to a fixed probability distribution with no parameters the agent can learn from experience. In terms of an agent's uncertainty, an MDP is like a fair lottery, where observing the winning ticket one week does not reduce the agent's uncertainty over the outcome the following week[^mdp].
 
 [^mdp]: This doesn't mean MDPs always represent real-world problems with the structure of lotteries or casino games. The MDP could represent a situation where events are deterministic but the transition function is either unknown or is too complex to include in the model. 
 
@@ -29,9 +29,9 @@ The environment in a POMDP has same structure as an MDP, with the addition of an
 
 For a concrete example, consider the Restaurant Choice Problem. Suppose Bob doesn't know whether the Noodle Shop is open. Previously, the agent's state consisted of Bob's *location* on the grid as well as the remaining time. In the POMDP case, the state also represents whether or not the Noodle Shop is open. This fact about the state determines whether Bob transitions to inside the Noodle Shop if he stands adjactent to it. When Bob is close to the Noodle Shop, he gets to observe (via the observation function) whether or not it's open (without having to actually try it).
 
+
+
 ### Formal model
-
-
 
 We first define the class of decision probems (POMDPs) and then define an agent model for optimally solving these problems. Our definitions are based on reft:kaelbling1998planning.
 
