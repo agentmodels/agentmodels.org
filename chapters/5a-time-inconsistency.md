@@ -23,9 +23,9 @@ This chapter models time inconsistency as resulting from *hyperbolic discounting
 
 #### Exponential discounting for optimal agents
 
-The examples of decision problems in previous chapters have a *known*, *finite* time horizon. Yet there are practical decision problems that are better modeled as having an *unbounded* or *infinite* time horizon. For example, if someone tries to travel home after a vacation, there is no obvious fixed time horizon for their task. The same holds for a person making long-term investments.  
+The examples of decision problems in previous chapters have a *known*, *finite* time horizon. Yet there are practical decision problems that are better modeled as having an *unbounded* or *infinite* time horizon. For example, if someone tries to travel home after a vacation, there is no obvious time limit for their task. The same holds for a person saving or investing for the long-term.
 
-Generalizing the previous agent models to the unbounded case faces a difficulty. The *infinite* summed expected utility of an action will (generally) not converge. The standard solution is to model the agent as maximizing the *discounted* expected utility, where the discount function is exponential. This makes the infinite sums converge and results in an agent model that is analytically and computationally tractable. Aside from mathematical convenience, exponential discounting might also be an accurate model of the "time preference" of certain rational agents[^justification]. Exponential discounting captures a preference for good things happening earlier rather than later and preserves time consistency[^exponential].
+Generalizing the previous agent models to the unbounded case faces a difficulty. The *infinite* summed expected utility of an action will (generally) not converge. The standard solution is to model the agent as maximizing the *discounted* expected utility, where the discount function is exponential. This makes the infinite sums converge and results in an agent model that is analytically and computationally tractable. Aside from mathematical convenience, exponential discounting might also be an accurate model of the "time preference" of certain rational agents[^justification]. Exponential discounting represents a (consistent) preference for good things happening sooner rather than later[^exponential].
 
 [^justification]: People care about a range of things: e.g. the food they eat daily, their careers, their families, the progress of science, the preservation of the earth's environment. Many have argued that humans have a time preference. So models that infer human preferences from behavior should be able to represent this time preference. 
 
@@ -144,7 +144,7 @@ $$
 The crucial difference between the curves is that the hyperbola is initially steep and then becomes almost flat, while the exponential continues to be steep. This means that exponential discounting is time consistent and hyperbolic discounting is not. 
 
 ~~~~
-var delays = range(6);
+var delays = range(7);
 var expDiscount = function(delay) {
   return Math.pow(0.5, delay); 
 };
