@@ -106,11 +106,13 @@ viz(alice(10));
 
 ## Game playing
 
-We'll look at the two-player game tic-tac-toe [^tictactoeimg]:
+We'll look at the two-player game tic-tac-toe:
+
+<img src="/assets/img/tic-tac-toe-game-1.svg"/>
 
 >*Figure 1:* Tic-tac-toe. (Image source: [Wikipedia](https://en.wikipedia.org/wiki/Tic-tac-toe#/media/File:Tic-tac-toe-game-1.svg))
 
-<img src="/assets/img/tic-tac-toe-game-1.svg"/>
+
 
 Let's start with a prior on moves:
 
