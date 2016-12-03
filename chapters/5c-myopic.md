@@ -501,8 +501,7 @@ var params = {
 
 var agent = makePOMDPAgent(params, world);
 var trajectory = simulatePOMDP(pomdp.startState, world, agent, 'states');
-var manifestStates = map(function(state){ return state.manifestState; },
-                         trajectory);
+var manifestStates = _.map(trajectory, _.property('manifestState'));
 print('Quality of restaurants: \n' + 
       JSON.stringify(pomdp.startState.latentState));
 GridWorld.draw(pomdp.mdp, { trajectory: manifestStates });
@@ -544,8 +543,7 @@ var params = {
 
 var agent = makePOMDPAgent(params, world);
 var trajectory = simulatePOMDP(pomdp.startState, world, agent, 'states');
-var manifestStates = map(function(state){ return state.manifestState; },
-                         trajectory);
+var manifestStates = _.map(trajectory, _.property('manifestState'));
 
 print('Rewards for each restaurant: ' + 
       JSON.stringify(pomdp.startState.latentState));

@@ -596,7 +596,7 @@ In this POMDP version of Restaurant Choice, a rational agent can exhibit behavio
 2. The agent goes to Noodle, see that it's closed and so takes the loop round to Veg. This route that doesn't make sense if Noodle is known to be closed (see second codebox). 
 -->
 
-The POMDP version of Restaurant Choice (`makeRestaurantChoiceWorld({POMDP:true})`) is built from the MDP version. States now have the form:
+The POMDP version of Restaurant Choice is built from the MDP version. States now have the form:
 
 >`{manifestState: { ... }, latentState: { ... }}`
 
@@ -616,9 +616,33 @@ var getPriorBelief = function(startManifestState, latentStateSampler){
       latentState: latentStateSampler()};
   }});
 };
+
+var ___ = ' '; 
+var DN = { name : 'Donut N' };
+var DS = { name : 'Donut S' };
+var V = { name : 'Veg' };
+var N = { name : 'Noodle' };
+
+var gridFeatures = [
+  ['#', '#', '#', '#',  V , '#'],
+  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', DN , ___, '#', ___],
+  ['#', '#', '#', ___, '#', ___],
+  ['#', '#', '#', ___, ___, ___],
+  ['#', '#', '#', ___, '#',  N ],
+  [___, ___, ___, ___, '#', '#'],
+  [DS , '#', '#', ___, '#', '#']
+];
+
+var pomdp = makeGridWorldPOMDP({
+  gridFeatures,
+  noReverse: true,
+  maxTimeAtRestaurant: 2,
+  startingLocation: [3, 1],
+  totalTime: 11
+});
 ///
 
-var world = makeRestaurantChoiceWorld({ POMDP: true });
 var utilityTable = {
   'Donut N': 5,
   'Donut S': 5,
@@ -626,7 +650,7 @@ var utilityTable = {
   'Noodle': 1,
   'timeCost': -0.1
 };
-var utility = makeRestaurantUtilityFunction(world, utilityTable);
+var utility = makeRestaurantUtilityFunction(pomdp, utilityTable);
 var latent = {
   'Donut N': true,
   'Donut S': true,
@@ -652,12 +676,11 @@ var latentStateSampler = function() {
 };
 
 var priorBelief = getPriorBelief(startState.manifestState, latentStateSampler);
-var agent = makePOMDPAgent({ utility, priorBelief, alpha: 100 }, world);
-var trajectory = simulatePOMDP(startState, world, agent, 'states');
-var manifestStates = map(function(state) { return state.manifestState; },
-                         trajectory);
+var agent = makePOMDPAgent({ utility, priorBelief, alpha: 100 }, pomdp);
+var trajectory = simulatePOMDP(startState, pomdp, agent, 'states');
+var manifestStates = _.map(trajectory, _.property('manifestState'));
 
-GridWorld.draw(world.MDPWorld, { trajectory: manifestStates });
+GridWorld.draw(pomdp.MDPWorld, { trajectory: manifestStates });
 ~~~~
 
 Here is the agent that prefers Noodle and falsely belives that it is open:
@@ -674,7 +697,31 @@ var getPriorBelief = function(startManifestState, latentStateSampler){
   }});
 };
 
-var world = makeRestaurantChoiceWorld({ POMDP: true });
+var ___ = ' '; 
+var DN = { name : 'Donut N' };
+var DS = { name : 'Donut S' };
+var V = { name : 'Veg' };
+var N = { name : 'Noodle' };
+
+var gridFeatures = [
+  ['#', '#', '#', '#',  V , '#'],
+  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', DN , ___, '#', ___],
+  ['#', '#', '#', ___, '#', ___],
+  ['#', '#', '#', ___, ___, ___],
+  ['#', '#', '#', ___, '#',  N ],
+  [___, ___, ___, ___, '#', '#'],
+  [DS , '#', '#', ___, '#', '#']
+];
+
+var pomdp = makeGridWorldPOMDP({
+  gridFeatures,
+  noReverse: true,
+  maxTimeAtRestaurant: 2,
+  startingLocation: [3, 1],
+  totalTime: 11
+});
+
 var latent = {
   'Donut N': true,
   'Donut S': true,
@@ -709,13 +756,12 @@ var utilityTable = {
   'Noodle': 5,
   'timeCost': -0.1
 };
-var utility = makeRestaurantUtilityFunction(world, utilityTable);
-var agent = makePOMDPAgent({ utility, priorBelief, alpha: 100 }, world);
-var trajectory = simulatePOMDP(startState, world, agent, 'states');
-var manifestStates = map(function(state) { return state.manifestState; },
-                         trajectory);
+var utility = makeRestaurantUtilityFunction(pomdp, utilityTable);
+var agent = makePOMDPAgent({ utility, priorBelief, alpha: 100 }, pomdp);
+var trajectory = simulatePOMDP(startState, pomdp, agent, 'states');
+var manifestStates = _.map(trajectory, _.property('manifestState'));
 
-GridWorld.draw(world, { trajectory: manifestStates });
+GridWorld.draw(pomdp.MDPWorld, { trajectory: manifestStates });
 ~~~~
 
 In the next [chapter](/chapters/4-reasoning-about-agents.html), we will start modeling inferences *about* agents.

@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: Joint inference of biases and preferences II
-description: Explaining temptation and pre-commitment using either softmax noise or hyperbolic discounting. 
+description: Explaining temptation and pre-commitment using either softmax noise or hyperbolic discounting.
 
 ---
 
@@ -9,13 +9,13 @@ description: Explaining temptation and pre-commitment using either softmax noise
 
 Returning to the MDP Restaurant Choice problem, we compare a model that assumes an optimal, non-discounting MDP agent to a model that includes both time-inconsistent and optimal agents. We also consider models that expand the set of preferences the agent can have.
 
-<!-- 2. In the POMDP setting (where the restaurants may be open or closed and the agent can learn this from observation), we do joint inference over preferences, beliefs and discounting behavior. We show that our inference approach can produce multiple explanations for the same behavior and that explanations in terms of beliefs and preferences are more plausible than those involving time-inconsistency. 
+<!-- 2. In the POMDP setting (where the restaurants may be open or closed and the agent can learn this from observation), we do joint inference over preferences, beliefs and discounting behavior. We show that our inference approach can produce multiple explanations for the same behavior and that explanations in terms of beliefs and preferences are more plausible than those involving time-inconsistency.
 
-As we discussed in Chapter V.1, time-inconsistent agents can produce trajectories on the MDP (full knowledge) version of this scenario that never occur for an optimal agent without noise. 
+As we discussed in Chapter V.1, time-inconsistent agents can produce trajectories on the MDP (full knowledge) version of this scenario that never occur for an optimal agent without noise.
 
 In our first inference example, we do joint inference over preferences, softmax noise and the discounting behavior of the agent. (We assume for this example that the agent has full knowledge and is not Myopic). We compare the preference inferences [that allow for possibility of time inconsistency] to the earlier inference approach that assumes optimality.
 -->
- 
+
 ### Assume discounting, infer "Naive" or "Sophisticated"
 
 Before making a direct comparison, we demonstrate that we can infer the preferences of time-inconsistent agents from observations of their behavior.
@@ -25,7 +25,7 @@ First we condition on the path where the agent moves to Donut North. We call thi
 <!-- draw_naive_path -->
 ~~~~
 ///fold: restaurant choice MDP, naiveTrajectory
-var ___ = ' '; 
+var ___ = ' ';
 var DN = { name : 'Donut N' };
 var DS = { name : 'Donut S' };
 var V = { name : 'Veg' };
@@ -33,7 +33,7 @@ var N = { name : 'Noodle' };
 
 var gridFeatures = [
   ['#', '#', '#', '#',  V , '#'],
-  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', '#', ___, ___, ___],
   ['#', '#', DN , ___, '#', ___],
   ['#', '#', '#', ___, '#', ___],
   ['#', '#', '#', ___, ___, ___],
@@ -77,11 +77,11 @@ var exampleGetPosterior = function(world, prior, observedStateAction){
     var sophisticatedOrNaive = priorDiscounting().sophisticatedOrNaive;
 
     var priorAlpha = prior.priorAlpha;
-    
+
     // Create agent with those parameters
-    var agent = makeMDPAgent({ 
+    var agent = makeMDPAgent({
       utility: makeRestaurantUtilityFunction(world, utilityTable),
-      alpha: priorAlpha(), 
+      alpha: priorAlpha(),
       discount: priorDiscounting().discount,
       sophisticatedOrNaive : sophisticatedOrNaive
     }, world);
@@ -92,16 +92,16 @@ var exampleGetPosterior = function(world, prior, observedStateAction){
     map(function(stateAction) {
       var state = stateAction[0];
       var action = stateAction[1];
-      observe(agentAction(state, 0), action); 
+      observe(agentAction(state, 0), action);
     }, observedStateAction);
 
     // return parameters and summary statistics
     var vegMinusDonut = sum(utilityTable['Veg']) - sum(utilityTable['Donut N']);
 
     return {
-      utility: utilityTable, 
+      utility: utilityTable,
       sophisticatedOrNaive: discounting.sophisticatedOrNaive,
-      discount: discounting.discount, 
+      discount: discounting.discount,
       alpha,
       vegMinusDonut,
     };
@@ -114,7 +114,7 @@ This inference function allows for inference over the softmax parameter ($$\alph
 <!-- infer_assume_discounting_naive -->
 ~~~~
 ///fold: Call to hyperbolic library function and helper display function
-var ___ = ' '; 
+var ___ = ' ';
 var DN = { name : 'Donut N' };
 var DS = { name : 'Donut S' };
 var V = { name : 'Veg' };
@@ -122,7 +122,7 @@ var N = { name : 'Noodle' };
 
 var gridFeatures = [
   ['#', '#', '#', '#',  V , '#'],
-  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', '#', ___, ___, ___],
   ['#', '#', DN , ___, '#', ___],
   ['#', '#', '#', ___, '#', ___],
   ['#', '#', '#', ___, ___, ___],
@@ -182,7 +182,7 @@ var displayResults = function(priorDist, posteriorDist) {
         probability: getPriorProb({sophisticatedOrNaive: x}),
         distribution: 'prior'
       };
-    }, 
+    },
     ['naive', 'sophisticated']);
 
   var sophisticationPosteriorDataTable = map(
@@ -268,7 +268,7 @@ var priorUtility = function(){
   };
 };
 
-var priorDiscounting = function(){ 
+var priorDiscounting = function(){
   return {
     discount: 1,
     sophisticatedOrNaive: uniformDraw(['naive','sophisticated'])
@@ -290,7 +290,7 @@ displayResults(getPosterior(mdp.world, prior, []), posterior);
 
 We display maximum values and marginal distributions for both the prior and the posterior conditioned on the path shown above. To compute the prior, we simply condition on the empty list of observations.
 
-The first graph shows the distribution over whether the agent is Sophisticated or Naive (labeled `sophisticatedOrNaive`). For the other graphs, we compute summary statistics of the agent's parameters and display the distribution over them. The variable `vegMinusDonut` is the difference in *total* utility between Veg and Donut, ignoring the fact that each restaurant has an *immediate* and *delayed* utility. Inference rules out cases where the total utility is equal (which is most likely in the prior), since the agent would simply go to Donut South in that case. Finally, we introduce a variable `donutTempting`, which is true if the agent prefers Veg to Donut North at the start but reverses this preference when adjacent to Donut North. The prior probability of `donutTempting` is less than $$0.1$$, since it depends on relatively delicate balance of utilities and the discounting behavior. The posterior is closer to $$0.9$$, suggesting (along with the posterior on `sophisticatedOrNaive`) that this is the explanation of the data favored by the model. 
+The first graph shows the distribution over whether the agent is Sophisticated or Naive (labeled `sophisticatedOrNaive`). For the other graphs, we compute summary statistics of the agent's parameters and display the distribution over them. The variable `vegMinusDonut` is the difference in *total* utility between Veg and Donut, ignoring the fact that each restaurant has an *immediate* and *delayed* utility. Inference rules out cases where the total utility is equal (which is most likely in the prior), since the agent would simply go to Donut South in that case. Finally, we introduce a variable `donutTempting`, which is true if the agent prefers Veg to Donut North at the start but reverses this preference when adjacent to Donut North. The prior probability of `donutTempting` is less than $$0.1$$, since it depends on relatively delicate balance of utilities and the discounting behavior. The posterior is closer to $$0.9$$, suggesting (along with the posterior on `sophisticatedOrNaive`) that this is the explanation of the data favored by the model.
 
 --------
 
@@ -299,7 +299,7 @@ Using the same prior, we condition on the "Sophisticated" path (i.e. the path di
 <!-- draw_sophisticated_path -->
 ~~~~
 ///fold:
-var ___ = ' '; 
+var ___ = ' ';
 var DN = { name : 'Donut N' };
 var DS = { name : 'Donut S' };
 var V = { name : 'Veg' };
@@ -307,7 +307,7 @@ var N = { name : 'Noodle' };
 
 var gridFeatures = [
   ['#', '#', '#', '#',  V , '#'],
-  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', '#', ___, ___, ___],
   ['#', '#', DN , ___, '#', ___],
   ['#', '#', '#', ___, '#', ___],
   ['#', '#', '#', ___, ___, ___],
@@ -341,12 +341,12 @@ var sophisticatedTrajectory = [
 GridWorld.draw(mdp.world, { trajectory: sophisticatedTrajectory });
 ~~~~
 
-Here are the results of inference: 
+Here are the results of inference:
 
 <!-- infer_assume_discounting_sophisticated -->
 ~~~~
 ///fold: Definition of world, prior and inference function is same as above codebox
-var ___ = ' '; 
+var ___ = ' ';
 var DN = { name : 'Donut N' };
 var DS = { name : 'Donut S' };
 var V = { name : 'Veg' };
@@ -354,7 +354,7 @@ var N = { name : 'Noodle' };
 
 var gridFeatures = [
   ['#', '#', '#', '#',  V , '#'],
-  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', '#', ___, ___, ___],
   ['#', '#', DN , ___, '#', ___],
   ['#', '#', '#', ___, '#', ___],
   ['#', '#', '#', ___, ___, ___],
@@ -487,7 +487,7 @@ var priorUtility = function() {
   };
 };
 
-var priorDiscounting = function(){ 
+var priorDiscounting = function(){
   return {
     discount: 1,
     sophisticatedOrNaive: uniformDraw(['naive','sophisticated'])
@@ -525,7 +525,7 @@ If the agent goes directly to Veg, then they don't provide information about whe
 <!-- draw_vegDirect_path -->
 ~~~~
 ///fold:
-var ___ = ' '; 
+var ___ = ' ';
 var DN = { name : 'Donut N' };
 var DS = { name : 'Donut S' };
 var V = { name : 'Veg' };
@@ -533,7 +533,7 @@ var N = { name : 'Noodle' };
 
 var gridFeatures = [
   ['#', '#', '#', '#',  V , '#'],
-  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', '#', ___, ___, ___],
   ['#', '#', DN , ___, '#', ___],
   ['#', '#', '#', ___, '#', ___],
   ['#', '#', '#', ___, ___, ___],
@@ -565,7 +565,7 @@ var vegDirectTrajectory = [
 GridWorld.draw(mdp.world, { trajectory: vegDirectTrajectory });
 ~~~~
 
-Here are the results of inference: 
+Here are the results of inference:
 
 <!-- infer_assume_discount_vegDirect -->
 ~~~~
@@ -579,13 +579,13 @@ var displayResults = function(priorDist, posteriorDist) {
 
   var priorUtility = priorDist.MAP().val.utility;
   print('Prior highest-probability utility for Veg: ' + priorUtility['Veg']
-	+ '. Donut: ' + priorUtility['Donut N'] + ' \n');
+    + '. Donut: ' + priorUtility['Donut N'] + ' \n');
 
   var posteriorUtility = posteriorDist.MAP().val.utility;
   print('Posterior highest-probability utility for Veg: '
-	+ posteriorUtility['Veg'] + '. Donut: ' + posteriorUtility['Donut N']
-	+ ' \n');
-  
+    + posteriorUtility['Veg'] + '. Donut: ' + posteriorUtility['Donut N']
+    + ' \n');
+
   var getPriorProb = function(x) {
     var label = _.keys(x)[0];
     var dist = getMarginalObject(priorDist, label);
@@ -600,18 +600,18 @@ var displayResults = function(priorDist, posteriorDist) {
 
   var sophisticationPriorDataTable = map(function(x) {
     return {sophisticatedOrNaive: x,
-	        probability: getPriorProb({sophisticatedOrNaive: x}),
-			distribution: 'prior'};
+            probability: getPriorProb({sophisticatedOrNaive: x}),
+            distribution: 'prior'};
   }, ['naive', 'sophisticated']);
 
   var sophisticationPosteriorDataTable = map(function(x) {
     return {sophisticatedOrNaive: x,
-	        probability: getPosteriorProb({sophisticatedOrNaive: x}),
-	        distribution: 'posterior'};
+            probability: getPosteriorProb({sophisticatedOrNaive: x}),
+            distribution: 'posterior'};
   }, ['naive', 'sophisticated']);
 
   var sophisticatedOrNaiveDataTable = append(sophisticationPriorDataTable,
-					                         sophisticationPosteriorDataTable);
+                                             sophisticationPosteriorDataTable);
 
   viz.bar(sophisticatedOrNaiveDataTable, { groupBy: 'distribution' });
 
@@ -625,16 +625,16 @@ var displayResults = function(priorDist, posteriorDist) {
 
   var vegMinusDonutPosteriorDataTable = map(function(x){
     return {vegMinusDonut: x,
-	        probability: getPosteriorProb({vegMinusDonut: x}),
-	        distribution: 'posterior'};
+            probability: getPosteriorProb({vegMinusDonut: x}),
+            distribution: 'posterior'};
   }, [-60, -50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50, 60]);
 
   var vegMinusDonutDataTable = append(vegMinusDonutPriorDataTable,
-				                      vegMinusDonutPosteriorDataTable);
+                                      vegMinusDonutPosteriorDataTable);
 
   viz.bar(vegMinusDonutDataTable, {groupBy: 'distribution'});
 
-  
+
   var donutTemptingPriorDataTable = map(function(x){
     return {
       donutTempting: x,
@@ -652,7 +652,7 @@ var displayResults = function(priorDist, posteriorDist) {
   }, [true, false]);
 
   var donutTemptingDataTable = append(donutTemptingPriorDataTable,
-				                      donutTemptingPosteriorDataTable);
+                                      donutTemptingPosteriorDataTable);
 
   viz.bar(donutTemptingDataTable, { groupBy: 'distribution' });
 };
@@ -680,11 +680,11 @@ var priorDiscounting = function() {
 var priorAlpha = function(){return 1000;};
 var prior = {
   utility: priorUtility,
-  discounting: priorDiscounting, 
+  discounting: priorDiscounting,
   alpha: priorAlpha
 };
 
-var ___ = ' '; 
+var ___ = ' ';
 var DN = { name : 'Donut N' };
 var DS = { name : 'Donut S' };
 var V = { name : 'Veg' };
@@ -692,7 +692,7 @@ var N = { name : 'Noodle' };
 
 var gridFeatures = [
   ['#', '#', '#', '#',  V , '#'],
-  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', '#', ___, ___, ___],
   ['#', '#', DN , ___, '#', ___],
   ['#', '#', '#', ___, '#', ___],
   ['#', '#', '#', ___, ___, ___],
@@ -732,7 +732,7 @@ displayResults(getPosterior(mdp.world, prior, []), posterior);
 
 ### Assume non-discounting, infer preferences and softmax
 
-We want to compare a model that assumes an optimal MDP agent with one that allows for time-inconsistency. We first show the inferences by the model that assumes optimality. This model can only explain the anomalous Naive and Sophisticated paths in terms of softmax noise (lower values for $$\alpha$$). We display the prior and posteriors for both the Naive and Sophisticated paths. 
+We want to compare a model that assumes an optimal MDP agent with one that allows for time-inconsistency. We first show the inferences by the model that assumes optimality. This model can only explain the anomalous Naive and Sophisticated paths in terms of softmax noise (lower values for $$\alpha$$). We display the prior and posteriors for both the Naive and Sophisticated paths.
 
 <!-- infer_assume_optimal_naive_sophisticated -->
 ~~~~
@@ -770,7 +770,7 @@ var displayResults = function(priorDist, posteriorDist) {
         probability: getPriorProb({ vegMinusDonut: x }),
         distribution: 'prior'
       };
-    }, 
+    },
     [-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50]);
 
   var vegMinusDonutPosteriorDataTable = map(
@@ -814,7 +814,7 @@ var displayResults = function(priorDist, posteriorDist) {
   viz.bar(alphaDataTable, { groupBy: 'distribution' });
 };
 
-var ___ = ' '; 
+var ___ = ' ';
 var DN = { name : 'Donut N' };
 var DS = { name : 'Donut S' };
 var V = { name : 'Veg' };
@@ -822,7 +822,7 @@ var N = { name : 'Noodle' };
 
 var gridFeatures = [
   ['#', '#', '#', '#',  V , '#'],
-  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', '#', ___, ___, ___],
   ['#', '#', DN , ___, '#', ___],
   ['#', '#', '#', ___, '#', ___],
   ['#', '#', '#', ___, ___, ___],
@@ -908,9 +908,9 @@ displayResults(getPosterior(world, prior, []), posteriorSophisticated);
 
 The graphs show two important results:
 
-1. For the Naive path, the agent is inferred to prefer Donut, while for the Sophisticated path, Veg is inferred. In both cases, the inference fits with where the agent ends up. 
+1. For the Naive path, the agent is inferred to prefer Donut, while for the Sophisticated path, Veg is inferred. In both cases, the inference fits with where the agent ends up.
 
-2. High values for $$\alpha$$ are ruled out in each case, showing that the model explains the behavior in terms of noise. 
+2. High values for $$\alpha$$ are ruled out in each case, showing that the model explains the behavior in terms of noise.
 
 What happens if we observe the agent taking the Naive path *repeatedly*? While noise is needed to explain the agent's path, too much noise is inconsistent with taking an identical path repeatedly. This is confirmed in the results below:
 
@@ -1026,7 +1026,7 @@ var prior = {
   alpha: priorAlpha
 };
 
-var ___ = ' '; 
+var ___ = ' ';
 var DN = { name : 'Donut N' };
 var DS = { name : 'Donut S' };
 var V = { name : 'Veg' };
@@ -1034,7 +1034,7 @@ var N = { name : 'Noodle' };
 
 var gridFeatures = [
   ['#', '#', '#', '#',  V , '#'],
-  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', '#', ___, ___, ___],
   ['#', '#', DN , ___, '#', ___],
   ['#', '#', '#', ___, '#', ___],
   ['#', '#', '#', ___, ___, ___],
@@ -1074,9 +1074,9 @@ displayResults(getPosterior(mdp.world, prior, []), posteriorNaive);
 
 ### Model that includes discounting: jointly infer discounting, preferences, softmax noise
 
-Our inference model now has the optimal agent as a special case but also includes time-inconsistent agents. This model jointly infers the discounting behavior, the agent's utilities and the softmax noise. 
+Our inference model now has the optimal agent as a special case but also includes time-inconsistent agents. This model jointly infers the discounting behavior, the agent's utilities and the softmax noise.
 
-We show two different posteriors. The first is after conditioning on the Naive path (as above). In the second, we imagine that we have observed the agent taking the same path on multiple occasions (three times) and we condition on this. 
+We show two different posteriors. The first is after conditioning on the Naive path (as above). In the second, we imagine that we have observed the agent taking the same path on multiple occasions (three times) and we condition on this.
 
 <!-- infer_joint_model_naive -->
 ~~~~
@@ -1114,7 +1114,7 @@ var displayResults = function(priorDist, posteriorDist) {
         probability: getPriorProb({ sophisticatedOrNaive: x }),
         distribution: 'prior'
       };
-    }, 
+    },
     ['naive', 'sophisticated']);
 
   var sophisticationPosteriorDataTable = map(
@@ -1218,7 +1218,7 @@ var naiveTrajectory = [
   [{"loc":[2,5],"terminateAfterAction":true,"timeLeft":6,"previousLoc":[2,5],"timeAtRestaurant":1},"l"]
 ];
 
-var ___ = ' '; 
+var ___ = ' ';
 var DN = { name : 'Donut N' };
 var DS = { name : 'Donut S' };
 var V = { name : 'Veg' };
@@ -1226,7 +1226,7 @@ var N = { name : 'Noodle' };
 
 var gridFeatures = [
   ['#', '#', '#', '#',  V , '#'],
-  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', '#', ___, ___, ___],
   ['#', '#', DN , ___, '#', ___],
   ['#', '#', '#', ___, '#', ___],
   ['#', '#', '#', ___, ___, ___],
@@ -1269,8 +1269,8 @@ var priorAlpha = function(){
   return uniformDraw([.1, 10, 1000]);
 };
 var prior = {
-  utility: priorUtility, 
-  discounting: priorDiscounting, 
+  utility: priorUtility,
+  discounting: priorDiscounting,
   alpha: priorAlpha
 };
 
@@ -1289,7 +1289,7 @@ displayResults(getPosterior(world, prior, []),
 
 Conditioning on the Naive path once, the probabilities of the agent being Naive and of `donutTempting` both go up. However, the probability of high softmax noise also goes up. In terms of preferences, we rule out a strong preference for Veg and slightly reduce a preference for Donut. So if the agent were Naive, tempted by Donut and with very low noise, our inference would not place most of the posterior on this explanation. There are two reasons for this. First, this agent is unlikely in the prior. Second, the explanation of the behavior in terms of noise is plausible. (In our Gridworld setup, we don't allow the agent to backtrack to the previous state. This means there are few cases where a softmax noisy agent would behavior differently than a low noise one.). Conditioning on the same Naive path three times makes the explanation in terms of noise much less plausible: the agent would makes the same "mistake" three times and makes no other mistakes. (The results for the Sophisticated path are similar.)
 
-In summary, if we observe the agent repeatedly take the Naive path, the "Optimal Model" explains this in terms of a preference for Donut and significant softmax noise (explaining why the agent takes Donut North over Donut South). The "Discounting Model" is similar to the Optimal Model when it observes the Naive path *once*. However, observing it multiple times, it infers that the agent has low noise and an overall preference for Veg. 
+In summary, if we observe the agent repeatedly take the Naive path, the "Optimal Model" explains this in terms of a preference for Donut and significant softmax noise (explaining why the agent takes Donut North over Donut South). The "Discounting Model" is similar to the Optimal Model when it observes the Naive path *once*. However, observing it multiple times, it infers that the agent has low noise and an overall preference for Veg.
 
 <br>
 
@@ -1305,7 +1305,7 @@ To speed up inference, we use a fixed assumption that the agent is Naive. There 
 2. The agent is Naive and tempted by Donut: measured by `discount` and `donutTempting`
 3. The agent prefers Donut N to Donut S: measured by `donutNGreaterDonutS` (i.e. Donut N's utility is greater than Donut S's).
 
-These three can also be combined to explain the behavior. 
+These three can also be combined to explain the behavior.
 
 <!-- infer_joint_two_donut_naive -->
 ~~~~
@@ -1343,7 +1343,7 @@ var displayResults = function(priorDist, posteriorDist) {
         probability: getPriorProb({alpha: x}),
         distribution: 'prior'
       };
-    }, 
+    },
     [0.1, 100, 1000]);
 
   var alphaPosteriorDataTable = map(
@@ -1437,7 +1437,7 @@ var displayResults = function(priorDist, posteriorDist) {
   viz.bar(donutNvsSDataTable, { groupBy: 'distribution' });
 };
 
-var ___ = ' '; 
+var ___ = ' ';
 var DN = { name : 'Donut N' };
 var DS = { name : 'Donut S' };
 var V = { name : 'Veg' };
@@ -1445,7 +1445,7 @@ var N = { name : 'Noodle' };
 
 var gridFeatures = [
   ['#', '#', '#', '#',  V , '#'],
-  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', '#', ___, ___, ___],
   ['#', '#', DN , ___, '#', ___],
   ['#', '#', '#', ___, '#', ___],
   ['#', '#', '#', ___, ___, ___],
@@ -1475,7 +1475,7 @@ var priorUtility = function() {
   };
 };
 
-var priorDiscounting = function() { 
+var priorDiscounting = function() {
   return {
     discount: uniformDraw([0, 1]),
     sophisticatedOrNaive: 'naive'
@@ -1486,7 +1486,7 @@ var priorAlpha = function(){
 };
 var prior = {
   utility: priorUtility,
-  discounting: priorDiscounting, 
+  discounting: priorDiscounting,
   alpha: priorAlpha
 };
 
@@ -1495,7 +1495,7 @@ var posterior = getPosterior(mdp.world, prior, naiveTrajectory);
 displayResults(getPosterior(mdp.world, prior, []), posterior);
 ~~~~
 
-The explanation in terms of Donut North being preferred does well in the posterior. This is because the discounting explanation (even assuming the agent is Naive) is unlikely a priori (due to our simple uniform priors on utilities and discounting). While high noise is more plausible a priori, the noise explanation still needs to posit a low probability series of events. 
+The explanation in terms of Donut North being preferred does well in the posterior. This is because the discounting explanation (even assuming the agent is Naive) is unlikely a priori (due to our simple uniform priors on utilities and discounting). While high noise is more plausible a priori, the noise explanation still needs to posit a low probability series of events.
 
 We see a similar result if we enrich the set of possible utilities for the Sophisticated path. This time, we allow the `timeCost`, i.e. the cost for taking a single timestep, to be positive. This means the agent prefers to spend as much time as possible moving around before reaching a restaurant. Here are the results:
 
@@ -1587,7 +1587,7 @@ var displayResults = function(priorDist, posteriorDist) {
         probability: getPriorProb({ discount: x }),
         distribution: 'prior'
       };
-    }, 
+    },
     [0, 1]);
 
   var discountPosteriorDataTable = map(
@@ -1597,7 +1597,7 @@ var displayResults = function(priorDist, posteriorDist) {
         probability: getPosteriorProb({ discount: x }),
         distribution: 'posterior'
       };
-    }, 
+    },
     [0, 1]);
 
   var discountDataTable = append(discountPriorDataTable,
@@ -1645,7 +1645,7 @@ var sophisticatedTrajectory = [
   [{"loc":[4,7],"terminateAfterAction":true,"timeLeft":2,"previousLoc":[4,7],"timeAtRestaurant":1},"l"]
 ];
 
-var ___ = ' '; 
+var ___ = ' ';
 var DN = { name : 'Donut N' };
 var DS = { name : 'Donut S' };
 var V = { name : 'Veg' };
@@ -1653,7 +1653,7 @@ var N = { name : 'Noodle' };
 
 var gridFeatures = [
   ['#', '#', '#', '#',  V , '#'],
-  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', '#', ___, ___, ___],
   ['#', '#', DN , ___, '#', ___],
   ['#', '#', '#', ___, '#', ___],
   ['#', '#', '#', ___, ___, ___],
@@ -1706,4 +1706,3 @@ displayResults(getPosterior(mdp.world, prior, []), posterior);
 ~~~~
 
 Next chapter: [Multi-agent models](/chapters/7-multi-agent.html)
-
