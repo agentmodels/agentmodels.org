@@ -38,13 +38,13 @@ where:
 
 - $$C \in [1,\infty]$$ is the integer cutoff or bound for Reward-myopic or Update-myopic Agents[^bound] 
 
-As in <a href="/chapters/4-reasoning-about-agents.html#pomdpInfer>Equation (2)</a> of Chapter IV, we condition on state-action-observation triples:
+As in <a href="/chapters/4-reasoning-about-agents.html#pomdpInfer">Equation (2)</a> of Chapter IV, we condition on state-action-observation triples:
 
 $$
 P(\theta \vert (s,o,a)_{0:n}) \propto P( (s,o,a)_{0:n} \vert \theta)P(\theta)
 $$
 
-We obtain a factorized form in exactly the same way as in <a href="/chapters/4-reasoning-about-agents.html#pomdpInfer>Equation (2)</a>, i.e. we generate the sequence $$b_i$$ from $$i=0$$ to $$i=n$$ of agent beliefs:
+We obtain a factorized form in exactly the same way as in <a href="/chapters/4-reasoning-about-agents.html#pomdpInfer">Equation (2)</a>, i.e. we generate the sequence $$b_i$$ from $$i=0$$ to $$i=n$$ of agent beliefs:
 
 $$
 P(\theta \vert (s,o,a)_{0:n}) \propto 
