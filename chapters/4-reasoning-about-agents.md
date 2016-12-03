@@ -436,14 +436,56 @@ As we noted previously, it is simple to extend our approach to inference to cond
 
 ~~~~
 // display_multiple_trajectories
+///fold: make restaurant choice MDP, naiveTrajectory, donutSouthTrajectory
+var ___ = ' '; 
+var DN = { name : 'Donut N' };
+var DS = { name : 'Donut S' };
+var V = { name : 'Veg' };
+var N = { name : 'Noodle' };
 
-var world = makeRestaurantChoiceMDP();
-var observedSequence1 = restaurantNameToObservationTime11['naive'];
-var observedSequence2 = restaurantNameToObservationTime11['donutSouth'];
+var gridFeatures = [
+  ['#', '#', '#', '#',  V , '#'],
+  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', DN , ___, '#', ___],
+  ['#', '#', '#', ___, '#', ___],
+  ['#', '#', '#', ___, ___, ___],
+  ['#', '#', '#', ___, '#',  N ],
+  [___, ___, ___, ___, '#', '#'],
+  [DS , '#', '#', ___, '#', '#']
+];
 
-map(function(trajectory) {
-  GridWorld.draw(world, { trajectory });
-}, [observedSequence1, observedSequence2]);
+var mdp = makeGridWorldMDP({
+  gridFeatures,
+  noReverse: true,
+  maxTimeAtRestaurant: 2,
+  startingLocation: [3, 1],
+  totalTime: 11
+});
+
+var naiveTrajectory = [
+  [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"u"],
+  [{"loc":[3,2],"terminateAfterAction":false,"timeLeft":10,"previousLoc":[3,1]},"u"],
+  [{"loc":[3,3],"terminateAfterAction":false,"timeLeft":9,"previousLoc":[3,2]},"u"],
+  [{"loc":[3,4],"terminateAfterAction":false,"timeLeft":8,"previousLoc":[3,3]},"u"],
+  [{"loc":[3,5],"terminateAfterAction":false,"timeLeft":7,"previousLoc":[3,4]},"l"],
+  [{"loc":[2,5],"terminateAfterAction":false,"timeLeft":6,"previousLoc":[3,5],"timeAtRestaurant":0},"l"],
+  [{"loc":[2,5],"terminateAfterAction":true,"timeLeft":6,"previousLoc":[2,5],"timeAtRestaurant":1},"l"]
+];
+
+var donutSouthTrajectory = [
+  [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"l"],
+  [{"loc":[2,1],"terminateAfterAction":false,"timeLeft":10,"previousLoc":[3,1]},"l"],
+  [{"loc":[1,1],"terminateAfterAction":false,"timeLeft":9,"previousLoc":[2,1]},"l"],
+  [{"loc":[0,1],"terminateAfterAction":false,"timeLeft":8,"previousLoc":[1,1]},"d"],
+  [{"loc":[0,0],"terminateAfterAction":false,"timeLeft":7,"previousLoc":[0,1],"timeAtRestaurant":0},"l"],
+  [{"loc":[0,0],"terminateAfterAction":true,"timeLeft":7,"previousLoc":[0,0],"timeAtRestaurant":1},"l"]
+];
+///
+
+var world = mdp.world;;
+
+map(function(trajectory) { GridWorld.draw(world, { trajectory }); }, 
+    [naiveTrajectory, donutSouthTrajectory]);
 ~~~~
 
 To perform inference, we just condition on both sequences. (We use concatenation but we could have taken the union of all state-action pairs). 
@@ -454,26 +496,77 @@ To perform inference, we just condition on both sequences. (We use concatenation
 // World and agent are exactly as above
 ///fold:
 
-var world = makeRestaurantChoiceMDP();
+var ___ = ' '; 
+var DN = { name : 'Donut N' };
+var DS = { name : 'Donut S' };
+var V = { name : 'Veg' };
+var N = { name : 'Noodle' };
 
-var utilityTablePrior = function(){
+var gridFeatures = [
+  ['#', '#', '#', '#',  V , '#'],
+  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', DN , ___, '#', ___],
+  ['#', '#', '#', ___, '#', ___],
+  ['#', '#', '#', ___, ___, ___],
+  ['#', '#', '#', ___, '#',  N ],
+  [___, ___, ___, ___, '#', '#'],
+  [DS , '#', '#', ___, '#', '#']
+];
+
+var mdp = makeGridWorldMDP({
+  gridFeatures,
+  noReverse: true,
+  maxTimeAtRestaurant: 2,
+  startingLocation: [3, 1],
+  totalTime: 11
+});
+
+var donutSouthTrajectory = [
+  [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"l"],
+  [{"loc":[2,1],"terminateAfterAction":false,"timeLeft":10,"previousLoc":[3,1]},"l"],
+  [{"loc":[1,1],"terminateAfterAction":false,"timeLeft":9,"previousLoc":[2,1]},"l"],
+  [{"loc":[0,1],"terminateAfterAction":false,"timeLeft":8,"previousLoc":[1,1]},"d"],
+  [{"loc":[0,0],"terminateAfterAction":false,"timeLeft":7,"previousLoc":[0,1],"timeAtRestaurant":0},"l"],
+  [{"loc":[0,0],"terminateAfterAction":true,"timeLeft":7,"previousLoc":[0,0],"timeAtRestaurant":1},"l"]
+];
+
+
+var naiveTrajectory = [
+  [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"u"],
+  [{"loc":[3,2],"terminateAfterAction":false,"timeLeft":10,"previousLoc":[3,1]},"u"],
+  [{"loc":[3,3],"terminateAfterAction":false,"timeLeft":9,"previousLoc":[3,2]},"u"],
+  [{"loc":[3,4],"terminateAfterAction":false,"timeLeft":8,"previousLoc":[3,3]},"u"],
+  [{"loc":[3,5],"terminateAfterAction":false,"timeLeft":7,"previousLoc":[3,4]},"l"],
+  [{"loc":[2,5],"terminateAfterAction":false,"timeLeft":6,"previousLoc":[3,5],"timeAtRestaurant":0},"l"],
+  [{"loc":[2,5],"terminateAfterAction":true,"timeLeft":6,"previousLoc":[2,5],"timeAtRestaurant":1},"l"]
+];
+
+var world = mdp.world;
+
+
+// Priors
+
+var utilityTablePrior = function() {
   var foodValues = [0, 1, 2];
   var timeCostValues = [-0.1, -0.3, -0.6];
   var donut = uniformDraw(foodValues);
-
   return {
     'Donut N': donut,
     'Donut S': donut,
-    Veg: uniformDraw(foodValues),
-    Noodle: uniformDraw(foodValues),
-    timeCost: uniformDraw(timeCostValues)};
+    'Veg': uniformDraw(foodValues),
+    'Noodle': uniformDraw(foodValues),
+    'timeCost': uniformDraw(timeCostValues)
+  };
 };
 
-var alphaPrior = function(){
+var alphaPrior = function(){ 
   return uniformDraw([.1, 1, 10, 100]);
 };
 
-var posterior = function(observedStateActionSequence){
+
+// Condition on observed trajectory
+
+var posterior = function(observedTrajectory){
   return Infer({ model() {
     var utilityTable = utilityTablePrior();
     var alpha = alphaPrior();
@@ -484,10 +577,14 @@ var posterior = function(observedStateActionSequence){
     var agent = makeMDPAgent(params, world);
     var act = agent.act;
 
-    // For each observed state-action pair, compute likekihood of action
-    map(function(stateAction){
-      observe(act(stateAction[0]), stateAction[1]);
-    }, observedStateActionSequence);
+    // For each observed state-action pair, factor on likelihood of action
+    map(
+      function(stateAction){
+        var state = stateAction[0];
+        var action = stateAction[1]
+        observe(act(state), action);
+      }, 
+      observedTrajectory);
 
     // Compute whether Donut is preferred to Veg and Noodle
     var donut = utilityTable['Donut N'];
@@ -502,16 +599,14 @@ var posterior = function(observedStateActionSequence){
     };
   }});
 };
-///
-var observedSequence1 = restaurantNameToObservationTime11['naive'];
-var observedSequence2 = restaurantNameToObservationTime11['donutSouth'];
 
+///
 print('Prior:');
 var prior = posterior([]);
 viz.marginals(prior);
 
 print('Posterior');
-var posterior = posterior(observedSequence1.concat(observedSequence2));
+var posterior = posterior(naiveTrajectory.concat(donutSouthTrajectory));
 viz.marginals(posterior);
 ~~~~
 <!-- TODO: plot prior and posterior on same axes -->
