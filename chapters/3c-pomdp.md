@@ -650,7 +650,16 @@ var utilityTable = {
   'Noodle': 1,
   'timeCost': -0.1
 };
-var utility = makeRestaurantUtilityFunction(pomdp, utilityTable);
+var utility = function(state, action) {
+  var feature = pomdp.feature;
+  var name = feature(state.manifestState).name;
+  if (name) {
+    return utilityTable[name];
+  } else {
+    return utilityTable.timeCost;
+  }
+};
+
 var latent = {
   'Donut N': true,
   'Donut S': true,
@@ -756,7 +765,15 @@ var utilityTable = {
   'Noodle': 5,
   'timeCost': -0.1
 };
-var utility = makeRestaurantUtilityFunction(pomdp, utilityTable);
+var utility = function(state, action) {
+  var feature = pomdp.feature;
+  var name = feature(state.manifestState).name;
+  if (name) {
+    return utilityTable[name];
+  } else {
+    return utilityTable.timeCost;
+  }
+};
 var agent = makePOMDPAgent({ utility, priorBelief, alpha: 100 }, pomdp);
 var trajectory = simulatePOMDP(startState, pomdp, agent, 'states');
 var manifestStates = _.map(trajectory, _.property('manifestState'));

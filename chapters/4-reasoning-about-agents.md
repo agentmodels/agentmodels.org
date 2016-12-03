@@ -106,13 +106,15 @@ var gridFeatures = [
   [DS , '#', '#', ___, '#', '#']
 ];
 
-var world = makeGridWorldMDP({
+var mdp = makeGridWorldMDP({
   gridFeatures,
   noReverse: true,
   maxTimeAtRestaurant: 2,
   startingLocation: [3, 1],
   totalTime: 11
-}).world;
+});
+var makeUtility = mdp.makeUtility;
+var world = mdp.world;
 
 var startState = donutSouthTrajectory[0][0];
 
@@ -139,7 +141,7 @@ var posterior = Infer({ model() {
   var utilityTable = utilityTableAndFavourite.table;
   var favourite = utilityTableAndFavourite.favourite;
 
-  var utility = makeRestaurantUtilityFunction(world, utilityTable);
+  var utility = makeUtility(utilityTable);
   var params = {
     utility,
     alpha: 2
@@ -259,6 +261,7 @@ var mdp = makeGridWorldMDP({
 ///
 
 var world = mdp.world;
+var makeUtility = mdp.makeUtility;
 
 var utilityTablePrior = function(){
   var baseUtilityTable = {
@@ -287,7 +290,7 @@ var observedTrajectory = [[{
 var posterior = Infer({ model() {
   var utilityTableAndFavourite = utilityTablePrior();
   var utilityTable = utilityTableAndFavourite.table;
-  var utility = makeRestaurantUtilityFunction(world, utilityTable);
+  var utility = makeUtility(utilityTable);
   var favourite = utilityTableAndFavourite.favourite;
 
   var agent  = makeMDPAgent({ utility, alpha: 2 }, world);
@@ -369,6 +372,7 @@ var vegDirectTrajectory = [
 ///
 
 var world = mdp.world;
+var makeUtility = mdp.makeUtility;
 
 
 // Priors
@@ -398,7 +402,7 @@ var posterior = function(observedTrajectory){
     var utilityTable = utilityTablePrior();
     var alpha = alphaPrior();
     var params = {
-      utility: makeRestaurantUtilityFunction(world, utilityTable),
+      utility: makeUtility(utilityTable),
       alpha
     };
     var agent = makeMDPAgent(params, world);
@@ -552,6 +556,7 @@ var naiveTrajectory = [
 ];
 
 var world = mdp.world;
+var makeUtility = mdp.makeUtility;
 
 
 // Priors
@@ -581,7 +586,7 @@ var posterior = function(observedTrajectory){
     var utilityTable = utilityTablePrior();
     var alpha = alphaPrior();
     var params = {
-      utility: makeRestaurantUtilityFunction(world, utilityTable),
+      utility: makeUtility(utilityTable),
       alpha
     };
     var agent = makeMDPAgent(params, world);

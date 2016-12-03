@@ -167,13 +167,23 @@ var mdp = makeGridWorldMDP({
 var world = mdp.world;
 var start = mdp.startState;
 
-var restaurantUtility = makeRestaurantUtilityFunction(world, {
+var utilityTable = {
   'Donut N': [10, -10],  // [immediate reward, delayed reward]
   'Donut S': [10, -10],
   'Veg': [-10, 20],
   'Noodle': [0, 0],
   'timeCost': -.01  // cost of taking a single action 
-});
+};
+
+var restaurantUtility = function(state, action) {
+  var feature = world.feature;
+  var name = feature(state).name;
+  if (name) {
+    return utilityTable[name][state.timeAtRestaurant]
+  } else {
+    return utilityTable.timeCost;
+  }
+};
 
 var runAndGraph = function(agent) { 
   var trajectory = simulateMDP(mdp.startState, world, agent);
@@ -272,13 +282,23 @@ var mdp = makeGridWorldMDP({
 
 var world = mdp.world;
 
-var restaurantUtility = makeRestaurantUtilityFunction(world, {
+var utilityTable = {
   'Donut N': [10, -10],  // [immediate reward, delayed reward]
   'Donut S': [10, -10],
   'Veg': [-10, 20],
   'Noodle': [0, 0],
   'timeCost': -.01  // cost of taking a single action 
-});
+};
+
+var restaurantUtility = function(state, action) {
+  var feature = world.feature;
+  var name = feature(state).name;
+  if (name) {
+    return utilityTable[name][state.timeAtRestaurant]
+  } else {
+    return utilityTable.timeCost;
+  }
+};
 
 var runAndGraph = function(agent) { 
   var trajectory = simulateMDP(mdp.startState, world, agent);
