@@ -1,6 +1,6 @@
 ---
 layout: chapter
-title: "POMDP Reinforcement Learning"
+title: "POMDPs and Reinforcement Learning"
 description: 
 ---
 
