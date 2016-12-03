@@ -1,6 +1,6 @@
 ---
 layout: chapter
-title: "POMDPs: Agents Learning from Observations"
+title: "Agents learning from observations: POMDPs"
 description: Mathematical framework, implementation in WebPPL, Restaurant Choice and Bandit examples.
 ---
 
