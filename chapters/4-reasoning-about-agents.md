@@ -356,6 +356,18 @@ var donutSouthTrajectory = [
   [{"loc":[0,0],"terminateAfterAction":false,"timeLeft":7,"previousLoc":[0,1],"timeAtRestaurant":0},"l"],
   [{"loc":[0,0],"terminateAfterAction":true,"timeLeft":7,"previousLoc":[0,0],"timeAtRestaurant":1},"l"]
 ];
+
+var vegDirectTrajectory = [
+  [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"u"],
+  [{"loc":[3,2],"terminateAfterAction":false,"timeLeft":10,"previousLoc":[3,1]},"u"],
+  [{"loc":[3,3],"terminateAfterAction":false,"timeLeft":9,"previousLoc":[3,2]},"u"],
+  [{"loc":[3,4],"terminateAfterAction":false,"timeLeft":8,"previousLoc":[3,3]},"u"],
+  [{"loc":[3,5],"terminateAfterAction":false,"timeLeft":7,"previousLoc":[3,4]},"u"],
+  [{"loc":[3,6],"terminateAfterAction":false,"timeLeft":6,"previousLoc":[3,5]},"r"],
+  [{"loc":[4,6],"terminateAfterAction":false,"timeLeft":5,"previousLoc":[3,6]},"u"],
+  [{"loc":[4,7],"terminateAfterAction":false,"timeLeft":4,"previousLoc":[4,6],"timeAtRestaurant":0},"l"],
+  [{"loc":[4,7],"terminateAfterAction":true,"timeLeft":4,"previousLoc":[4,7],"timeAtRestaurant":1},"l"]
+];
 ///
 
 var world = mdp.world;
@@ -430,7 +442,7 @@ viz.marginals(posterior);
 
 The posterior shows that taking a step towards Donut South can now be explained in terms of a high `timeCost`. If the agent has a low value for $$\alpha$$, this step to the left is fairly likely even if the agent prefers Noodle or Veg. So including softmax noise in the inference makes inferences about other parameters closer to the prior.
 
->**Exercise:** Suppose the agent is observed going all the way to Veg. What would the posteriors on $$\alpha$$ and `timeCost` look like? Check your answer by conditioning on the state-action sequence `restaurantNameToObservationTime11.vegDirect`. You will need to modify other parts of the codebox above to make this work.
+>**Exercise:** Suppose the agent is observed going all the way to Veg. What would the posteriors on $$\alpha$$ and `timeCost` look like? Check your answer by conditioning on the state-action sequence `vegDirectTrajectory`. You will need to modify other parts of the codebox above to make this work.
 
 As we noted previously, it is simple to extend our approach to inference to conditioning on multiple sequences of actions. Consider the two sequences below:
 
@@ -445,7 +457,7 @@ var N = { name : 'Noodle' };
 
 var gridFeatures = [
   ['#', '#', '#', '#',  V , '#'],
-  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', '#', ___, ___, ___],
   ['#', '#', DN , ___, '#', ___],
   ['#', '#', '#', ___, '#', ___],
   ['#', '#', '#', ___, ___, ___],
@@ -615,6 +627,7 @@ viz.marginals(posterior);
 ## Learning about agents in POMDPs
 
 ### Formalization
+
 We can extend our approach to inference to deal with agents that solve POMDPs. One approach to inference is simply to generate full state-action sequences and compare them to the observed data. As we mentioned above, this approach becomes intractable in cases where noise (in transitions and actions) is high and sequences are long.
 
 Instead, we extend the approach in Equation (1) above. The first thing to notice is that Equation (1) has to be amended for POMDPs. In an MDP, actions are conditionally independent given the agent's parameters $$U$$ and $$\alpha$$ and the state. For any pair of actions $$a_{i}$$ and $$a_j$$ and state $$s_i$$:

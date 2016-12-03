@@ -216,20 +216,44 @@ The next two codeboxes show the behavior of two hyperbolic discounters. Each age
 
 ~~~~
 // draw_naive
+///fold:
+var naiveTrajectory = [
+  [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"u"],
+  [{"loc":[3,2],"terminateAfterAction":false,"timeLeft":10,"previousLoc":[3,1]},"u"],
+  [{"loc":[3,3],"terminateAfterAction":false,"timeLeft":9,"previousLoc":[3,2]},"u"],
+  [{"loc":[3,4],"terminateAfterAction":false,"timeLeft":8,"previousLoc":[3,3]},"u"],
+  [{"loc":[3,5],"terminateAfterAction":false,"timeLeft":7,"previousLoc":[3,4]},"l"],
+  [{"loc":[2,5],"terminateAfterAction":false,"timeLeft":6,"previousLoc":[3,5],"timeAtRestaurant":0},"l"],
+  [{"loc":[2,5],"terminateAfterAction":true,"timeLeft":6,"previousLoc":[2,5],"timeAtRestaurant":1},"l"]
+];
+///
 var world = makeRestaurantChoiceMDP();
-var trajectory = restaurantNameToObservationTime11['naive'];
-print('Observations for Naive agent loaded from library function: \n' 
-       + JSON.stringify(trajectory) + ' \n');
-GridWorld.draw(world, { trajectory });
+print('Observations for Naive agent: \n' 
+       + JSON.stringify(naiveTrajectory) + ' \n');
+GridWorld.draw(world, { trajectory: naiveTrajectory });
 ~~~~
 
 ~~~~
 // draw_sophisticated
+///fold:
+var sophisticatedTrajectory = [
+  [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"u"],
+  [{"loc":[3,2],"terminateAfterAction":false,"timeLeft":10,"previousLoc":[3,1]},"u"],
+  [{"loc":[3,3],"terminateAfterAction":false,"timeLeft":9,"previousLoc":[3,2]},"r"],
+  [{"loc":[4,3],"terminateAfterAction":false,"timeLeft":8,"previousLoc":[3,3]},"r"],
+  [{"loc":[5,3],"terminateAfterAction":false,"timeLeft":7,"previousLoc":[4,3]},"u"],
+  [{"loc":[5,4],"terminateAfterAction":false,"timeLeft":6,"previousLoc":[5,3]},"u"],
+  [{"loc":[5,5],"terminateAfterAction":false,"timeLeft":5,"previousLoc":[5,4]},"u"],
+  [{"loc":[5,6],"terminateAfterAction":false,"timeLeft":4,"previousLoc":[5,5]},"l"],
+  [{"loc":[4,6],"terminateAfterAction":false,"timeLeft":3,"previousLoc":[5,6]},"u"],
+  [{"loc":[4,7],"terminateAfterAction":false,"timeLeft":2,"previousLoc":[4,6],"timeAtRestaurant":0},"l"],
+  [{"loc":[4,7],"terminateAfterAction":true,"timeLeft":2,"previousLoc":[4,7],"timeAtRestaurant":1},"l"]
+];
+///
 var world = makeRestaurantChoiceMDP();
-var trajectory = restaurantNameToObservationTime11['sophisticated'];
-print('Observations for Sophisticated agent loaded from library function: \n' 
-       + JSON.stringify(trajectory) + ' \n');
-GridWorld.draw(world, { trajectory });
+print('Observations for Sophisticated agent: \n' 
+       + JSON.stringify(sophisticatedTrajectory) + ' \n');
+GridWorld.draw(world, { trajectory: sophisticatedTrajectory });
 ~~~~
 
 >**Exercise:** (Try this exercise *before* reading further). Your goal is to do preference inference from the observed actions in the codeboxes above (using only a pen and paper). The discount function is the hyperbola $$D=1/(1+kt)$$, where $$t$$ is the time from the present, $$D$$ is the discount factor (to be multiplied by the utility) and $$k$$ is a positive constant. Find a single setting for the utilities and discount function that produce the behavior in both the codeboxes above. This includes utilities for the restaurants (both *immediate* and *delayed*) and for the `timeCost` (the negative utility for each additional step walked), as well as the discount constant $$k$$. Assume there is no softmax noise. 

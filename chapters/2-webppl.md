@@ -129,7 +129,7 @@ The functions above that generate random samples are defined in the WebPPL libra
 ~~~~
 var flip = function(p) {
   var p = (p !== undefined) ? p : 0.5;
-  return sample(Bernoulli({ p: p }));
+  return sample(Bernoulli({ p }));
 };
 
 var gaussian = function(mu, sigma) {

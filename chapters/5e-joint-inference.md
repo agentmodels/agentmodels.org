@@ -17,17 +17,28 @@ In our first inference example, we do joint inference over preferences, softmax 
 -->
  
 ### Assume discounting, infer "Naive" or "Sophisticated"
+
 Before making a direct comparison, we demonstrate that we can infer the preferences of time-inconsistent agents from observations of their behavior.
 
 First we condition on the path where the agent moves to Donut North. We call this the Naive path because it is distinctive to the Naive hyperbolic discounter (who is tempted by Donut North on the way to Veg):
 
 ~~~~
 // draw_naive_path
+///fold:
+var naiveTrajectory = [
+  [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"u"],
+  [{"loc":[3,2],"terminateAfterAction":false,"timeLeft":10,"previousLoc":[3,1]},"u"],
+  [{"loc":[3,3],"terminateAfterAction":false,"timeLeft":9,"previousLoc":[3,2]},"u"],
+  [{"loc":[3,4],"terminateAfterAction":false,"timeLeft":8,"previousLoc":[3,3]},"u"],
+  [{"loc":[3,5],"terminateAfterAction":false,"timeLeft":7,"previousLoc":[3,4]},"l"],
+  [{"loc":[2,5],"terminateAfterAction":false,"timeLeft":6,"previousLoc":[3,5],"timeAtRestaurant":0},"l"],
+  [{"loc":[2,5],"terminateAfterAction":true,"timeLeft":6,"previousLoc":[2,5],"timeAtRestaurant":1},"l"]
+];
+///
 var world = makeRestaurantChoiceMDP();
-var trajectory = restaurantNameToObservationTime11['naive'];
-print('Observations loaded from library function: \n' 
-       + JSON.stringify(trajectory) + ' \n');
-GridWorld.draw(world, { trajectory });
+print('Observations for naive agent: \n' 
+       + JSON.stringify(naiveTrajectory) + ' \n');
+GridWorld.draw(world, { trajectory: naiveTrajectory });
 ~~~~
 
 For inference, we specialize the approach in the previous <a href="/chapters/5d-joint-inference.html#formalization">chapter</a> for agents in MDPs that are potentially time inconsistent. So we infer $$\nu$$ and $$k$$ (the hyperbolic discounting parameters) but not the initial belief state $$b_0$$. The function `exampleGetPosterior` is a slightly simplified version of the library function we use below.
@@ -185,6 +196,15 @@ var displayResults = function(priorDist, posteriorDist) {
   viz.bar(donutTemptingDataTable, { groupBy: 'distribution' });
 };
 
+var naiveTrajectory = [
+  [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"u"],
+  [{"loc":[3,2],"terminateAfterAction":false,"timeLeft":10,"previousLoc":[3,1]},"u"],
+  [{"loc":[3,3],"terminateAfterAction":false,"timeLeft":9,"previousLoc":[3,2]},"u"],
+  [{"loc":[3,4],"terminateAfterAction":false,"timeLeft":8,"previousLoc":[3,3]},"u"],
+  [{"loc":[3,5],"terminateAfterAction":false,"timeLeft":7,"previousLoc":[3,4]},"l"],
+  [{"loc":[2,5],"terminateAfterAction":false,"timeLeft":6,"previousLoc":[3,5],"timeAtRestaurant":0},"l"],
+  [{"loc":[2,5],"terminateAfterAction":true,"timeLeft":6,"previousLoc":[2,5],"timeAtRestaurant":1},"l"]
+];
 ///
 
 // Prior on agent's utility function: each restaurant has an
@@ -218,7 +238,7 @@ var prior = {
 
 // Get world and observations
 var world = makeRestaurantChoiceMDP();
-var observedStateAction = restaurantNameToObservationTime11['naive'];
+var observedStateAction = naiveTrajectory;
 var posterior = getPosterior(world, prior, observedStateAction);
 
 // To get the prior, we condition on the empty list of observations
@@ -235,9 +255,23 @@ Using the same prior, we condition on the "Sophisticated" path (i.e. the path di
 
 ~~~~
 // draw_sophisticated_path
+///fold:
+var sophisticatedTrajectory = [
+  [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"u"],
+  [{"loc":[3,2],"terminateAfterAction":false,"timeLeft":10,"previousLoc":[3,1]},"u"],
+  [{"loc":[3,3],"terminateAfterAction":false,"timeLeft":9,"previousLoc":[3,2]},"r"],
+  [{"loc":[4,3],"terminateAfterAction":false,"timeLeft":8,"previousLoc":[3,3]},"r"],
+  [{"loc":[5,3],"terminateAfterAction":false,"timeLeft":7,"previousLoc":[4,3]},"u"],
+  [{"loc":[5,4],"terminateAfterAction":false,"timeLeft":6,"previousLoc":[5,3]},"u"],
+  [{"loc":[5,5],"terminateAfterAction":false,"timeLeft":5,"previousLoc":[5,4]},"u"],
+  [{"loc":[5,6],"terminateAfterAction":false,"timeLeft":4,"previousLoc":[5,5]},"l"],
+  [{"loc":[4,6],"terminateAfterAction":false,"timeLeft":3,"previousLoc":[5,6]},"u"],
+  [{"loc":[4,7],"terminateAfterAction":false,"timeLeft":2,"previousLoc":[4,6],"timeAtRestaurant":0},"l"],
+  [{"loc":[4,7],"terminateAfterAction":true,"timeLeft":2,"previousLoc":[4,7],"timeAtRestaurant":1},"l"]
+];
+///
 var world = makeRestaurantChoiceMDP();
-var trajectory = restaurantNameToObservationTime11['sophisticated'];
-GridWorld.draw(world, { trajectory });
+GridWorld.draw(world, { trajectory: sophisticatedTrajectory });
 ~~~~
 
 Here are the results of inference: 
@@ -376,11 +410,24 @@ var prior = {
   discounting: priorDiscounting,
   alpha: priorAlpha
 };
+var sophisticatedTrajectory = [
+  [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"u"],
+  [{"loc":[3,2],"terminateAfterAction":false,"timeLeft":10,"previousLoc":[3,1]},"u"],
+  [{"loc":[3,3],"terminateAfterAction":false,"timeLeft":9,"previousLoc":[3,2]},"r"],
+  [{"loc":[4,3],"terminateAfterAction":false,"timeLeft":8,"previousLoc":[3,3]},"r"],
+  [{"loc":[5,3],"terminateAfterAction":false,"timeLeft":7,"previousLoc":[4,3]},"u"],
+  [{"loc":[5,4],"terminateAfterAction":false,"timeLeft":6,"previousLoc":[5,3]},"u"],
+  [{"loc":[5,5],"terminateAfterAction":false,"timeLeft":5,"previousLoc":[5,4]},"u"],
+  [{"loc":[5,6],"terminateAfterAction":false,"timeLeft":4,"previousLoc":[5,5]},"l"],
+  [{"loc":[4,6],"terminateAfterAction":false,"timeLeft":3,"previousLoc":[5,6]},"u"],
+  [{"loc":[4,7],"terminateAfterAction":false,"timeLeft":2,"previousLoc":[4,6],"timeAtRestaurant":0},"l"],
+  [{"loc":[4,7],"terminateAfterAction":true,"timeLeft":2,"previousLoc":[4,7],"timeAtRestaurant":1},"l"]
+];
 ///
 
 // Get world and observations
 var world = makeRestaurantChoiceMDP();
-var observedStateAction = restaurantNameToObservationTime11['sophisticated'];
+var observedStateAction = sophisticatedTrajectory;
 var posterior = getPosterior(world, prior, observedStateAction);
 displayResults(getPosterior(world, prior, []), posterior);
 ~~~~
@@ -389,9 +436,21 @@ If the agent goes directly to Veg, then they don't provide information about whe
 
 ~~~~
 // draw_vegDirect_path
+///fold:
+var vegDirectTrajectory = [
+  [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"u"],
+  [{"loc":[3,2],"terminateAfterAction":false,"timeLeft":10,"previousLoc":[3,1]},"u"],
+  [{"loc":[3,3],"terminateAfterAction":false,"timeLeft":9,"previousLoc":[3,2]},"u"],
+  [{"loc":[3,4],"terminateAfterAction":false,"timeLeft":8,"previousLoc":[3,3]},"u"],
+  [{"loc":[3,5],"terminateAfterAction":false,"timeLeft":7,"previousLoc":[3,4]},"u"],
+  [{"loc":[3,6],"terminateAfterAction":false,"timeLeft":6,"previousLoc":[3,5]},"r"],
+  [{"loc":[4,6],"terminateAfterAction":false,"timeLeft":5,"previousLoc":[3,6]},"u"],
+  [{"loc":[4,7],"terminateAfterAction":false,"timeLeft":4,"previousLoc":[4,6],"timeAtRestaurant":0},"l"],
+  [{"loc":[4,7],"terminateAfterAction":true,"timeLeft":4,"previousLoc":[4,7],"timeAtRestaurant":1},"l"]
+];
+///
 var world = makeRestaurantChoiceMDP();
-var trajectory = restaurantNameToObservationTime11['vegDirect'];
-GridWorld.draw(world, { trajectory });
+GridWorld.draw(world, { trajectory: vegDirectTrajectory });
 ~~~~
 
 Here are the results of inference: 
@@ -512,11 +571,23 @@ var prior = {
   discounting: priorDiscounting, 
   alpha: priorAlpha
 };
+
+var vegDirectTrajectory = [
+  [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"u"],
+  [{"loc":[3,2],"terminateAfterAction":false,"timeLeft":10,"previousLoc":[3,1]},"u"],
+  [{"loc":[3,3],"terminateAfterAction":false,"timeLeft":9,"previousLoc":[3,2]},"u"],
+  [{"loc":[3,4],"terminateAfterAction":false,"timeLeft":8,"previousLoc":[3,3]},"u"],
+  [{"loc":[3,5],"terminateAfterAction":false,"timeLeft":7,"previousLoc":[3,4]},"u"],
+  [{"loc":[3,6],"terminateAfterAction":false,"timeLeft":6,"previousLoc":[3,5]},"r"],
+  [{"loc":[4,6],"terminateAfterAction":false,"timeLeft":5,"previousLoc":[3,6]},"u"],
+  [{"loc":[4,7],"terminateAfterAction":false,"timeLeft":4,"previousLoc":[4,6],"timeAtRestaurant":0},"l"],
+  [{"loc":[4,7],"terminateAfterAction":true,"timeLeft":4,"previousLoc":[4,7],"timeAtRestaurant":1},"l"]
+];
 ///
 
 // Get world and observations
 var world = makeRestaurantChoiceMDP();
-var observedStateAction = restaurantNameToObservationTime11['vegDirect'];
+var observedStateAction = vegDirectTrajectory;
 var posterior = getPosterior(world, prior, observedStateAction);
 displayResults(getPosterior(world, prior, []), posterior);
 ~~~~
@@ -608,6 +679,30 @@ var displayResults = function(priorDist, posteriorDist) {
 
   viz.bar(alphaDataTable, { groupBy: 'distribution' });
 };
+
+var naiveTrajectory = [
+  [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"u"],
+  [{"loc":[3,2],"terminateAfterAction":false,"timeLeft":10,"previousLoc":[3,1]},"u"],
+  [{"loc":[3,3],"terminateAfterAction":false,"timeLeft":9,"previousLoc":[3,2]},"u"],
+  [{"loc":[3,4],"terminateAfterAction":false,"timeLeft":8,"previousLoc":[3,3]},"u"],
+  [{"loc":[3,5],"terminateAfterAction":false,"timeLeft":7,"previousLoc":[3,4]},"l"],
+  [{"loc":[2,5],"terminateAfterAction":false,"timeLeft":6,"previousLoc":[3,5],"timeAtRestaurant":0},"l"],
+  [{"loc":[2,5],"terminateAfterAction":true,"timeLeft":6,"previousLoc":[2,5],"timeAtRestaurant":1},"l"]
+];
+
+var sophisticatedTrajectory = [
+  [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"u"],
+  [{"loc":[3,2],"terminateAfterAction":false,"timeLeft":10,"previousLoc":[3,1]},"u"],
+  [{"loc":[3,3],"terminateAfterAction":false,"timeLeft":9,"previousLoc":[3,2]},"r"],
+  [{"loc":[4,3],"terminateAfterAction":false,"timeLeft":8,"previousLoc":[3,3]},"r"],
+  [{"loc":[5,3],"terminateAfterAction":false,"timeLeft":7,"previousLoc":[4,3]},"u"],
+  [{"loc":[5,4],"terminateAfterAction":false,"timeLeft":6,"previousLoc":[5,3]},"u"],
+  [{"loc":[5,5],"terminateAfterAction":false,"timeLeft":5,"previousLoc":[5,4]},"u"],
+  [{"loc":[5,6],"terminateAfterAction":false,"timeLeft":4,"previousLoc":[5,5]},"l"],
+  [{"loc":[4,6],"terminateAfterAction":false,"timeLeft":3,"previousLoc":[5,6]},"u"],
+  [{"loc":[4,7],"terminateAfterAction":false,"timeLeft":2,"previousLoc":[4,6],"timeAtRestaurant":0},"l"],
+  [{"loc":[4,7],"terminateAfterAction":true,"timeLeft":2,"previousLoc":[4,7],"timeAtRestaurant":1},"l"]
+];
 ///
 
 // Prior on agent's utility function
@@ -645,14 +740,12 @@ var world = makeRestaurantChoiceMDP();
 
 print('Prior and posterior after observing Naive path');
 
-var observedStateActionNaive = restaurantNameToObservationTime11['naive'];
-var posteriorNaive = getPosterior(world, prior, observedStateActionNaive);
+var posteriorNaive = getPosterior(world, prior, naiveTrajectory);
 displayResults(getPosterior(world, prior, []), posteriorNaive);
 
 print('Prior and posterior after observing Sophisticated path');
 
-var observedStateActionSoph = restaurantNameToObservationTime11['sophisticated'];
-var posteriorSophisticated = getPosterior(world, prior, observedStateActionSoph);
+var posteriorSophisticated = getPosterior(world, prior, sophisticatedTrajectory);
 displayResults(getPosterior(world, prior, []), posteriorSophisticated);
 ~~~~
 
@@ -777,14 +870,21 @@ var prior = {
   discounting: priorDiscounting,
   alpha: priorAlpha
 };
+var naiveTrajectory = [
+  [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"u"],
+  [{"loc":[3,2],"terminateAfterAction":false,"timeLeft":10,"previousLoc":[3,1]},"u"],
+  [{"loc":[3,3],"terminateAfterAction":false,"timeLeft":9,"previousLoc":[3,2]},"u"],
+  [{"loc":[3,4],"terminateAfterAction":false,"timeLeft":8,"previousLoc":[3,3]},"u"],
+  [{"loc":[3,5],"terminateAfterAction":false,"timeLeft":7,"previousLoc":[3,4]},"l"],
+  [{"loc":[2,5],"terminateAfterAction":false,"timeLeft":6,"previousLoc":[3,5],"timeAtRestaurant":0},"l"],
+  [{"loc":[2,5],"terminateAfterAction":true,"timeLeft":6,"previousLoc":[2,5],"timeAtRestaurant":1},"l"]
+];
 ///
 
 // Get world and observations
 var world = makeRestaurantChoiceMDP();
-var observedStateActionNaive = restaurantNameToObservationTime11['naive'];
 var numberRepeats = 2; // with 2 repeats, we condition a total of 3 times
-var posteriorNaive = getPosterior(world, prior, observedStateActionNaive,
-                                  numberRepeats);
+var posteriorNaive = getPosterior(world, prior, naiveTrajectory, numberRepeats);
 print('Prior and posterior after conditioning 3 times on Naive path');
 displayResults(getPosterior(world, prior, []), posteriorNaive);
 ~~~~
@@ -930,6 +1030,15 @@ var displayResults = function(priorDist, posteriorDist) {
   viz.bar(alphaDataTable, { groupBy: 'distribution' });
 };
 
+var naiveTrajectory = [
+  [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"u"],
+  [{"loc":[3,2],"terminateAfterAction":false,"timeLeft":10,"previousLoc":[3,1]},"u"],
+  [{"loc":[3,3],"terminateAfterAction":false,"timeLeft":9,"previousLoc":[3,2]},"u"],
+  [{"loc":[3,4],"terminateAfterAction":false,"timeLeft":8,"previousLoc":[3,3]},"u"],
+  [{"loc":[3,5],"terminateAfterAction":false,"timeLeft":7,"previousLoc":[3,4]},"l"],
+  [{"loc":[2,5],"terminateAfterAction":false,"timeLeft":6,"previousLoc":[3,5],"timeAtRestaurant":0},"l"],
+  [{"loc":[2,5],"terminateAfterAction":true,"timeLeft":6,"previousLoc":[2,5],"timeAtRestaurant":1},"l"]
+];
 ///
 
 // Prior on agent's utility function. We fix the delayed utilities
@@ -965,15 +1074,14 @@ var prior = {
 // Get world and observations
 var world = makeRestaurantChoiceMDP(); //  makeRestaurantChoiceMDP({noReverse:false});
 
-var observedStateAction = restaurantNameToObservationTime11['naive'];
-var posterior = getPosterior(world, prior, observedStateAction);
+var posterior = getPosterior(world, prior, naiveTrajectory);
 print('Prior and posterior after observing Naive path');
 displayResults(getPosterior(world, prior, []), posterior);
 
 print('Prior and posterior after observing Naive path three times');
 var numberRepeats = 2;
 displayResults(getPosterior(world, prior, []),
-               getPosterior(world, prior, observedStateAction, numberRepeats));
+               getPosterior(world, prior, naiveTrajectory, numberRepeats));
 ~~~~
 
 Conditioning on the Naive path once, the probabilities of the agent being Naive and of `donutTempting` both go up. However, the probability of high softmax noise also goes up. In terms of preferences, we rule out a strong preference for Veg and slightly reduce a preference for Donut. So if the agent were Naive, tempted by Donut and with very low noise, our inference would not place most of the posterior on this explanation. There are two reasons for this. First, this agent is unlikely in the prior. Second, the explanation of the behavior in terms of noise is plausible. (In our Gridworld setup, we don't allow the agent to backtrack to the previous state. This means there are few cases where a softmax noisy agent would behavior differently than a low noise one.). Conditioning on the same Naive path three times makes the explanation in terms of noise much less plausible: the agent would makes the same "mistake" three times and makes no other mistakes. (The results for the Sophisticated path are similar.)
@@ -1125,6 +1233,7 @@ var displayResults = function(priorDist, posteriorDist) {
 
   viz.bar(donutNvsSDataTable, { groupBy: 'distribution' });
 };
+
 ///
 
 // Prior on agent's utility function
@@ -1156,8 +1265,7 @@ var prior = {
 
 // Get world and observations
 var world = makeRestaurantChoiceMDP();
-var observedStateAction = restaurantNameToObservationTime11['naive'];
-var posterior = getPosterior(world, prior, observedStateAction);
+var posterior = getPosterior(world, prior, naiveTrajectory);
 displayResults(getPosterior(world, prior, []), posterior);
 ~~~~
 
@@ -1296,6 +1404,20 @@ var displayResults = function(priorDist, posteriorDist) {
 
   viz.bar(timeCostDataTable, { groupBy: 'distribution' });
 };
+
+var sophisticatedTrajectory = [
+  [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"u"],
+  [{"loc":[3,2],"terminateAfterAction":false,"timeLeft":10,"previousLoc":[3,1]},"u"],
+  [{"loc":[3,3],"terminateAfterAction":false,"timeLeft":9,"previousLoc":[3,2]},"r"],
+  [{"loc":[4,3],"terminateAfterAction":false,"timeLeft":8,"previousLoc":[3,3]},"r"],
+  [{"loc":[5,3],"terminateAfterAction":false,"timeLeft":7,"previousLoc":[4,3]},"u"],
+  [{"loc":[5,4],"terminateAfterAction":false,"timeLeft":6,"previousLoc":[5,3]},"u"],
+  [{"loc":[5,5],"terminateAfterAction":false,"timeLeft":5,"previousLoc":[5,4]},"u"],
+  [{"loc":[5,6],"terminateAfterAction":false,"timeLeft":4,"previousLoc":[5,5]},"l"],
+  [{"loc":[4,6],"terminateAfterAction":false,"timeLeft":3,"previousLoc":[5,6]},"u"],
+  [{"loc":[4,7],"terminateAfterAction":false,"timeLeft":2,"previousLoc":[4,6],"timeAtRestaurant":0},"l"],
+  [{"loc":[4,7],"terminateAfterAction":true,"timeLeft":2,"previousLoc":[4,7],"timeAtRestaurant":1},"l"]
+];
 ///
 
 
@@ -1330,8 +1452,7 @@ var prior = {
 
 // Get world and observations
 var world = makeRestaurantChoiceMDP();
-var observedStateAction = restaurantNameToObservationTime11['sophisticated'];
-var posterior = getPosterior(world, prior, observedStateAction);
+var posterior = getPosterior(world, prior, sophisticatedTrajectory);
 displayResults(getPosterior(world, prior, []), posterior);
 ~~~~
 
