@@ -15,19 +15,18 @@ Instead of explicitly optimizing for the entire future when taking an action, an
 
 [^reward]: If optimal planning is super-linear in the time-horizon, the Reward-myopic agent will do less computation overall. The Reward-myopic agent only considers states or belief-states that it actually enters or that it gets close to, while the Optimal approach considers every possible state or belief-state.
 
-The Reward-myopic approach works best if continually optimizing for the short-term produces good results in the long-term. It's easy to imagine probems where this doesn't hold: e.g. if there's a big prize at the end of a long corridor (with no rewards along the way). A remedy is to find a proxy for the long-term expected utility of being in a state that is cheap to compute. For example, you can myopically optimize the score of future chess positions using an easy-to-compute evaluation function. In this chapter, we only consider the simplest kind of Reward-myopic planning, where the agent optimizes for short-term utility rather than a proxy of long-term utility.
-
+The Reward-myopic agent succeeds when continual optimizing for the short-term produces good long-term performance. Often this fails: e.g. climbing a moutain gets harder until you reach the glorious summit. One patch for this problem is to provide the agent with fake short-term rewards that are a proxy for long-term expected utility. This is closely related to "reward shaping" in Reinforcement Learning refp:chentanez2004intrinsically.
 
 ### Reward-myopic Planning: implementation and examples
 The **Reward-myopic agent** takes the action that would be optimal if the time-horizon were $$C_g$$ steps into the future. The "cutoff" or "bound", $$C_g > 0$$, will typically be much smaller than the time horizon for the decision problem.
 
-You will notice the similarity between the Reward-myopic agent and the hyperbolic discounting agents. Both agents make plans based (mostly) on short-term rewards. Both agents revise these plans at every timestep. And the Naive and Reward-myopic agents both have implicit models of their future selves that are incorrect. A major difference is that Reward-myopic planning is much easier to make computationally fast. Given their similarity, it is unsurprising that we implement the Reward-myopic agent using the concept of *delay* described in the previous chapter. The formalization and implementation of the Reward-myopic agent is left as an exercise.
+Notice the similarity between Reward-myopic agents and hyperbolic discounting agents. Both agents make plans based on short-term rewards. Both revise these plans at every timestep. And the Naive Hyperbolic Discounter and Reward-myopic agents both have implicit models of their future selves that are incorrect. A major difference is that Reward-myopic planning is easy to make computationally fast. The Reward-myopic agent can be implemented using the concept of *delay* described in the previous [chapter](/chapters/5b-time-inconsistency) and the implementation is left as an exercise:
 
 >**Exercise:** Formalize POMDP and MDP versions of the Reward-myopic agent by modifiying the equations for the expected utility of state-action pairs or belief-state-action pairs. Implement the agent by modifying the code for the POMDP and MDP agents. Verify that the agent behaves sub-optimally (but more efficiently) on Gridworld and Bandit problems. 
 
 ------
 
-The Reward-myopic agent will do well if good short-term actions produce good long-term consequences. In Bandit problems, elaborate long-terms plans are not needed to reach particular desirable future states. It turns out that a maximally Reward-myopic agent, who only cares about the immediate reward ($$C_g = 1$$), does well on the standard Multi-arm bandit problem -- provided that it has some noise in its actions TODO add sutton barto cite refp:sutton119xreinforcement.
+The Reward-myopic agent does well if good short-term actions produce good long-term consequences. In Bandit problems, elaborate long-terms plans are not needed to reach particular desirable future states. It turns out that a maximally Reward-myopic agent, who only cares about the immediate reward ($$C_g = 1$$), does well on Multi-arm bandits. <!-- TODO cite knowledge gradient -->
 
 The next codeboxes show the performance of the Reward-myopic agent on Bandit problems. The first codebox is a two-arm Bandit problem, illustrated in Figure 1. We use a Reward-myopic agent with high softmax noise: $$C_g=1$$ and $$\alpha=10$$. The Reward-myopic agent's average reward over 100 trials is close to the expected average reward given perfect knowledge of the arms.
 
@@ -172,9 +171,9 @@ print('Arm2 is best arm and has expected utility 1.\n' +
 
 ## Myopic Updating: the basic idea
 
-In Chapter 3.3, we noted that solving a finite-horizon Multi-arm bandit problem is intractable in the number of arms and trials. So bounded agents will use a sub-optimal but tractable algorithm for this problem. In this chapter we describe and implement a widely-studied approach to Bandits (and POMDPs generally) that is sub-optimal but which can be very effective in practice. We refer to the approach as *Myopic Updating*, because it is "myopic" or "greedy" with respect to exploration. The idea is that the agent at time $$t_0$$ assumes he can only *explore* (i.e. update beliefs from observations) up to some cutoff point $$C_m$$ steps into the future. After that point he just *exploits* (i.e. he gain rewards but doesn't update from the rewards he observes). In reality, the agent will continue to update beliefs after time $$t_0+C_m$$. The Update-myopic agent, like the Naive hyperbolic discounter, has an incorrect model of his future self. We call an agent that uses Myopic Updating an "Update-myopic Agent". This will be precisely defined below. 
+In Chapter 3.3, we noted that solving a finite-horizon Multi-arm bandit problem is intractable in the number of arms and trials. So bounded agents will use a sub-optimal but tractable algorithm for this problem. In this chapter we describe and implement a widely-studied approach to Bandits that is sub-optimal but often effective in practice. We refer to the approach as *Myopic Updating*, because it is "myopic" or "greedy" with respect to exploration. The idea is that the agent at time $$t_0$$ assumes he can only *explore* (i.e. update beliefs from observations) up to some cutoff point $$C_m$$ steps into the future. After that point he just *exploits* (i.e. he gain rewards but doesn't update from the rewards he observes). In reality, the agent continues to update beliefs after time $$t_0+C_m$$. The Update-myopic agent, like the Naive hyperbolic discounter, has an incorrect model of his future self. We call an agent that uses Myopic Updating an "Update-myopic Agent". This will be precisely defined below. 
 
-Myopic Updating is an efficient way to solve Bandit problems, yielding an optimal solution in the two-arm case refp:frazier2008knowledge, and also provides a good fit to human performance in Bandit problems refp:zhang2013forgetful. In what follows, we describe Myopic Updating in more detail, explain how to incorporate it into out POMDP agent model, and then exhibit its performance on Bandit problems.
+Myopic Updating is an efficient way to solve certain Bandit problems, yielding an optimal solution in the Gaussian two-arm case refp:frazier2008knowledge,<!-- TODO verify this: or is it only for best-arm ident?--> and also provides a good fit to human performance in Bernoulli Bandit problems refp:zhang2013forgetful. In what follows, we describe Myopic Updating in more detail, explain how to incorporate it into out POMDP agent model, and then exhibit its performance on Bandits.
 
 ### Myopic Updating: applications and limitations
 
@@ -225,7 +224,7 @@ The implementation of the Update-myopic agent in WebPPL is a direct translation 
 
 ### Myopic Updating for Bandits
 
-The Update-myopic agent performs well on a variety of Bandit problems. The following codeboxes compare the Update-myopic agent to the Optimal POMDP agent on binary, two-arm Bandits (see the specific example in Figure 3). TODO: add statement about equivalent performance. 
+The Update-myopic agent performs well on a variety of Bandit problems. The following codeboxes compare the Update-myopic agent to the Optimal POMDP agent on binary, two-arm Bandits (see the specific example in Figure 3). <!--TODO: add statement about equivalent performance. -->
 
 <img src="/assets/img/5b-myopic-bandit.png" alt="diagram" style="width: 600px;"/>
 
