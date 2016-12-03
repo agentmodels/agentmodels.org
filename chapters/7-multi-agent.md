@@ -563,7 +563,3 @@ viz(listener('someSprouted'));
 ~~~~
 
 Next chapter: [How to use the WebPPL Agent Models library](/chapters/8-using-gridworld-library.html)
-
-<br>
-
-### Footnotes
