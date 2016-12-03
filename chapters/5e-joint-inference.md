@@ -22,9 +22,34 @@ Before making a direct comparison, we demonstrate that we can infer the preferen
 
 First we condition on the path where the agent moves to Donut North. We call this the Naive path because it is distinctive to the Naive hyperbolic discounter (who is tempted by Donut North on the way to Veg):
 
+<!-- draw_naive_path -->
 ~~~~
-// draw_naive_path
-///fold:
+///fold: restaurant choice MDP, naiveTrajectory
+var ___ = ' '; 
+var DN = { name : 'Donut N' };
+var DS = { name : 'Donut S' };
+var V = { name : 'Veg' };
+var N = { name : 'Noodle' };
+
+var gridFeatures = [
+  ['#', '#', '#', '#',  V , '#'],
+  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', DN , ___, '#', ___],
+  ['#', '#', '#', ___, '#', ___],
+  ['#', '#', '#', ___, ___, ___],
+  ['#', '#', '#', ___, '#',  N ],
+  [___, ___, ___, ___, '#', '#'],
+  [DS , '#', '#', ___, '#', '#']
+];
+
+var mdp = makeGridWorldMDP({
+  gridFeatures,
+  noReverse: true,
+  maxTimeAtRestaurant: 2,
+  startingLocation: [3, 1],
+  totalTime: 11
+});
+
 var naiveTrajectory = [
   [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"u"],
   [{"loc":[3,2],"terminateAfterAction":false,"timeLeft":10,"previousLoc":[3,1]},"u"],
@@ -35,17 +60,13 @@ var naiveTrajectory = [
   [{"loc":[2,5],"terminateAfterAction":true,"timeLeft":6,"previousLoc":[2,5],"timeAtRestaurant":1},"l"]
 ];
 ///
-var world = makeRestaurantChoiceMDP();
-print('Observations for naive agent: \n' 
-       + JSON.stringify(naiveTrajectory) + ' \n');
-GridWorld.draw(world, { trajectory: naiveTrajectory });
+GridWorld.draw(mdp.world, { trajectory: naiveTrajectory });
 ~~~~
 
 For inference, we specialize the approach in the previous <a href="/chapters/5d-joint-inference.html#formalization">chapter</a> for agents in MDPs that are potentially time inconsistent. So we infer $$\nu$$ and $$k$$ (the hyperbolic discounting parameters) but not the initial belief state $$b_0$$. The function `exampleGetPosterior` is a slightly simplified version of the library function we use below.
 
+<!-- getPosterior_function -->
 ~~~~
-// getPosterior_function
-
 var exampleGetPosterior = function(world, prior, observedStateAction){
   return Infer({ model() {
 
@@ -90,10 +111,44 @@ var exampleGetPosterior = function(world, prior, observedStateAction){
 
 This inference function allows for inference over the softmax parameter ($$\alpha$$ or `alpha`) and the discount constant ($$k$$ or `discount`). For this example, we fix these values so that the agent has low noise ($$\alpha=1000$$) and so $$k=1$$. We also fix the `timeCost` utility to be small and negative and Noodle's utility to be negative. We infer only the agent's utilities and whether they are Naive or Sophisticated.
 
+<!-- infer_assume_discounting_naive -->
 ~~~~
-// infer_assume_discounting_naive
-// Call to hyperbolic library function and helper display function
-///fold:
+///fold: Call to hyperbolic library function and helper display function
+var ___ = ' '; 
+var DN = { name : 'Donut N' };
+var DS = { name : 'Donut S' };
+var V = { name : 'Veg' };
+var N = { name : 'Noodle' };
+
+var gridFeatures = [
+  ['#', '#', '#', '#',  V , '#'],
+  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', DN , ___, '#', ___],
+  ['#', '#', '#', ___, '#', ___],
+  ['#', '#', '#', ___, ___, ___],
+  ['#', '#', '#', ___, '#',  N ],
+  [___, ___, ___, ___, '#', '#'],
+  [DS , '#', '#', ___, '#', '#']
+];
+
+var mdp = makeGridWorldMDP({
+  gridFeatures,
+  noReverse: true,
+  maxTimeAtRestaurant: 2,
+  startingLocation: [3, 1],
+  totalTime: 11
+});
+
+var naiveTrajectory = [
+  [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"u"],
+  [{"loc":[3,2],"terminateAfterAction":false,"timeLeft":10,"previousLoc":[3,1]},"u"],
+  [{"loc":[3,3],"terminateAfterAction":false,"timeLeft":9,"previousLoc":[3,2]},"u"],
+  [{"loc":[3,4],"terminateAfterAction":false,"timeLeft":8,"previousLoc":[3,3]},"u"],
+  [{"loc":[3,5],"terminateAfterAction":false,"timeLeft":7,"previousLoc":[3,4]},"l"],
+  [{"loc":[2,5],"terminateAfterAction":false,"timeLeft":6,"previousLoc":[3,5],"timeAtRestaurant":0},"l"],
+  [{"loc":[2,5],"terminateAfterAction":true,"timeLeft":6,"previousLoc":[2,5],"timeAtRestaurant":1},"l"]
+];
+
 var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
 var getPosterior = restaurantHyperbolicInfer.getPosterior;
 
@@ -195,16 +250,6 @@ var displayResults = function(priorDist, posteriorDist) {
 
   viz.bar(donutTemptingDataTable, { groupBy: 'distribution' });
 };
-
-var naiveTrajectory = [
-  [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"u"],
-  [{"loc":[3,2],"terminateAfterAction":false,"timeLeft":10,"previousLoc":[3,1]},"u"],
-  [{"loc":[3,3],"terminateAfterAction":false,"timeLeft":9,"previousLoc":[3,2]},"u"],
-  [{"loc":[3,4],"terminateAfterAction":false,"timeLeft":8,"previousLoc":[3,3]},"u"],
-  [{"loc":[3,5],"terminateAfterAction":false,"timeLeft":7,"previousLoc":[3,4]},"l"],
-  [{"loc":[2,5],"terminateAfterAction":false,"timeLeft":6,"previousLoc":[3,5],"timeAtRestaurant":0},"l"],
-  [{"loc":[2,5],"terminateAfterAction":true,"timeLeft":6,"previousLoc":[2,5],"timeAtRestaurant":1},"l"]
-];
 ///
 
 // Prior on agent's utility function: each restaurant has an
@@ -237,12 +282,10 @@ var prior = {
 };
 
 // Get world and observations
-var world = makeRestaurantChoiceMDP();
-var observedStateAction = naiveTrajectory;
-var posterior = getPosterior(world, prior, observedStateAction);
+var posterior = getPosterior(mdp.world, prior, naiveTrajectory);
 
 // To get the prior, we condition on the empty list of observations
-displayResults(getPosterior(world, prior, []), posterior);
+displayResults(getPosterior(mdp.world, prior, []), posterior);
 ~~~~
 
 We display maximum values and marginal distributions for both the prior and the posterior conditioned on the path shown above. To compute the prior, we simply condition on the empty list of observations.
@@ -253,8 +296,8 @@ The first graph shows the distribution over whether the agent is Sophisticated o
 
 Using the same prior, we condition on the "Sophisticated" path (i.e. the path distinctive to the Sophisticated agent who avoids the temptation of Donut North and takes the long route to Veg):
 
+<!-- draw_sophisticated_path -->
 ~~~~
-// draw_sophisticated_path
 ///fold:
 var sophisticatedTrajectory = [
   [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"u"],
@@ -276,12 +319,9 @@ GridWorld.draw(world, { trajectory: sophisticatedTrajectory });
 
 Here are the results of inference: 
 
+<!-- infer_assume_discounting_sophisticated -->
 ~~~~
-// infer_assume_discounting_sophisticated
-
-// Definition of world, prior and inference function is same as above codebox
-
-///fold:
+///fold: Definition of world, prior and inference function is same as above codebox
 var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
 var getPosterior = restaurantHyperbolicInfer.getPosterior;
 
@@ -434,8 +474,8 @@ displayResults(getPosterior(world, prior, []), posterior);
 
 If the agent goes directly to Veg, then they don't provide information about whether they are Naive or Sophisticated. Using the same prior again, we do inference on this path:
 
+<!-- draw_vegDirect_path -->
 ~~~~
-// draw_vegDirect_path
 ///fold:
 var vegDirectTrajectory = [
   [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"u"],
@@ -455,8 +495,8 @@ GridWorld.draw(world, { trajectory: vegDirectTrajectory });
 
 Here are the results of inference: 
 
+<!-- infer_assume_discount_vegDirect -->
 ~~~~
-// infer_assume_discount_vegDirect
 // Definition of world, prior and inference function is same as above codebox
 
 ///fold:
@@ -600,8 +640,8 @@ displayResults(getPosterior(world, prior, []), posterior);
 
 We want to compare a model that assumes an optimal MDP agent with one that allows for time-inconsistency. We first show the inferences by the model that assumes optimality. This model can only explain the anomalous Naive and Sophisticated paths in terms of softmax noise (lower values for $$\alpha$$). We display the prior and posteriors for both the Naive and Sophisticated paths. 
 
+<!-- infer_assume_optimal_naive_sophisticated -->
 ~~~~
-// infer_assume_optimal_naive_sophisticated
 ///fold:
 var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
 var getPosterior = restaurantHyperbolicInfer.getPosterior;
@@ -757,11 +797,9 @@ The graphs show two important results:
 
 What happens if we observe the agent taking the Naive path *repeatedly*? While noise is needed to explain the agent's path, too much noise is inconsistent with taking an identical path repeatedly. This is confirmed in the results below:
 
+<!-- infer_assume_optimal_naive_three_times -->
 ~~~~
-// infer_assume_optimal_naive_three_times
-
-// Prior is same as above:
-///fold:
+///fold: Prior is same as above
 var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
 var getPosterior = restaurantHyperbolicInfer.getPosterior;
 
@@ -899,9 +937,8 @@ Our inference model now has the optimal agent as a special case but also include
 
 We show two different posteriors. The first is after conditioning on the Naive path (as above). In the second, we imagine that we have observed the agent taking the same path on multiple occasions (three times) and we condition on this. 
 
+<!-- infer_joint_model_naive -->
 ~~~~
-// infer_joint_model_naive
-
 ///fold:
 var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
 var getPosterior = restaurantHyperbolicInfer.getPosterior;
@@ -1104,8 +1141,8 @@ To speed up inference, we use a fixed assumption that the agent is Naive. There 
 
 These three can also be combined to explain the behavior. 
 
+<!-- infer_joint_two_donut_naive -->
 ~~~~
-// infer_joint_two_donut_naive
 ///fold:
 var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
 var getPosterior = restaurantHyperbolicInfer.getPosterior;
@@ -1275,8 +1312,8 @@ We see a similar result if we enrich the set of possible utilities for the Sophi
 
 Observe the sophisticated path with possibly positive timeCost:
 
+<!-- infer_joint_timecost_sophisticated -->
 ~~~~
-// infer_joint_timecost_sophisticated
 ///fold:
 var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
 var getPosterior = restaurantHyperbolicInfer.getPosterior;

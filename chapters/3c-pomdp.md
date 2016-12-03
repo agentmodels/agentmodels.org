@@ -102,12 +102,11 @@ Unfortunately, finding the optimal policy for POMDPs is a difficult task. In fac
 
 ### Implementation of the Model
 <a id="pomdpCode"></a>
+
 As with the agent model for MDPs, we provide a direct translation of the equations above into an agent model for solving POMDPs. The variables `nextState`, `nextObservation`, `nextBelief`, and `nextAction` correspond to $$s'$$,  $$o$$, $$b'$$ and $$a'$$ respectively, and we use the Expected Utility of Belief Recursion. The following codebox defines the `act` and `expectedUtility` functions. We define the functions `updateBelief`, `transition`, `observe` and `utility` below. 
 
-
+<!-- pomdp_agent -->
 ~~~~
-// pomdp_agent
-
 var act = function(belief) {
   return Infer({ model() {
     var action = uniformDraw(actions);
@@ -163,6 +162,7 @@ var simulate = function(startState, priorBelief) {
 ## Applying the POMDP agent model
 
 ### Two-arm, deterministic, IRL Bandits
+
 We apply the POMDP agent to a simplified variant of the Multi-arm Bandit Problem. In this variant, pulling an arm produces a *prize* deterministically. The agent begins with uncertainty about the mapping from arms to prizes and learns over time by trying the arms. In our concrete example, there are only two arms. The first arm is known to have the prize "chocolate" and the second arm either has "champagne" or has no prize at all ("nothing"). See Figure 2 (below) for details. We refer to Bandit problems with prizes (e.g. chocolate) as "IRL Bandits" to distinguish them from the standard Bandit problems with numerical rewards. <!-- TODO I don't like this explanation of the term "IRL bandit" - reading the paragraph, you don't get an explanation why "IRL" was chosen or what it has to do with inverse reinforcement learning. - Daniel -->
 
 <img src="/assets/img/3c-irl-bandit.png" alt="diagram" style="width: 500px;"/>
@@ -172,9 +172,6 @@ We apply the POMDP agent to a simplified variant of the Multi-arm Bandit Problem
 In our implementation of this problem, the two arms are labeled "0" and "1" respectively. The *action* of pulling `Arm0` is also labeled "0" (and likewise for `Arm1`). After taking action `0`, the agent transitions to a state corresponding to the prize for `Arm0` and the gets to observe this prize. States are Javascript objects that contain a property for counting down the time (as in the MDP case) as well as a `prize` property. States also contain the *latent* mapping from arms to prizes (called `armToPrize`) that determines how an agent transitions on pulling an arm.
 
 ~~~~
-// ---------------
-// Defining the Bandits decision problem
-
 // Pull arm0 or arm1
 var actions = [0, 1];
 
@@ -212,8 +209,7 @@ The <a href="#belief">Belief-Update Formula</a> is implemented by `updateBelief`
 [^makeBelief]: One difference between the functions is that `makeAgent` uses the global variables `transition` and `observation`, instead of having a `world` parameter.
 
 ~~~~
-// Bandit problem is defined as above
-///fold:
+///fold: Bandit problem is defined as above
 
 // Pull arm0 or arm1
 var actions = [0, 1];
@@ -245,8 +241,6 @@ var startState = {
 };
 ///
 
-
-// ---------------
 // Defining the POMDP agent
 
 // Agent params include utility function and initial belief (*priorBelief*)
@@ -369,8 +363,8 @@ print('Arms pulled: ' +  map(second, trajectory));
 You can change the agent's behavior by varying `numberTrials`, `armToPrize` in `startState` or the agent's prior. Note that the agent's final arm pull is random because the agent only gets utility when *leaving* a state.
 
 
-
 ### Bandits with stochastic observations
+
 The Bandit problem above is especially simple because pulling an arm *deterministically* results in a prize (which the agent directly observes). So there is a fixed, finite number of beliefs about the `armToPrize` mapping that the agent can have and it depends on the number of arms but not on the number of trials.
 
 The next codebox considers the stochastic version of Bandits. Each arm has a distribution on outcomes and the agent is uncertain about the distribution. The arms yield numerical prizes rather than prizes like chocolate -- so this is a standard Bandit problem from ML and Control Theory refp:kaelbling1996reinforcement. For this standard Bandit problem, the number of possible beliefs for the agent grows with the number of trials. <a id="complexity"></a> <!--TODO_daniel be more precise here and ideally cite the relevant page of the papers].-->
@@ -465,9 +459,8 @@ displayTrajectory(trajectory);
 
 Solving Bandit problems optimally quickly becomes intractable without special optimizations. The codebox below shows how runtime scales as a function of the number of trials. 
 
+<!-- bandit_scaling_number_of_trials -->
 ~~~~
-// bandit_scaling_number_of_trials
-
 // Construct world and agent priorBelief as above
 ///fold:
 
@@ -531,9 +524,8 @@ viz.line(numberOfTrialsList, runtimes);
 Scaling is much worse in the number of arms:
 
 
+<!-- bandit_scaling_number_of_arms -->
 ~~~~
-// bandit_scaling_number_of_arms
-
 ///fold:
 
 var vs = [0, 1];
@@ -614,8 +606,8 @@ The transition function for the POMDP case is essentially the same as in the MDP
 
 The next two codeboxes use the same POMDP, where all restaurants are open but for Noodle. The first agent prefers the Donut Store and believes (falsely) that Donut South is likely closed. The second agent prefers Noodle and believes (falsely) that Noodle is likely open.
 
+<!-- agent_thinks_donut_south_closed -->
 ~~~~
-// agent_thinks_donut_south_closed
 ///fold:
 var getPriorBelief = function(startManifestState, latentStateSampler){
   return Infer({ model() {
@@ -670,11 +662,9 @@ GridWorld.draw(world.MDPWorld, { trajectory: manifestStates });
 
 Here is the agent that prefers Noodle and falsely belives that it is open:
 
+<!-- agent_thinks_noodle_open -->
 ~~~~
-// agent_thinks_noodle_open
-
-// same world, prior, start state, and latent state as previous codebox
-///fold:
+///fold: Same world, prior, start state, and latent state as previous codebox
 var getPriorBelief = function(startManifestState, latentStateSampler){
   return Infer({ model() {
     return {

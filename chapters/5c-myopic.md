@@ -6,9 +6,11 @@ description: Fast heuristic POMDP algorithms that assume a short time horizon.
 ---
 
 ### Introduction
+
 The previous chapter extended the MDP agent model to include exponential and hyperbolic discounting. The goal was to produce models of human behavior that capture a prominent *bias* (time inconsistency). As noted [earlier](/chapters/5-biases-intro) humans are not just biased but also *cognitively bounded*. This chapter extends the POMDP agent to capture heuristics for planning that are sub-optimal but fast and frugal.
 
 ## Reward-myopic Planning: the basic idea
+
 Optimal planning is difficult because the best action now depends on the entire future. The optimal POMDP agent reasons backwards from the utility of its final state, judging earlier actions on whether they lead to good final states. With an infinite time horizon, an optimal agent must consider the expected utility of being in every possible state, including states only reachable after a very long duration.
 
 Instead of explicitly optimizing for the entire future when taking an action, an agent can "myopically" optimize for near-term rewards. With a time-horizon of 1000 timesteps, a myopic agent's first action might optimize for reward up to timestep $$t=5$$. Their second action would optimize for rewards up to $$t=6$$, and so on. Whereas the optimal agent computes a complete policy before the first timestep and then follows the policy, the "reward-myopic agent" computes a new myopic policy at each timestep, thus spreading out computation over the whole time-horizon and usually doing much less computation overall[^reward].
@@ -18,6 +20,7 @@ Instead of explicitly optimizing for the entire future when taking an action, an
 The Reward-myopic agent succeeds when continually optimizing for the short-term produces good long-term performance. Often this fails: e.g. climbing a moutain gets harder until you reach the glorious summit. One patch for this problem is to provide the agent with fake short-term rewards that are a proxy for long-term expected utility. This is closely related to "reward shaping" in Reinforcement Learning refp:chentanez2004intrinsically.
 
 ### Reward-myopic Planning: implementation and examples
+
 The **Reward-myopic agent** takes the action that would be optimal if the time-horizon were $$C_g$$ steps into the future. The "cutoff" or "bound", $$C_g > 0$$, will typically be much smaller than the time horizon for the decision problem.
 
 Notice the similarity between Reward-myopic agents and hyperbolic discounting agents. Both agents make plans based on short-term rewards. Both revise these plans at every timestep. And the Naive Hyperbolic Discounter and Reward-myopic agents both have implicit models of their future selves that are incorrect. A major difference is that Reward-myopic planning is easy to make computationally fast. The Reward-myopic agent can be implemented using the concept of *delay* described in the previous [chapter](/chapters/5b-time-inconsistency) and the implementation is left as an exercise:
@@ -36,8 +39,8 @@ The next codeboxes show the performance of the Reward-myopic agent on Bandit pro
 
 <br>
 
+<!-- noisy_reward_myopic_regret_ratio -->
 ~~~~
-// noisy_reward_myopic_regret_ratio
 ///fold: getUtility
 var getUtility = function(state, action) {
   var prize = state.manifestState.loc;
@@ -101,9 +104,8 @@ The next codebox is a three-arm Bandit problem show in Figure 2. Given the agent
 
 >**Figure 2:** Bandit problem where `arm0` has highest prior expectation for the agent but where `arm2` is actually the best arm. (This may take a while to run.)
 
+<!-- noisy_rewardMyopic_3_arms -->
 ~~~~
-// noisy_rewardMyopic_3_arms
-
 // agent is same as above: bound=1, alpha=10
 ///fold:
 var rewardMyopicBound = 1;
@@ -231,9 +233,8 @@ The Update-myopic agent performs well on a variety of Bandit problems. The follo
 >**Figure 3**: Bandit problem. The agent's prior includes two hypotheses for the rewards of each arm, with the prior probability of each labeled to the left and right of the boxes. The priors on each arm are independent and so there are four hypotheses overall. Boxes with actual rewards have a bold border. 
 <br>
 
+<!-- myopic_bandit_performance -->
 ~~~~
-// myopic_bandit_performance
-
 // Helper functions for Bandits:
 ///fold:
 
@@ -335,10 +336,9 @@ The following codebox computes the runtime for Update-myopic and Optimal agents 
 
 >**Exercise:** Think of ways to optimize the Update-myopic agent with $$C_m=1$$ for binary Bandit problems.
 
+<!-- myopic_bandit_scaling -->
 ~~~~
-// myopic_bandit_scaling
-// Similar helper functions as above codebox
-///fold:
+///fold: Similar helper functions as above codebox
 
 // HELPERS FOR CONSTRUCTING AGENT
 
@@ -473,9 +473,8 @@ The codebox below depicts a toy version of this problem in Gridworld. The restau
 TODO: gridworld draw should take pomdp trajectories. they should also take POMDP as "world". 
 -->
 
+<!-- optimal_agent_restaurant_search -->
 ~~~~
-// optimal_agent_restaurant_search
-
 var pomdp = makeRestaurantSearchPOMDP();
 var world = pomdp.world;
 var makeUtility = pomdp.makeUtility;
@@ -511,11 +510,9 @@ GridWorld.draw(pomdp.mdp, { trajectory: manifestStates });
 
 >**Exercise:** The codebox below shows the behavior the Update-myopic agent. Try different values for the `myopicBound` parameter. For values in $$[1,2,3]$$, explain the behavior of the Update-myopic agent. 
 
+<!-- myopic_agent_restaurant_search -->
 ~~~~
-// myopic_agent_restaurant_search
-
-// Construct world and agent prior as above
-///fold: 
+///fold: Construct world and agent prior as above
 var pomdp = makeRestaurantSearchPOMDP();
 var world = pomdp.world;
 var makeUtility = pomdp.makeUtility;

@@ -73,11 +73,10 @@ where `"work"` is the final action. We fix the utilities for doing the work (the
 
 For each parameter, we plot a time-series showing the posterior expectation of the variable on each day. We also plot the model's posterior predictive probability that the agent would do the work on the last day (assuming the agent gets to the last day without having done the work). This feature is called `predictWorkLastMinute` in the codebox.
 
-TODO: ideally we would do this as actual online inference.
+<!-- TODO: ideally we would do this as actual online inference. -->
 
+<!-- infer_procrastination -->
 ~~~~ 
-// infer_procrastination
-
 ///fold: makeProcrastinationMDP, makeProcrastinationUtility, displayTimeSeries, ...
 var makeProcrastinationMDP = function(deadlineTime) {
   var stateLocs = ["wait_state", "reward_state"];
@@ -214,7 +213,18 @@ var displayTimeSeries = function(observedStateAction, getPosterior) {
   return '';
 };
 
-var procrastinationData = [[{"loc":"wait_state","waitSteps":0,"timeLeft":10,"terminateAfterAction":false},"wait"],[{"loc":"wait_state","waitSteps":1,"timeLeft":9,"terminateAfterAction":false},"wait"],[{"loc":"wait_state","waitSteps":2,"timeLeft":8,"terminateAfterAction":false},"wait"],[{"loc":"wait_state","waitSteps":3,"timeLeft":7,"terminateAfterAction":false},"wait"],[{"loc":"wait_state","waitSteps":4,"timeLeft":6,"terminateAfterAction":false},"wait"],[{"loc":"wait_state","waitSteps":5,"timeLeft":5,"terminateAfterAction":false},"wait"],[{"loc":"wait_state","waitSteps":6,"timeLeft":4,"terminateAfterAction":false},"wait"],[{"loc":"wait_state","waitSteps":7,"timeLeft":3,"terminateAfterAction":false},"wait"],[{"loc":"wait_state","waitSteps":8,"timeLeft":2,"terminateAfterAction":false},"work"],[{"loc":"reward_state","waitSteps":8,"timeLeft":1,"terminateAfterAction":true},"relax"]];
+var procrastinationData = [
+  [{"loc":"wait_state","waitSteps":0,"timeLeft":10,"terminateAfterAction":false},"wait"],
+  [{"loc":"wait_state","waitSteps":1,"timeLeft":9,"terminateAfterAction":false},"wait"],
+  [{"loc":"wait_state","waitSteps":2,"timeLeft":8,"terminateAfterAction":false},"wait"],
+  [{"loc":"wait_state","waitSteps":3,"timeLeft":7,"terminateAfterAction":false},"wait"],
+  [{"loc":"wait_state","waitSteps":4,"timeLeft":6,"terminateAfterAction":false},"wait"],
+  [{"loc":"wait_state","waitSteps":5,"timeLeft":5,"terminateAfterAction":false},"wait"],
+  [{"loc":"wait_state","waitSteps":6,"timeLeft":4,"terminateAfterAction":false},"wait"],
+  [{"loc":"wait_state","waitSteps":7,"timeLeft":3,"terminateAfterAction":false},"wait"],
+  [{"loc":"wait_state","waitSteps":8,"timeLeft":2,"terminateAfterAction":false},"work"],
+  [{"loc":"reward_state","waitSteps":8,"timeLeft":1,"terminateAfterAction":true},"relax"]
+];
 ///
 
 var getPosterior = function(observedStateAction, useOptimalModel) {
@@ -285,11 +295,9 @@ The inference problem is to infer the agent's preference over chocolate. While t
 As with the Procrastination example above, we compare the inferences of two models. The *Optimal Model* assumes the agent solving the POMDP optimally. The *Possibly Reward-myopic Model* includes both the optimal agent and Reward-myopic agents with different values for the bound $$C_g$$. The models know the agent's utility for champagne and his prior about how likely champagne is from `arm1`. The models have a fixed prior on the agent's utility for chocolate. We vary the agent's time horizon between 2 and 10 timesteps and plot posterior expectations for the utility of chocolate. For the Possibly Reward-myopic model, we also plot the expectation for $$C_g$$. 
 
 <!-- TODO fix this codebox -->
+<!-- infer_utility_from_no_exploration -->
 ~~~~
-// infer_utility_from_no_exploration
-
-// helper function to assemble and display inferred values
-///fold:
+///fold: Helper function to assemble and display inferred values
 var timeHorizonValues = range(10).slice(2);
 var features = ['Utility of arm 0 (chocolate)', 'Greediness bound'];
 
@@ -339,7 +347,6 @@ var displayExpectations = function(getPosterior) {
   return '';
 };
 ///
-
 
 var getPosterior = function(numberOfTrials, useOptimalModel) {
   var trueArmToPrizeDist = {

@@ -15,9 +15,8 @@ We begin by introducing a new gridworld MDP:
 
 We represent Alice's hiking problem with a Gridworld similar to Bob's Restaurant Choice example. The peaks are terminal states, providing different utilities. The steep hill is represented by a row of terminal state, each with identical negative utility. Each timestep before Alice reaches a terminal state incurs a "time cost", which is negative to represent the fact that Alice prefers a shorter hike. <!-- TODO might be good to indicate on plot that the steep hills are bad -->
 
+<!-- draw_hike -->
 ~~~~
-// draw_hike
-
 var H = { name: 'Hill' };
 var W = { name: 'West' };
 var E = { name: 'East' };
@@ -40,10 +39,8 @@ GridWorld.draw(mdp.world, { trajectory: [mdp.startState] });
 
 We start with a *deterministic* transition function. In this case, Alice's risk of falling down the steep hill is solely due to softmax noise in her action choice (which is minimal in this case). The agent model is the same as the one at the end of [Chapter III.1](/chapters/3a-mdp.html). We place the functions `act`, `expectedUtility` in a function `makeMDPAgent`. The following codebox defines this function and we use it later on without defining it (since it's in the `webppl-agents` library). 
 
+<!-- define_agent_simulate -->
 ~~~~
-// define_agent_simulate
-
-
 // Set up agent structure
 
 var makeMDPAgent = function(params, world) {
@@ -298,8 +295,8 @@ We return to the case of a stochastic environment with very low softmax action n
 
 Consider the example from above where the agent takes the long route because of the risk of falling down the hill. If we generate a single trajectory for the agent, they will likely take the long route. However, if we generated many trajectories, we would sometimes see the agent move "right" instead of "up" on their first move. Before taking this first action, the agent implicitly computes what they *would* do if they end up moving right. To find out what they would do, we can artificially start the agent in $[1,1]$ instead of $[0,1]$:
 
+<!-- policy -->
 ~~~~
-// policy
 ///fold: makeHikeMDP
 var makeHikeMDP = function(options) {
   var H = { name: 'Hill' };

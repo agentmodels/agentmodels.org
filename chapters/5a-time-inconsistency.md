@@ -6,6 +6,7 @@ description: Time consistency, exponential vs. hyperbolic discounting, Naive vs.
 ---
 
 ### Introduction
+
 Time inconsistency is part of everyday human experience. In the night you wish to rise early; in the morning you prefer to sleep in. There is an inconsistency between what you prefer your future self to do and what your future self prefers to do. Forseeing this inconsistency, you take actions in the night to bind your future self to get up. These range from setting an alarm clock to arranging for someone drag you out of bed.
 
 This pattern is not limited to attempts to rise early. People make failed resolutions to attend a gym regularly. Students procrastinate on writing papers, planning to start early but delaying until the last minute. Empirical studies have highlighted the practical import of time inconsistency both to completing online courses refp:patterson2015can and to watching highbrow movies refp:milkman2009highbrow. Time inconsistency has been used to explain not just quotidian laziness but also addiction, procrastination, and impulsive behavior, as well an array of "pre-commitment" behaviors refp:ainslie2001breakdown.
@@ -41,10 +42,8 @@ What are the effects of exponential discounting? We return to the deterministic 
 
 [^bandit]: As noted above, exponential discounting is usually combined with an *unbounded* time horizon. However, if a human makes a series of decisions over a long time scale, then it makes sense to include their time preference. For this particular example, imagine the person is looking for the best skiing or sports facilities and doesn't care about variety. There could be a known finite time horizon because at some age they are too old for adventurous skiing. 
 
-
+<!-- exponential_discount_vs_optimal_bandits -->
 ~~~~
-// exponential_discount_vs_optimal_bandits
-
 ///fold:
 var baseParams = {
   noDelays: false,
@@ -121,6 +120,7 @@ print('\noptimal trajectory: ' + display(optimalTrajectory));
 
  
 #### Discounting and time inconsistency
+
 Exponential discounting is typically thought of as a *relative* time preference. A fixed reward will be discounted by a factor of $$\delta^{-30}$$ if received on Day 30 rather than Day 0. On Day 30, the same reward is discounted by $$\delta^{-30}$$ if received on Day 60 and not at all if received on Day 30. This relative time preference is "inconsistent" in a superficial sense. With $$\delta=0.95$$ per day (and linear utility in money), $100 after 30 days is worth $21 and $110 at 31 days is worth $22. Yet when the 30th day arrives, they are worth $100 and $105 respectively[^inconsistent]! The key point is that whereas these *magnitudes* have changed, the *ratios* stay fixed. Indeed, the ratio between a pair of outcomes stays fixed regardless of when the exponetial discounter evaluates them. In summary: while a discounting agent evaluates two prospects in the future as worth little compared to similar near-term prospects, the agent agrees with their future self about which of the two future prospects is better.
 
 [^inconsistent]: One can think of exponential discounting in a non-relative way by choosing a fixed staring time in the past (e.g. the agent's birth) and discounting everything relative to that. This results in an agent with a preference to travel back in time to get higher rewards!
@@ -202,10 +202,8 @@ The only difference from previous versions of Restaurant Choice is that restaura
 
 **Exercise:** Run the codebox immediately below. Think of ways in which Naive and Sophisticated hyperbolic discounters with identical preferences (i.e. identical utilities for each restaurant) might differ for this decision problem. 
 
-----------
-
+<!-- draw_choice -->
 ~~~~
-// draw_choice
 ///fold: restaurant choice MDP
 var ___ = ' '; 
 var DN = { name : 'Donut N' };
@@ -237,8 +235,8 @@ GridWorld.draw(mdp.world, { trajectory: [mdp.startState] });
 
 The next two codeboxes show the behavior of two hyperbolic discounters. Each agent has the same preferences and discount function. They differ only in that the first is Naive and the second is Sophisticated.
 
+<!-- draw_naive -->
 ~~~~
-// draw_naive
 ///fold: restaurant choice MDP, naiveTrajectory
 var ___ = ' '; 
 var DN = { name : 'Donut N' };
@@ -278,8 +276,8 @@ var naiveTrajectory = [
 GridWorld.draw(mdp.world, { trajectory: naiveTrajectory });
 ~~~~
 
+<!-- draw_sophisticated -->
 ~~~~
-// draw_sophisticated
 ///fold: restaurant choice MDP, sophisticatedTrajectory
 var ___ = ' '; 
 var DN = { name : 'Donut N' };

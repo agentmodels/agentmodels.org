@@ -88,9 +88,8 @@ var makeAgent = function(params, world) {
 
 The next codebox shows how the Naive agent can end up at Donut North in the Restaurant Choice problem, despite this being dominated for any possible utility function. The Naive agent first moves in the direction of Veg, which initially looks better than Donut South. When right outside Donut North, discounting makes it look better than Veg. To visualize this, we display the agent's expected utility calculations at different steps along its trajectory. The crucial values are the `expectedValue` of going left at [3,5] when `delay=0` compared with `delay=4`. The function `plannedTrajectories` uses `expectedValue` to access these values. For each timestep, we plot the agent's position and the expected utility of each action they might perform in the future.  <!-- TODO codebox broken fixme -->
 
-
+<!-- simulate_hyperbolic_agent -->
 ~~~~
-//simulate_hyperbolic_agent
 ///fold: 
 var makeAgent = function(params, world) {
   var defaultParams = {
@@ -196,8 +195,8 @@ runAndGraph(agent);
 
 We run the Sophisticated agent with the same parameters and visualization. 
 
+<!-- simulate_hyperbolic_agent_sophisticated -->
 ~~~~
-//simulate_hyperbolic_agent_sophisticated
 ///fold: 
 var makeAgent = function(params, world) {
   var defaultParams = {
@@ -328,8 +327,8 @@ We formalize the Procrastination Problem in terms of a deterministic graph. Supp
 
 We simulate the behavior of hyperbolic discounters on the Procrastination Problem. We vary the discount rate $$k$$ while holding the other parameters fixed. The agent's behavior can be summarized by its final state (`"wait_state"` or `"reward_state`) and by how much time elapses before termination. When $$k$$ is sufficiently high, the agent will not even complete the task on the last day. 
 
+<!-- procrastinate -->
 ~~~~
-// procrastinate
 ///fold: makeProcrastinationMDP, makeProcrastinationUtility
 var makeProcrastinationMDP = function(deadlineTime) {
   var stateLocs = ["wait_state", "reward_state"];
