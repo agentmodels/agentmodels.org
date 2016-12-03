@@ -96,7 +96,7 @@ var makeAgent = function(params, world) {
     alpha: 500, 
     discount: 1
   };
-  var params = update(defaultParams, params);
+  var params = extend(defaultParams, params);
   var stateToActions = world.stateToActions;
   var transition = world.transition;
   var utility = params.utility;
@@ -255,7 +255,7 @@ var makeAgent = function(params, world) {
     alpha: 500, 
     discount: 1
   };
-  var params = update(defaultParams, params);
+  var params = extend(defaultParams, params);
   var stateToActions = world.stateToActions;
   var transition = world.transition;
   var utility = params.utility;
@@ -450,7 +450,7 @@ var makeProcrastinationMDP = function(deadlineTime) {
     var newTimeLeft = state.timeLeft - 1;
     var terminateAfterAction = (newTimeLeft === 1 || 
                                 state.loc === "reward_state");
-    return update(state, {
+    return extend(state, {
       timeLeft: newTimeLeft,
       terminateAfterAction: terminateAfterAction
     });
@@ -464,9 +464,9 @@ var makeProcrastinationMDP = function(deadlineTime) {
       return advanceTime(state);
     } else if (action === "wait") {
       var waitSteps = state.waitSteps + 1;
-      return update(advanceTime(state), { waitSteps });
+      return extend(advanceTime(state), { waitSteps });
     } else {
-      var newState = update(state, { loc: "reward_state" });
+      var newState = extend(state, { loc: "reward_state" });
       return advanceTime(newState);
     }
   };
@@ -532,7 +532,7 @@ var params = {
 };
 
 var getLastState = function(discount){
-  var agent = makeMDPAgent(update(params, { discount: discount }), world);
+  var agent = makeMDPAgent(extend(params, { discount: discount }), world);
   var states = simulateMDP(world.startState, world, agent, 'states');
   return [last(states).loc, states.length];
 };

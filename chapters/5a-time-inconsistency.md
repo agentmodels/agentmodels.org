@@ -104,12 +104,12 @@ var discountFunction = function(delay) {
   return Math.pow(0.5, delay);
 };
 
-var exponentialParams = update(baseParams, { discountFunction, priorBelief });
+var exponentialParams = extend(baseParams, { discountFunction, priorBelief });
 var exponentialAgent = makeBanditAgent(exponentialParams, bandit,
                                        'beliefDelay');
 var exponentialTrajectory = simulatePOMDP(start, world, exponentialAgent, 'actions');
 
-var optimalParams = update(baseParams, { priorBelief });
+var optimalParams = extend(baseParams, { priorBelief });
 var optimalAgent = makeBanditAgent(optimalParams, bandit, 'belief');
 var optimalTrajectory = simulatePOMDP(start, world, optimalAgent, 'actions');
 

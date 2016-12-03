@@ -19,7 +19,7 @@ var actions = [0, 1];
 var transition = function(state, action){
   var newTimeLeft = state.timeLeft - 1;
   var armER = state.armToExpectedReward[action];
-  return update(state, {
+  return extend(state, {
     score : sample(Bernoulli({p : armER })), 
     timeLeft: newTimeLeft,
     terminateAfterAction: newTimeLeft == 1
@@ -113,7 +113,7 @@ var priorBelief = Infer({  model () {
   var p0 = uniformDraw([.1, .3, .5, .7, .9]);
   var p1 = uniformDraw([.1, .3, .5, .7, .9]);
 
-  return update(startState, { armToExpectedReward : { 0:p0, 1:p1}  });
+  return extend(startState, { armToExpectedReward : { 0:p0, 1:p1}  });
 } });
 
 

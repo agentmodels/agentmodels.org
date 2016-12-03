@@ -154,7 +154,7 @@ var agentPrior = Infer({ model() {
   return makeBanditStartState(numberOfTrials, armToPrizeDist);
 }});
 
-var params = update(params, { priorBelief: agentPrior });
+var params = extend(params, { priorBelief: agentPrior });
 var agent = makeBanditAgent(params, bandit, 'beliefDelay');
 var trajectory = simulatePOMDP(startState, world, agent, 'stateAction');
 
@@ -249,8 +249,8 @@ var baseParams = {
 };
 
 var getParams = function(agentPrior) {
-  var params = update(baseParams, { priorBelief: agentPrior });
-  return update(params);
+  var params = extend(baseParams, { priorBelief: agentPrior });
+  return extend(params);
 };
 
 var getAgentPrior = function(numberOfTrials, priorArm0, priorArm1) {
@@ -351,8 +351,8 @@ var baseParams = {
 };
 
 var getParams = function(agentPrior){
-  var params = update(baseParams, { priorBelief: agentPrior });
-  return update(params);
+  var params = extend(baseParams, { priorBelief: agentPrior });
+  return extend(params);
 };
 
 var getAgentPrior = function(numberOfTrials, priorArm0, priorArm1){

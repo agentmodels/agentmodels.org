@@ -86,7 +86,7 @@ NB: The library uses the term "world" in place of "environment".
 // time elapsed
 var advanceStateTime = function(state) {
   var newTimeLeft = state.timeLeft - 1;
-  return update(state, {
+  return extend(state, {
     timeLeft: newTimeLeft,
     terminateAfterAction: newTimeLeft > 1 ? state.terminateAfterAction : true
   });
@@ -102,7 +102,7 @@ var makeLineMDP = function(totalTime) {
 
   var transition = function(state, action) {
     var newLoc = state.loc + action;
-    var stateNewLoc = update(state, {loc: newLoc});
+    var stateNewLoc = extend(state, {loc: newLoc});
     return advanceStateTime(stateNewLoc);
   };
 
@@ -146,7 +146,7 @@ Given the utility function defined above, the highest utility state is at locati
 ///fold: helper function that decrements time and triggers termination when time elapsed
 var advanceStateTime = function(state) {
   var newTimeLeft = state.timeLeft - 1;
-  return update(state, {
+  return extend(state, {
     timeLeft: newTimeLeft,
     terminateAfterAction: newTimeLeft > 1 ? state.terminateAfterAction : true
   });
@@ -162,7 +162,7 @@ var makeLineMDP = function(totalTime) {
 
   var transition = function(state, action) {
     var newLoc = state.loc + action;
-    var stateNewLoc = update(state, {loc: newLoc});
+    var stateNewLoc = extend(state, {loc: newLoc});
     return advanceStateTime(stateNewLoc);
   };
 
@@ -216,7 +216,7 @@ These attributes are explained in the [chapter](/chapters/5a-time-inconsistency.
 ///fold: helper function that decrements time and triggers termination when time elapsed
 var advanceStateTime = function(state) {
   var newTimeLeft = state.timeLeft - 1;
-  return update(state, {
+  return extend(state, {
     timeLeft: newTimeLeft,
     terminateAfterAction: newTimeLeft > 1 ? state.terminateAfterAction : true
   });
@@ -232,7 +232,7 @@ var makeLineMDP = function(totalTime) {
 
   var transition = function(state, action) {
     var newLoc = state.loc + action;
-    var stateNewLoc = update(state, {loc: newLoc});
+    var stateNewLoc = extend(state, {loc: newLoc});
     return advanceStateTime(stateNewLoc);
   };
 
@@ -592,7 +592,7 @@ Here is a simple POMDP based on the "Line MDP" example above. The agent moves al
 
 var advanceStateTime = function(state) {
   var newTimeLeft = state.timeLeft - 1;
-  return update(state, {
+  return extend(state, {
     timeLeft: newTimeLeft,
     terminateAfterAction: newTimeLeft > 1 ? state.terminateAfterAction : true
   });
@@ -607,7 +607,7 @@ var makeLinePOMDP = function() {
 
   var transition = function(state, action) {
     var newLoc = state.loc + action;
-    var stateNewLoc = update(state, {loc: newLoc});
+    var stateNewLoc = extend(state, {loc: newLoc});
     return advanceStateTime(stateNewLoc);
   };
 
@@ -631,7 +631,7 @@ This example uses the optimal POMDP agent. To construct a POMDP agent, we need t
 ///fold:
 var advanceStateTime = function(state) {
   var newTimeLeft = state.timeLeft - 1;
-  return update(state, {
+  return extend(state, {
     timeLeft: newTimeLeft,
     terminateAfterAction: newTimeLeft > 1 ? state.terminateAfterAction : true
   });
@@ -645,7 +645,7 @@ var makeLinePOMDP = function() {
 
   var transition = function(state, action) {
     var newLoc = state.loc + action;
-    var stateNewLoc = update(state, {loc: newLoc});
+    var stateNewLoc = extend(state, {loc: newLoc});
     return advanceStateTime(stateNewLoc);
   };
 
@@ -674,7 +674,7 @@ var trueStartState = {
   treasureAt3: false
 };
 
-var alternativeStartState = update(trueStartState, {treasureAt3: true});
+var alternativeStartState = extend(trueStartState, {treasureAt3: true});
 var possibleStates = [trueStartState, alternativeStartState];
 
 var priorBelief = Categorical({
@@ -701,7 +701,7 @@ In POMDPs the agent does not directly observe their current state. However, in t
 ///fold:
 var advanceStateTime = function(state) {
   var newTimeLeft = state.timeLeft - 1;
-  return update(state, {
+  return extend(state, {
     timeLeft: newTimeLeft,
     terminateAfterAction: newTimeLeft > 1 ? state.terminateAfterAction : true
   });
@@ -715,7 +715,7 @@ var makeLinePOMDP = function() {
 
   var transition = function(state, action) {
     var newLoc = state.manifestState.loc + action;
-    var manifestStateNewLoc = update(state.manifestState,{loc: newLoc});
+    var manifestStateNewLoc = extend(state.manifestState,{loc: newLoc});
     var newManifestState = advanceStateTime(manifestStateNewLoc);
     return {
       manifestState: newManifestState,
@@ -751,7 +751,7 @@ var trueStartState = {
   }
 };
 
-var alternativeStartState = update(trueStartState, {
+var alternativeStartState = extend(trueStartState, {
   latentState: { treasureAt3: true }
 });
 var possibleStates = [trueStartState, alternativeStartState];

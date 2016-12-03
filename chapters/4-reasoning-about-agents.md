@@ -127,11 +127,11 @@ var utilityTablePrior = function() {
     'timeCost': -0.04
   };
   return uniformDraw(
-    [{ table: update(baseUtilityTable, { 'Donut N': 2, 'Donut S': 2 }),
+    [{ table: extend(baseUtilityTable, { 'Donut N': 2, 'Donut S': 2 }),
        favourite: 'donut' },
-     { table: update(baseUtilityTable, { Veg: 2 }),
+     { table: extend(baseUtilityTable, { Veg: 2 }),
        favourite: 'veg' },
-     { table: update(baseUtilityTable, { Noodle: 2 }),
+     { table: extend(baseUtilityTable, { Noodle: 2 }),
        favourite: 'noodle' }]
   );
 };
@@ -272,11 +272,11 @@ var utilityTablePrior = function(){
     'timeCost': -0.04
   };
   return uniformDraw(
-    [{ table: update(baseUtilityTable, { 'Donut N': 2, 'Donut S': 2 }),
+    [{ table: extend(baseUtilityTable, { 'Donut N': 2, 'Donut S': 2 }),
        favourite: 'donut' },
-     { table: update(baseUtilityTable, { 'Veg': 2 }),
+     { table: extend(baseUtilityTable, { 'Veg': 2 }),
        favourite: 'veg' },
-     { table: update(baseUtilityTable, { 'Noodle': 2 }),
+     { table: extend(baseUtilityTable, { 'Noodle': 2 }),
        favourite: 'noodle' }]
   );
 };
@@ -714,7 +714,7 @@ var inferBeliefsAndPreferences = function(baseAgentParams, priorPrizeToUtility,
     var initialBelief = sample(priorInitialBelief);
 
     // 3. Construct agent given utilities and beliefs
-    var newAgentParams = update(baseAgentParams, { priorBelief: initialBelief });
+    var newAgentParams = extend(baseAgentParams, { priorBelief: initialBelief });
     var agent = makeBanditAgent(newAgentParams, bandit, 'belief', prizeToUtility);
     var agentAct = agent.act;
     var agentUpdateBelief = agent.updateBelief;
@@ -765,7 +765,7 @@ var inferBeliefsAndPreferences = function(baseAgentParams, priorPrizeToUtility,
     var initialBelief = sample(priorInitialBelief);
 
     // 3. Construct agent given utilities and beliefs
-    var newAgentParams = update(baseAgentParams, { priorBelief: initialBelief });
+    var newAgentParams = extend(baseAgentParams, { priorBelief: initialBelief });
     var agent = makeBanditAgent(newAgentParams, bandit, 'belief', prizeToUtility);
     var agentAct = agent.act;
     var agentUpdateBelief = agent.updateBelief;
@@ -821,7 +821,7 @@ var observedSequence = simulatePOMDP(bandit.startState, bandit.world, simpleAgen
 var priorInitialBelief = Delta({ v: Infer({ model() {
   var armToPrizeDist = uniformDraw([
     trueArmToPrizeDist,
-    update(trueArmToPrizeDist, { 1: Delta({ v: 'nothing' }) })]);
+    extend(trueArmToPrizeDist, { 1: Delta({ v: 'nothing' }) })]);
   return makeBanditStartState(5, armToPrizeDist);
 }})});
 
@@ -847,7 +847,7 @@ var posterior = inferBeliefsAndPreferences(baseParams, priorPrizeToUtility,
 
 print("After observing agent choose arm1, what are agent's utilities?");
 print('Posterior on agent utilities:');
-viz.table(getMarginal(posterior,'prizeToUtility'));
+viz.table(getMarginal(posterior, 'prizeToUtility'));
 ~~~~
 <!-- TODO - make output above less ugly -->
 
@@ -875,7 +875,7 @@ var inferBeliefsAndPreferences = function(baseAgentParams, priorPrizeToUtility,
     var initialBelief = sample(priorInitialBelief);
 
     // 3. Construct agent given utilities and beliefs
-    var newAgentParams = update(baseAgentParams, { priorBelief: initialBelief });
+    var newAgentParams = extend(baseAgentParams, { priorBelief: initialBelief });
     var agent = makeBanditAgent(newAgentParams, bandit, 'belief', prizeToUtility);
     var agentAct = agent.act;
     var agentUpdateBelief = agent.updateBelief;
@@ -931,7 +931,7 @@ var noChampagnePrior = Infer({ model() {
   var armToPrizeDist = categorical(
     [0.05, 0.95],
     [trueArmToPrizeDist,
-     update(trueArmToPrizeDist, { 1: Delta({ v: 'nothing' }) })]);
+     extend(trueArmToPrizeDist, { 1: Delta({ v: 'nothing' }) })]);
   return makeBanditStartState(5, armToPrizeDist);
 }});
 
@@ -992,7 +992,7 @@ var inferBeliefsAndPreferences = function(baseAgentParams, priorPrizeToUtility,
     var initialBelief = sample(priorInitialBelief);
 
     // 3. Construct agent given utilities and beliefs
-    var newAgentParams = update(baseAgentParams, { priorBelief: initialBelief });
+    var newAgentParams = extend(baseAgentParams, { priorBelief: initialBelief });
     var agent = makeBanditAgent(newAgentParams, bandit, 'belief', prizeToUtility);
     var agentAct = agent.act;
     var agentUpdateBelief = agent.updateBelief;
@@ -1048,7 +1048,7 @@ var probLikesChocolate = function(numberOfTrials){
     var armToPrizeDist = (
       flip(0.2) ?
       trueArmToPrizeDist :
-      update(trueArmToPrizeDist, { 1: Delta({ v: 'nothing' }) }));
+      extend(trueArmToPrizeDist, { 1: Delta({ v: 'nothing' }) }));
     return makeBanditStartState(numberOfTrials, armToPrizeDist);
   }});
   var informedPrior = Delta({ v: bandit.startState });

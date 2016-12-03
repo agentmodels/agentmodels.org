@@ -101,7 +101,7 @@ var makeProcrastinationMDP = function(deadlineTime) {
     var newTimeLeft = state.timeLeft - 1;
     var terminateAfterAction = (newTimeLeft === 1 || 
                                 state.loc === "reward_state");
-    return update(state, {
+    return extend(state, {
       timeLeft: newTimeLeft,
       terminateAfterAction: terminateAfterAction
     });
@@ -115,9 +115,9 @@ var makeProcrastinationMDP = function(deadlineTime) {
       return advanceTime(state);
     } else if (action === "wait") {
       var waitSteps = state.waitSteps + 1;
-      return update(advanceTime(state), { waitSteps });
+      return extend(advanceTime(state), { waitSteps });
     } else {
-      var newState = update(state, { loc: "reward_state" });
+      var newState = extend(state, { loc: "reward_state" });
       return advanceTime(newState);
     }
   };
@@ -360,7 +360,7 @@ var getPosterior = function(numberOfTrials, useOptimalModel) {
   });
 
   var startState = bandit.startState;
-  var alternativeArmToPrizeDist = update(trueArmToPrizeDist,
+  var alternativeArmToPrizeDist = extend(trueArmToPrizeDist,
                                          { 1: Delta({ v: 'champagne' }) });
   var alternativeStartState = makeBanditStartState(numberOfTrials,
                                                    alternativeArmToPrizeDist);

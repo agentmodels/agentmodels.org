@@ -58,7 +58,7 @@ print(updatedTable);
 
 // Or use the library function *update*:
 
-var secondUpdatedTable = update(table, {key:10})
+var secondUpdatedTable = extend(table, {key:10})
 print(secondUpdatedTable);
 ~~~~
 

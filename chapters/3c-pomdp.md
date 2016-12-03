@@ -179,7 +179,7 @@ var actions = [0, 1];
 // determine which prize agent gets
 var transition = function(state, action){
   var newTimeLeft = state.timeLeft - 1;
-  return update(state, {
+  return extend(state, {
     prize: state.armToPrize[action], 
     timeLeft: newTimeLeft,
     terminateAfterAction: newTimeLeft == 1
@@ -218,7 +218,7 @@ var actions = [0, 1];
 // determine which prize agent gets
 var transition = function(state, action){
   var newTimeLeft = state.timeLeft - 1;
-  return update(state, {
+  return extend(state, {
     prize: state.armToPrize[action], 
     timeLeft: newTimeLeft,
     terminateAfterAction: newTimeLeft == 1
@@ -341,7 +341,7 @@ var startState = {
   armToPrize: { 0: 'chocolate', 1: 'champagne' }
 };
 
-var alternateStartState = update(startState, {
+var alternateStartState = extend(startState, {
   armToPrize: { 0: 'chocolate', 1: 'nothing' }
 });
 
@@ -434,7 +434,7 @@ var priorBelief = Infer({ model() {
   };
   var armToPrizeDist = uniformDraw([options.armToPrizeDist,
                                     alternateArmToPrizeDist]);
-  return update(startState, { latentState: armToPrizeDist });
+  return extend(startState, { latentState: armToPrizeDist });
 }});
 
 var utility = function(state, action) {
@@ -473,7 +473,7 @@ var trueArmToPrizeDist = {
   1: probably1Dist
 };
 
-var alternateArmToPrizeDist = update(trueArmToPrizeDist, { 1: probably0Dist });
+var alternateArmToPrizeDist = extend(trueArmToPrizeDist, { 1: probably0Dist });
 
 
 var makeBanditWithNumberOfTrials = function(numberOfTrials) {
@@ -502,7 +502,7 @@ var getRuntime = function(numberOfTrials) {
   var world = bandit.world;
   var startState = bandit.startState;
   var priorBelief = getPriorBelief(numberOfTrials)
-  var params = update(baseParams, { priorBelief });
+  var params = extend(baseParams, { priorBelief });
   var agent = makeBanditAgent(params, bandit, 'belief');
 
   var f = function() {
@@ -565,7 +565,7 @@ var getRuntime = function(numberOfArms) {
   var world = bandit.world;
   var startState = bandit.startState;
   var priorBelief = getPriorBelief(numberOfTrials, numberOfArms);
-  var params = update(baseParams, { priorBelief });
+  var params = extend(baseParams, { priorBelief });
   var agent = makeBanditAgent(params, bandit, 'belief');
 
   var f = function() {
@@ -666,7 +666,7 @@ var latent = {
   'Veg': true,
   'Noodle': false
 };
-var alternativeLatent = update(latent, {
+var alternativeLatent = extend(latent, {
   'Donut S': false,
   'Noodle': true
 });
@@ -737,7 +737,7 @@ var latent = {
   'Veg': true,
   'Noodle': false
 };
-var alternativeLatent = update(latent, {
+var alternativeLatent = extend(latent, {
   'Donut S': false,
   'Noodle': true
 });
