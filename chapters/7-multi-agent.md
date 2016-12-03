@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: Multi-agent models
-description: Connection between recursively simulating self (sequential decisions) and recursive simulation of other agents (strategic reasoning, coordination). Schelling games, tic-tac-toe, a simple natural-language example, and induction puzzles.
+description: Schelling coordination games, tic-tac-toe, and a simple natural-language example.
 is_section: true
 ---
 
@@ -10,9 +10,9 @@ This chapter is based on reft:stuhlmueller2013reasoning.
 
 ## Schelling coordination games
 
-We start with a simple Schelling coordination game: Alice and Bob are trying to meet up at one of two bars and have to decide between the popular one and the unpopular one.
+We start with a simple [Schelling coordination game](http://lesswrong.com/lw/dc7/nash_equilibria_and_schelling_points/). Alice and Bob are trying to meet up but have lost their phones and have no way to contact each other. There are two local bars: the popular bar and the unpopular one.
 
-Let's first consider only Alice:
+Let's first consider how Alice would choose a bar (if she was not taking Bob into account):
 
 ~~~~
 var locationPrior = function() {
@@ -33,7 +33,7 @@ var alice = function() {
 viz(alice());
 ~~~~
 
-Now we model Alice's thinking about Bob:
+But Alice wants to be at the same bar as Bob. We extend our model of Alice to include this:
 
 ~~~~
 var locationPrior = function() {
@@ -103,13 +103,16 @@ viz(alice(10));
 
 >**Exercise**: Would any of the answers to the previous exercise change if recursive reasoning could terminate not just at a fixed depth, but also at random?
 
+
 ## Game playing
 
-We'll look at the two-player game tic-tac-toe [^tictactoeimg]:
+We'll look at the two-player game tic-tac-toe:
 
-[^tictactoeimg]: Image source: [Wikipedia](https://en.wikipedia.org/wiki/Tic-tac-toe#/media/File:Tic-tac-toe-game-1.svg)
+<img src="/assets/img/tic-tac-toe-game-1.svg"/>
 
-<img src="/assets/img/tic-tac-toe-game-1.svg" />
+>*Figure 1:* Tic-tac-toe. (Image source: [Wikipedia](https://en.wikipedia.org/wiki/Tic-tac-toe#/media/File:Tic-tac-toe-game-1.svg))
+
+
 
 Let's start with a prior on moves:
 
@@ -435,6 +438,8 @@ viz.table(actDist);
 ~~~~
 
 ## Language understanding
+
+<!-- TODO text needs more elaboration or some links to papers or online content -->
 
 A model of pragmatic language interpretation: The speaker chooses a sentence conditioned on the listener inferring the intended state of the world when hearing this sentence; the listener chooses an interpretation conditioned on the speaker selecting the given utterance when intending this meaning.
 
