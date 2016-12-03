@@ -290,9 +290,8 @@ The inference problem is to infer the agent's preference over chocolate. While t
 As with the Procrastination example above, we compare the inferences of two models. The *Optimal Model* assumes the agent solves the POMDP optimally. The *Possibly Reward-myopic Model* includes both the optimal agent and Reward-myopic agents with different values for the bound $$C_g$$. The models know the agent's utility for champagne and his prior about how likely champagne is from `arm1`. The models have a fixed prior on the agent's utility for chocolate. We vary the agent's time horizon between 2 and 10 timesteps and plot posterior expectations for the utility of chocolate. For the Possibly Reward-myopic model, we also plot the expectation for $$C_g$$. 
 
 <!-- TODO fix this codebox -->
+<!-- infer_utility_from_no_exploration -->
 ~~~~
-// infer_utility_from_no_exploration
-
 // helper function to assemble and display inferred values
 ///fold:
 var timeHorizonValues = range(10).slice(2);
