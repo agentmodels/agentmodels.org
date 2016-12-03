@@ -398,7 +398,7 @@ var displayTrajectory = function(trajectory) {
     print('\n Arm: ' + actionsPrizes[2*n] + ' -- Prize: '
           + actionsPrizes[2*n + 1]);
   };
-  return map(printOut, range((actionsPrizes.length)*0.5));
+  return map(printOut, _.range((actionsPrizes.length)*0.5));
 };
 ///
 
@@ -513,7 +513,7 @@ var getRuntime = function(numberOfTrials) {
 };
 
 // Runtime as a function of number of trials
-var numberOfTrialsList = range(15).slice(2);
+var numberOfTrialsList = _.range(15).slice(2);
 var runtimes = map(getRuntime, numberOfTrialsList);
 viz.line(numberOfTrialsList, runtimes);
 

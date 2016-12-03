@@ -144,7 +144,7 @@ $$
 The crucial difference between the curves is that the hyperbola is initially steep and then becomes almost flat, while the exponential continues to be steep. This means that exponential discounting is time consistent and hyperbolic discounting is not. 
 
 ~~~~
-var delays = range(7);
+var delays = _.range(7);
 var expDiscount = function(delay) {
   return Math.pow(0.5, delay); 
 };
