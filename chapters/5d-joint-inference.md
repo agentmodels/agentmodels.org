@@ -294,7 +294,7 @@ As with the Procrastination example above, we compare the inferences of two mode
 
 <!-- TODO fix this codebox -->
 <!-- infer_utility_from_no_exploration -->
-~~~~
+~~~~ 
 // helper function to assemble and display inferred values
 ///fold:
 var timeHorizonValues = range(10).slice(2);

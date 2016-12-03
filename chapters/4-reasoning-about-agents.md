@@ -29,7 +29,7 @@ Agent models are also used as generative models in Machine Learning, under the l
 
 [^inverse]: The relevant papers on applications of IRL: parking cars in reft:abbeel2008apprenticeship, flying helicopters in reft:abbeel2010autonomous, controlling videogame bots in reft:lee2010learning, and table tennis in reft:muelling2014learning.
 
-This chapter provides an array of illustrative examples of learning about agents from their actions. We begin with a concrete example and then provide a general formalization of the inference problem. A virtue of using WebPPL is that doing inference over our existing agent models requires very little extra code. 
+This chapter provides an array of illustrative examples of learning about agents from their actions. We begin with a concrete example and then provide a general formalization of the inference problem. A virtue of using WebPPL is that doing inference over our existing agent models requires very little extra code.
 
 
 ## Learning about an agent from their actions: motivating example
@@ -38,7 +38,7 @@ Consider the MDP version of Bob's Restaurant Choice problem. Bob is choosing bet
 
 ~~~~
 ///fold: restaurant constants, donutSouthTrajectory
-var ___ = ' '; 
+var ___ = ' ';
 var DN = { name: 'Donut N' };
 var DS = { name: 'Donut S' };
 var V = { name: 'Veg' };
@@ -56,7 +56,7 @@ var donutSouthTrajectory = [
 
 var gridFeatures = [
   ['#', '#', '#', '#',  V , '#'],
-  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', '#', ___, ___, ___],
   ['#', '#', DN , ___, '#', ___],
   ['#', '#', '#', ___, '#', ___],
   ['#', '#', '#', ___, ___, ___],
@@ -75,11 +75,11 @@ GridWorld.draw(world, { trajectory: donutSouthTrajectory });
 
 From Bob's actions, we infer that he probably prefers the Donut Store to the other restaurants. An alternative explanation is that Bob cares most about saving time. He might prefer Veg (the Vegetarian Cafe) but his preference is not strong enough to spend extra time getting there.
 
-In this first example of inference, Bob's preference for saving time is held fixed and we infer (given the actions shown above) Bob's preference for the different restaurants. We model Bob using the MDP agent model from [Chapter 3.1](/chapters/3a-mdp.html). We place a uniform prior over three possible utility functions for Bob: one favoring Donut, one favoring Veg and one favoring Noodle. We compute a Bayesian posterior over these utility functions *given* Bob's observed behavior. Since the world is practically deterministic (with softmax parameter $$\alpha$$ set high), we just compare Bob's predicted states under each utility function to the states actually observed. To predict Bob's states for each utility function, we use the function `simulate` from [Chapter 3.1](/chapters/3a-mdp.html). 
+In this first example of inference, Bob's preference for saving time is held fixed and we infer (given the actions shown above) Bob's preference for the different restaurants. We model Bob using the MDP agent model from [Chapter 3.1](/chapters/3a-mdp.html). We place a uniform prior over three possible utility functions for Bob: one favoring Donut, one favoring Veg and one favoring Noodle. We compute a Bayesian posterior over these utility functions *given* Bob's observed behavior. Since the world is practically deterministic (with softmax parameter $$\alpha$$ set high), we just compare Bob's predicted states under each utility function to the states actually observed. To predict Bob's states for each utility function, we use the function `simulate` from [Chapter 3.1](/chapters/3a-mdp.html).
 
 ~~~~
 ///fold: restaurant constants, donutSouthTrajectory
-var ___ = ' '; 
+var ___ = ' ';
 var DN = { name: 'Donut N' };
 var DS = { name: 'Donut S' };
 var V = { name: 'Veg' };
@@ -97,7 +97,7 @@ var donutSouthTrajectory = [
 
 var gridFeatures = [
   ['#', '#', '#', '#',  V , '#'],
-  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', '#', ___, ___, ___],
   ['#', '#', DN , ___, '#', ___],
   ['#', '#', '#', ___, '#', ___],
   ['#', '#', '#', ___, ___, ___],
@@ -126,7 +126,7 @@ var utilityTablePrior = function() {
     'Noodle': 1,
     'timeCost': -0.04
   };
-  return uniformDraw( 
+  return uniformDraw(
     [{ table: update(baseUtilityTable, { 'Donut N': 2, 'Donut S': 2 }),
        favourite: 'donut' },
      { table: update(baseUtilityTable, { Veg: 2 }),
@@ -160,7 +160,7 @@ viz(posterior);
 
 We will now formalize the kind of inference in the previous example. We begin by considering inference over the utilities and softmax noise parameter for an MDP agent. Later on we'll generalize to POMDP agents and to other agents.
 
-Following [Chapter 3.1](/chapters/3a-mdp.html) the MDP agent is defined by a utility function $$U$$ and softmax parameter $$\alpha$$. In order to do inference, we need to know the agent's starting state $$s_0$$ (which might include both their *location* and their *time horizon* $$N$$). The data we condition on is a sequence of state-action pairs: 
+Following [Chapter 3.1](/chapters/3a-mdp.html) the MDP agent is defined by a utility function $$U$$ and softmax parameter $$\alpha$$. In order to do inference, we need to know the agent's starting state $$s_0$$ (which might include both their *location* and their *time horizon* $$N$$). The data we condition on is a sequence of state-action pairs:
 
 $$
 (s_0, a_0), (s_1, a_1), \ldots, (s_n, a_n)
@@ -188,12 +188,12 @@ The term $$P( a_i \vert s_i, U, \alpha)$$ can be rewritten as the softmax choice
 
 The expression for the joint posterior (above) shows that it is straightforward to do inference on a part of an agent's action sequence. For example, if we know an agent had a time horizon $$N=11$$, we can do inference from only the agent's first few actions.
 
-For this example we condition on the agent making a single step from $$[3,1]$$ to $$[2,1]$$ by moving left. For an agent with low noise, this already provides very strong evidence about the agent's preferences -- not much is added by seeing the agent go all the way to Donut South. 
+For this example we condition on the agent making a single step from $$[3,1]$$ to $$[2,1]$$ by moving left. For an agent with low noise, this already provides very strong evidence about the agent's preferences -- not much is added by seeing the agent go all the way to Donut South.
 
+<!-- show_single_step_trajectory -->
 ~~~~
-// show_single_step_trajectory
 ///fold: restaurant constants
-var ___ = ' '; 
+var ___ = ' ';
 var DN = { name: 'Donut N' };
 var DS = { name: 'Donut S' };
 var V = { name: 'Veg' };
@@ -202,7 +202,7 @@ var N = { name: 'Noodle' };
 
 var gridFeatures = [
   ['#', '#', '#', '#',  V , '#'],
-  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', '#', ___, ___, ___],
   ['#', '#', DN , ___, '#', ___],
   ['#', '#', '#', ___, '#', ___],
   ['#', '#', '#', ___, ___, ___],
@@ -218,7 +218,7 @@ var trajectory = [
     loc: [3, 1],
     timeLeft: 11,
     terminateAfterAction: false
-  }, 
+  },
   {
     loc: [2, 1],
     timeLeft: 10,
@@ -229,12 +229,12 @@ var trajectory = [
 GridWorld.draw(world, { trajectory });
 ~~~~
 
-Our approach to inference is slightly different than in the example at the start of this chapter. The approach is a direct translation of the expression for the posterior in Equation (1) above. For each observed state-action pair, we compute the likelihood of the agent (with given $$U$$) choosing that action in the state. In contrast, the simple approach above becomes intractable for long, noisy action sequences -- as it will need to loop over all possible sequences. 
+Our approach to inference is slightly different than in the example at the start of this chapter. The approach is a direct translation of the expression for the posterior in Equation (1) above. For each observed state-action pair, we compute the likelihood of the agent (with given $$U$$) choosing that action in the state. In contrast, the simple approach above becomes intractable for long, noisy action sequences -- as it will need to loop over all possible sequences.
 
+<!-- infer_from_single_step_trajectory -->
 ~~~~
-// infer_from_single_step_trajectory
 ///fold: create restaurant choice MDP
-var ___ = ' '; 
+var ___ = ' ';
 var DN = { name : 'Donut N' };
 var DS = { name : 'Donut S' };
 var V = { name : 'Veg' };
@@ -242,7 +242,7 @@ var N = { name : 'Noodle' };
 
 var gridFeatures = [
   ['#', '#', '#', '#',  V , '#'],
-  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', '#', ___, ___, ___],
   ['#', '#', DN , ___, '#', ___],
   ['#', '#', '#', ___, '#', ___],
   ['#', '#', '#', ___, ___, ___],
@@ -271,7 +271,7 @@ var utilityTablePrior = function(){
     'Noodle': 1,
     'timeCost': -0.04
   };
-  return uniformDraw( 
+  return uniformDraw(
     [{ table: update(baseUtilityTable, { 'Donut N': 2, 'Donut S': 2 }),
        favourite: 'donut' },
      { table: update(baseUtilityTable, { 'Veg': 2 }),
@@ -295,14 +295,14 @@ var posterior = Infer({ model() {
 
   var agent  = makeMDPAgent({ utility, alpha: 2 }, world);
   var act = agent.act;
-  
+
   // For each observed state-action pair, factor on likelihood of action
   map(
     function(stateAction){
       var state = stateAction[0];
       var action = stateAction[1];
       observe(act(state), action);
-    }, 
+    },
     observedTrajectory);
 
   return { favourite };
@@ -315,7 +315,7 @@ Note that utility functions where Veg or Noodle are most preferred have almost t
 
 Actually, this is not quite right. If we wait long enough, the agent's softmax noise would eventually reveal information about which was preferred. However, we still won't be able to *efficiently* learn the agent's preferences by repeatedly watching them choose from a random start point. If there is no softmax noise, then we can make the stronger claim that even in the limit of arbitrarily many repeated i.i.d. observations, the agent's preferences are not *identified* by draws from this space of scenarios.
 
-Unidentifiability is a frequent problem when inferring an agent's beliefs or utilities from realistic datasets. First, agents with low noise reliably avoid inferior states (as in the present example) and so their actions provide little information about the relative utilities among the inferior states. Second, using richer agent models means there are more possible explanations of the same behavior. For example, agents with high softmax noise or with false beliefs might go to a restaurant even if they don't prefer it. One general approach to the problem of unidentifiability in IRL is **active learning**. Instead of passively observing the agent's actions, you select a sequence of environments that will be maximally informative about the agent's preferences. For recent work covering both the nature of unidentifiability in IRL as well as the active learning approach, see reft:amin2016towards. 
+Unidentifiability is a frequent problem when inferring an agent's beliefs or utilities from realistic datasets. First, agents with low noise reliably avoid inferior states (as in the present example) and so their actions provide little information about the relative utilities among the inferior states. Second, using richer agent models means there are more possible explanations of the same behavior. For example, agents with high softmax noise or with false beliefs might go to a restaurant even if they don't prefer it. One general approach to the problem of unidentifiability in IRL is **active learning**. Instead of passively observing the agent's actions, you select a sequence of environments that will be maximally informative about the agent's preferences. For recent work covering both the nature of unidentifiability in IRL as well as the active learning approach, see reft:amin2016towards.
 
 ### Example: Inferring The Cost of Time and Softmax Noise
 
@@ -324,7 +324,7 @@ The previous examples assumed that the agent's `timeCost` (the negative utility 
 ~~~~
 // infer_utilities_timeCost_softmax_noise
 ///fold: create restaurant choice MDP, donutSouthTrajectory
-var ___ = ' '; 
+var ___ = ' ';
 var DN = { name : 'Donut N' };
 var DS = { name : 'Donut S' };
 var V = { name : 'Veg' };
@@ -332,7 +332,7 @@ var N = { name : 'Noodle' };
 
 var gridFeatures = [
   ['#', '#', '#', '#',  V , '#'],
-  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', '#', ___, ___, ___],
   ['#', '#', DN , ___, '#', ___],
   ['#', '#', '#', ___, '#', ___],
   ['#', '#', '#', ___, ___, ___],
@@ -390,7 +390,7 @@ var utilityTablePrior = function() {
   };
 };
 
-var alphaPrior = function(){ 
+var alphaPrior = function(){
   return uniformDraw([.1, 1, 10, 100]);
 };
 
@@ -414,13 +414,13 @@ var posterior = function(observedTrajectory){
         var state = stateAction[0];
         var action = stateAction[1]
         observe(act(state), action);
-      }, 
+      },
       observedTrajectory);
 
     // Compute whether Donut is preferred to Veg and Noodle
     var donut = utilityTable['Donut N'];
     var donutFavorite = (
-      donut > utilityTable.Veg && 
+      donut > utilityTable.Veg &&
       donut > utilityTable.Noodle);
 
     return {
@@ -448,10 +448,10 @@ The posterior shows that taking a step towards Donut South can now be explained 
 
 As we noted previously, it is simple to extend our approach to inference to conditioning on multiple sequences of actions. Consider the two sequences below:
 
+<!-- display_multiple_trajectories -->
 ~~~~
-// display_multiple_trajectories
 ///fold: make restaurant choice MDP, naiveTrajectory, donutSouthTrajectory
-var ___ = ' '; 
+var ___ = ' ';
 var DN = { name : 'Donut N' };
 var DS = { name : 'Donut S' };
 var V = { name : 'Veg' };
@@ -498,19 +498,18 @@ var donutSouthTrajectory = [
 
 var world = mdp.world;;
 
-map(function(trajectory) { GridWorld.draw(world, { trajectory }); }, 
+map(function(trajectory) { GridWorld.draw(world, { trajectory }); },
     [naiveTrajectory, donutSouthTrajectory]);
 ~~~~
 
-To perform inference, we just condition on both sequences. (We use concatenation but we could have taken the union of all state-action pairs). 
+To perform inference, we just condition on both sequences. (We use concatenation but we could have taken the union of all state-action pairs).
 
+<!-- infer_from_multiple_trajectories -->
 ~~~~
-// infer_from_multiple_trajectories
-
 // World and agent are exactly as above
 ///fold:
 
-var ___ = ' '; 
+var ___ = ' ';
 var DN = { name : 'Donut N' };
 var DS = { name : 'Donut S' };
 var V = { name : 'Veg' };
@@ -518,7 +517,7 @@ var N = { name : 'Noodle' };
 
 var gridFeatures = [
   ['#', '#', '#', '#',  V , '#'],
-  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', '#', ___, ___, ___],
   ['#', '#', DN , ___, '#', ___],
   ['#', '#', '#', ___, '#', ___],
   ['#', '#', '#', ___, ___, ___],
@@ -574,7 +573,7 @@ var utilityTablePrior = function() {
   };
 };
 
-var alphaPrior = function(){ 
+var alphaPrior = function(){
   return uniformDraw([.1, 1, 10, 100]);
 };
 
@@ -598,13 +597,13 @@ var posterior = function(observedTrajectory){
         var state = stateAction[0];
         var action = stateAction[1]
         observe(act(state), action);
-      }, 
+      },
       observedTrajectory);
 
     // Compute whether Donut is preferred to Veg and Noodle
     var donut = utilityTable['Donut N'];
     var donutFavorite = (
-      donut > utilityTable.Veg && 
+      donut > utilityTable.Veg &&
       donut > utilityTable.Noodle);
 
     return {
@@ -639,9 +638,9 @@ $$
 P(a_i \vert a_j, s_i, U,\alpha) = P(a_j \vert s_i, U,\alpha)
 $$
 
-In a POMDP, actions are only rendered conditionally independent if we also condition on the agent's *belief*. So Equation (1) can only be extended to the case where we know the agent's belief at each timestep. This will be realistic in some applications and not others. It depends on whether the agent's *observations* are part of the data that is conditioned on. If so, the agent's belief can be computed at each timestep (assuming the agent's initial belief is known). If not, we have to marginalize over the possible observations, making for a more complex inference computation. 
+In a POMDP, actions are only rendered conditionally independent if we also condition on the agent's *belief*. So Equation (1) can only be extended to the case where we know the agent's belief at each timestep. This will be realistic in some applications and not others. It depends on whether the agent's *observations* are part of the data that is conditioned on. If so, the agent's belief can be computed at each timestep (assuming the agent's initial belief is known). If not, we have to marginalize over the possible observations, making for a more complex inference computation.
 
-Here is the extension of Equation (1) to the POMDP case, where we assume access to the agent's observations. <a id="pomdpDefine"></a>Our goal is to compute a posterior on the parameters of the agent. These include $$U$$ and $$\alpha$$ as before but also the agent's initial belief $$b_0$$. 
+Here is the extension of Equation (1) to the POMDP case, where we assume access to the agent's observations. <a id="pomdpDefine"></a>Our goal is to compute a posterior on the parameters of the agent. These include $$U$$ and $$\alpha$$ as before but also the agent's initial belief $$b_0$$.
 
 We observe a sequence of state-observation-action triples:
 
@@ -662,8 +661,8 @@ b_i = b_{i-1} \vert s_i, o_i, a_{i-1}
 $$
 
 $$
-b_i(s_i) \propto 
-O(s_i,a_{i-1},o_i) 
+b_i(s_i) \propto
+O(s_i,a_{i-1},o_i)
 \sum_{s_i \in S} { T(s_{i-1}, a_{i-1}, s_i) b_{i-1}(s_{i-1})}
 $$
 
@@ -680,7 +679,7 @@ To learn the preferences and beliefs of a POMDP agent we translate Equation (2) 
 
 In the Bandit problems there is an unknown mapping from arms to non-numeric prizes (or distributions on such prizes) and the agent has preferences over these prizes. The agent tries out arms to discover the mapping and exploits the most promising arms. In the *inverse* problem, we get to observe the agent's actions. Unlike the agent, we already know the mapping from arms to prizes. However, we don't know the agent's preferences or the agent's prior about the mapping[^bandit].
 
-[^bandit]: If we did not know the mapping from arms to prizes, the inference problem would not change fundamentally. We get information about this mapping by observing the prizes the agent receives when pulling different arms. 
+[^bandit]: If we did not know the mapping from arms to prizes, the inference problem would not change fundamentally. We get information about this mapping by observing the prizes the agent receives when pulling different arms.
 
 Often the agent's choices admit of multiple explanations. Recall the deterministic example in the previous chapter when (according to the agent's belief) `arm0` had the prize "chocolate" and `arm1` either had either "champagne" or "nothing" (see also Figure 2 below). Suppose we observe the agent chosing `arm0` on the first of five trials. If we don't know the agent's utilities or beliefs, then this choice could be explained by either:
 
@@ -722,31 +721,31 @@ var inferBeliefsAndPreferences = function(baseAgentParams, priorPrizeToUtility,
 
     // 4. Condition on observations
     var factorSequence = function(currentBelief, previousAction, timeIndex){
-      if (timeIndex < observedSequence.length) { 
+      if (timeIndex < observedSequence.length) {
         var state = observedSequence[timeIndex].state;
         var observation = observedSequence[timeIndex].observation;
         var nextBelief = agentUpdateBelief(currentBelief, observation, previousAction);
         var nextActionDist = agentAct(nextBelief);
-        var observedAction = observedSequence[timeIndex].action;        
-        factor(nextActionDist.score(observedAction));        
+        var observedAction = observedSequence[timeIndex].action;
+        factor(nextActionDist.score(observedAction));
         factorSequence(nextBelief, observedAction, timeIndex + 1);
       }
     };
     factorSequence(initialBelief,'noAction', 0);
 
     return {
-      prizeToUtility, 
+      prizeToUtility,
       priorBelief: initialBelief
     };
   }});
 };
 ~~~~
 
-We start with a very simple example. The agent is observed pulling `arm1` five times. The agent's prior is known and assigns equal weight to `arm1` yielding "champagne" and to it yielding "nothing". The true prize for `arm1` is "champagne" (see Figure 1). 
+We start with a very simple example. The agent is observed pulling `arm1` five times. The agent's prior is known and assigns equal weight to `arm1` yielding "champagne" and to it yielding "nothing". The true prize for `arm1` is "champagne" (see Figure 1).
 
 <img src="/assets/img/4-irl-bandit-1.png" alt="diagram" style="width: 500px;"/>
 
-> **Figure 1:** Bandit problem where agent's prior is known. (The true state has the bold outline). 
+> **Figure 1:** Bandit problem where agent's prior is known. (The true state has the bold outline).
 
 From the observation, it's obvious that the agent prefers champagne. This is what we infer below:
 
@@ -773,20 +772,20 @@ var inferBeliefsAndPreferences = function(baseAgentParams, priorPrizeToUtility,
 
     // 4. Condition on observations
     var factorSequence = function(currentBelief, previousAction, timeIndex){
-      if (timeIndex < observedSequence.length) { 
+      if (timeIndex < observedSequence.length) {
         var state = observedSequence[timeIndex].state;
         var observation = observedSequence[timeIndex].observation;
         var nextBelief = agentUpdateBelief(currentBelief, observation, previousAction);
         var nextActionDist = agentAct(nextBelief);
-        var observedAction = observedSequence[timeIndex].action;        
-        factor(nextActionDist.score(observedAction));        
+        var observedAction = observedSequence[timeIndex].action;
+        factor(nextActionDist.score(observedAction));
         factorSequence(nextBelief, observedAction, timeIndex + 1);
       }
     };
     factorSequence(initialBelief,'noAction', 0);
 
     return {
-      prizeToUtility, 
+      prizeToUtility,
       priorBelief: initialBelief
     };
   }});
@@ -804,18 +803,13 @@ var bandit = makeBanditPOMDP({
 });
 
 // simpleAgent always pulls arm 1
-var simpleAgent_ = {
+var simpleAgent = makePOMDPAgent({
   act: function(belief){
     return Infer({ model() { return 1; }});
   },
   updateBelief: function(belief){ return belief; },
   params: { priorBelief: Delta({ v: bandit.startState }) }
-};
-
-// necessary for proper functioning of simulatePOMDPAgent
-var simpleAgent = update(simpleAgent_, {
-  POMDPFunctions: getPOMDPFunctions(simpleAgent_.params, bandit.world)
-});
+}, bandit.world);
 
 var observedSequence = simulatePOMDP(bandit.startState, bandit.world, simpleAgent,
                                     'stateObservationAction');
@@ -842,7 +836,7 @@ var likesChocolate = {
   champagne: 3,
   chocolate: 5
 };
-var priorPrizeToUtility = Categorical({ 
+var priorPrizeToUtility = Categorical({
   vs: [likesChampagne, likesChocolate],
   ps: [0.5, 0.5]
 });
@@ -861,7 +855,7 @@ In the codebox above, the agent's preferences are identified by the observations
 
 <img src="/assets/img/4-irl-bandit-2.png" alt="diagram" style="width: 600px;"/>
 
-> **Figure 2:** Bandit where agent's prior is unknown. The two large boxes depict the prior on the agent's initial belief. Each possibility for the agent's initial belief has probability 0.5. 
+> **Figure 2:** Bandit where agent's prior is unknown. The two large boxes depict the prior on the agent's initial belief. Each possibility for the agent's initial belief has probability 0.5.
 
 We observe the agent's first action, which is pulling `arm0`. Our inference approach is the same as above:
 
@@ -888,20 +882,20 @@ var inferBeliefsAndPreferences = function(baseAgentParams, priorPrizeToUtility,
 
     // 4. Condition on observations
     var factorSequence = function(currentBelief, previousAction, timeIndex){
-      if (timeIndex < observedSequence.length) { 
+      if (timeIndex < observedSequence.length) {
         var state = observedSequence[timeIndex].state;
         var observation = observedSequence[timeIndex].observation;
         var nextBelief = agentUpdateBelief(currentBelief, observation, previousAction);
         var nextActionDist = agentAct(nextBelief);
-        var observedAction = observedSequence[timeIndex].action;        
-        factor(nextActionDist.score(observedAction));        
+        var observedAction = observedSequence[timeIndex].action;
+        factor(nextActionDist.score(observedAction));
         factorSequence(nextBelief, observedAction, timeIndex + 1);
       }
     };
     factorSequence(initialBelief,'noAction', 0);
 
     return {
-      prizeToUtility, 
+      prizeToUtility,
       priorBelief: initialBelief
     };
   }});
@@ -917,19 +911,14 @@ var bandit = makeBanditPOMDP({
   numberOfTrials: 5
 });
 
-var simpleAgent_ = {
+var simpleAgent = makePOMDPAgent({
   // simpleAgent always pulls arm 0
   act: function(belief){
     return Infer({ model() { return 0; }});
   },
   updateBelief: function(belief){ return belief; },
   params: { priorBelief: Delta({ v: bandit.startState }) }
-};
-
-var simpleAgent = update(simpleAgent_, {
-  POMDPFunctions: getPOMDPFunctions(simpleAgent_.params,
-                                    bandit.world)
-});
+}, bandit.world);
 
 var observedSequence = simulatePOMDP(bandit.startState, bandit.world, simpleAgent,
                                      'stateObservationAction');
@@ -946,7 +935,7 @@ var noChampagnePrior = Infer({ model() {
   return makeBanditStartState(5, armToPrizeDist);
 }});
 
-var priorInitialBelief = Categorical({ 
+var priorInitialBelief = Categorical({
   vs: [informedPrior, noChampagnePrior],
   ps: [0.5, 0.5]
 });
@@ -963,9 +952,9 @@ var likesChocolate = {
   chocolate: 5
 };
 
-var priorPrizeToUtility = Categorical({ 
-  ps: [0.5, 0.5], 
-  vs: [likesChampagne, likesChocolate] 
+var priorPrizeToUtility = Categorical({
+  ps: [0.5, 0.5],
+  vs: [likesChampagne, likesChocolate]
 });
 
 var baseParams = {alpha: 1000};
@@ -987,7 +976,7 @@ viz.table(utilityBeliefPosterior);
 Exploration is more valuable if there are more Bandit trials in total. If we observe the agent choosing the arm they already know about (`arm0`) then we get stronger inferences about their preference for chocolate over champagne as the total trials increases.
 
 ~~~~
-// TODO simplify the code here or merge with previous example. 
+// TODO simplify the code here or merge with previous example.
 ///fold:
 var inferBeliefsAndPreferences = function(baseAgentParams, priorPrizeToUtility,
                                            priorInitialBelief, bandit,
@@ -1010,20 +999,20 @@ var inferBeliefsAndPreferences = function(baseAgentParams, priorPrizeToUtility,
 
     // 4. Condition on observations
     var factorSequence = function(currentBelief, previousAction, timeIndex){
-      if (timeIndex < observedSequence.length) { 
+      if (timeIndex < observedSequence.length) {
         var state = observedSequence[timeIndex].state;
         var observation = observedSequence[timeIndex].observation;
         var nextBelief = agentUpdateBelief(currentBelief, observation, previousAction);
         var nextActionDist = agentAct(nextBelief);
-        var observedAction = observedSequence[timeIndex].action;        
-        factor(nextActionDist.score(observedAction));        
+        var observedAction = observedSequence[timeIndex].action;
+        factor(nextActionDist.score(observedAction));
         factorSequence(nextBelief, observedAction, timeIndex + 1);
       }
     };
     factorSequence(initialBelief,'noAction', 0);
 
     return {
-      prizeToUtility, 
+      prizeToUtility,
       priorBelief: initialBelief
     };
   }});
@@ -1041,19 +1030,14 @@ var probLikesChocolate = function(numberOfTrials){
     numberOfTrials
   });
 
-  var simpleAgent_ = {
+  var simpleAgent = makePOMDPAgent({
     // simpleAgent always pulls arm 0
     act: function(belief){
       return Infer({ model() { return 0; }});
     },
     updateBelief: function(belief){ return belief; },
     params: { priorBelief: Delta({ v: bandit.startState }) }
-  };
-
-  var simpleAgent = update(simpleAgent_, {
-    POMDPFunctions: getPOMDPFunctions(simpleAgent_.params,
-                                      bandit.world)
-  });
+  }, bandit.world);
 
   var observedSequence = simulatePOMDP(bandit.startState, bandit.world, simpleAgent,
                                        'stateObservationAction');
@@ -1062,15 +1046,15 @@ var probLikesChocolate = function(numberOfTrials){
 
   var noChampagnePrior = Infer({ model() {
     var armToPrizeDist = (
-      flip(0.2) ? 
-      trueArmToPrizeDist : 
+      flip(0.2) ?
+      trueArmToPrizeDist :
       update(trueArmToPrizeDist, { 1: Delta({ v: 'nothing' }) }));
     return makeBanditStartState(numberOfTrials, armToPrizeDist);
   }});
   var informedPrior = Delta({ v: bandit.startState });
-  var priorInitialBelief = Categorical({ 
+  var priorInitialBelief = Categorical({
     vs: [noChampagnePrior, informedPrior],
-    ps: [0.5, 0.5], 
+    ps: [0.5, 0.5],
   });
 
   var likesChampagne = {
@@ -1084,9 +1068,9 @@ var probLikesChocolate = function(numberOfTrials){
     chocolate: 5
   };
 
-  var priorPrizeToUtility = Categorical({ 
-    vs: [likesChampagne, likesChocolate],    
-    ps: [0.5, 0.5], 
+  var priorPrizeToUtility = Categorical({
+    vs: [likesChampagne, likesChocolate],
+    ps: [0.5, 0.5],
   });
 
   var posterior = inferBeliefsAndPreferences(baseParams, priorPrizeToUtility,
@@ -1115,7 +1099,7 @@ print('Probability of liking chocolate for lifetimes ' + lifetimes + '\n'
 viz.bar(lifetimes, probsLikesChoc);
 ~~~~
 
-  
+
 This example of inferring an agent's utilities from a Bandit problem may seem contrived. However, there are practical problems that have a similar structure. Consider a domain where $$k$$ **sources** (arms) produce a stream of content, with each piece of content having a **category** (prizes). At each timestep, a human is observed choosing a source. The human has uncertainty about the stochastic mapping from sources to categories. Our goal is to infer the human's beliefs about the sources and their preferences over categories. The sources could be blogs or feeds that tag posts using the same set of tags. Alternatively, the sources could be channels for TV shows or songs. In this kind of application, the same issue of identifiability arises. An agent may choose a source either because they know it produces content in the best categories or because they have a strong prior belief that it does.
 
 In the next [chapter](/chapters/5-biases-intro.html), we start looking at agents with cognitive bounds and biases.
