@@ -458,20 +458,21 @@ viz.line(runtimeValues, { groupBy: 'agentType' });
 
 ### Myopic Updating for the Restaurant Search Problem
 
-The limitations of Myopic Updating are straightforward. The Update-myopic agent assumes they will not update beliefs after the bound at $$C_m$$. As a result, they won't make plans that involve learning something after the bound.
+The Update-myopic agent assumes they will not update beliefs after the bound $$C_m$$ and so does not make plans that depend on learning something after the bound.
 
 We illustrate this limitation with a new problem:
 
->**Restaurant Search:** You are looking for a good restaurant in a foreign city without the aid of a smartphone. You know the quality of some restaurants already and you are uncertain about the others. If you walk right up to a restaurant, you can tell its quality by seeing how busy it is inside. You care about the quality of the restaurant (a scalar) and about minimizing the time spent walking.
+>**Restaurant Search:** You are looking for a good restaurant in a foreign city without the aid of a smartphone. You know the quality of some restaurants already and you are uncertain about the others. If you walk right up to a restaurant, you can tell its quality by seeing how busy it is inside. You care about the quality of the restaurant and about minimizing the time spent walking.
 
 How does the Update-myopic agent fail? Suppose that a few blocks from agent is a great restaurant next to a bad restaurant and the agent doesn't know which is which. If the agent checked inside each restaurant, they would pick out the great one. But if they are Update-myopic, they assume they'd be unable to tell between them.
 
 The codebox below depicts a toy version of this problem in Gridworld. The restaurants vary in quality between 0 and 5. The agent knows the quality of Restaurant A and is unsure about the other restaurants. One of Restaurants D and E is great and the other is bad. The Optimal POMDP agent will go right up to each restaurant and find out which is great. The Update-myopic agent, with low enough bound $$C_m$$, will either go to the known good restaurant A or investigate one of restaurants that is closer than D and E.
 
-<!--TODO: Extend the x-axis to make D and E further away. Consider how to make the myopic agent faster in this context. (Would also be nice to illustrate observations or the agent's belief state somehow).
+<!--TODO: Toy version is lame (too small). Why is the myopic version so slow?
 
 TODO: gridworld draw should take pomdp trajectories. they should also take POMDP as "world". 
 -->
+
 ~~~~
 // optimal_agent_restaurant_search
 
