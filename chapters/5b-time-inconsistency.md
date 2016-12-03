@@ -138,10 +138,35 @@ var makeAgent = function(params, world) {
 
   return { params, expectedUtility, act };
 };
+
+var ___ = ' '; 
+var DN = { name : 'Donut N' };
+var DS = { name : 'Donut S' };
+var V = { name : 'Veg' };
+var N = { name : 'Noodle' };
+
+var gridFeatures = [
+  ['#', '#', '#', '#',  V , '#'],
+  ['#', '#', '#', ___, ___, ___],
+  ['#', '#', DN , ___, '#', ___],
+  ['#', '#', '#', ___, '#', ___],
+  ['#', '#', '#', ___, ___, ___],
+  ['#', '#', '#', ___, '#',  N ],
+  [___, ___, ___, ___, '#', '#'],
+  [DS , '#', '#', ___, '#', '#']
+];
+
+var mdp = makeGridWorldMDP({
+  gridFeatures,
+  noReverse: true,
+  maxTimeAtRestaurant: 2,
+  startingLocation: [3, 1],
+  totalTime: 11
+});
 ///
 
-var world = makeRestaurantChoiceMDP();
-var start = restaurantChoiceStart;
+var world = mdp.world;
+var start = mdp.startState;
 
 var restaurantUtility = makeRestaurantUtilityFunction(world, {
   'Donut N': [10, -10],  // [immediate reward, delayed reward]
@@ -152,7 +177,7 @@ var restaurantUtility = makeRestaurantUtilityFunction(world, {
 });
 
 var runAndGraph = function(agent) { 
-  var trajectory = simulateMDP(start, world, agent);
+  var trajectory = simulateMDP(mdp.startState, world, agent);
   var plans = plannedTrajectories(trajectory, world, agent);
   GridWorld.draw(world, {
     trajectory, 
@@ -221,8 +246,32 @@ var makeAgent = function(params, world) {
   return { params, expectedUtility, act };
 };
 
-var world = makeRestaurantChoiceMDP();
-var start = restaurantChoiceStart;
+var ___ = ' '; 
+var DN = { name : 'Donut N' };
+var DS = { name : 'Donut S' };
+var V = { name : 'Veg' };
+var N = { name : 'Noodle' };
+
+var gridFeatures = [
+  ['#', '#', '#', '#',  V , '#'],
+  ['#', '#', '#', ___, ___, ___],
+  ['#', '#', DN , ___, '#', ___],
+  ['#', '#', '#', ___, '#', ___],
+  ['#', '#', '#', ___, ___, ___],
+  ['#', '#', '#', ___, '#',  N ],
+  [___, ___, ___, ___, '#', '#'],
+  [DS , '#', '#', ___, '#', '#']
+];
+
+var mdp = makeGridWorldMDP({
+  gridFeatures,
+  noReverse: true,
+  maxTimeAtRestaurant: 2,
+  startingLocation: [3, 1],
+  totalTime: 11
+});
+
+var world = mdp.world;
 
 var restaurantUtility = makeRestaurantUtilityFunction(world, {
   'Donut N': [10, -10],  // [immediate reward, delayed reward]
@@ -233,7 +282,7 @@ var restaurantUtility = makeRestaurantUtilityFunction(world, {
 });
 
 var runAndGraph = function(agent) { 
-  var trajectory = simulateMDP(start, world, agent);
+  var trajectory = simulateMDP(mdp.startState, world, agent);
   var plans = plannedTrajectories(trajectory, world, agent);
   GridWorld.draw(world, {
     trajectory, 

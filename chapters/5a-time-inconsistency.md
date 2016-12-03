@@ -206,17 +206,65 @@ The only difference from previous versions of Restaurant Choice is that restaura
 
 ~~~~
 // draw_choice
-var world = makeRestaurantChoiceMDP();
-var startState = restaurantChoiceStart;
-print('starting state is: ' + JSON.stringify(startState) );
-GridWorld.draw(world, { trajectory: [startState] });
+///fold: restaurant choice MDP
+var ___ = ' '; 
+var DN = { name : 'Donut N' };
+var DS = { name : 'Donut S' };
+var V = { name : 'Veg' };
+var N = { name : 'Noodle' };
+
+var gridFeatures = [
+  ['#', '#', '#', '#',  V , '#'],
+  ['#', '#', '#', ___, ___, ___],
+  ['#', '#', DN , ___, '#', ___],
+  ['#', '#', '#', ___, '#', ___],
+  ['#', '#', '#', ___, ___, ___],
+  ['#', '#', '#', ___, '#',  N ],
+  [___, ___, ___, ___, '#', '#'],
+  [DS , '#', '#', ___, '#', '#']
+];
+
+var mdp = makeGridWorldMDP({
+  gridFeatures,
+  noReverse: true,
+  maxTimeAtRestaurant: 2,
+  startingLocation: [3, 1],
+  totalTime: 11
+});
+///
+GridWorld.draw(mdp.world, { trajectory: [mdp.startState] });
 ~~~~
 
 The next two codeboxes show the behavior of two hyperbolic discounters. Each agent has the same preferences and discount function. They differ only in that the first is Naive and the second is Sophisticated.
 
 ~~~~
 // draw_naive
-///fold:
+///fold: restaurant choice MDP, naiveTrajectory
+var ___ = ' '; 
+var DN = { name : 'Donut N' };
+var DS = { name : 'Donut S' };
+var V = { name : 'Veg' };
+var N = { name : 'Noodle' };
+
+var gridFeatures = [
+  ['#', '#', '#', '#',  V , '#'],
+  ['#', '#', '#', ___, ___, ___],
+  ['#', '#', DN , ___, '#', ___],
+  ['#', '#', '#', ___, '#', ___],
+  ['#', '#', '#', ___, ___, ___],
+  ['#', '#', '#', ___, '#',  N ],
+  [___, ___, ___, ___, '#', '#'],
+  [DS , '#', '#', ___, '#', '#']
+];
+
+var mdp = makeGridWorldMDP({
+  gridFeatures,
+  noReverse: true,
+  maxTimeAtRestaurant: 2,
+  startingLocation: [3, 1],
+  totalTime: 11
+});
+
 var naiveTrajectory = [
   [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"u"],
   [{"loc":[3,2],"terminateAfterAction":false,"timeLeft":10,"previousLoc":[3,1]},"u"],
@@ -227,15 +275,37 @@ var naiveTrajectory = [
   [{"loc":[2,5],"terminateAfterAction":true,"timeLeft":6,"previousLoc":[2,5],"timeAtRestaurant":1},"l"]
 ];
 ///
-var world = makeRestaurantChoiceMDP();
-print('Observations for Naive agent: \n' 
-       + JSON.stringify(naiveTrajectory) + ' \n');
-GridWorld.draw(world, { trajectory: naiveTrajectory });
+GridWorld.draw(mdp.world, { trajectory: naiveTrajectory });
 ~~~~
 
 ~~~~
 // draw_sophisticated
-///fold:
+///fold: restaurant choice MDP, sophisticatedTrajectory
+var ___ = ' '; 
+var DN = { name : 'Donut N' };
+var DS = { name : 'Donut S' };
+var V = { name : 'Veg' };
+var N = { name : 'Noodle' };
+
+var gridFeatures = [
+  ['#', '#', '#', '#',  V , '#'],
+  ['#', '#', '#', ___, ___, ___],
+  ['#', '#', DN , ___, '#', ___],
+  ['#', '#', '#', ___, '#', ___],
+  ['#', '#', '#', ___, ___, ___],
+  ['#', '#', '#', ___, '#',  N ],
+  [___, ___, ___, ___, '#', '#'],
+  [DS , '#', '#', ___, '#', '#']
+];
+
+var mdp = makeGridWorldMDP({
+  gridFeatures,
+  noReverse: true,
+  maxTimeAtRestaurant: 2,
+  startingLocation: [3, 1],
+  totalTime: 11
+});
+
 var sophisticatedTrajectory = [
   [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"u"],
   [{"loc":[3,2],"terminateAfterAction":false,"timeLeft":10,"previousLoc":[3,1]},"u"],
@@ -250,10 +320,7 @@ var sophisticatedTrajectory = [
   [{"loc":[4,7],"terminateAfterAction":true,"timeLeft":2,"previousLoc":[4,7],"timeAtRestaurant":1},"l"]
 ];
 ///
-var world = makeRestaurantChoiceMDP();
-print('Observations for Sophisticated agent: \n' 
-       + JSON.stringify(sophisticatedTrajectory) + ' \n');
-GridWorld.draw(world, { trajectory: sophisticatedTrajectory });
+GridWorld.draw(mdp.world, { trajectory: sophisticatedTrajectory });
 ~~~~
 
 >**Exercise:** (Try this exercise *before* reading further). Your goal is to do preference inference from the observed actions in the codeboxes above (using only a pen and paper). The discount function is the hyperbola $$D=1/(1+kt)$$, where $$t$$ is the time from the present, $$D$$ is the discount factor (to be multiplied by the utility) and $$k$$ is a positive constant. Find a single setting for the utilities and discount function that produce the behavior in both the codeboxes above. This includes utilities for the restaurants (both *immediate* and *delayed*) and for the `timeCost` (the negative utility for each additional step walked), as well as the discount constant $$k$$. Assume there is no softmax noise. 
