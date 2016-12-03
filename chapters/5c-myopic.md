@@ -173,17 +173,17 @@ print('Arm2 is best arm and has expected utility 1.\n' +
 
 The Reward-myopic agent ignores rewards that occur after its myopic cutoff $$C_g$$. By contrast, an "Update-myopic agent", takes into account all future rewards but ignores the value of belief updates that occur after a cutoff. Concretely, the agent at time $$t=0$$ assumes they can only *explore* (i.e. update beliefs from observations) up to some cutoff point $$C_m$$ steps into the future, after which they just exploit without updating beliefs. In reality, the agent continues to update after time $$t=C_m$$. The Update-myopic agent, like the Naive hyperbolic discounter, has an incorrect model of their future self.
 
-Myopic updating is optimal for certain special cases of bandits and has good performance on bandits in general refp:frazier2008knowledge. It also provides a good fit to human performance in Bernoulli Bandit problems refp:zhang2013forgetful. In what follows, we describe Myopic Updating in more detail, explain how to incorporate it into out POMDP agent model, and then exhibit its performance on Bandits.
+Myopic updating is optimal for certain special cases of bandits and has good performance on bandits in general refp:frazier2008knowledge. It also provides a good fit to human performance in Bernoulli bandits refp:zhang2013forgetful.
 
 ### Myopic Updating: applications and limitations
 
-As noted above, Myopic Updating has been studied in Machine Learning refp:gonzalez2015glasses and Operations Research refp:ryzhov2012knowledge. In most cases, the cutoff point $$C_m$$ after which the agent assumes himself to exploit is set to $$C_m=1$$. This results in a scalable, analytically tractable optimization problem: pull the arm that maximizes the expected value of future exploitation given you pulled that arm. This "future exploitation" means that you pick the arm that is best in expectation for the rest of time.
+Myopic Updating has been studied in Machine Learning refp:gonzalez2015glasses and Operations Research refp:ryzhov2012knowledge. In most cases, the cutoff point $$C_m$$ after which the agent assumes himself to exploit is set to $$C_m=1$$. This results in a scalable, analytically tractable optimization problem: pull the arm that maximizes the expected value of future exploitation given you pulled that arm. This "future exploitation" means that you pick the arm that is best in expectation for the rest of time.
 
-We've presented Bandit problems with finitely many uncorrelated arms. Myopic Updating also works for generalized Bandit Problems: e.g. when rewards are correlated or continuous and in "Bayesian Optimization" where instead of a fixed number of arms the goal is to optimize a high-dimensional real-valued function. 
+We've presented Bandit problems with a finite number of uncorrelated arms. Myopic Updating also works for generalized Bandit Problems: e.g. when rewards are correlated or continuous and in the setting of "Bayesian Optimization" where instead of a fixed number of arms the goal is to optimize a high-dimensional real-valued function. 
 
 Myopic Updating does not work well for POMDPs in general. Suppose you are looking for a good restaurant in a foreign city. A good strategy is to walk to a busy street and then find the busiest restaurant. If reaching the busy street takes longer than the myopic cutoff $$C_m$$, then an Update-myopic agent won't see value in this plan. We present a concrete example of this problem below ("Restaurant Search"). This example highlights a way in which Bandit problems are an especially simple POMDP. In a Bandit problem, every aspect of the unknown latent state can be queried at any timestep (by pulling the appropriate arm). So even the Myopic Agent with $$C_m=1$$ is sensitive to the information value of every possible observation that the POMDP can yield[^selfmodel].
 
-[^selfmodel]: The Update-myopic agent incorrectly models his future self, by assuming it ceases to update after cutoff point $$C_m$$. This incorrect "self-modeling" is also a property of model-free RL agents. For example, a Q-learner's estimation of expected utilities for states ignores the fact that the Q-learner will randomly explore with some probability. SARSA, on the other hand, does take its random exploration into account when computing this estimate. But it doesn't model the way in which its future exploration behavior will make certain actions useful in the present (as in the example of finding a restaurant in a foreign city).
+[^selfmodel]: The Update-myopic agent incorrectly models his future self, by assuming he ceases to update after cutoff point $$C_m$$. This incorrect "self-modeling" is also a property of model-free RL agents. For example, a Q-learner's estimation of expected utilities for states ignores the fact that the Q-learner will randomly explore with some probability. SARSA, on the other hand, does take its random exploration into account when computing this estimate. But it doesn't model the way in which its future exploration behavior will make certain actions useful in the present (as in the example of finding a restaurant in a foreign city).
 
 ### Myopic Updating: formal model
 Myopic Updating only makes sense in the context of an agent that is capable of learning from observations (i.e. in the POMDP rather than MDP setting). So our goal is to generalize our agent model for solving POMDPs to a Myopic Updating with $$C_m \in [1,\infty]$$.
@@ -194,7 +194,7 @@ Myopic Updating only makes sense in the context of an agent that is capable of l
 
 To extend the POMDP agent to the Update-myopic agent, we use the idea of *delays* from the previous chapter. These delays are not used to evaluate future rewards (as any discounting agent would use them). They are used to determine how future actions are simulated. If the future action occurs when delay $$d$$ exceeds cutoff point $$C_m$$, then the simulated future self does not do a belief update before taking the action. (This makes the Update-myopic agent analogous to the Naive agent: both simulate the future action by projecting the wrong delay value onto their future self). 
 
-We retain the notation from the definition of the POMDP agent and skip directly to the equation for the expected utility of a state, which we modify for the Update-myopic agent with cutoff point $$C_m \in [1,\infty]$$:
+We retain the <a href="/chapters/3c-pomdp.html#notation">notation</a> from the definition of the POMDP agent and skip directly to the equation for the expected utility of a state, which we modify for the Update-myopic agent with cutoff point $$C_m \in [1,\infty]$$:
 
 $$
 EU_{b}[s,a,d] = U(s,a) + \mathbb{E}_{s',o,a'}(EU_{b'}[s',a'_{b'},d+1])
@@ -215,7 +215,7 @@ $$
 <!-- problem with < sign in latex math-->
 where $$I_{C_m}(s',a,o,d) = O(s',a,o)$$ if $$d$$ < $$C_m$$ and $$I_{C_m}(s',a,o,d) = 1$$ otherwise.
 
-The key part is the definition of $$b'$$. The Update-myopic agent assumes his future self updates only on his last action $$a$$ and not on observation $$o$$. So the future self will know about state changes that follow a priori from his actions. (In a deterministic Gridworld, the future self would know his new location and that the time remaining had been counted down).
+The key change from POMDP agent is the definition of $$b'$$. The Update-myopic agent assumes his future self (after the cutoff $$C_m$$) updates only on his last action $$a$$ and not on observation $$o$$. For example, in a deterministic Gridworld the future self would keep track of his locations (as his location depends deterministically on his actions) but wouldn't update his belief about hidden states.   
 
 The implementation of the Update-myopic agent in WebPPL is a direct translation of the definition provided above.
 
