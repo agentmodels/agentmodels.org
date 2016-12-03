@@ -33,6 +33,7 @@ For a concrete example, consider the Restaurant Choice Problem. Suppose Bob does
 
 ### Formal model
 
+<a id="notation"></a>
 We first define the class of decision probems (POMDPs) and then define an agent model for optimally solving these problems. Our definitions are based on reft:kaelbling1998planning.
 
 A Partially Observable Markov Decision Process (POMDP) is a tuple $$ \left\langle S,A(s),T(s,a),U(s,a),\Omega,O \right\rangle$$, where:
