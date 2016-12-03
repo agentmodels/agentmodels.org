@@ -86,7 +86,7 @@ var makeAgent = function(params, world) {
 };
 ~~~~
 
-The next codebox shows how the Naive agent can end up at Donut North in the Restaurant Choice problem, despite this being dominated for any possible utility function. The Naive agent first moves in the direction of Veg, which initially looks better than Donut South. When right outside Donut North, discounting makes it look better than Veg. To visualize this, we display the agent's expected utility calculations at different steps along its trajectory. The crucial values are the `expectedValue` of going left at [3,5] when `delay=0` compared with `delay=4`. The function `plannedTrajectories` uses `expectedValue` to access these values. For each timestep, we plot the agent's position and the expected utility of each action they might perform in the future.  <!-- TODO codebox broken fixme -->
+The next codebox shows how the Naive agent can end up at Donut North in the Restaurant Choice problem, despite this being dominated for any possible utility function. The Naive agent first moves in the direction of Veg, which initially looks better than Donut South. When right outside Donut North, discounting makes it look better than Veg. To visualize this, we display the agent's expected utility calculations at different steps along its trajectory. The crucial values are the `expectedValue` of going left at [3,5] when `delay=0` compared with `delay=4`. The function `plannedTrajectories` uses `expectedValue` to access these values. For each timestep, we plot the agent's position and the expected utility of each action they might perform in the future. 
 
 <!-- simulate_hyperbolic_agent -->
 ~~~~
@@ -303,6 +303,8 @@ runAndGraph(agent);
 <br>
 
 --------
+
+<a id='procrastination'></a>
 
 ### Example: Procrastinating on a task
 
