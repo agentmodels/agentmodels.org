@@ -30,8 +30,6 @@ Agent models are also used as generative models in Machine Learning, under the l
 
 [^inverse]: The relevant papers on applications of IRL: parking cars in reft:abbeel2008apprenticeship, flying helicopters in reft:abbeel2010autonomous, controlling videogame bots in reft:lee2010learning, and table tennis in reft:muelling2014learning.
 
-<!-- TODO: potentially add a bit more discussion about the promise of IRL. Or maybe this should go somewhere later -->
-
 This chapter provides an array of illustrative examples of learning about agents from their actions. We begin with a concrete example and then provide a general formalization of the inference problem. A virtue of using WebPPL is that doing inference over our existing agent models requires very little extra code. 
 
 
@@ -78,7 +76,7 @@ GridWorld.draw(world, { trajectory: donutSouthTrajectory });
 
 From Bob's actions, we infer that he probably prefers the Donut Store to the other restaurants. An alternative explanation is that Bob cares most about saving time. He might prefer Veg (the Vegetarian Cafe) but his preference is not strong enough to spend extra time getting there.
 
-In this first example of inference, Bob's preference for saving time is held fixed and we infer (given the actions shown above) Bob's preference for the different restaurants. We model Bob using the MDP agent model from [Chapter 3.1](/chapters/3a-mdp.html). We place a uniform prior over three possible utility functions for Bob: one favoring Donut, one favoring Veg and one favoring Noodle. We use `Enumerate` to compute a Bayesian posterior over these utility functions *given* Bob's observed behavior. Since the world is practically deterministic (with softmax parameter $$\alpha$$ set high), we just compare Bob's predicted states under each utility function to the states actually observed. To predict Bob's states for each utility function, we use the function `simulate` from [Chapter 3.1](/chapters/3a-mdp.html). 
+In this first example of inference, Bob's preference for saving time is held fixed and we infer (given the actions shown above) Bob's preference for the different restaurants. We model Bob using the MDP agent model from [Chapter 3.1](/chapters/3a-mdp.html). We place a uniform prior over three possible utility functions for Bob: one favoring Donut, one favoring Veg and one favoring Noodle. We compute a Bayesian posterior over these utility functions *given* Bob's observed behavior. Since the world is practically deterministic (with softmax parameter $$\alpha$$ set high), we just compare Bob's predicted states under each utility function to the states actually observed. To predict Bob's states for each utility function, we use the function `simulate` from [Chapter 3.1](/chapters/3a-mdp.html). 
 
 ~~~~
 ///fold: restaurant constants, donutSouthTrajectory
@@ -664,7 +662,7 @@ O(s_i,a_{i-1},o_i)
 \sum_{s_i \in S} { T(s_{i-1}, a_{i-1}, s_i) b_{i-1}(s_{i-1})}
 $$
 
-The posterior can thus be written as **Equation (2)**:
+The posterior can thus be written as **Equation (2)**: <a id="pomdpInfer"></a>
 
 $$
 P(U, \alpha, b_0 | (s,o,a)_{0:n}) \propto P(U, \alpha, b_0) \prod_{i=0}^n P( a_i | s_i, b_i, U, \alpha)
