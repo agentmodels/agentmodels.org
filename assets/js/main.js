@@ -24,9 +24,9 @@ function github_page_url(page_url) {
 
 // WebPPL editor
 
-$(function(){
+function setupEditorBoxes() {
   var preEls = $("pre:not(#bibtex)").map(function(i, el) { wpEditor.setup(el, {language: 'webppl'}); });          
-});
+};
 
 
 // References and bibliography
@@ -101,7 +101,7 @@ function short_authors(authorsString) {
   }
   var authors = authorsString.split(" and ");
   if (authors.length === 0) {
-    console.error('Expected >= 1 author, got: ' + authorsString);
+    console.warn('Expected >= 1 author, got: ' + authorsString);
     return authorsString;
   }
   var firstAuthor = authors[0];
@@ -139,25 +139,29 @@ function format_refp(citation) {
   return textohtml(s);
 }
 
-$.get("/bibliography.bib", function (bibtext) {
+function setupReferences(callback) {
+  $.get("/bibliography.bib", function (bibtext) {
     $(function () {
-        var bibs = doParse(bibtext);
-        $.each(
-            bibs,
-            function (citation_id, citation) {
-              replace_html("cite:" + citation_id, format_citation(citation));
-              replace_html("reft:" + citation_id, format_reft(citation));
-              replace_html("refp:" + citation_id, format_refp(citation));
-            }
-        );
+      var bibs = doParse(bibtext);
+      $.each(
+        bibs,
+        function (citation_id, citation) {
+          replace_html("cite:" + citation_id, format_citation(citation));
+          replace_html("reft:" + citation_id, format_reft(citation));
+          replace_html("refp:" + citation_id, format_refp(citation));
+        }
+      );
+      if (callback) {
+        callback();
+      }
     });
-});
-
+  });
+}
 
 // LaTeX math
 // based on https://github.com/cben/sandbox/blob/gh-pages/_layouts/katex.html
 
-$(function(){
+function setupLaTeX() {
   var scripts = document.getElementsByTagName("script");
   for (var i = 0; i < scripts.length; i++) {
     /* TODO: keep going after an individual parse error. */
@@ -176,7 +180,7 @@ $(function(){
     }
   }
   document.body.className += " math_finished";
-});
+}
 
 
 // Date
@@ -189,7 +193,71 @@ function setDate(){
   $(".date").text(yyyy+'-'+mm+'-'+dd);
 }
 
-$(setDate);
+
+// Footnotes
+// - based on http://ignorethecode.net/blog/2010/04/20/footnotes/
+
+var setupFootnotesOnHover = (function() {
+
+  var footnoteTimeout = false;
+
+  function footnoteOver() {
+    clearTimeout(footnoteTimeout);
+    $('#footnotebubble').stop();
+    $('#footnotebubble').remove();
+    
+    var id = $(this).attr('href').substr(1);
+    var position = $(this).offset();
+    
+    var div = $(document.createElement('div'));
+    div.attr('id','footnotebubble');
+    div.css('position','absolute');
+    div.bind('mouseover', divOver);
+    div.bind('mouseout', footnoteOut);
+    div.html($(document.getElementById(id)).html());
+    
+    $(document.body).append(div);
+
+    var w = $(window);
+    var left = position.left;
+    if(left + 420  > w.width() + w.scrollLeft()) {
+      left = w.width() - 420 + w.scrollLeft();
+    }
+    var top = position.top + 20;
+    if(top + div.height() > w.height() + w.scrollTop()) {
+      top = position.top - div.height() - 15;
+    }
+    div.css({
+      left: left,
+      top: top,
+      opacity: 1
+    });
+  }
+  
+  function footnoteOut() {
+    footnoteTimeout = setTimeout(function() {
+      $('#footnotebubble').animate({ opacity: 0 }, 600,
+                                   function() { $('#footnotebubble').remove(); });
+    }, 100);
+  }
+  
+  function divOver() {
+    clearTimeout(footnoteTimeout);
+    $('#footnotebubble').stop();
+    $('#footnotebubble').css({ opacity: 1 });
+  }
+  
+  return function() {
+    var footnoteLinks = $("a.footnote");
+    
+    footnoteLinks.unbind('mouseover', footnoteOver);
+    footnoteLinks.unbind('mouseout', footnoteOut);
+    
+    footnoteLinks.bind('mouseover', footnoteOver);
+    footnoteLinks.bind('mouseout', footnoteOut);
+  };
+  
+})();
 
 
 // Analytics
@@ -206,5 +274,16 @@ $(setDate);
   m.parentNode.insertBefore(a, m)
 })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
 
-ga('create', 'UA-54996-14', 'auto');
-ga('send', 'pageview');
+
+// On page load
+
+$(document).ready(function() {
+  setupEditorBoxes();
+  setupLaTeX();
+  setDate();
+  // We pass footnotes as callback, since setupReferences rewrites HTML
+  // and destroys the handlers that setupFootnotes installs.
+  setupReferences(setupFootnotesOnHover);
+  ga('create', 'UA-54996-14', 'auto');
+  ga('send', 'pageview');
+});

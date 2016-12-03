@@ -177,6 +177,17 @@ img#cover {
     margin-top: -40px;
 }
 
+div#footnotebubble {
+    background-color: hsla(186,8%,90%,1);
+    width: 500px;
+    padding: 1em;
+    color: #666;
+    border: 1px solid #666;
+}
+
+div#footnotebubble p {
+    margin: 0;
+}
 
 footer {
     font-size: 80%;
