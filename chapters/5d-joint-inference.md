@@ -346,7 +346,7 @@ var getPosterior = function(numberOfTrials, useOptimalModel) {
     0: Delta({ v: 'chocolate' }),
     1: Delta({ v: 'nothing' })
   };
-  var bandit = makeBandit({
+  var bandit = makeBanditPOMDP({
     numberOfArms: 2,
     armToPrizeDist: trueArmToPrizeDist,
     numberOfTrials: numberOfTrials

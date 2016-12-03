@@ -53,7 +53,7 @@ var trueArmToPrizeDist = {
   1: Categorical({ vs: [1, 0], ps: [0.5, 0.5] })
 };
 var numberOfTrials = 100;
-var bandit = makeBandit({
+var bandit = makeBanditPOMDP({
   numberOfTrials,
   numberOfArms: 2,
   armToPrizeDist: trueArmToPrizeDist,
@@ -132,7 +132,7 @@ var trueArmToPrizeDist = {
 
 var numberOfTrials = 40;
 
-var bandit = makeBandit({
+var bandit = makeBanditPOMDP({
   numberOfArms: 3,
   armToPrizeDist: trueArmToPrizeDist,
   numberOfTrials,
@@ -268,7 +268,7 @@ var probably1Dist = Categorical({ vs: [0, 1], ps: [0.4, 0.6] });
 
 // Construct Bandit POMDP
 var getBandit = function(numberOfTrials){
-  return makeBandit({
+  return makeBanditPOMDP({
     numberOfArms: 2,
 	armToPrizeDist: { 0: probably0Dist, 1: probably1Dist },
 	numberOfTrials: numberOfTrials,
@@ -372,7 +372,7 @@ var probably0Dist = Categorical({ vs: [0, 1], ps: [0.6, 0.4] });
 
 // Construct Bandit POMDP
 var getBandit = function(numberOfTrials) {
-  return makeBandit({
+  return makeBanditPOMDP({
     numberOfArms: 2,
     armToPrizeDist: { 0: probably0Dist, 1: probably1Dist },
     numberOfTrials,

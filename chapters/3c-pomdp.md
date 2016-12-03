@@ -381,7 +381,7 @@ We consider an especially simple Bandit problem, where the agent already knows t
 >**Figure 3:** Structure of Bandit problem where `Arm1` is stochastic. 
 <br>
 
-For the following codebox, we use library functions for the environment (`makeBandit`), for constructing the agent (`makeBanditAgent`) and for simulating the agent (`simulate`):
+For the following codebox, we use library functions for the environment (`makeBandit`), for constructing the agent (`makeBanditAgent`) and for simulating the agent (`simulatePOMDP`):
 
 ~~~~
 // helper functions defined here:
@@ -428,7 +428,7 @@ var options = {
   numericalPrizes: true
 };
 
-var bandit = makeBandit(options);
+var bandit = makeBanditPOMDP(options);
 var startState = bandit.startState;
 var world = bandit.world;
 
@@ -476,7 +476,7 @@ var alternateArmToPrizeDist = update(trueArmToPrizeDist, { 1: probably0Dist });
 
 
 var makeBanditWithNumberOfTrials = function(numberOfTrials) {
-  return makeBandit({
+  return makeBanditPOMDP({
     numberOfTrials,
 	numberOfArms: 2,
 	armToPrizeDist: trueArmToPrizeDist,
@@ -561,7 +561,7 @@ var getRuntime = function(numberOfArms) {
 	numericalPrizes: true
   };
   var numberOfTrials = options.numberOfTrials;
-  var bandit = makeBandit(options);
+  var bandit = makeBanditPOMDP(options);
   var world = bandit.world;
   var startState = bandit.startState;
   var priorBelief = getPriorBelief(numberOfTrials, numberOfArms);

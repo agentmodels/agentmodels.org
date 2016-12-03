@@ -551,7 +551,7 @@ var trueArmToPrizeDist = {
   0: Delta({ v: 'chocolate' }),
   1: Delta({ v: 'champagne' })
 };
-var bandit = makeBandit({
+var bandit = makeBanditPOMDP({
   armToPrizeDist: trueArmToPrizeDist,
   numberOfArms: 2,
   numberOfTrials: 5
@@ -665,7 +665,7 @@ var trueArmToPrizeDist = {
   0: Delta({ v: 'chocolate' }),
   1: Delta({ v: 'champagne' })
 };
-var bandit = makeBandit({
+var bandit = makeBanditPOMDP({
   numberOfArms: 2,
   armToPrizeDist: trueArmToPrizeDist,
   numberOfTrials: 5
@@ -789,7 +789,7 @@ var probLikesChocolate = function(numberOfTrials){
     0: Delta({ v: 'chocolate' }),
     1: Delta({ v: 'champagne' })
   };
-  var bandit = makeBandit({
+  var bandit = makeBanditPOMDP({
     numberOfArms: 2,
     armToPrizeDist: trueArmToPrizeDist,
     numberOfTrials

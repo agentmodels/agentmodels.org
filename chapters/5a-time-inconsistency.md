@@ -77,7 +77,7 @@ var trueArmToPrizeDist = {
 
 // Constuct Bandit world
 var numberOfTrials = 10;
-var bandit = makeBandit({
+var bandit = makeBanditPOMDP({
   numberOfArms: 3,
   armToPrizeDist: trueArmToPrizeDist,
   numberOfTrials,
