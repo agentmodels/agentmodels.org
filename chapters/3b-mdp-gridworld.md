@@ -77,7 +77,6 @@ var makeMDPAgent = function(params, world) {
 };
 
 var simulate = function(startState, world, agent) {
-  // if outputType is undefined, default to states
   var act = agent.act;
   var transition = world.transition;
   var sampleSequence = function(state) {
