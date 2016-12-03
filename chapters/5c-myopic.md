@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: Bounded Agents — Myopia for rewards and updates
-description: Fast approximate planning algorithms that assume a short time horizon for utilities (reward-myopic) or for belief updates (update-myopic). 
+description: Fast heuristic POMDP algorithms that assume a short time horizon.
 
 ---
 
@@ -9,13 +9,13 @@ description: Fast approximate planning algorithms that assume a short time horiz
 The previous chapter extended the MDP agent model to include exponential and hyperbolic discounting. The goal was to produce models of human behavior that capture a prominent *bias* (time inconsistency). As noted [earlier](/chapters/5-biases-intro) humans are not just biased but also *cognitively bounded*. This chapter extends the POMDP agent to capture heuristics for planning that are sub-optimal but fast and frugal.
 
 ## Reward-myopic Planning: the basic idea
-Optimal planning is difficult because the best action now depends on the entire future. The optimal POMDP agent reasons backwards from the utility of its final state, judging earlier actions on whether they lead to good final states. With an infinite time horizon, an optimal agent must consider the expected utility of being in every possible state, including states only reachable after a very long duration. Imagine using this approach to play chess against a weak but noisy opponent: you'd simulate a huge number of chess games, many of which are astronomically unlikely. 
+Optimal planning is difficult because the best action now depends on the entire future. The optimal POMDP agent reasons backwards from the utility of its final state, judging earlier actions on whether they lead to good final states. With an infinite time horizon, an optimal agent must consider the expected utility of being in every possible state, including states only reachable after a very long duration.
 
 Instead of explicitly optimizing for the entire future when taking an action, an agent can "myopically" optimize for near-term rewards. With a time-horizon of 1000 timesteps, a myopic agent's first action might optimize for reward up to timestep $$t=5$$. Their second action would optimize for rewards up to $$t=6$$, and so on. Whereas the optimal agent computes a complete policy before the first timestep and then follows the policy, the "reward-myopic agent" computes a new myopic policy at each timestep, thus spreading out computation over the whole time-horizon and usually doing much less computation overall[^reward].
 
 [^reward]: If optimal planning is super-linear in the time-horizon, the Reward-myopic agent will do less computation overall. The Reward-myopic agent only considers states or belief-states that it actually enters or that it gets close to, while the Optimal approach considers every possible state or belief-state.
 
-The Reward-myopic agent succeeds when continual optimizing for the short-term produces good long-term performance. Often this fails: e.g. climbing a moutain gets harder until you reach the glorious summit. One patch for this problem is to provide the agent with fake short-term rewards that are a proxy for long-term expected utility. This is closely related to "reward shaping" in Reinforcement Learning refp:chentanez2004intrinsically.
+The Reward-myopic agent succeeds when continually optimizing for the short-term produces good long-term performance. Often this fails: e.g. climbing a moutain gets harder until you reach the glorious summit. One patch for this problem is to provide the agent with fake short-term rewards that are a proxy for long-term expected utility. This is closely related to "reward shaping" in Reinforcement Learning refp:chentanez2004intrinsically.
 
 ### Reward-myopic Planning: implementation and examples
 The **Reward-myopic agent** takes the action that would be optimal if the time-horizon were $$C_g$$ steps into the future. The "cutoff" or "bound", $$C_g > 0$$, will typically be much smaller than the time horizon for the decision problem.
@@ -26,7 +26,7 @@ Notice the similarity between Reward-myopic agents and hyperbolic discounting ag
 
 ------
 
-The Reward-myopic agent does well if good short-term actions produce good long-term consequences. In Bandit problems, elaborate long-terms plans are not needed to reach particular desirable future states. It turns out that a maximally Reward-myopic agent, who only cares about the immediate reward ($$C_g = 1$$), does well on Multi-arm bandits. <!-- TODO cite knowledge gradient -->
+The Reward-myopic agent succeeds if good short-term actions produce good long-term consequences. In Bandit problems, elaborate long-terms plans are not needed to reach particular desirable future states. It turns out that a maximally Reward-myopic agent, who only cares about the immediate reward ($$C_g = 1$$), does well on Multi-arm bandits provided they take noisy actions refp:kuleshov2014algorithms.
 
 The next codeboxes show the performance of the Reward-myopic agent on Bandit problems. The first codebox is a two-arm Bandit problem, illustrated in Figure 1. We use a Reward-myopic agent with high softmax noise: $$C_g=1$$ and $$\alpha=10$$. The Reward-myopic agent's average reward over 100 trials is close to the expected average reward given perfect knowledge of the arms.
 
@@ -171,19 +171,19 @@ print('Arm2 is best arm and has expected utility 1.\n' +
 
 ## Myopic Updating: the basic idea
 
-In Chapter 3.3, we noted that solving a finite-horizon Multi-arm bandit problem is intractable in the number of arms and trials. So bounded agents will use a sub-optimal but tractable algorithm for this problem. In this chapter we describe and implement a widely-studied approach to Bandits that is sub-optimal but often effective in practice. We refer to the approach as *Myopic Updating*, because it is "myopic" or "greedy" with respect to exploration. The idea is that the agent at time $$t_0$$ assumes he can only *explore* (i.e. update beliefs from observations) up to some cutoff point $$C_m$$ steps into the future. After that point he just *exploits* (i.e. he gain rewards but doesn't update from the rewards he observes). In reality, the agent continues to update beliefs after time $$t_0+C_m$$. The Update-myopic agent, like the Naive hyperbolic discounter, has an incorrect model of his future self. We call an agent that uses Myopic Updating an "Update-myopic Agent". This will be precisely defined below. 
+The Reward-myopic agent ignores rewards that occur after its myopic cutoff $$C_g$$. By contrast, an "Update-myopic agent", takes into account all future rewards but ignores the value of belief updates that occur after a cutoff. Concretely, the agent at time $$t=0$$ assumes they can only *explore* (i.e. update beliefs from observations) up to some cutoff point $$C_m$$ steps into the future, after which they just exploit without updating beliefs. In reality, the agent continues to update after time $$t=C_m$$. The Update-myopic agent, like the Naive hyperbolic discounter, has an incorrect model of their future self.
 
-Myopic Updating is an efficient way to solve certain Bandit problems, yielding an optimal solution in the Gaussian two-arm case refp:frazier2008knowledge,<!-- TODO verify this: or is it only for best-arm ident?--> and also provides a good fit to human performance in Bernoulli Bandit problems refp:zhang2013forgetful. In what follows, we describe Myopic Updating in more detail, explain how to incorporate it into out POMDP agent model, and then exhibit its performance on Bandits.
+Myopic updating is optimal for certain special cases of bandits and has good performance on bandits in general refp:frazier2008knowledge. It also provides a good fit to human performance in Bernoulli bandits refp:zhang2013forgetful.
 
 ### Myopic Updating: applications and limitations
 
-As noted above, Myopic Updating has been studied in Machine Learning refp:gonzalez2015glasses and Operations Research refp:ryzhov2012knowledge as part of algorithms for generalized Bandit problems. In most cases, the cutoff point $$C_m$$ after which the agent assumes himself to exploit is set to $$C_m=1$$. This results in a scalable, analytically tractable optimization problem: pull the arm that maximizes the expected value of future exploitation given you pulled that arm. This "future exploitation" means that you pick the arm that is best in expectation for the rest of time.
+Myopic Updating has been studied in Machine Learning refp:gonzalez2015glasses and Operations Research refp:ryzhov2012knowledge. In most cases, the cutoff point $$C_m$$ after which the agent assumes himself to exploit is set to $$C_m=1$$. This results in a scalable, analytically tractable optimization problem: pull the arm that maximizes the expected value of future exploitation given you pulled that arm. This "future exploitation" means that you pick the arm that is best in expectation for the rest of time.
 
-We've presented Bandit problems with a finite number of arms, and with discrete rewards that are uncorrelated across arms. Myopic Updating works well in this setting but also works for generalized Bandit Problems: e.g. when rewards are correlated, when rewards are continuous, and in the "Bayesian Optimization" setting where instead of a fixed number of arms the goal is to optimize high-dimensional real-valued function refp:ryzhov2012knowledge. 
+We've presented Bandit problems with a finite number of uncorrelated arms. Myopic Updating also works for generalized Bandit Problems: e.g. when rewards are correlated or continuous and in the setting of "Bayesian Optimization" where instead of a fixed number of arms the goal is to optimize a high-dimensional real-valued function. 
 
 Myopic Updating does not work well for POMDPs in general. Suppose you are looking for a good restaurant in a foreign city. A good strategy is to walk to a busy street and then find the busiest restaurant. If reaching the busy street takes longer than the myopic cutoff $$C_m$$, then an Update-myopic agent won't see value in this plan. We present a concrete example of this problem below ("Restaurant Search"). This example highlights a way in which Bandit problems are an especially simple POMDP. In a Bandit problem, every aspect of the unknown latent state can be queried at any timestep (by pulling the appropriate arm). So even the Myopic Agent with $$C_m=1$$ is sensitive to the information value of every possible observation that the POMDP can yield[^selfmodel].
 
-[^selfmodel]: The Update-myopic agent incorrectly models his future self, by assuming it ceases to update after cutoff point $$C_m$$. This incorrect "self-modeling" is also a property of model-free RL agents. For example, a Q-learner's estimation of expected utilities for states ignores the fact that the Q-learner will randomly explore with some probability. SARSA, on the other hand, does take its random exploration into account when computing this estimate. But it doesn't model the way in which its future exploration behavior will make certain actions useful in the present (as in the example of finding a restaurant in a foreign city).
+[^selfmodel]: The Update-myopic agent incorrectly models his future self, by assuming he ceases to update after cutoff point $$C_m$$. This incorrect "self-modeling" is also a property of model-free RL agents. For example, a Q-learner's estimation of expected utilities for states ignores the fact that the Q-learner will randomly explore with some probability. SARSA, on the other hand, does take its random exploration into account when computing this estimate. But it doesn't model the way in which its future exploration behavior will make certain actions useful in the present (as in the example of finding a restaurant in a foreign city).
 
 ### Myopic Updating: formal model
 Myopic Updating only makes sense in the context of an agent that is capable of learning from observations (i.e. in the POMDP rather than MDP setting). So our goal is to generalize our agent model for solving POMDPs to a Myopic Updating with $$C_m \in [1,\infty]$$.
@@ -194,7 +194,7 @@ Myopic Updating only makes sense in the context of an agent that is capable of l
 
 To extend the POMDP agent to the Update-myopic agent, we use the idea of *delays* from the previous chapter. These delays are not used to evaluate future rewards (as any discounting agent would use them). They are used to determine how future actions are simulated. If the future action occurs when delay $$d$$ exceeds cutoff point $$C_m$$, then the simulated future self does not do a belief update before taking the action. (This makes the Update-myopic agent analogous to the Naive agent: both simulate the future action by projecting the wrong delay value onto their future self). 
 
-We retain the notation from the definition of the POMDP agent and skip directly to the equation for the expected utility of a state, which we modify for the Update-myopic agent with cutoff point $$C_m \in [1,\infty]$$:
+We retain the <a href="/chapters/3c-pomdp.html#notation">notation</a> from the definition of the POMDP agent and skip directly to the equation for the expected utility of a state, which we modify for the Update-myopic agent with cutoff point $$C_m \in [1,\infty]$$:
 
 $$
 EU_{b}[s,a,d] = U(s,a) + \mathbb{E}_{s',o,a'}(EU_{b'}[s',a'_{b'},d+1])
@@ -215,7 +215,7 @@ $$
 <!-- problem with < sign in latex math-->
 where $$I_{C_m}(s',a,o,d) = O(s',a,o)$$ if $$d$$ < $$C_m$$ and $$I_{C_m}(s',a,o,d) = 1$$ otherwise.
 
-The key part is the definition of $$b'$$. The Update-myopic agent assumes his future self updates only on his last action $$a$$ and not on observation $$o$$. So the future self will know about state changes that follow a priori from his actions. (In a deterministic Gridworld, the future self would know his new location and that the time remaining had been counted down).
+The key change from POMDP agent is the definition of $$b'$$. The Update-myopic agent assumes his future self (after the cutoff $$C_m$$) updates only on his last action $$a$$ and not on observation $$o$$. For example, in a deterministic Gridworld the future self would keep track of his locations (as his location depends deterministically on his actions) but wouldn't update his belief about hidden states.   
 
 The implementation of the Update-myopic agent in WebPPL is a direct translation of the definition provided above.
 
@@ -458,20 +458,21 @@ viz.line(runtimeValues, { groupBy: 'agentType' });
 
 ### Myopic Updating for the Restaurant Search Problem
 
-The limitations of Myopic Updating are straightforward. The Update-myopic agent assumes they will not update beliefs after the bound at $$C_m$$. As a result, they won't make plans that involve learning something after the bound.
+The Update-myopic agent assumes they will not update beliefs after the bound $$C_m$$ and so does not make plans that depend on learning something after the bound.
 
 We illustrate this limitation with a new problem:
 
->**Restaurant Search:** You are looking for a good restaurant in a foreign city without the aid of a smartphone. You know the quality of some restaurants already and you are uncertain about the others. If you walk right up to a restaurant, you can tell its quality by seeing how busy it is inside. You care about the quality of the restaurant (a scalar) and about minimizing the time spent walking.
+>**Restaurant Search:** You are looking for a good restaurant in a foreign city without the aid of a smartphone. You know the quality of some restaurants already and you are uncertain about the others. If you walk right up to a restaurant, you can tell its quality by seeing how busy it is inside. You care about the quality of the restaurant and about minimizing the time spent walking.
 
 How does the Update-myopic agent fail? Suppose that a few blocks from agent is a great restaurant next to a bad restaurant and the agent doesn't know which is which. If the agent checked inside each restaurant, they would pick out the great one. But if they are Update-myopic, they assume they'd be unable to tell between them.
 
-The codebox below depicts a toy version of this problem in Gridworld. The restaurants vary in quality between 0 and 5. The agent knows the quality of Restaurant A and is unsure about the other restaurants. One of Restaurants D and E is great and the other is bad. The Optimal POMDP agent will go right up to each restaurant and find out which is great. The Update-myopic agent, with low enough bound $$C_m$$, will either go to the known good restaurant A or investigate one of restaurants that is closer than D and E.
+The codebox below depicts a toy version of this problem in Gridworld. The restaurants vary in quality between 0 and 5. The agent knows the quality of Restaurant A and is unsure about the other restaurants. One of Restaurants D and E is great and the other is bad. The Optimal POMDP agent will go right up to each restaurant and find out which is great. The Update-myopic agent, with low enough bound $$C_m$$, will either go to the known good restaurant A or investigate one of the restaurants that is closer than D and E.
 
-<!--TODO: Extend the x-axis to make D and E further away. Consider how to make the myopic agent faster in this context. (Would also be nice to illustrate observations or the agent's belief state somehow).
+<!--TODO: Toy version is lame (too small). Why is the myopic version so slow?
 
 TODO: gridworld draw should take pomdp trajectories. they should also take POMDP as "world". 
 -->
+
 ~~~~
 // optimal_agent_restaurant_search
 
