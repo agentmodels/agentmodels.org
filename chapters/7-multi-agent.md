@@ -439,6 +439,8 @@ viz.table(actDist);
 
 ## Language understanding
 
+<!-- TODO text needs more elaboration or some links to papers or online content -->
+
 A model of pragmatic language interpretation: The speaker chooses a sentence conditioned on the listener inferring the intended state of the world when hearing this sentence; the listener chooses an interpretation conditioned on the speaker selecting the given utterance when intending this meaning.
 
 Literal interpretation:
