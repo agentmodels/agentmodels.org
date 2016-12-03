@@ -90,7 +90,7 @@ The next codebox shows how the Naive agent can end up at Donut North in the Rest
 
 <!-- simulate_hyperbolic_agent -->
 ~~~~
-///fold: 
+///fold: makeAgent, mdp, plannedTrajectories
 var makeAgent = function(params, world) {
   var defaultParams = {
     alpha: 500, 
@@ -162,6 +162,48 @@ var mdp = makeGridWorldMDP({
   startingLocation: [3, 1],
   totalTime: 11
 });
+
+var MAPActionPath = function(state, world, agent, actualTotalTime, statesOrActions) { 
+  var perceivedTotalTime = state.timeLeft;
+  assert.ok(perceivedTotalTime  > 1 || state.terminateAfterAction==false,
+            'perceivedTime<=1. If=1 then should have state.terminateAfterAction,' +
+            ' but then simulate wont work ' + JSON.stringify(state));
+
+  var agentAction = agent.act;
+  var expectedUtility = agent.expectedUtility;
+  var transition = world.transition;
+
+  var sampleSequence = function (state, actualTimeLeft) {
+    var action = agentAction(state, actualTotalTime-actualTimeLeft).MAP().val;
+    var nextState = transition(state, action); 
+    var out = {states:state, actions:action, both:[state,action]}[statesOrActions];
+    if (actualTimeLeft==0 || state.terminateAfterAction){
+      return [out];
+    } else {
+      return [ out ].concat( sampleSequence(nextState, actualTimeLeft-1));
+    }
+  };
+  return sampleSequence(state, actualTotalTime);
+};
+
+var plannedTrajectory = function(world, agent) {
+  var getExpectedUtilities = function(trajectory, agent, actions) { 
+    var expectedUtility = agent.expectedUtility;
+    var v = mapIndexed(function(i, state) {
+      return [state, map(function (a) { return  expectedUtility(state, a, i); }, actions)];
+    }, trajectory );
+    return v;
+  };
+  return function(state) {
+    var currentPlan = MAPActionPath(state, world, agent, state.timeLeft, 'states');
+    return getExpectedUtilities(currentPlan, agent, world.actions);
+  };
+} 
+
+var plannedTrajectories = function(trajectory, world, agent) { 
+  var getTrajectory = plannedTrajectory(world, agent);
+  return map(getTrajectory, trajectory);
+}
 ///
 
 var world = mdp.world;
@@ -298,6 +340,48 @@ var restaurantUtility = function(state, action) {
   } else {
     return utilityTable.timeCost;
   }
+};
+
+var MAPActionPath = function(state, world, agent, actualTotalTime, statesOrActions) { 
+  var perceivedTotalTime = state.timeLeft;
+  assert.ok(perceivedTotalTime  > 1 || state.terminateAfterAction==false,
+            'perceivedTime<=1. If=1 then should have state.terminateAfterAction,' +
+            ' but then simulate wont work ' + JSON.stringify(state));
+
+  var agentAction = agent.act;
+  var expectedUtility = agent.expectedUtility;
+  var transition = world.transition;
+
+  var sampleSequence = function (state, actualTimeLeft) {
+    var action = agentAction(state, actualTotalTime-actualTimeLeft).MAP().val;
+    var nextState = transition(state, action); 
+    var out = {states:state, actions:action, both:[state,action]}[statesOrActions];
+    if (actualTimeLeft==0 || state.terminateAfterAction){
+      return [out];
+    } else {
+      return [ out ].concat( sampleSequence(nextState, actualTimeLeft-1));
+    }
+  };
+  return sampleSequence(state, actualTotalTime);
+};
+
+var plannedTrajectory = function(world, agent) {
+  var getExpectedUtilities = function(trajectory, agent, actions) { 
+    var expectedUtility = agent.expectedUtility;
+    var v = mapIndexed(function(i, state) {
+      return [state, map(function (a) { return  expectedUtility(state, a, i); }, actions)];
+    }, trajectory );
+    return v;
+  };
+  return function(state) {
+    var currentPlan = MAPActionPath(state, world, agent, state.timeLeft, 'states');
+    return getExpectedUtilities(currentPlan, agent, world.actions);
+  };
+};
+
+var plannedTrajectories = function(trajectory, world, agent) { 
+  var getTrajectory = plannedTrajectory(world, agent);
+  return map(getTrajectory, trajectory);
 };
 
 var runAndGraph = function(agent) { 
