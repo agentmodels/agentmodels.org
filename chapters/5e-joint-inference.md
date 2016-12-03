@@ -1309,7 +1309,8 @@ To speed up inference, we use a fixed assumption that the agent is Naive. There 
 
 These three can also be combined to explain the behavior.
 
-<!-- infer_joint_two_donut_naive -->
+<!-- TODO fix infer_joint_two_donut_naive -->
+
 ~~~~
 ///fold:
 var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
