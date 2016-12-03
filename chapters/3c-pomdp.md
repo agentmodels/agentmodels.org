@@ -381,16 +381,14 @@ We consider an especially simple Bandit problem, where the agent already knows t
 >**Figure 3:** Structure of Bandit problem where `Arm1` is stochastic. 
 <br>
 
-For the following codebox, we use library functions for the environment (`makeBandit`), for constructing the agent (`makeBanditAgent`) and for simulating the agent (`simulatePOMDP`):
+For the following codebox, we use library functions for the environment (`makeBanditPOMDP`) and for simulating the agent (`simulatePOMDP`):
 
 ~~~~
-// helper functions defined here:
-///fold:
+///fold: displayTrajectory
 
-// takes a trajectory containing states and actions and returns one containing
+// Takes a trajectory containing states and actions and returns one containing
 // locs and actions, getting rid of 'start' and the final meaningless action.
-// unlike the other functions, this is not part of the webppl language
-var display = function(trajectory) {
+var displayTrajectory = function(trajectory) {
   var getPrizeAction = function(stateAction) {
     var state = stateAction[0];
     var action = stateAction[1];
@@ -409,8 +407,8 @@ var display = function(trajectory) {
 };
 ///
 
-// Construct Bandit environment. The latent mapping
-// from arms to prizes is specified in the options of makeBandit
+
+// 1. Construct Bandit POMDP
 
 // Possible distributions on rewards for Arm1
 var vs = [0, 1];
@@ -421,9 +419,8 @@ var options = {
   numberOfArms: 2,
   armToPrizeDist: {
     0: Delta({ v: 0.7 }), 
-    1: probably1Dist
-  },
-  // note that arm 1 is better in EV
+    1: probably1Dist  // Note that arm 1 is better in EV
+  },  
   numberOfTrials: 11,
   numericalPrizes: true
 };
@@ -432,30 +429,40 @@ var bandit = makeBanditPOMDP(options);
 var startState = bandit.startState;
 var world = bandit.world;
 
-// Alternate arm to prize Dist
-var alternateArmToPrizeDist = update(options.armToPrizeDist, {
-  1: probably0Dist
-});
 
-// Construct agent's prior on the startState
+// 2. Construct POMDP agent
+
 var priorBelief = Infer({ model() {
+  var alternateArmToPrizeDist =  {
+    0: Delta({ v: 0.7 }), 
+    1: probably0Dist
+  };
   var armToPrizeDist = uniformDraw([options.armToPrizeDist,
                                     alternateArmToPrizeDist]);
   return update(startState, { latentState: armToPrizeDist });
 }});
 
-// Construct agent
-var params = { priorBelief, alpha: 1000 };
-var agent = makeBanditAgent(params, bandit, 'belief');
+var utility = function(state, action) {
+  var prize = state.manifestState.loc;
+  return prize === 'start' ? 0 : prize;
+};
 
-// Simulate agent and return state-action pairs
+var params = { 
+  priorBelief, 
+  utility,
+  alpha: 1000  
+};
+
+var agent = makePOMDPAgent(params, bandit.world);
+
+
+// 3. Simulate agent and return state-action pairs
+
 var trajectory = simulatePOMDP(startState, world, agent, 'stateAction');
-display(trajectory);
+displayTrajectory(trajectory);
 ~~~~
 
 Solving Bandit problems optimally quickly becomes intractable without special optimizations. The codebox below shows how runtime scales as a function of the number of trials. 
-
-<!--TODO_daniel fit a quadratic to this data and plot the quadratic on the same axis.-->
 
 ~~~~
 // bandit_scaling_number_of_trials
