@@ -36,6 +36,11 @@ In WebPPL, we can implement this utility-maximizing agent as a function `maxAgen
 <!-- TODO fix argmax -->
 
 ~~~~
+///fold: argMax
+var argMax = function(f, ar){
+  return maxWith(f, ar)[0]
+};
+///
 // Choose to eat at the Italian or French restaurants
 var actions = ['italian', 'french'];
 
@@ -63,7 +68,7 @@ var maxAgent = function(state) {
     actions);
 };
 
-print("Choice in initial state: " + maxAgent("initialState"));
+print('Choice in initial state: ' + maxAgent('initialState'));
 ~~~~
 
 >**Exercise**: Which parts of the code can you change in order to make the agent choose the French restaurant?
@@ -127,6 +132,12 @@ $$
 To represent this in WebPPL, we extend `maxAgent` using the `expectation` function, which maps a distribution with finite support to its (real-valued) expectation:
 
 ~~~~
+///fold: argMax
+var argMax = function(f, ar){
+  return maxWith(f, ar)[0]
+};
+///
+
 var actions = ['italian', 'french'];
 
 var transition = function(state, action) {
@@ -155,7 +166,7 @@ var maxEUAgent = function(state) {
   return argMax(expectedUtility, actions);
 };
 
-maxEUAgent("initialState");
+maxEUAgent('initialState');
 ~~~~
 
 >**Exercise**: Adjust the transition probabilities such that the agent chooses the Italian Restaurant.
@@ -181,7 +192,7 @@ viz(softHeads);
 As another example, consider the following short program:
 
 ~~~~
-var y = Infer({ 
+var dist = Infer({ 
   model() {
     var n = uniformDraw([0, 1, 2]);
     factor(n * n);
@@ -189,7 +200,7 @@ var y = Infer({
   }
 });
 
-viz(y);
+viz(dist);
 ~~~~
 
 Without the `factor` statement, each value of the variable `n` has equal probability. Adding the `factor` statements adds `n*n` to the log-score of each value. To get the new probabilities induced by the `factor` statement we compute the normalizing constant given these log-scores. The resulting probability $$P(y=2)$$ is:
@@ -273,11 +284,12 @@ var doors = [1, 2, 3];
 // Monty chooses a door that is neither Alice's door
 // nor the prize door
 var monty = function(aliceDoor, prizeDoor) {
-  return Infer({ model() {
-    var door = uniformDraw(doors);
-    // ???
-    return door;
-  }});
+  return Infer({ 
+    model() {
+      var door = uniformDraw(doors);
+      // ???
+      return door;
+    }});
 };
 
 
@@ -316,10 +328,11 @@ var sampleState = function() {
 var agent = function() {  
   var action = uniformDraw(actions);
   var expectedUtility = function(action){    
-    return expectation(Infer({ model(){
-      var state = sampleState();
-      return utility(transition(state, action));
-    }}));
+    return expectation(Infer({ 
+      model() {
+        var state = sampleState();
+        return utility(transition(state, action));
+      }}));
   };
   factor(expectedUtility(action));
   return { action };

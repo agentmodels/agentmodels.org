@@ -7,7 +7,7 @@ is_section: true
 
 ## Introduction
 
-This chapter introduces the probabilistic programming language WebPPL (pronounced "web people"). The models for agents in this tutorial are all implemented in WebPPL and so it's important to understand how the language works. 
+This chapter introduces the probabilistic programming language WebPPL (pronounced "web people"). The models for agents in this tutorial are all implemented in WebPPL and so it's important to understand how the language works.
 
 We begin with a quick overview of probabilistic programming. If you are new to probabilistic programming, you might want to read an informal introduction (e.g. [here](http://www.pl-enthusiast.net/2014/09/08/probabilistic-programming/) or [here](https://moalquraishi.wordpress.com/2015/03/29/the-state-of-probabilistic-programming/)) or a more technical [survey](https://scholar.google.com/scholar?cluster=16211748064980449900&hl=en&as_sdt=0,5). For a practical introduction to both probabilistic programming and Bayesian modeling, we recommend [ProbMods](http://probmods.org). ProbMods is an online tutorial in Church, a language very similar to WebPPL, and its early chapters introduce key ideas in Bayesian generative models that are helpful background.
 
@@ -21,22 +21,26 @@ WebPPL includes a subset of Javascript, and follows the syntax of Javascript for
 This example program uses most of the Javascript syntax that is available in WebPPL:
 
 ~~~~
-// Function definition using Javascript's `isNaN` and `log` primitives:
-
-var verboseLog = function(x) {
-  if (x<=0 || _.isNaN(x)) {
-    print("Input " + x + " was not a positive number");
-    return null;
+// Define a function using two external primitives:
+// 1. Javascript's `JSON.stringify` for converting to strings
+// 2. Underscore's _.isFinite for checking if a value is a finite number
+var coerceToPositiveNumber = function(x) {
+  if (_.isFinite(x) && x > 0) {
+    return x;
   } else {
-    return Math.log(x);
+    print('- Input ' + JSON.stringify(x) +
+          ' was not a positive number, returning 1 instead');
+    return 1;
   }
 };
 
-// Array with numbers, object, Boolean types
-var inputs = [1, 1.5, -1, {key: 1}, true];
+// Create an array with numbers, an object, an a Boolean
+var inputs = [2, 3.5, -1, { key: 1 }, true];
 
-print("Apply verboseLog to elements in array: "); 
-map(verboseLog, inputs);
+// Map the function over the array
+print('Processing elements in array ' + JSON.stringify(inputs) + '...');
+var result = map(coerceToPositiveNumber, inputs);
+print('Result: ' + JSON.stringify(result));
 ~~~~
 
 Language features with side effects are not allowed in WebPPL. The code that has been commented out uses assignment to update a table. This produces an error in WebPPL.
@@ -47,38 +51,41 @@ Language features with side effects are not allowed in WebPPL. The code that has
 // var table = {};
 // table.key = 1;
 // table.key = table.key + 1;
-// => Assignment is allowed only to fields of globalStore.
+// => Syntax error: You tried to assign to a field of table, but you can
+//                  only assign to fields of globalStore
 
 
 // Instead do this:
 
-var table = {key: 1};
-var updatedTable = {key: table.key + 1};
-print(updatedTable);
+var table = { key: 1 };
+var tableTwo = { key: table.key + 1 };
+print(tableTwo);
 
-// Or use the library function *update*:
+// Or use the library function `extend`:
 
-var secondUpdatedTable = extend(table, {key:10})
-print(secondUpdatedTable);
+var tableThree = extend(tableTwo, { key: 3 })
+print(tableThree);
 ~~~~
 
 There are no `for` or `while` loops. Instead, use higher-order functions like WebPPL's built-in `map`, `filter` and `zip`:
 
 ~~~~
-var ar = [1,2,3];
+var xs = [1, 2, 3];
 
 // Don't do this:
 
-// for (var i = 0; i < ar.length; i++){
-//   print(ar[i]); 
+// for (var i = 0; i < xs.length; i++){
+//   print(xs[i]);
 // }
 
 
 // Instead of for-loop, use `map`:
-map(print, ar);
+map(print, xs);
+
+"Done!"
 ~~~~
 
-It is possible to use normal Javascript functions (which make *internal* use of side effects) in WebPPL. See the [online book](http://dippl.org/chapters/02-webppl.html) on the implementation of WebPPL for details (section "Using Javascript Libraries"). 
+It is possible to use normal Javascript functions (which make *internal* use of side effects) in WebPPL. See the [online book](http://dippl.org/chapters/02-webppl.html) on the implementation of WebPPL for details (section "Using Javascript Libraries").
 
 
 ## WebPPL stochastic primitives
@@ -88,14 +95,18 @@ It is possible to use normal Javascript functions (which make *internal* use of 
 WebPPL has a large [library](http://docs.webppl.org/en/master/distributions.html) of primitive probability distributions. Try clicking "Run" repeatedly to get different i.i.d. random samples:
 
 ~~~~
-print('Fair coins (Bernoulli distribution): ' + [flip(0.5), flip(0.5)]);
-print('Biased coins (Bernoulli distribution): ' + [flip(0.9), flip(0.9)]);
+print('Fair coins (Bernoulli distribution):');
+print([flip(0.5), flip(0.5), flip(0.5)]);
+
+print('Biased coins (Bernoulli distribution):');
+print([flip(0.9), flip(0.9), flip(0.9)]);
 
 var coinWithSide = function(){
-  return categorical([.49, .49, .02], ['heads', 'tails', 'side']);
+  return categorical([.45, .45, .1], ['heads', 'tails', 'side']);
 };
 
-print(repeat(5, coinWithSide)); // draw i.i.d samples
+print('Coins that can land on their edge:')
+print(repeat(5, coinWithSide)); // draw 5 i.i.d samples
 ~~~~
 
 There are also continuous random variables:
@@ -158,7 +169,7 @@ var MyBinomial = Infer({ model: binomial });
 
 ### Bayesian inference by conditioning
 
-The most important use of inference methods is for Bayesian inference. Here, our task is to *infer* the value of some unknown parameter by observing data that depends on the parameter. For example, if flipping three separate coins produce exactly two Heads, what is the probability that the first coin landed Heads? To solve this in WebPPL, we can use `Infer` to enumerate all values for the random variables `a`, `b` and `c`. We use `condition` to constrain the sum of the variables. The result is a distribution representing the posterior distribution on the first variable `a` having value `true` (i.e. "Heads").  
+The most important use of inference methods is for Bayesian inference. Here, our task is to *infer* the value of some unknown parameter by observing data that depends on the parameter. For example, if flipping three separate coins produce exactly two Heads, what is the probability that the first coin landed Heads? To solve this in WebPPL, we can use `Infer` to enumerate all values for the random variables `a`, `b` and `c`. We use `condition` to constrain the sum of the variables. The result is a distribution representing the posterior distribution on the first variable `a` having value `true` (i.e. "Heads").
 
 ~~~~
 var twoHeads = Infer({
@@ -174,7 +185,7 @@ var twoHeads = Infer({
 print('Probability of first coin being Heads (given exactly two Heads) : ');
 print(Math.exp(twoHeads.score(true)));
 
-var moreThanTwoHeads = Infer({  
+var moreThanTwoHeads = Infer({
   model() {
     var a = flip(0.5);
     var b = flip(0.5);
@@ -194,8 +205,8 @@ The codeboxes allow you to modify our examples and to write your own WebPPL code
 
 ~~~~
 var appleOrangeDist = Infer({
-  model(){ 
-    return flip(0.9) ? "apple" : "orange";
+  model() {
+    return flip(0.9) ? 'apple' : 'orange';
   }
 });
 
@@ -203,10 +214,10 @@ viz(appleOrangeDist);
 ~~~~
 
 ~~~~
-var fruitTasteDist = Infer({ 
-  model(){
+var fruitTasteDist = Infer({
+  model() {
     return {
-      fruit: categorical([0.3, 0.3, 0.4], ["apple", "banana", "orange"]),
+      fruit: categorical([0.3, 0.3, 0.4], ['apple', 'banana', 'orange']),
       tasty: flip(0.7)
     };
   }
@@ -216,13 +227,13 @@ viz(fruitTasteDist);
 ~~~~
 
 ~~~~
-var positionDist = Infer({ 
+var positionDist = Infer({
   model() {
-    return { 
-      X: gaussian(0, 1), 
+    return {
+      X: gaussian(0, 1),
       Y: gaussian(0, 1)};
   },
-  method: 'rejection', 
+  method: 'forward',
   samples: 1000
 });
 
@@ -231,4 +242,4 @@ viz(positionDist);
 
 ### Next
 
-In the [next chapter](/chapters/3-agents-as-programs.html), we will implement rational decision-making using inference functions. 
+In the [next chapter](/chapters/3-agents-as-programs.html), we will implement rational decision-making using inference functions.

@@ -489,7 +489,10 @@ var agentPrior = Infer({ model() {
     D: rewardD,
     E: 5 - rewardD
   };
-  return buildState(pomdp.startState.manifestState, latentState);
+  return {
+    manifestState: pomdp.startState.manifestState, 
+    latentState
+  };
 }});
 
 // Construct optimal agent
@@ -525,7 +528,10 @@ var agentPrior = Infer({ model() {
     D: rewardD,
     E: 5 - rewardD
   };
-  return buildState(pomdp.startState.manifestState, latentState);
+  return {
+    manifestState: pomdp.startState.manifestState, 
+    latentState
+  };
 }});
 ///
 

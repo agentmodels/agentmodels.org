@@ -56,8 +56,9 @@ var coin = function() {
 };
 
 var flips = [coin(), coin(), coin()];
-print("Some coin flips: " + flips);
 
+print('Some coin flips:');
+print(flips);
 ~~~~
 
 ~~~~

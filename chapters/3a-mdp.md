@@ -12,10 +12,10 @@ As a simple illustration of a sequential decision problem, suppose that an agent
 
 ~~~~
 var ___ = ' '; 
-var DN = { name : 'Donut N' };
-var DS = { name : 'Donut S' };
-var V = { name : 'Veg' };
-var N = { name : 'Noodle' };
+var DN = { name: 'Donut N' };
+var DS = { name: 'Donut S' };
+var V = { name: 'Veg' };
+var N = { name: 'Noodle' };
 
 var gridFeatures = [
   ['#', '#', '#', '#',  V , '#'],
@@ -33,7 +33,7 @@ var mdp = makeGridWorldMDP({
   startingLocation: [3, 1],
 });
 
-GridWorld.draw(mdp.world, { trajectory : [ mdp.startState ] });
+GridWorld.draw(mdp.world, { trajectory : [mdp.startState] });
 ~~~~
 
 
@@ -48,8 +48,8 @@ C(a; s) \propto e^{\alpha EU_{s}[a]}
 $$
 
 The expected utility depends on both immediate utility and, recursively, on future expected utility:
-<a id="recursion"></a>
-<br>**Expected Utility Recursion**:
+
+<a id="recursion">**Expected Utility Recursion**</a>:
 
 $$
 EU_{s}[a] = U(s, a) + \mathbb{E}_{s', a'}(EU_{s'}[a'])
@@ -104,7 +104,7 @@ var makeAgent = function() {
   var expectedUtility = function(state, action, timeLeft){
     var u = utility(state, action);
     var newTimeLeft = timeLeft - 1;
-    if (newTimeLeft == 0){
+    if (newTimeLeft === 0){
       return u; 
     } else {
       return u + expectation(Infer({ model() {
@@ -198,8 +198,7 @@ The `expectedUtility` and `simulate` functions are similar. The `expectedUtilty`
 We already mentioned the mutual recursion between `act` and `expectedUtility`. What does this recursion look like if we unroll it? In this example we get a tree that expands until `timeLeft` reaches zero. The root is the starting state (`startState === 0`) and this branches into three successor states (`-1`, `0`, `1`). This leads to an exponential blow-up in the runtime of a single action (which depends on how long into the future the agent plans):
 
 ~~~~
-// transition, utility and makeAgent functions defined exactly as above
-///fold:
+///fold: transition, utility, makeAgent, act, and simulate as above
 var transition = function(state, action) {
   return state + action;
 };
@@ -213,6 +212,7 @@ var utility = function(state) {
 };
 
 var makeAgent = function() { 
+
   var act = function(state, timeLeft) {
     return Infer({ model() {
       var action = uniformDraw([-1, 0, 1]);
@@ -272,9 +272,8 @@ viz.bar(numSteps, runtimes);
 Most of this computation is unnecessary. If the agent starts at `state === 0`, there are three ways the agent could be at `state === 0` again after two steps: either the agent stays put twice or the agent goes one step away and then returns. The code above computes `agent(0, totalTime-2)` three times, while it only needs to be computed once. This problem can be resolved by *memoization*, which stores the results of a function call for re-use when the function is called again on the same input. This use of memoization results in a runtime that is polynomial in the number of states and the total time. <!-- We explore the efficiency of these algorithms in more detail in Section VI. --> In WebPPL, we use the higher-order function `dp.cache` to memoize the `act` and `expectedUtility` functions:
 
 ~~~~
-// transition, utility and makeAgent functions defined as above,
-// with `act` and `expectedUtility` wrapped in `dp.cache`
-///fold:
+///fold: transition, utility and makeAgent functions as above, but...
+// ...with `act` and `expectedUtility` wrapped in `dp.cache`
 var transition = function(state, action) {
   return state + action;
 };
