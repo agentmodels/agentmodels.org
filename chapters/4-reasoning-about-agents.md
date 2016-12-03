@@ -7,7 +7,6 @@ is_section: true
 
 
 ## Introduction
-
 The previous chapters have shown how to compute optimal actions for agents in MDPs and POMDPs. In many practical applications, this is the goal. For example, when controlling a robot, the goal is for the robot to act optimally given its utility function. When playing the stock market or poker, the goal is make money and one might use an approach based on the POMDP agent model from the [previous chapter](/chapters/3c-pomdp).
 
 In other settings, however, the goal is to *learn* or *reason about* an agent based on their behavior. For example, in social science or psychology researchers often seek to learn about people's preferences (denoted $$U$$) and beliefs (denoted $$b$$). The relevant *data* (denoted $$\{a_i\}$$) are usually observations of human actions. In this situation, models of optimal action can be used as *generative models* of human actions. The generative model predicts the behavior *given* preferences and beliefs. That is:
@@ -189,8 +188,8 @@ The expression for the joint posterior (above) shows that it is straightforward 
 
 For this example we condition on the agent making a single step from $$[3,1]$$ to $$[2,1]$$ by moving left. For an agent with low noise, this already provides very strong evidence about the agent's preferences -- not much is added by seeing the agent go all the way to Donut South. 
 
-<!-- show_single_step_trajectory -->
 ~~~~
+// show_single_step_trajectory
 ///fold: restaurant constants
 var ___ = ' '; 
 var DN = { name: 'Donut N' };
@@ -230,8 +229,8 @@ GridWorld.draw(world, { trajectory });
 
 Our approach to inference is slightly different than in the example at the start of this chapter. The approach is a direct translation of the expression for the posterior in Equation (1) above. For each observed state-action pair, we compute the likelihood of the agent (with given $$U$$) choosing that action in the state. In contrast, the simple approach above becomes intractable for long, noisy action sequences -- as it will need to loop over all possible sequences. 
 
-<!-- infer_from_single_step_trajectory -->
 ~~~~
+// infer_from_single_step_trajectory
 ///fold: create restaurant choice MDP
 var ___ = ' '; 
 var DN = { name : 'Donut N' };
@@ -319,8 +318,8 @@ Unidentifiability is a frequent problem when inferring an agent's beliefs or uti
 
 The previous examples assumed that the agent's `timeCost` (the negative utility of each timestep before the agent reaches a restaurant) and the softmax $$\alpha$$ were known. We can modify the above example to include them in inference.
 
-<!-- infer_utilities_timeCost_softmax_noise -->
 ~~~~
+// infer_utilities_timeCost_softmax_noise
 ///fold: create restaurant choice MDP, donutSouthTrajectory
 var ___ = ' '; 
 var DN = { name : 'Donut N' };
@@ -445,8 +444,8 @@ The posterior shows that taking a step towards Donut South can now be explained 
 
 As we noted previously, it is simple to extend our approach to inference to conditioning on multiple sequences of actions. Consider the two sequences below:
 
-<!-- display_multiple_trajectories -->
 ~~~~
+// display_multiple_trajectories
 ///fold: make restaurant choice MDP, naiveTrajectory, donutSouthTrajectory
 var ___ = ' '; 
 var DN = { name : 'Donut N' };
@@ -501,8 +500,9 @@ map(function(trajectory) { GridWorld.draw(world, { trajectory }); },
 
 To perform inference, we just condition on both sequences. (We use concatenation but we could have taken the union of all state-action pairs). 
 
-<!-- infer_from_multiple_trajectories -->
 ~~~~
+// infer_from_multiple_trajectories
+
 // World and agent are exactly as above
 ///fold:
 
@@ -636,7 +636,7 @@ $$
 
 In a POMDP, actions are only rendered conditionally independent if we also condition on the agent's *belief*. So Equation (1) can only be extended to the case where we know the agent's belief at each timestep. This will be realistic in some applications and not others. It depends on whether the agent's *observations* are part of the data that is conditioned on. If so, the agent's belief can be computed at each timestep (assuming the agent's initial belief is known). If not, we have to marginalize over the possible observations, making for a more complex inference computation. 
 
-Here is the extension of Equation (1) to the POMDP case, where we assume access to the agent's observations. Our goal is to compute a posterior on the parameters of the agent. These include $$U$$ and $$\alpha$$ as before but also the agent's initial belief $$b_0$$. 
+Here is the extension of Equation (1) to the POMDP case, where we assume access to the agent's observations. <a id="pomdpDefine"></a>Our goal is to compute a posterior on the parameters of the agent. These include $$U$$ and $$\alpha$$ as before but also the agent's initial belief $$b_0$$. 
 
 We observe a sequence of state-observation-action triples:
 
@@ -1109,6 +1109,7 @@ print('Probability of liking chocolate for lifetimes ' + lifetimes + '\n'
 
 viz.bar(lifetimes, probsLikesChoc);
 ~~~~
+
   
 This example of inferring an agent's utilities from a Bandit problem may seem contrived. However, there are practical problems that have a similar structure. Consider a domain where $$k$$ **sources** (arms) produce a stream of content, with each piece of content having a **category** (prizes). At each timestep, a human is observed choosing a source. The human has uncertainty about the stochastic mapping from sources to categories. Our goal is to infer the human's beliefs about the sources and their preferences over categories. The sources could be blogs or feeds that tag posts using the same set of tags. Alternatively, the sources could be channels for TV shows or songs. In this kind of application, the same issue of identifiability arises. An agent may choose a source either because they know it produces content in the best categories or because they have a strong prior belief that it does.
 
