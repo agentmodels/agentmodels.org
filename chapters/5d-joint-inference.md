@@ -162,6 +162,12 @@ var makeProcrastinationUtility = function(utilityTable) {
   };
 };
 
+var getMarginal = function(dist, key){
+  return Infer({ model() {
+    return sample(dist)[key];
+  }});
+};
+
 var displayTimeSeries = function(observedStateAction, getPosterior) {
   var features = ['reward', 'predictWorkLastMinute', 'alpha', 'discount'];
 
@@ -345,6 +351,12 @@ var displayExpectations = function(getPosterior) {
   map(displayOptimalAndPossiblyRewardMyopicSeries, range(features.length));
   return '';
 };
+
+var getMarginal = function(dist, key){
+  return Infer({ model() {
+    return sample(dist)[key];
+  }});
+};
 ///
 
 
@@ -410,7 +422,7 @@ var getPosterior = function(numberOfTrials, useOptimalModel) {
 
   return [
     expectation(marginalChocolate), 
-    expectation(getMarginal(outputDist,'myopiaBound'))
+    expectation(getMarginal(outputDist, 'myopiaBound'))
   ];
 };
 

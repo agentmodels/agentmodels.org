@@ -750,7 +750,7 @@ We start with a very simple example. The agent is observed pulling `arm1` five t
 From the observation, it's obvious that the agent prefers champagne. This is what we infer below:
 
 ~~~~
-///fold:
+///fold: inferBeliefsAndPreferences, getMarginal
 var inferBeliefsAndPreferences = function(baseAgentParams, priorPrizeToUtility,
                                           priorInitialBelief, bandit,
                                           observedSequence) {
@@ -788,6 +788,12 @@ var inferBeliefsAndPreferences = function(baseAgentParams, priorPrizeToUtility,
       prizeToUtility,
       priorBelief: initialBelief
     };
+  }});
+};
+
+var getMarginal = function(dist, key){
+  return Infer({ model() {
+    return sample(dist)[key];
   }});
 };
 ///
