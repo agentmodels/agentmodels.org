@@ -39,9 +39,40 @@ This chapter provides an array of illustrative examples of learning about agents
 Consider the MDP version of Bob's Restaurant Choice problem. Bob is choosing between restaurants, all restaurants are open (and Bob knows this), and Bob also knows the street layout. Previously, we discussed how to compute optimal behavior *given* Bob's utility function over restaurants. Now we infer Bob's utility function *given* observations of the behavior in the codebox:
 
 ~~~~
-var world = makeRestaurantChoiceMDP(); 
-var observedTrajectory = restaurantNameToObservationTime11['donutSouth'];
-GridWorld.draw(world, { trajectory: observedTrajectory });
+///fold: restaurant constants, donutSouthTrajectory
+var ___ = ' '; 
+var DN = { name: 'Donut N' };
+var DS = { name: 'Donut S' };
+var V = { name: 'Veg' };
+var N = { name: 'Noodle' };
+
+var donutSouthTrajectory = [
+  [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"l"],
+  [{"loc":[2,1],"terminateAfterAction":false,"timeLeft":10,"previousLoc":[3,1]},"l"],
+  [{"loc":[1,1],"terminateAfterAction":false,"timeLeft":9,"previousLoc":[2,1]},"l"],
+  [{"loc":[0,1],"terminateAfterAction":false,"timeLeft":8,"previousLoc":[1,1]},"d"],
+  [{"loc":[0,0],"terminateAfterAction":false,"timeLeft":7,"previousLoc":[0,1],"timeAtRestaurant":0},"l"],
+  [{"loc":[0,0],"terminateAfterAction":true,"timeLeft":7,"previousLoc":[0,0],"timeAtRestaurant":1},"l"]
+];
+///
+
+var gridFeatures = [
+  ['#', '#', '#', '#',  V , '#'],
+  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', DN , ___, '#', ___],
+  ['#', '#', '#', ___, '#', ___],
+  ['#', '#', '#', ___, ___, ___],
+  ['#', '#', '#', ___, '#',  N ],
+  [___, ___, ___, ___, '#', '#'],
+  [DS , '#', '#', ___, '#', '#']
+];
+
+var world = makeGridWorldMDP({
+  gridFeatures,
+  startingLocation: [3, 1]
+}).world;
+
+GridWorld.draw(world, { trajectory: donutSouthTrajectory });
 ~~~~
 
 From Bob's actions, we infer that he probably prefers the Donut Store to the other restaurants. An alternative explanation is that Bob cares most about saving time. He might prefer Veg (the Vegetarian Cafe) but his preference is not strong enough to spend extra time getting there.
@@ -49,10 +80,43 @@ From Bob's actions, we infer that he probably prefers the Donut Store to the oth
 In this first example of inference, Bob's preference for saving time is held fixed and we infer (given the actions shown above) Bob's preference for the different restaurants. We model Bob using the MDP agent model from [Chapter 3.1](/chapters/3a-mdp.html). We place a uniform prior over three possible utility functions for Bob: one favoring Donut, one favoring Veg and one favoring Noodle. We use `Enumerate` to compute a Bayesian posterior over these utility functions *given* Bob's observed behavior. Since the world is practically deterministic (with softmax parameter $$\alpha$$ set high), we just compare Bob's predicted states under each utility function to the states actually observed. To predict Bob's states for each utility function, we use the function `simulate` from [Chapter 3.1](/chapters/3a-mdp.html). 
 
 ~~~~
-var world = makeRestaurantChoiceMDP();
+///fold: restaurant constants, donutSouthTrajectory
+var ___ = ' '; 
+var DN = { name: 'Donut N' };
+var DS = { name: 'Donut S' };
+var V = { name: 'Veg' };
+var N = { name: 'Noodle' };
 
-var observedStateAction = restaurantNameToObservationTime11.donutSouth;
-var startState = observedStateAction[0][0];
+var donutSouthTrajectory = [
+  [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"l"],
+  [{"loc":[2,1],"terminateAfterAction":false,"timeLeft":10,"previousLoc":[3,1]},"l"],
+  [{"loc":[1,1],"terminateAfterAction":false,"timeLeft":9,"previousLoc":[2,1]},"l"],
+  [{"loc":[0,1],"terminateAfterAction":false,"timeLeft":8,"previousLoc":[1,1]},"d"],
+  [{"loc":[0,0],"terminateAfterAction":false,"timeLeft":7,"previousLoc":[0,1],"timeAtRestaurant":0},"l"],
+  [{"loc":[0,0],"terminateAfterAction":true,"timeLeft":7,"previousLoc":[0,0],"timeAtRestaurant":1},"l"]
+];
+///
+
+var gridFeatures = [
+  ['#', '#', '#', '#',  V , '#'],
+  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', DN , ___, '#', ___],
+  ['#', '#', '#', ___, '#', ___],
+  ['#', '#', '#', ___, ___, ___],
+  ['#', '#', '#', ___, '#',  N ],
+  [___, ___, ___, ___, '#', '#'],
+  [DS , '#', '#', ___, '#', '#']
+];
+
+var world = makeGridWorldMDP({
+  gridFeatures,
+  noReverse: true,
+  maxTimeAtRestaurant: 2,
+  startingLocation: [3, 1],
+  totalTime: 11
+}).world;
+
+var startState = donutSouthTrajectory[0][0];
 
 var utilityTablePrior = function() {
   var baseUtilityTable = {
@@ -80,12 +144,12 @@ var posterior = Infer({ model() {
   var utility = makeRestaurantUtilityFunction(world, utilityTable);
   var params = {
     utility,
-    alpha: 1000
+    alpha: 2
   };
   var agent = makeMDPAgent(params, world);
 
   var predictedStateAction = simulateMDP(startState, world, agent, 'stateAction');
-  condition(_.isEqual(observedStateAction, predictedStateAction));
+  condition(_.isEqual(donutSouthTrajectory, predictedStateAction));
   return { favourite };
 }});
 
@@ -128,10 +192,28 @@ For this example we condition on the agent making a single step from $$[3,1]$$ t
 
 ~~~~
 // show_single_step_trajectory
+///fold: restaurant constants
+var ___ = ' '; 
+var DN = { name: 'Donut N' };
+var DS = { name: 'Donut S' };
+var V = { name: 'Veg' };
+var N = { name: 'Noodle' };
+///
 
-var world = makeRestaurantChoiceMDP();
+var gridFeatures = [
+  ['#', '#', '#', '#',  V , '#'],
+  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', DN , ___, '#', ___],
+  ['#', '#', '#', ___, '#', ___],
+  ['#', '#', '#', ___, ___, ___],
+  ['#', '#', '#', ___, '#',  N ],
+  [___, ___, ___, ___, '#', '#'],
+  [DS , '#', '#', ___, '#', '#']
+];
 
-var singleStepTrajectory = [
+var world = makeGridWorldMDP({ gridFeatures }).world;
+
+var trajectory = [
   {
     loc: [3, 1],
     timeLeft: 11,
@@ -144,17 +226,41 @@ var singleStepTrajectory = [
   }
 ];
 
-GridWorld.draw(world, {
-  trajectory: singleStepTrajectory
-});
+GridWorld.draw(world, { trajectory });
 ~~~~
 
 Our approach to inference is slightly different than in the example at the start of this chapter. The approach is a direct translation of the expression for the posterior in Equation (1) above. For each observed state-action pair, we compute the likelihood of the agent (with given $$U$$) choosing that action in the state. In contrast, the simple approach above becomes intractable for long, noisy action sequences -- as it will need to loop over all possible sequences. 
 
 ~~~~
 // infer_from_single_step_trajectory
+///fold: create restaurant choice MDP
+var ___ = ' '; 
+var DN = { name : 'Donut N' };
+var DS = { name : 'Donut S' };
+var V = { name : 'Veg' };
+var N = { name : 'Noodle' };
 
-var world = makeRestaurantChoiceMDP();
+var gridFeatures = [
+  ['#', '#', '#', '#',  V , '#'],
+  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', DN , ___, '#', ___],
+  ['#', '#', '#', ___, '#', ___],
+  ['#', '#', '#', ___, ___, ___],
+  ['#', '#', '#', ___, '#',  N ],
+  [___, ___, ___, ___, '#', '#'],
+  [DS , '#', '#', ___, '#', '#']
+];
+
+var mdp = makeGridWorldMDP({
+  gridFeatures,
+  noReverse: true,
+  maxTimeAtRestaurant: 2,
+  startingLocation: [3, 1],
+  totalTime: 11
+});
+///
+
+var world = mdp.world;
 
 var utilityTablePrior = function(){
   var baseUtilityTable = {
@@ -173,8 +279,8 @@ var utilityTablePrior = function(){
        favourite: 'noodle' }]
   );
 };
-var alpha = 1000;
-var observedStateAction = [[{
+
+var observedTrajectory = [[{
   loc: [3, 1],
   timeLeft: 11,
   terminateAfterAction: false
@@ -186,13 +292,17 @@ var posterior = Infer({ model() {
   var utility = makeRestaurantUtilityFunction(world, utilityTable);
   var favourite = utilityTableAndFavourite.favourite;
 
-  var params = { utility, alpha };
-  var agent  = makeMDPAgent(params, world);
+  var agent  = makeMDPAgent({ utility, alpha: 2 }, world);
   var act = agent.act;
-  // For each observed state-action pair, compute likekihood of action
-  map(function(stateAction){
-    observe(act(stateAction[0]), stateAction[1]);
-  }, observedStateAction);
+  
+  // For each observed state-action pair, factor on likelihood of action
+  map(
+    function(stateAction){
+      var state = stateAction[0];
+      var action = stateAction[1];
+      observe(act(state), action);
+    }, 
+    observedTrajectory);
 
   return { favourite };
 }});
@@ -206,31 +316,74 @@ Actually, this is not quite right. If we wait long enough, the agent's softmax n
 
 Unidentifiability is a frequent problem when inferring an agent's beliefs or utilities from realistic datasets. First, agents with low noise reliably avoid inferior states (as in the present example) and so their actions provide little information about the relative utilities among the inferior states. Second, using richer agent models means there are more possible explanations of the same behavior. For example, agents with high softmax noise or with false beliefs might go to a restaurant even if they don't prefer it. One general approach to the problem of unidentifiability in IRL is **active learning**. Instead of passively observing the agent's actions, you select a sequence of environments that will be maximally informative about the agent's preferences. For recent work covering both the nature of unidentifiability in IRL as well as the active learning approach, see reft:amin2016towards. 
 
-
 ### Example: Inferring The Cost of Time and Softmax Noise
+
 The previous examples assumed that the agent's `timeCost` (the negative utility of each timestep before the agent reaches a restaurant) and the softmax $$\alpha$$ were known. We can modify the above example to include them in inference.
 
 ~~~~
 // infer_utilities_timeCost_softmax_noise
+///fold: create restaurant choice MDP, donutSouthTrajectory
+var ___ = ' '; 
+var DN = { name : 'Donut N' };
+var DS = { name : 'Donut S' };
+var V = { name : 'Veg' };
+var N = { name : 'Noodle' };
 
-var world = makeRestaurantChoiceMDP();
+var gridFeatures = [
+  ['#', '#', '#', '#',  V , '#'],
+  ['#', '#', '#', ___, ___, ___],  
+  ['#', '#', DN , ___, '#', ___],
+  ['#', '#', '#', ___, '#', ___],
+  ['#', '#', '#', ___, ___, ___],
+  ['#', '#', '#', ___, '#',  N ],
+  [___, ___, ___, ___, '#', '#'],
+  [DS , '#', '#', ___, '#', '#']
+];
+
+var mdp = makeGridWorldMDP({
+  gridFeatures,
+  noReverse: true,
+  maxTimeAtRestaurant: 2,
+  startingLocation: [3, 1],
+  totalTime: 11
+});
+
+var donutSouthTrajectory = [
+  [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"l"],
+  [{"loc":[2,1],"terminateAfterAction":false,"timeLeft":10,"previousLoc":[3,1]},"l"],
+  [{"loc":[1,1],"terminateAfterAction":false,"timeLeft":9,"previousLoc":[2,1]},"l"],
+  [{"loc":[0,1],"terminateAfterAction":false,"timeLeft":8,"previousLoc":[1,1]},"d"],
+  [{"loc":[0,0],"terminateAfterAction":false,"timeLeft":7,"previousLoc":[0,1],"timeAtRestaurant":0},"l"],
+  [{"loc":[0,0],"terminateAfterAction":true,"timeLeft":7,"previousLoc":[0,0],"timeAtRestaurant":1},"l"]
+];
+///
+
+var world = mdp.world;
+
+
+// Priors
 
 var utilityTablePrior = function() {
   var foodValues = [0, 1, 2];
   var timeCostValues = [-0.1, -0.3, -0.6];
   var donut = uniformDraw(foodValues);
-
   return {
     'Donut N': donut,
     'Donut S': donut,
     'Veg': uniformDraw(foodValues),
     'Noodle': uniformDraw(foodValues),
-    'timeCost': uniformDraw(timeCostValues)};
+    'timeCost': uniformDraw(timeCostValues)
+  };
 };
 
-var alphaPrior = function(){ return uniformDraw([.1, 1, 10, 100]); };
+var alphaPrior = function(){ 
+  return uniformDraw([.1, 1, 10, 100]);
+};
 
-var posterior = function(observedStateActionSequence){
+
+// Condition on observed trajectory
+
+var posterior = function(observedTrajectory){
   return Infer({ model() {
     var utilityTable = utilityTablePrior();
     var alpha = alphaPrior();
@@ -241,14 +394,14 @@ var posterior = function(observedStateActionSequence){
     var agent = makeMDPAgent(params, world);
     var act = agent.act;
 
-    var donutBest = (
-      utilityTable['Donut N'] >= utilityTable['Veg'] && 
-      utilityTable['Donut N'] >= utilityTable['Noodle']);
-
-    // For each observed state-action pair, compute likekihood of action
-    map(function(stateAction){
-      observe(act(stateAction[0]), stateAction[1]);
-    }, observedStateActionSequence);
+    // For each observed state-action pair, factor on likelihood of action
+    map(
+      function(stateAction){
+        var state = stateAction[0];
+        var action = stateAction[1]
+        observe(act(state), action);
+      }, 
+      observedTrajectory);
 
     // Compute whether Donut is preferred to Veg and Noodle
     var donut = utilityTable['Donut N'];
@@ -264,21 +417,13 @@ var posterior = function(observedStateActionSequence){
   }});
 };
 
-var observedStateActionSequence = restaurantNameToObservationTime11.donutSouth;
-
-var prior = posterior([]);
-var variables = ['donutFavorite', 'alpha', 'timeCost'];
-
 print('Prior:');
-map(function(variableName) {
-  viz(getMarginalObject(prior, variableName));
-}, variables);
+var prior = posterior([]);
+viz.marginals(prior);
 
 print('Conditioning on one action:');
-var posterior = posterior(observedStateActionSequence.slice(0,1));
-map(function(variableName) {
-  viz(getMarginalObject(posterior, variableName));
-}, variables);
+var posterior = posterior(donutSouthTrajectory.slice(0, 1));
+viz.marginals(posterior);
 ~~~~
 
 <!-- TODO: plot prior and posterior on same axes -->
@@ -339,10 +484,6 @@ var posterior = function(observedStateActionSequence){
     var agent = makeMDPAgent(params, world);
     var act = agent.act;
 
-    var donutBest = (
-      utilityTable['Donut N'] >= utilityTable['Veg'] && 
-      utilityTable['Donut N'] >= utilityTable['Noodle']);
-
     // For each observed state-action pair, compute likekihood of action
     map(function(stateAction){
       observe(act(stateAction[0]), stateAction[1]);
@@ -365,19 +506,13 @@ var posterior = function(observedStateActionSequence){
 var observedSequence1 = restaurantNameToObservationTime11['naive'];
 var observedSequence2 = restaurantNameToObservationTime11['donutSouth'];
 
-var prior = posterior([]);
-var variables = ['donutFavorite', 'alpha', 'timeCost'];
-
 print('Prior:');
-map(function(variableName) {
-  viz(getMarginalObject(prior, variableName));
-}, variables);
+var prior = posterior([]);
+viz.marginals(prior);
 
 print('Posterior');
 var posterior = posterior(observedSequence1.concat(observedSequence2));
-map(function(variableName) {
-  viz(getMarginalObject(posterior, variableName));
-}, variables);
+viz.marginals(posterior);
 ~~~~
 <!-- TODO: plot prior and posterior on same axes -->
 

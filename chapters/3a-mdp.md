@@ -11,11 +11,29 @@ The [previous chapter](/chapters/3-agents-as-programs.html) introduced agent mod
 As a simple illustration of a sequential decision problem, suppose that an agent, Bob, is looking for a place to eat. Bob gets out of work in a particular location (indicated below by the blue circle). He knows the streets and the restaurants nearby. His decision problem is to take a sequence of actions such that (a) he eats at a restaurant he likes and (b) he does not spend too much time walking. Here is a visualization of the street layout. The labels refer to different types of restaurants: a chain selling Donuts, a Vegetarian Salad Bar and a Noodle Shop. 
 
 ~~~~
-// We use the webppl-agents library
-var world = makeRestaurantChoiceMDP();
-var startState = restaurantChoiceStart;
+var ___ = ' '; 
+var DN = { name : 'Donut N' };
+var DS = { name : 'Donut S' };
+var V = { name : 'Veg' };
+var N = { name : 'Noodle' };
 
-GridWorld.draw(world, { trajectory : [ startState ] });
+var gridFeatures = [
+  ['#', '#', '#', '#',  V , '#'],
+  ['#', '#', '#', ___, ___, ___],
+  ['#', '#', DN , ___, '#', ___],
+  ['#', '#', '#', ___, '#', ___],
+  ['#', '#', '#', ___, ___, ___],
+  ['#', '#', '#', ___, '#',  N ],
+  [___, ___, ___, ___, '#', '#'],
+  [DS , '#', '#', ___, '#', '#']
+];
+
+var mdp = makeGridWorldMDP({
+  gridFeatures,
+  startingLocation: [3, 1],
+});
+
+GridWorld.draw(mdp.world, { trajectory : [ mdp.startState ] });
 ~~~~
 
 
@@ -338,15 +356,44 @@ We extend the agent model above by adding a `terminateAfterAction` to certain st
 <!-- TODO try to simplify the code above or explain a bit more about how webppl-agents and gridworld stuff works -->
 
 ~~~~
-// We use the webppl-agents library
+///fold: Restaurant constants, tableToUtilityFunction
 
+var ___ = ' '; 
+var DN = { name : 'Donut N' };
+var DS = { name : 'Donut S' };
+var V = { name : 'Veg' };
+var N = { name : 'Noodle' };
+
+var tableToUtilityFunction = function(table, feature) {
+  return function(state, action) {
+    var stateFeatureName = feature(state).name;
+    return stateFeatureName ? table[stateFeatureName] : table.timeCost;
+  };
+};
+///
 
 // Construct world
 
-var world = makeRestaurantChoiceMDP();
+var gridFeatures = [
+  ['#', '#', '#', '#',  V , '#'],
+  ['#', '#', '#', ___, ___, ___],
+  ['#', '#', DN , ___, '#', ___],
+  ['#', '#', '#', ___, '#', ___],
+  ['#', '#', '#', ___, ___, ___],
+  ['#', '#', '#', ___, '#',  N ],
+  [___, ___, ___, ___, '#', '#'],
+  [DS , '#', '#', ___, '#', '#']
+];
+
+var mdp = makeGridWorldMDP({
+  gridFeatures,
+  startingLocation: [3, 1],
+  totalTime: 9
+});
+
+var world = mdp.world;
 var transition = world.transition;
 var stateToActions = world.stateToActions;
-var gridLocationToRestaurant = world.feature;
 
 
 // Construct utility function
@@ -359,14 +406,7 @@ var utilityTable = {
   'timeCost': -0.1
 };
 
-var tableToUtilityFunction = function(table, feature) {
-  return function(state, action) {
-    var stateFeatureName = feature(state).name;
-    return stateFeatureName ? table[stateFeatureName] : table.timeCost;
-  };
-};
-
-var utility = tableToUtilityFunction(utilityTable, gridLocationToRestaurant);
+var utility = tableToUtilityFunction(utilityTable, world.feature);
 
 
 // Construct agent
@@ -414,15 +454,9 @@ var simulate = function(state) {
   }
 };
 
-var startState = {
-  loc: [3, 1],
-  timeLeft: 9,
-  timeAtRestaurant: 1
-};
+var trajectory = simulate(mdp.startState);
 
-var trajectory = simulate(startState);
-
-GridWorld.draw(world, {trajectory: map(first, trajectory)});
+GridWorld.draw(world, { trajectory: map(first, trajectory) });
 ~~~~
 
 >**Exercise**: Change the utility table such that the agent goes to `Donut S`. What ways are there to accomplish this outcome?
