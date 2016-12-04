@@ -1,4 +1,4 @@
-var numArms = 2;
+var numArms = 10;
 
 var squishToProbSimplex = function(v, d) {
   var v_ = T.softmax(T.concat(v, Vector([0])));
@@ -6,21 +6,13 @@ var squishToProbSimplex = function(v, d) {
 };
 
 var meanRewards = map(
-  function(i) { return (i === 0) ? 10 : 0; },
+  function(i) { return (i === 7) ? 10 : 0; },
   _.range(numArms));
 
-// FIXME: This needs to be wrapped up as a black-box function (so that
-// we don't try to fit a guide to the Gaussian), but wrapping it in
-// Infer doesn't do the trick ("Cannot automatically generate a guide
-// for a SampleBasedMarginal distribution.")
 var utility = function(action) {
-  return sample(Infer({
-    method: 'forward',
-    model() {
-      var mu = meanRewards[action];
-      var u = sample(Gaussian({ mu, sigma: 0.01 }));
-      return u;
-    }}));
+  var mu = meanRewards[action];
+  var u = Gaussian({ mu, sigma: 0.01 }).sample();
+  return u;
 };
 
 var model = function() {
@@ -31,6 +23,6 @@ var model = function() {
   return action;
 };
 
-var params = Optimize({ model, steps: 1000 });
+var params = Optimize({ model, steps: 10000 });
 
 squishToProbSimplex(params.ps[0], numArms).toArray();
