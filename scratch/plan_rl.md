@@ -8,7 +8,7 @@ The previous chapter introduced POMDPs: decision problems where some features of
 The previous chapter showed how the optimal POMDP agent solves Bandit problems. Here we apply Reinforcement Learning to Bandits.
 
 ### Softmax Greedy Agent
-First, we consider a "greedy" agent with softmax noise. This agent updates beliefs about the hidden state in the same way as the POMDP agent. Yet instead of making sequential plans that balance exploration (e.g. making informative observations) with exploitation (gaining high reward), the Greedy agent simply takes the action with highest immediate expected return[^greedy]. Here we implement the Greedy agent on Bernoulli Bandits. 
+First, we consider a "greedy" agent with softmax noise. This agent updates beliefs about the hidden state in the same way as the POMDP agent. Yet instead of making sequential plans that balance exploration (e.g. making informative observations) with exploitation (gaining high reward), the Greedy agent takes the action with highest *immediate* expected return[^greedy]. Here we implement the Greedy agent on Bernoulli Bandits:
 
 [^greedy]:In a later chapter, we implement a more general Greedy/Myopic agent by extending the POMDP agent. Here we implement the Greedy agent from scratch and apply it to Bernoulli Bandits.
 
