@@ -1,14 +1,23 @@
 ---
 layout: chapter
-title: "Reinforcement Learning: learning MDPs"
+title: "Reinforcement Learning to Learn MDPs"
 description: RL vs. optimal Bayesian approach to Bandits, Softmax Greedy, Posterior Sampling for Bandits and MDPs, Q-learning and Policy Gradient
 ---
 
+## Introduction
 
- 
-## Introduction: Reinforcement Learning
+The previous chapter introduced POMDPs: decision problems where some features of the environment are initially unknown to the agent but can be learned by observation. We showed how to compute optimal Bayesian behavior for POMDPs. Unfortunately, this computation is infeasible for all but the simplest POMDPs. In practice, many POMDP problems can be solved heuristically using "Reinforcement Learning" (RL). RL algorithms are conceptually simple, scalable and effective both in discrete and continuous state spaces. They are central to achieving state-of-the-art performance in sequential decision problems in AI, e.g. in playing Go [cite], in playing videogames from raw pixels [cite], and in robotic control [cite]. 
 
-Softmax Greedy. Simplified, specialized version:
+## Reinforcement Learning for Bandits
+The previous chapter showed how the optimal POMDP agent solves Bandit problems. Here we apply Reinforcement Learning to Bandits.
+
+### Softmax Greedy Agent
+We start with a "greedy" agent with softmax noise, which is similar to the well-known "Epsilon Greedy" agent for Bandits. The Softmax Greedy agent updates beliefs about the hidden state in the same way as the POMDP agent. Yet instead of making sequential plans that balance exploration (e.g. making informative observations) with exploitation (gaining high reward), the Greedy agent takes the action with highest *immediate* expected return[^greedy]. Here we implement the Greedy agent on Bernoulli Bandits. We measure the agent's performance by computing the *cumulative regret* over time. The regret for an action is the difference in expected returns between the action and the objective best action[^regret].
+
+[^greedy]:In a later chapter, we implement a more general Greedy/Myopic agent by extending the POMDP agent. Here we implement the Greedy agent from scratch and apply it to Bernoulli Bandits.
+
+[^regret]:The regret is a standard frequentist metric for performance. Bayesian metrics, which take into account the agent's priors, can also be defined but are beyond the scope of this chapter. 
+
 
 ~~~~
 ///fold:
@@ -85,34 +94,45 @@ var simulate = function(armToCoinWeight, totalTime, agent) {
 
 
 // Agent params
-var alpha = 100
+var alpha = 30
 var priorBelief = Infer({  model () {
-  var p0 = uniformDraw([.1, .3, .5, .55, .7, .9]);
-  var p1 = uniformDraw([.1, .3, .5, .55, .7, .9]);
+  var p0 = uniformDraw([.1, .3, .5, .6, .7, .9]);
+  var p1 = uniformDraw([.1, .3, .5, .6, .7, .9]);
   return { 0:p0, 1:p1};
 } });
 
 // Bandit params
-var numberTrials = 300;
-var armToCoinWeight = { 0: 0.5, 1: 0.55 };
+var numberTrials = 500;
+var armToCoinWeight = { 0: 0.5, 1: 0.6 };
 
 var agent = makeGreedyBanditAgent({alpha, priorBelief});
 var trajectory = simulate(armToCoinWeight, numberTrials, agent);
+var randomTrajectory = repeat(numberTrials, function(){return uniformDraw([0,1]);})
 
-print('Number of trials: ' + numberTrials);
-print('Arms pulled: ' +  trajectory);
-
-// Display performance
+// Agent performance
 var regret = function(arm) { 
   var bestCoinWeight = _.max(_.values(armToCoinWeight))
   return bestCoinWeight - armToCoinWeight[arm];
 };
-//print(_.values(armToCoinWeight) )
-                                                                             
+          
+
+var trialToRegret = map(regret,trajectory);
+var trialToRegretRandom = map(regret, randomTrajectory)
 var ys = cumsum(map(regret, trajectory))
-viz.line(_.range(ys.length), ys);
+
+print('Number of trials: ' + numberTrials);
+print('Total regret: [Greedy, Random]', [sum(trialToRegret), sum(trialToRegretRandom)])
+print('Arms pulled: ' +  trajectory);
+
+viz.line(_.range(ys.length), ys, {xLabel:'Time', yLabel:'Cumulative regret'});
 ~~~~
 
+
+>*Exercise*:
+
+> 1. Set the softmax noise to be low. How well does the Greedy Softmax agent do? Explain why. Keeping the noise low, modify the agent's priors to be overly "optimistic" about the expected reward of each arm (without changing the support of the prior distribution). How does this optimism change the agent's performance? Explain why. (This idea is known as "optimism in the face of uncertainty" in the RL literature.)
+
+> 2. Modify the agent so that the softmax noise is low and the agent has a "bad" prior (i.e. one that assigns a low probability to the truth) that is not optimistic. Will the agent eventually learn the optimal policy? How many trials does it take on average?
 
 
 Thompson sampling:
