@@ -151,7 +151,7 @@ How well does the Greedy agent do? It does best when the difference between arms
 ### Posterior Sampling
 Posterior sampling (or "Thompson sampling") is the basis for another algorithm for Bandits. This algorithm generalizes to arbitrary discrete MDPs, as we show below. The Posterior-sampling agent updates beliefs using standard Bayesian updates. Before choosing an arm, it draws a sample from its posterior on the arm parameters and then chooses greedily given the sample. In Bandits, this is similar to Softmax Greedy but without the softmax parameter $$\alpha$$.
 
->*Exercise*:
+>**Exercise**:
 > Implement Posterior Sampling for Bandits by modifying the code above. (You only need to modify the `act` function.) Compare the performance of Posterior Sampling to Softmax Greedy, especially over large numbers of trials. Explain any differences you observe.
 
 <!-- TODO maybe we should include this code so casual readers can try it? -->
@@ -175,10 +175,10 @@ The Bandit problem is a very simple MDP with discrete actions and a single state
 
 1. *Model-based* algorithms learn an explicit representation of the MDP's transition and reward functions. These representations are used to compute a good policy. 
 
-2. *Model-free* algorithms do not explicitly represent the transition and reward functions. Instead they explicitly represent either a value function (e.g. an estimate of the $$Q*$$-function) or policy. 
+2. *Model-free* algorithms do not explicitly represent the transition and reward functions. Instead they explicitly represent either a value function (e.g. an estimate of the $$Q^*$$-function) or policy. 
 
 ### Q-learning (TD-learning)
-Q-learning is the best known RL algorithm and is model-free. A Q-learning agent stores and updates a point estimate of the expected utility of each action under the optimal policy (i.e. an estimate $$\hat{Q}(s,a)$$ for $$Q*(s,a)$$). Provided the agent takes random exploratory actions, these estimates converge in the limit (cite Watkins). In our framework, it's more natural to implement *Bayesian Q-learning* (Dearden et al), where the point estimates are replaced with Bayesian posteriors.
+Q-learning is the best known RL algorithm and is model-free. A Q-learning agent stores and updates a point estimate of the expected utility of each action under the optimal policy (i.e. an estimate $$\hat{Q}(s,a)$$ for $$Q^*(s,a)$$). Provided the agent takes random exploratory actions, these estimates converge in the limit (cite Watkins). In our framework, it's more natural to implement *Bayesian Q-learning* (Dearden et al), where the point estimates are replaced with Bayesian posteriors.
 
 The defining property of Q-learning (as opposed to SARSA or Monte-Carlo) is how it updates its Q-value estimates. After each state transition $$(s,a,r,s')$$, a new Q-value estimate is computed: <br>
 $$\hat{Q}(s,a) = r + \max_{s'}{Q(s',a')}$$
@@ -236,12 +236,14 @@ One way to think of the Restaurant Choice problem is as an *Episodic* POMDP. At 
 
 Alternatively, we could think of the Restaurant Choice problem as an episodic MDP. Initially, the agent doesn't know which restaurants are open. But once they find out there is nothing more to learn: the same restaurants are open each episode. In this kind of example, RL techniques work well and are typically what's used in practice. 
 
+<!--
 Table:
 
 Structure given / unknown        MDP                                  POMDP
  KNOWN                        Planning (Solve exactly DP)       POMDP solve (Belief MDP)
  LEARNED                      POMDP solver (exact Bayesian), RL    POMDP solve
-
+ -->
+ 
 
 ### Footnotes
 
