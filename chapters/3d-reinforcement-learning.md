@@ -112,7 +112,10 @@ var agent = makeGreedyBanditAgent({alpha, priorBelief});
 var trajectory = simulate(armToCoinWeight, numberTrials, agent);
 
 // Random agent picks arms at random
-var randomTrajectory = repeat(numberTrials, function(){return uniformDraw([0,1]);})
+var randomTrajectory = repeat(
+    numberTrials, 
+    function(){return uniformDraw([0,1]);}
+);
 
 // Agent performance
 var regret = function(arm) { 
@@ -138,9 +141,9 @@ How well does the Greedy agent do? It does best when the difference between arms
 
 <!-- TODO: repeat these experiments to make sure the exercises actually work. -->
 
->*Exercise*:
+>**Exercise**:
 
-> 1. Add some code to compute the total regret of an agent averaged across $$N$$ repeats of the same Bandit problem.
+> 1. Add some code to compute an agent's total regret averaged across $$N$$ repeats of the same Bandit problem.
 > 2. Set the softmax noise to be low. How well does the Greedy Softmax agent do? Explain why. Keeping the noise low, modify the agent's priors to be overly "optimistic" about the expected reward of each arm (without changing the support of the prior distribution). How does this optimism change the agent's performance? Explain why. (This idea is known as "optimism in the face of uncertainty" in the RL literature.)
 > 3. Modify the agent so that the softmax noise is low and the agent has a "bad" prior (i.e. one that assigns a low probability to the truth) that is not optimistic. Will the agent eventually learn the optimal policy? How many trials does it take on average?
 
@@ -150,6 +153,8 @@ Posterior sampling (or "Thompson sampling") is the basis for another algorithm f
 
 >*Exercise*:
 > Implement Posterior Sampling for Bandits by modifying the code above. (You only need to modify the `act` function.) Compare the performance of Posterior Sampling to Softmax Greedy, especially over large numbers of trials. Explain any differences you observe.
+
+<!-- TODO maybe we should include this code so casual readers can try it? -->
 
 <!-- Modified act function:
 var act = dp.cache(
@@ -163,137 +168,79 @@ var act = dp.cache(
     });
 -->
 
-<!-- old code that does Posterior Sampling on top of POMDP agent
-~~~~
-///fold: Bandit problem is defined as above
+-----------
 
-// Pull arm0 or arm1
-var actions = [0, 1, 2];
+## RL algorithms for MDPs
+The Bandit problem is a very simple MDP with discrete actions and a single state. We now consider RL algorithms for learning arbitrary discrete MDPs. The goal is typically to learn a policy that achieves high reward as quickly as possible. Algorithms are either *model-based* or *model-free*:
 
-// Use latent "armToPrize" mapping in state to
-// determine which prize agent gets
-var transition = function(state, action){
-  var newTimeLeft = state.timeLeft - 1;
-  var armER = state.armToExpectedReward[action];
-  return extend(state, {
-    score : sample(Bernoulli({p : armER })), 
-    timeLeft: newTimeLeft,
-    terminateAfterAction: newTimeLeft == 1
-  });
-};
+1. *Model-based* algorithms learn an explicit representation of the MDP's transition and reward functions. These representations are used to compute a good policy. 
 
-// After pulling an arm, agent observes associated prize
-var observe = function(state){
-  return state.score;
-};
+2. *Model-free* algorithms do not explicitly represent the transition and reward functions. Instead they explicitly represent either a value function (e.g. an estimate of the $$Q*$$-function) or policy. 
 
-// Defining the POMDP agent
+### Q-learning (TD-learning)
+Q-learning is the best known RL algorithm and is model-free. A Q-learning agent stores and updates a point estimate of the expected utility of each action under the optimal policy (i.e. an estimate $$\hat{Q}(s,a)$$ for $$Q*(s,a)$$). Provided the agent takes random exploratory actions, these estimates converge in the limit (cite Watkins). In our framework, it's more natural to implement *Bayesian Q-learning* (Dearden et al), where the point estimates are replaced with Bayesian posteriors.
 
-// Agent params include utility function and initial belief (*priorBelief*)
+The defining property of Q-learning (as opposed to SARSA or Monte-Carlo) is how it updates its Q-value estimates. After each state transition $$(s,a,r,s')$$, a new Q-value estimate is computed: <br>
+$$\hat{Q}(s,a) = r + \max_{s'}{Q(s',a')}$$
 
-var makeAgent = function(params) {
-  var utility = params.utility;
+CODEBOX: Bayesian Q-learning. Apply to gridworld where goal is to get otherside of the and maybe there are some obstacles. For small enough gridworld, POMDP agent will be quicker.
 
-  // Implements *Belief-update formula* in text
-  var updateBelief = function(belief, observation, action){
-    return Infer({ model() {
-      var state = sample(belief);
-      var predictedNextState = transition(state, action);
-      var predictedObservation = observe(predictedNextState);
-      condition(_.isEqual(predictedObservation, observation));
-      return predictedNextState;
-    }});
-  };
+Note that Q-learning works for continuous state spaces. 
 
-  var act = dp.cache(
-    function(belief) {
-      var thompsonState = sample(belief);
-      return Infer({ model() {
-        var action = uniformDraw(actions);
+### Policy Gradient
+<!-- - Directly represent the policy. Stochastic function from states to actions. (Can put prior over that the params of stochastic function. Then do variational inference (optimization) to find params that maximize score.)
 
-        factor(1000 * utility(thompsonState, action));
-        return action;
-      }});
-    });
-
-  return { params, act, updateBelief };
-};
-
-var cumsum = function (xs) {
-  var acf = function (n, acc) { return acc.concat( (acc.length > 0 ? acc[acc.length-1] : 0) + n); }
-  return reduce(acf, [], xs.reverse());
-}
-
-var simulate = function(startState, agent) {
-  var act = agent.act;
-  var updateBelief = agent.updateBelief;
-  var priorBelief = agent.params.priorBelief;
-
-  var sampleSequence = function(state, priorBelief, action) {
-    var observation = observe(state);
-    var belief = ((action === 'noAction') ? priorBelief : 
-                  updateBelief(priorBelief, observation, action));
-    var action = sample(act(belief));
-    var output = [[state, action]];
-
-    if (state.terminateAfterAction){
-      return output;
-    } else {
-      var nextState = transition(state, action);
-      return output.concat(sampleSequence(nextState, belief, action));
-    }
- 
-  };
-  // Start with agent's prior and a special "null" action
-  return sampleSequence(startState, priorBelief, 'noAction');
-};
-
-
-
-//-----------
-// Construct the agent
-
-var utility = function(state, action) {
-  return state.armToExpectedReward[action];
-};
-
-
-// Define true startState (including true *armToPrize*) and
-// alternate possibility for startState (see Figure 2)
-
-var numberTrials = 100;
-var startState = { 
-  score: 0,
-  timeLeft: numberTrials + 1, 
-  terminateAfterAction: false,
-  armToExpectedReward: [0.3, .5, 0.9]
-};
-
-var regret = function (a) { return .9 - utility(startState, a); }
-
-// Agent's prior
-var priorBelief = Infer({  model () {
-  var p0 = uniformDraw([.1, .3, .5, .7, .9]);
-  var p1 = uniformDraw([.1, .3, .5, .7, .9]);
-  var p2 = uniformDraw([.1, .3, .5, .7, .9]);
-
-  return extend(startState, { armToExpectedReward :  [p0, p1, p2] });
-} });
-
-
-var params = { utility: utility, priorBelief: priorBelief };
-var agent = makeAgent(params);
-var trajectory = simulate(startState, agent);
-
-print('Number of trials: ' + numberTrials);
-print('Arms pulled: ' +  map(second, trajectory));
-
-var ys = cumsum(map(regret, map(second, trajectory)))
-viz.line(_.range(ys.length), ys);
-~~~~
-
+Applied to Bandits. The policy is just a multinomial probability for each arm. You run the policy. Then take gradient in direction that improves the policy. (Variational approximaton will be exact in this case.) Gridworld example of get from top left to bottom right (not knowing initially where the goal state is located). You are learning a distribution over actions in these discrete location. So you have a multinomial for each state.
 -->
 
+### Posterior Sampling Reinforcement Learning (PSRL)
+
+Posterior Sampling Reinforcemet Learning (PSRL) is a model-based algorithm that generalizes posterior-sampling for Bandits to discrete, finite-horizon MDPs (cite Strens). The agent is initialized with a Bayesian prior distribution on the reward function $$R$$ and transition function $$T$$ and for every episode proceeds as follows:
+
+> 1. Sample $$R$$ and $$T$$ (a "model") from the distribution. Compute the optimal policy for this model and follow that policy until the episode ends (while storing all experiences during the episode). 
+
+> 2. Update the distribution on $$R$$ and $$T$$ on the experiences during the episode using Bayes Rule. 
+
+Intuition for PSRL: if very confident, agent mainly exploit a model. If unconfident then will act as if different models are true. if one plausible model says that certain states have high reward when they in fact don't, agent will sample that model and visit those states and discover that they suck. after this, the agent will update and won't consider those models again. 
+
+Implementation. Start by defining a distribution on R only. Det version: each in gridworld either has zero/one reward. Aim to find the state with reward one. We then run agent for many episodes. (Think about display for this). Compare Q-learning on this problem. 
+
+Gridworld maze: Agent is in a maze in perfect darkness. Each square could be wall or not with even probability. Agent has to learn how to escape. Maze could be fairly big but want a fairly short way out. Model for T. 
+
+Clumpy reward model. Gridworld with hot and cold regions that clump. Agent starts in a random location. If you assume clumpiness, then agent will go first to unvisited states in good clumps. Otherwise, when they start in new places they'll explore fairly randomly. Could we make a realistic example like this? (Once you find some bad spots in one region. You don't explore anywhere near there for a long time. That might be interesting to look at. Could have some really cold regions near the agent.
+
+Simple version: agent starts in the middle. Has enough time to go to a bunch of different regions. Regions are clumped in terms of reward. Could think of this a city, cells with reward are food places. There are tourist areas with lots of bad food, foodie areas with good food, and some places with not much food. Agent without clumping tries some bad regions first and keeps going back to try all the places in those regions. Agent with clumping tries them once and then avoids. 
+
+
+<!-- ### RL and Inferring Preferences
+
+Most IRL is actually inverse planning in an MDP. Assumption is that it's an MDP and human already knows R and T. Paper on IRL for POMDPs: assume agent knows POMDP structure. Much harder inference problem. 
+
+We have discussion of biases that humans have: hyperbolic discounting, bounded planning. These are relevant even if human knows structure of world and is just trying to plan. But often humans don't know structure of world. Better to think of world as RL problem where MDP or POMDP also is being learned. Problem is that there are many RL algorithms, they generally involve lots of randomness or arbitrary parameters. So hard to make precise predictions. Need to coarsen. Show example of this with Thompson sampling for Bandits. 
+
+Could discuss interactive RL. Multi-agent case. It's beyond scope of modeling.
+-->
+
+
+----------
+
+## Appendix: POMDP agent vs. RL agent
+
+First consider the Bandit problem. The POMDP agent is slow (polynomial in number of trials and exponential in # arms? ). The RL agent is almost always used in practical Bandit problems. The optimal POMDP agent solves a harder problem. It computes what to do for any possible sequence of observations. This means the POMDP agent, after computing a policy once, could immediately take the optimal action given any sequence of observations without doing any more computation. By contrast, RL agents store information only about the present Bandit problem -- and in most Bandit problems this is all we care about. 
+
+General MDPs. The previous chapter introduced a POMDP version of the Restaurant problem in Gridworld, where the agent doesn't know initially if each restaurant is open or closed. How would RL agents compare to POMDP agents on this problem?
+
+One way to think of the Restaurant Choice problem is as an *Episodic* POMDP. At the start of each episode, the agent is uncertain about which restaurants are open or closed. Over repeated episodes, they learn about the *distribution* on restaurants being open but they never know for sure (since restaurants might close down or vary their hours) and so they may need to update their beliefs on any given episode. (A similar example in the POMDP literature is the Tiger Problem.) This kind of problem is ill-suited to standard RL algorithms. Such algorithms assume that the hidden state is an MDP that is fixed across all episodes. POMDP algorithms, on the other hand, take into account the fact that there is new (but observable) hidden state every episode.
+
+<!-- The general learning problem: there is some state that's initially unknown and fixed across episodes and some state that's random across episodes but observable. A POMDP agent should be able to learn both of these -->
+
+Alternatively, we could think of the Restaurant Choice problem as an episodic MDP. Initially, the agent doesn't know which restaurants are open. But once they find out there is nothing more to learn: the same restaurants are open each episode. In this kind of example, RL techniques work well and are typically what's used in practice. 
+
+Table:
+
+Structure given / unknown        MDP                                  POMDP
+ KNOWN                        Planning (Solve exactly DP)       POMDP solve (Belief MDP)
+ LEARNED                      POMDP solver (exact Bayesian), RL    POMDP solve
 
 
 ### Footnotes
