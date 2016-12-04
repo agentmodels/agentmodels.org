@@ -25,7 +25,8 @@ var cumsum = function (xs) {
   var acf = function (n, acc) { return acc.concat( (acc.length > 0 ? acc[acc.length-1] : 0) + n); }
   return reduce(acf, [], xs.reverse());
   }
-  ///
+  
+///
   
 
 // Define Bandit problem
