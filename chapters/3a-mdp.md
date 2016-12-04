@@ -17,7 +17,7 @@ var DS = { name: 'Donut S' };
 var V = { name: 'Veg' };
 var N = { name: 'Noodle' };
 
-var gridFeatures = [
+var grid = [
   ['#', '#', '#', '#',  V , '#'],
   ['#', '#', '#', ___, ___, ___],
   ['#', '#', DN , ___, '#', ___],
@@ -28,10 +28,7 @@ var gridFeatures = [
   [DS , '#', '#', ___, '#', '#']
 ];
 
-var mdp = makeGridWorldMDP({
-  gridFeatures,
-  startingLocation: [3, 1],
-});
+var mdp = makeGridWorldMDP({ grid, start: [3, 1] });
 
 viz.gridworld(mdp.world, { trajectory : [mdp.startState] });
 ~~~~
@@ -373,7 +370,7 @@ var tableToUtilityFunction = function(table, feature) {
 
 // Construct world
 
-var gridFeatures = [
+var grid = [
   ['#', '#', '#', '#',  V , '#'],
   ['#', '#', '#', ___, ___, ___],
   ['#', '#', DN , ___, '#', ___],
@@ -385,8 +382,8 @@ var gridFeatures = [
 ];
 
 var mdp = makeGridWorldMDP({
-  gridFeatures,
-  startingLocation: [3, 1],
+  grid,
+  start: [3, 1],
   totalTime: 9
 });
 

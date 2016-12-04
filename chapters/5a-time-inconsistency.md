@@ -212,7 +212,7 @@ var DS = { name : 'Donut S' };
 var V = { name : 'Veg' };
 var N = { name : 'Noodle' };
 
-var gridFeatures = [
+var grid = [
   ['#', '#', '#', '#',  V , '#'],
   ['#', '#', '#', ___, ___, ___],
   ['#', '#', DN , ___, '#', ___],
@@ -224,10 +224,10 @@ var gridFeatures = [
 ];
 
 var mdp = makeGridWorldMDP({
-  gridFeatures,
+  grid,
   noReverse: true,
   maxTimeAtRestaurant: 2,
-  startingLocation: [3, 1],
+  start: [3, 1],
   totalTime: 11
 });
 ///
@@ -245,7 +245,7 @@ var DS = { name : 'Donut S' };
 var V = { name : 'Veg' };
 var N = { name : 'Noodle' };
 
-var gridFeatures = [
+var grid = [
   ['#', '#', '#', '#',  V , '#'],
   ['#', '#', '#', ___, ___, ___],
   ['#', '#', DN , ___, '#', ___],
@@ -257,10 +257,10 @@ var gridFeatures = [
 ];
 
 var mdp = makeGridWorldMDP({
-  gridFeatures,
+  grid,
   noReverse: true,
   maxTimeAtRestaurant: 2,
-  startingLocation: [3, 1],
+  start: [3, 1],
   totalTime: 11
 });
 
@@ -286,7 +286,7 @@ var DS = { name : 'Donut S' };
 var V = { name : 'Veg' };
 var N = { name : 'Noodle' };
 
-var gridFeatures = [
+var grid = [
   ['#', '#', '#', '#',  V , '#'],
   ['#', '#', '#', ___, ___, ___],
   ['#', '#', DN , ___, '#', ___],
@@ -298,10 +298,10 @@ var gridFeatures = [
 ];
 
 var mdp = makeGridWorldMDP({
-  gridFeatures,
+  grid,
   noReverse: true,
   maxTimeAtRestaurant: 2,
-  startingLocation: [3, 1],
+  start: [3, 1],
   totalTime: 11
 });
 

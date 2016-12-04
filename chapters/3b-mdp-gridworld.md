@@ -22,7 +22,7 @@ var W = { name: 'West' };
 var E = { name: 'East' };
 var ___ = ' ';
 
-var gridFeatures = [
+var grid = [
   [___, ___, ___, ___, ___],
   [___, '#', ___, ___, ___],
   [___, '#',  W , '#',  E ],
@@ -30,9 +30,9 @@ var gridFeatures = [
   [ H ,  H ,  H ,  H ,  H ]
 ];
 
-var startingLocation = [0, 1];
+var start = [0, 1];
 
-var mdp = makeGridWorldMDP({ gridFeatures, startingLocation });
+var mdp = makeGridWorldMDP({ grid, start });
 
 viz.gridworld(mdp.world, { trajectory: [mdp.startState] });
 ~~~~
@@ -99,18 +99,18 @@ var makeHikeMDP = function(options) {
   var W = { name: 'West' };
   var E = { name: 'East' };
   var ___ = ' ';
-  var gridFeatures = [
+  var grid = [
     [___, ___, ___, ___, ___],
     [___, '#', ___, ___, ___],
     [___, '#',  W , '#',  E ],
     [___, ___, ___, ___, ___],
     [ H ,  H ,  H ,  H ,  H ]
   ];
-  return makeGridWorldMDP(_.assign({ gridFeatures }, options));
+  return makeGridWorldMDP(_.assign({ grid }, options));
 };
 
 var mdp = makeHikeMDP({
-  startingLocation: [0, 1],
+  start: [0, 1],
   totalTime: 12,
   transitionNoiseProbability: 0
 });
@@ -160,21 +160,21 @@ var makeHikeMDP = function(options) {
   var W = { name: 'West' };
   var E = { name: 'East' };
   var ___ = ' ';
-  var gridFeatures = [
+  var grid = [
     [___, ___, ___, ___, ___],
     [___, '#', ___, ___, ___],
     [___, '#',  W , '#',  E ],
     [___, ___, ___, ___, ___],
     [ H ,  H ,  H ,  H ,  H ]
   ];
-  return makeGridWorldMDP(_.assign({ gridFeatures }, options));
+  return makeGridWorldMDP(_.assign({ grid }, options));
 };
 ///
 
 // Set up world
 
 var mdp = makeHikeMDP({
-  startingLocation: [0, 1],
+  start: [0, 1],
   totalTime: 13,
   transitionNoiseProbability: 0.1  // <- NEW
 });
@@ -235,18 +235,18 @@ var makeHikeMDP = function(options) {
   var W = { name: 'West' };
   var E = { name: 'East' };
   var ___ = ' ';
-  var gridFeatures = [
+  var grid = [
     [___, ___, ___, ___, ___],
     [___, '#', ___, ___, ___],
     [___, '#',  W , '#',  E ],
     [___, ___, ___, ___, ___],
     [ H ,  H ,  H ,  H ,  H ]
   ];
-  return makeGridWorldMDP(_.assign({ gridFeatures }, options));
+  return makeGridWorldMDP(_.assign({ grid }, options));
 };
 
 var mdp = makeHikeMDP({
-  startingLocation: [0, 1],
+  start: [0, 1],
   totalTime: 13,
   transitionNoiseProbability: 0.1
 });
@@ -297,20 +297,20 @@ var makeHikeMDP = function(options) {
   var W = { name: 'West' };
   var E = { name: 'East' };
   var ___ = ' ';
-  var gridFeatures = [
+  var grid = [
     [___, ___, ___, ___, ___],
     [___, '#', ___, ___, ___],
     [___, '#',  W , '#',  E ],
     [___, ___, ___, ___, ___],
     [ H ,  H ,  H ,  H ,  H ]
   ];
-  return makeGridWorldMDP(_.assign({ gridFeatures }, options));
+  return makeGridWorldMDP(_.assign({ grid }, options));
 };
 ///
 
 // Parameters for world
 var mdp = makeHikeMDP({
-  startingLocation: [1, 1],  // Previously: [0, 1]
+  start: [1, 1],  // Previously: [0, 1]
   totalTime: 11,             // Previously: 12
   transitionNoiseProbability: 0.1
 });
@@ -340,7 +340,7 @@ var makeBigHikeMDP = function(options) {
   var W = { name: 'West' };
   var E = { name: 'East' };
   var ___ = ' ';
-  var gridFeatures = [
+  var grid = [
     [___, ___, ___, ___, ___, ___],
     [___, ___, ___, ___, ___, ___],
     [___, ___, '#', ___, ___, ___],
@@ -348,7 +348,7 @@ var makeBigHikeMDP = function(options) {
     [___, ___, ___, ___, ___, ___],
     [ H ,  H ,  H ,  H ,  H ,  H ]
   ];
-  return makeGridWorldMDP(_.assign({ gridFeatures }, options));
+  return makeGridWorldMDP(_.assign({ grid }, options));
 };
 
 // trajectory must consist only of states. This can be done by calling
@@ -369,7 +369,7 @@ var getExpectedUtilitiesMDP = function(stateTrajectory, world, agent) {
 // Long route is better, agent takes long route
 
 var mdp = makeBigHikeMDP({
-  startingLocation: [1, 1],
+  start: [1, 1],
   totalTime: 12,
   transitionNoiseProbability: 0.03
 });

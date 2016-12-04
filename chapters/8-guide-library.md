@@ -78,9 +78,6 @@ The transition function must also decrement the time. States are objects with a 
 
 >`{terminateAfterAction: false, timeLeft:5, loc:0}`
 
-NB: The library uses the term "world" in place of "environment".
-
-
 ~~~~
 // helper function that decrements time and triggers termination when
 // time elapsed
@@ -295,20 +292,14 @@ var makeSimpleGridWorld = function() {
   // '#' indicates a wall, and ' ' indicates a normal cell
   var ___ = ' ';
 
-  var features = [
+  var grid = [
     [___, ___, ___],
     ['#', '#', ___],
     ['#', '#', ___],
     [___, ___, ___]
   ];
 
-  // Set the transition noise to zero
-  var options = {
-    gridFeatures: features,
-    transitionNoiseProbability: 0
-  };
-
-  return makeGridWorldMDP(options)
+  return makeGridWorldMDP({ grid, transitionNoiseProbability: 0 })
 };
 
 var simpleGridWorld = makeSimpleGridWorld();
@@ -334,20 +325,14 @@ var makeSimpleGridWorld = function() {
   // '#' indicates a wall, and ' ' indicates a normal cell
   var ___ = ' ';
 
-  var features = [
-    [ ___, ___, ___],
-    [ '#', '#', ___],
-    [ '#', '#', ___],
-    [ ___, ___, ___]
+  var grid = [
+    [___, ___, ___],
+    ['#', '#', ___],
+    ['#', '#', ___],
+    [___, ___, ___]
   ];
 
-  // Set the transition noise to zero
-  var options = {
-    gridFeatures: features,
-    transitionNoiseProbability: 0
-  };
-
-  return makeGridWorldMDP(options)
+  return makeGridWorldMDP({ grid, transitionNoiseProbability: 0 })
 };
 
 var simpleGridWorld = makeSimpleGridWorld();
@@ -383,7 +368,7 @@ var makeSimpleGridWorld = function() {
   var G = { name: 'gold' };
   var S = { name: 'silver' };
 
-  var features = [
+  var grid = [
     [ G , ___, ___],
     [ S , ___, ___],
     ['#', '#', ___],
@@ -391,13 +376,7 @@ var makeSimpleGridWorld = function() {
     [___, ___, ___]
   ];
 
-  // Set the transition noise to zero
-  var options = {
-    gridFeatures: features,
-    transitionNoiseProbability: 0
-  };
-
-  return makeGridWorldMDP(options)
+  return makeGridWorldMDP({ grid, transitionNoiseProbability: 0 })
 };
 
 var simpleGridWorld = makeSimpleGridWorld();
@@ -451,7 +430,7 @@ var makeSimpleGridWorld = function() {
   var G = { name: 'gold' };
   var S = { name: 'silver' };
 
-  var features = [
+  var grid = [
     [ G , ___, ___],
     [ S , ___, ___],
     ['#', '#', ___],
@@ -459,13 +438,7 @@ var makeSimpleGridWorld = function() {
     [___, ___, ___]
   ];
 
-  // Set the transition noise to zero
-  var options = {
-    gridFeatures: features,
-    transitionNoiseProbability: 0
-  };
-
-  return makeGridWorldMDP(options)
+  return makeGridWorldMDP({ grid, transitionNoiseProbability: 0 })
 };
 
 var simpleGridWorld = makeSimpleGridWorld();
@@ -512,7 +485,7 @@ var makeSimpleGridWorld = function() {
   var G = { name: 'gold' };
   var S = { name: 'silver' };
 
-  var features = [
+  var grid = [
     [ G , ___, ___],
     [ S , ___, ___],
     ['#', '#', ___],
@@ -520,13 +493,7 @@ var makeSimpleGridWorld = function() {
     [___, ___, ___]
   ];
 
-  // Set the transition noise to zero
-  var options = {
-    gridFeatures: features,
-    transitionNoiseProbability: 0
-  };
-
-  return makeGridWorldMDP(options)
+  return makeGridWorldMDP({ grid, transitionNoiseProbability: 0 })
 };
 
 var simpleGridWorld = makeSimpleGridWorld();
