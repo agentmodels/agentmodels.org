@@ -141,14 +141,29 @@ How well does the Greedy agent do? It does best when the difference between arms
 >*Exercise*:
 
 > 1. Add some code to compute the total regret of an agent averaged across $$N$$ repeats of the same Bandit problem.
-
 > 2. Set the softmax noise to be low. How well does the Greedy Softmax agent do? Explain why. Keeping the noise low, modify the agent's priors to be overly "optimistic" about the expected reward of each arm (without changing the support of the prior distribution). How does this optimism change the agent's performance? Explain why. (This idea is known as "optimism in the face of uncertainty" in the RL literature.)
-
 > 3. Modify the agent so that the softmax noise is low and the agent has a "bad" prior (i.e. one that assigns a low probability to the truth) that is not optimistic. Will the agent eventually learn the optimal policy? How many trials does it take on average?
+
 
 ### Posterior Sampling
 Posterior sampling (or "Thompson sampling") is the basis for another algorithm for Bandits. This algorithm generalizes to arbitrary discrete MDPs, as we show below. The Posterior-sampling agent updates beliefs using standard Bayesian updates. Before choosing an arm, it draws a sample from its posterior on the arm parameters and then chooses greedily given the sample. In Bandits, this is similar to Softmax Greedy but without the softmax parameter $$\alpha$$.
 
+>*Exercise*:
+> Implement Posterior Sampling for Bandits by modifying the code above. (You only need to modify the `act` function.) Compare the performance of Posterior Sampling to Softmax Greedy, especially over large numbers of trials. Explain any differences you observe.
+
+<!-- Modified act function:
+var act = dp.cache(
+    function(belief) {
+      var armToCoinWeight = sample(belief);  // sample coin-weights
+      return Infer({ model() {
+        var action = uniformDraw(actions);
+        factor(1000 * armToCoinWeight[action])  // pick arm with max weight
+        return action;
+      }});
+    });
+-->
+
+<!-- old code that does Posterior Sampling on top of POMDP agent
 ~~~~
 ///fold: Bandit problem is defined as above
 
@@ -276,6 +291,9 @@ print('Arms pulled: ' +  map(second, trajectory));
 var ys = cumsum(map(regret, map(second, trajectory)))
 viz.line(_.range(ys.length), ys);
 ~~~~
+
+-->
+
 
 
 ### Footnotes
