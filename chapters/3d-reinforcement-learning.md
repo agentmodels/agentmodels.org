@@ -244,5 +244,183 @@ Structure given / unknown        MDP                                  POMDP
  -->
  
 
+
+
+PSRL
+
+
+~~~~
+///fold:
+
+var ___ = ' '; 
+
+var grid = [
+  [ ___, ___, ___],
+  [ ___, ___, ___],  
+  [ ___, ___, ___]
+];
+
+var pomdp = makeGridWorldPOMDP({
+  grid,
+  start: [0, 0],
+  totalTime: 5
+});
+
+var transition = pomdp.transition
+
+var actions = ['l', 'r', 'u', 'd'];
+
+var observeState = function(state) { 
+  var loc = state.manifestState.loc;
+  var r =  state.latentState.rewardGrid[loc[0]][loc[1]];
+  return r;
+};
+
+var makePSRLAgent = function(params, pomdp) {
+  var utility = params.utility;
+
+  // Implements *Belief-update formula* in text
+  var updateBelief = function(belief, observation, action){
+    return Infer({ model() {
+      var state = sample(belief);
+      var predictedNextState = transition(state, action);
+      var predictedObservation = observeState(predictedNextState);
+      condition(_.isEqual(predictedObservation, observation));
+      return predictedNextState;
+    }});
+  };
+
+  var act = dp.cache(
+    function(state) {
+      return Infer({ model() {
+        var action = uniformDraw(actions);
+        var eu = expectedUtility(state, action);
+        factor(1000 * eu);
+        return action;
+      }});
+    });
+
+  var expectedUtility = dp.cache(
+    function(state, action) {
+      return expectation(
+        Infer({ model() {
+          var u = utility(state, action);
+          if (state.manifestState.terminateAfterAction) {
+            return u;
+          } else {
+            var nextState = transition(state, action);
+            var nextAction = sample(act(nextState));
+            return u + expectedUtility(nextState, nextAction);
+          }
+        }}));
+    });
+
+  return { params, act, expectedUtility, updateBelief };
+};
+var getPriorBelief = function(startManifestState, latentStateSampler){
+  return Infer({ model() {
+    return {
+      manifestState: startManifestState, 
+      latentState: latentStateSampler()};
+  }});
+};
+
+var simulatePSRL = function(startState, agent, n) {
+  var act = agent.act;
+  var updateBelief = agent.updateBelief;
+  var priorBelief = agent.params.priorBelief;
+
+
+
+  var sampleSequence = function(state, priorBelief, i) {
+    var sampledState = sample(priorBelief);
+    var trajectory = simulateEpisode(state, sampledState, priorBelief, 'noAction');
+    var newBelief = trajectory[trajectory.length-1][2];
+    var newBelief2 = Infer({ model() {
+      return extend(state, {latentState : sample(newBelief).latentState });
+    }});
+    var output = [trajectory];
+
+    if (i <= 1){
+      return output;
+    } else {
+      return output.concat(sampleSequence(state, newBelief2 , i-1));
+    }
+  };
+
+  var simulateEpisode = function(state, sampledState, priorBelief, action) {
+    var observation = observeState(state);
+    var belief = ((action === 'noAction') ? priorBelief : 
+                  updateBelief(priorBelief, observation, action));
+
+    var believedState = extend(state, sampledState);
+    var action = sample(act(believedState));
+    var output = [[state, action, belief]];
+
+    if (state.manifestState.terminateAfterAction){
+      return output;
+    } else {
+      var nextState = transition(state, action);
+      return output.concat(simulateEpisode(nextState, sampledState, belief, action));
+    }
+  };
+  return sampleSequence(startState, priorBelief, n);
+};
+
+
+
+
+var latent = {
+  rewardGrid : [
+      [ 0, 0, 1],
+      [ 0, 0, 0],
+      [ 0, 0, 0]
+    ]
+};
+
+
+var utility = function(state, action) {
+  var loc = state.manifestState.loc;
+  return state.latentState.rewardGrid[loc[0]][loc[1]];
+};
+
+
+var startState = {
+  manifestState: { 
+    loc: [0, 0],
+    terminateAfterAction: false,
+    timeLeft: 5
+  },
+  latentState: latent
+};
+
+var oneHot = function(n, i) {
+  if (n==0) { 
+    return [];
+  } else {
+    var e = 1*(i==0);
+    return [e].concat(oneHot(n-1, i-1));
+  }
+};
+
+var latentStateSampler = function() {
+  var flat = oneHot(9, randomInteger(9));
+
+  return { 
+    rewardGrid : [flat.slice(0,3), flat.slice(3,6), flat.slice(6,9)] 
+  };
+}
+
+var priorBelief = getPriorBelief(startState.manifestState, latentStateSampler);
+var agent = makePSRLAgent({ utility, priorBelief, alpha: 100 }, pomdp);
+var trajectories = simulatePSRL(startState, agent, 10);
+
+//viz.gridworld(pomdp.MDPWorld, { trajectory: manifestStates });
+trajectories
+var project = function(x) { return first(x).manifestState.loc; };
+var s = map(function (t) { return map(project, t); }, trajectories)
+print(s)
+~~~~
+
 ### Footnotes
 
