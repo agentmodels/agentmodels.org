@@ -11,6 +11,14 @@ description: RL vs. optimal Bayesian approach to Bandits, Softmax Greedy, Poster
 Softmax Greedy. Simplified, specialized version:
 
 ~~~~
+///fold:
+var cumsum = function (xs) {
+  var acf = function (n, acc) { return acc.concat( (acc.length > 0 ? acc[acc.length-1] : 0) + n); }
+  return reduce(acf, [], xs.reverse());
+  }
+  ///
+  
+
 // Define Bandit problem
 
 // Pull arm0 or arm1
@@ -93,6 +101,16 @@ var trajectory = simulate(armToCoinWeight, numberTrials, agent);
 
 print('Number of trials: ' + numberTrials);
 print('Arms pulled: ' +  trajectory);
+
+// Display performance
+var regret = function(arm) { 
+  var bestCoinWeight = _.max(_.values(armToCoinWeight))
+  return bestCoinWeight - armToCoinWeight[arm];
+};
+//print(_.values(armToCoinWeight) )
+                                                                             
+var ys = cumsum(map(regret, trajectory))
+viz.line(_.range(ys.length), ys);
 ~~~~
 
 
