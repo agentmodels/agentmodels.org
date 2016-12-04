@@ -287,7 +287,7 @@ viz(trajectoryDist);
 
 We return to the case of a stochastic environment with very low softmax action noise. In a stochastic environment, the agent sometimes finds themself in a state they did not intend to reach. The functions `agent` and `expectedUtility` (inside `makeMDPAgent`) implicitly compute the expected utility of actions for every possible future state, including states that the agent will try to avoid. In the MDP literature, this function from states and remaining time to actions is called a *policy*. (For infinite-horizon MDPs, policies are functions from states to actions.) Since policies take into account every possible contingency, they are quite different from the everyday notion of a plan.
 
-Consider the example from above where the agent takes the long route because of the risk of falling down the hill. If we generate a single trajectory for the agent, they will likely take the long route. However, if we generated many trajectories, we would sometimes see the agent move "right" instead of "up" on their first move. Before taking this first action, the agent implicitly computes what they *would* do if they end up moving right. To find out what they would do, we can artificially start the agent in $[1,1]$ instead of $[0,1]$:
+Consider the example from above where the agent takes the long route because of the risk of falling down the hill. If we generate a single trajectory for the agent, they will likely take the long route. However, if we generated many trajectories, we would sometimes see the agent move "right" instead of "up" on their first move. Before taking this first action, the agent implicitly computes what they *would* do if they end up moving right. To find out what they would do, we can artificially start the agent in $$[1,1]$$ instead of $$[0,1]$$:
 
 <!-- policy -->
 ~~~~
@@ -311,7 +311,7 @@ var makeHikeMDP = function(options) {
 // Parameters for world
 var mdp = makeHikeMDP({
   start: [1, 1],  // Previously: [0, 1]
-  totalTime: 11,             // Previously: 12
+  totalTime: 11,  // Previously: 12
   transitionNoiseProbability: 0.1
 });
 var makeUtilityFunction = mdp.makeUtilityFunction;
