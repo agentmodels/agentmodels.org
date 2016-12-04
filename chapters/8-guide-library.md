@@ -286,7 +286,7 @@ We've shown how to create your own MDP and then run different agents on that MDP
 
 Gridworld is a standard toy environment for reinforcement learning problems. The library contains a constructor for making a gridworld with your choice of dimensions and reward function. There is also a function for displaying gridworlds in the browser.
 
-We begin by creating a simple gridworld environment (using `makeGridWorldMDP`) and display it using `GridWorld.draw`.
+We begin by creating a simple gridworld environment (using `makeGridWorldMDP`) and display it using `viz.gridworld`.
 
 ~~~~
 // Create a constructor for our gridworld
@@ -296,10 +296,10 @@ var makeSimpleGridWorld = function() {
   var ___ = ' ';
 
   var features = [
-    [ ___, ___, ___],
-    [ '#', '#', ___],
-    [ '#', '#', ___],
-    [ ___, ___, ___]
+    [___, ___, ___],
+    ['#', '#', ___],
+    ['#', '#', ___],
+    [___, ___, ___]
   ];
 
   // Set the transition noise to zero
@@ -320,7 +320,7 @@ var startState = {
   terminateAfterAction: false
 };
 
-GridWorld.draw(world, {trajectory: [startState]});
+viz.gridworld(world, {trajectory: [startState]});
 ~~~~
 
 Gridworld states have a `loc` attribute for the agent's location (using discrete Cartesian coordinates). The agent is able to move up, down, left and right but is not able to stay put.
@@ -368,7 +368,7 @@ var utility = function(state, action) {
 var params = { utility, alpha: 1000 };
 var agent = makeMDPAgent(params, world);
 var trajectory = simulateMDP(startState, world, agent);
-GridWorld.draw(world, {trajectory: trajectory});
+viz.gridworld(world, {trajectory: trajectory});
 ~~~~
 
 You can create terminal gridworld states by using features with a name. These named-features can also be used to create a utility function without specifying grid coordinates.
@@ -422,7 +422,7 @@ var utility = makeUtility(table);
 var params = { utility, alpha: 1000 };
 var agent = makeMDPAgent(params, world);
 var trajectory = simulateMDP(startState, world, agent);
-GridWorld.draw(world, { trajectory });
+viz.gridworld(world, { trajectory });
 ~~~~
 
 There are many examples using gridworld in agentmodels.org, starting from this [chapter](/chapters/3b-mdp-gridworld.html).
@@ -496,7 +496,7 @@ var act = function(state){
 
 var randomAgent = { act, params: {} };
 var trajectory = simulateMDP(startState, world, randomAgent);
-GridWorld.draw(world, { trajectory });
+viz.gridworld(world, { trajectory });
 ~~~~
 
 In gridworld the same actions are available in each state. When the actions available depend on the state, the agent's `act` function needs access to the environment's `stateToActions` method.
@@ -562,7 +562,7 @@ var makeRandomAgent = function(world) {
 var randomAgent = makeRandomAgent(world);
 var trajectory = simulateMDP(startState, world, randomAgent);
 
-GridWorld.draw(world, { trajectory });
+viz.gridworld(world, { trajectory });
 ~~~~
 
 In the example above, the agent constructor `makeRandomAgent` takes the environment (`world`) as an argument in order to access `stateToActions`. Agent constructors will typically also use the environment's `transition` method to internally simulate state transitions.

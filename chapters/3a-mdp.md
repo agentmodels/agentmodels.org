@@ -33,7 +33,7 @@ var mdp = makeGridWorldMDP({
   startingLocation: [3, 1],
 });
 
-GridWorld.draw(mdp.world, { trajectory : [mdp.startState] });
+viz.gridworld(mdp.world, { trajectory : [mdp.startState] });
 ~~~~
 
 
@@ -455,7 +455,7 @@ var simulate = function(state) {
 
 var trajectory = simulate(mdp.startState);
 
-GridWorld.draw(world, { trajectory: map(first, trajectory) });
+viz.gridworld(world, { trajectory: map(first, trajectory) });
 ~~~~
 
 >**Exercise**: Change the utility table such that the agent goes to `Donut S`. What ways are there to accomplish this outcome?

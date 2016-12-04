@@ -34,7 +34,7 @@ var startingLocation = [0, 1];
 
 var mdp = makeGridWorldMDP({ gridFeatures, startingLocation });
 
-GridWorld.draw(mdp.world, { trajectory: [mdp.startState] });
+viz.gridworld(mdp.world, { trajectory: [mdp.startState] });
 ~~~~
 
 We start with a *deterministic* transition function. In this case, Alice's risk of falling down the steep hill is solely due to softmax noise in her action choice (which is minimal in this case). The agent model is the same as the one at the end of [Chapter III.1](/chapters/3a-mdp.html). We place the functions `act`, `expectedUtility` in a function `makeMDPAgent`. The following codebox defines this function and we use it later on without defining it (since it's in the `webppl-agents` library).
@@ -134,7 +134,7 @@ var agent = makeMDPAgent({ utility, alpha: 1000 }, mdp.world);
 var trajectory = simulate(mdp.startState, mdp.world, agent);
 
 
-GridWorld.draw(mdp.world, { trajectory });
+viz.gridworld(mdp.world, { trajectory });
 ~~~~
 
 >**Exercise**: Adjust the parameters of `utilityTable` in order to produce the following behaviors:
@@ -195,7 +195,7 @@ var agent = makeMDPAgent({ utility, alpha: 100 }, mdp.world);
 // Generate a single trajectory, draw
 
 var trajectory = simulateMDP(mdp.startState, mdp.world, agent, 'states');
-GridWorld.draw(mdp.world, { trajectory });
+viz.gridworld(mdp.world, { trajectory });
 
 
 // Generate 100 trajectories, plot distribution on lengths
@@ -203,8 +203,7 @@ GridWorld.draw(mdp.world, { trajectory });
 var trajectoryDist = Infer({
   model() {
     var trajectory = simulateMDP(mdp.startState, mdp.world, agent);
-    return { trajectoryLength: trajectory.Length }
-  }
+    return { trajectoryLength: trajectory.length }
   },
   method: 'forward',
   samples: 100
@@ -269,7 +268,7 @@ var agent = makeMDPAgent({ utility, alpha }, world);
 
 // Generate a single trajectory, draw
 var trajectory = simulateMDP(startState, world, agent, 'states');
-GridWorld.draw(world, { trajectory });
+viz.gridworld(world, { trajectory });
 
 // Generate 100 trajectories, plot distribution on lengths
 var trajectoryDist = Infer({
@@ -327,7 +326,7 @@ var utility = makeUtility({
 var agent = makeMDPAgent({ utility, alpha: 1000 }, mdp.world);
 var trajectory = simulateMDP(mdp.startState, mdp.world, agent, 'states');
 
-GridWorld.draw(mdp.world, { trajectory });
+viz.gridworld(mdp.world, { trajectory });
 ~~~~
 
 Extending this idea, we can display the expected values of each action the agent *could have taken* during their trajectory. These expected values numbers are analogous to state-action Q-values in infinite-horizon MDPs.
@@ -387,7 +386,7 @@ var agent = makeMDPAgent({ utility, alpha: 100 }, mdp.world);
 var trajectory = simulateMDP(mdp.startState, mdp.world, agent, 'states');
 var actionExpectedUtilities = getExpectedUtilitiesMDP(trajectory, mdp.world, agent);
 
-GridWorld.draw(mdp.world, { trajectory, actionExpectedUtilities });
+viz.gridworld(mdp.world, { trajectory, actionExpectedUtilities });
 ~~~~
 
 So far, our agents all have complete knowledge about the state of the world. In the [next chapter](/chapters/3c-pomdp.html), we will explore partially observable worlds.

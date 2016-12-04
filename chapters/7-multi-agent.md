@@ -562,4 +562,4 @@ var listener = dp.cache(function(sentence) {
 viz(listener('someSprouted'));
 ~~~~
 
-Next chapter: [How to use the WebPPL Agent Models library](/chapters/8-using-gridworld-library.html)
+Next chapter: [How to use the WebPPL Agent Models library](/chapters/8-guide-library.html)

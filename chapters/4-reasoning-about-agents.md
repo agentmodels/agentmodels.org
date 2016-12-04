@@ -70,7 +70,7 @@ var world = makeGridWorldMDP({
   startingLocation: [3, 1]
 }).world;
 
-GridWorld.draw(world, { trajectory: donutSouthTrajectory });
+viz.gridworld(world, { trajectory: donutSouthTrajectory });
 ~~~~
 
 From Bob's actions, we infer that he probably prefers the Donut Store to the other restaurants. An alternative explanation is that Bob cares most about saving time. He might prefer Veg (the Vegetarian Cafe) but his preference is not strong enough to spend extra time getting there.
@@ -226,7 +226,7 @@ var trajectory = [
   }
 ];
 
-GridWorld.draw(world, { trajectory });
+viz.gridworld(world, { trajectory });
 ~~~~
 
 Our approach to inference is slightly different than in the example at the start of this chapter. The approach is a direct translation of the expression for the posterior in Equation (1) above. For each observed state-action pair, we compute the likelihood of the agent (with given $$U$$) choosing that action in the state. In contrast, the simple approach above becomes intractable for long, noisy action sequences -- as it will need to loop over all possible sequences.
@@ -498,7 +498,7 @@ var donutSouthTrajectory = [
 
 var world = mdp.world;;
 
-map(function(trajectory) { GridWorld.draw(world, { trajectory }); },
+map(function(trajectory) { viz.gridworld(world, { trajectory }); },
     [naiveTrajectory, donutSouthTrajectory]);
 ~~~~
 
@@ -506,8 +506,7 @@ To perform inference, we just condition on both sequences. (We use concatenation
 
 <!-- infer_from_multiple_trajectories -->
 ~~~~
-// World and agent are exactly as above
-///fold:
+///fold: World and agent are exactly as above
 
 var ___ = ' ';
 var DN = { name : 'Donut N' };

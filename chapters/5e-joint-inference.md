@@ -60,7 +60,7 @@ var naiveTrajectory = [
   [{"loc":[2,5],"terminateAfterAction":true,"timeLeft":6,"previousLoc":[2,5],"timeAtRestaurant":1},"l"]
 ];
 ///
-GridWorld.draw(mdp.world, { trajectory: naiveTrajectory });
+viz.gridworld(mdp.world, { trajectory: naiveTrajectory });
 ~~~~
 
 For inference, we specialize the approach in the previous <a href="/chapters/5d-joint-inference.html#formalization">chapter</a> for agents in MDPs that are potentially time inconsistent. So we infer $$\nu$$ and $$k$$ (the hyperbolic discounting parameters) but not the initial belief state $$b_0$$. The function `exampleGetPosterior` is a slightly simplified version of the library function we use below.
@@ -273,7 +273,7 @@ var priorUtility = function(){
 var priorDiscounting = function(){
   return {
     discount: 1,
-    sophisticatedOrNaive: uniformDraw(['naive','sophisticated'])
+    sophisticatedOrNaive: uniformDraw(['naive', 'sophisticated'])
   };
 };
 var priorAlpha = function(){ return 1000; };
@@ -340,7 +340,7 @@ var sophisticatedTrajectory = [
   [{"loc":[4,7],"terminateAfterAction":true,"timeLeft":2,"previousLoc":[4,7],"timeAtRestaurant":1},"l"]
 ];
 ///
-GridWorld.draw(mdp.world, { trajectory: sophisticatedTrajectory });
+viz.gridworld(mdp.world, { trajectory: sophisticatedTrajectory });
 ~~~~
 
 Here are the results of inference:
@@ -564,7 +564,7 @@ var vegDirectTrajectory = [
   [{"loc":[4,7],"terminateAfterAction":true,"timeLeft":4,"previousLoc":[4,7],"timeAtRestaurant":1},"l"]
 ];
 ///
-GridWorld.draw(mdp.world, { trajectory: vegDirectTrajectory });
+viz.gridworld(mdp.world, { trajectory: vegDirectTrajectory });
 ~~~~
 
 Here are the results of inference:
@@ -1315,6 +1315,16 @@ These three can also be combined to explain the behavior.
 ///fold:
 var restaurantHyperbolicInfer = getRestaurantHyperbolicInfer();
 var getPosterior = restaurantHyperbolicInfer.getPosterior;
+
+var naiveTrajectory = [
+  [{"loc":[3,1],"terminateAfterAction":false,"timeLeft":11},"u"],
+  [{"loc":[3,2],"terminateAfterAction":false,"timeLeft":10,"previousLoc":[3,1]},"u"],
+  [{"loc":[3,3],"terminateAfterAction":false,"timeLeft":9,"previousLoc":[3,2]},"u"],
+  [{"loc":[3,4],"terminateAfterAction":false,"timeLeft":8,"previousLoc":[3,3]},"u"],
+  [{"loc":[3,5],"terminateAfterAction":false,"timeLeft":7,"previousLoc":[3,4]},"l"],
+  [{"loc":[2,5],"terminateAfterAction":false,"timeLeft":6,"previousLoc":[3,5],"timeAtRestaurant":0},"l"],
+  [{"loc":[2,5],"terminateAfterAction":true,"timeLeft":6,"previousLoc":[2,5],"timeAtRestaurant":1},"l"]
+];
 
 var displayResults = function(priorDist, posteriorDist) {
 

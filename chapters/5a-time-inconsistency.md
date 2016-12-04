@@ -171,6 +171,7 @@ viz.line(expData.concat(hypData), { groupBy: 'discountType' });
 ~~~~
 
 >**Figure 2:** Graph comparing exponential and hyperbolic discount curves. 
+
 <a id="exercise"></a>
 >**Exercise:** We return to our running example but with slightly different numbers. The agent chooses between receiving $100 after 4 days or $110 after 5 days. The goal is to compute the preferences over each option for both exponential and hyperbolic discounters, using the discount curves shown in Figure 2. Compute the following:
 
@@ -230,7 +231,7 @@ var mdp = makeGridWorldMDP({
   totalTime: 11
 });
 ///
-GridWorld.draw(mdp.world, { trajectory: [mdp.startState] });
+viz.gridworld(mdp.world, { trajectory: [mdp.startState] });
 ~~~~
 
 The next two codeboxes show the behavior of two hyperbolic discounters. Each agent has the same preferences and discount function. They differ only in that the first is Naive and the second is Sophisticated.
@@ -273,7 +274,7 @@ var naiveTrajectory = [
   [{"loc":[2,5],"terminateAfterAction":true,"timeLeft":6,"previousLoc":[2,5],"timeAtRestaurant":1},"l"]
 ];
 ///
-GridWorld.draw(mdp.world, { trajectory: naiveTrajectory });
+viz.gridworld(mdp.world, { trajectory: naiveTrajectory });
 ~~~~
 
 <!-- draw_sophisticated -->
@@ -318,7 +319,7 @@ var sophisticatedTrajectory = [
   [{"loc":[4,7],"terminateAfterAction":true,"timeLeft":2,"previousLoc":[4,7],"timeAtRestaurant":1},"l"]
 ];
 ///
-GridWorld.draw(mdp.world, { trajectory: sophisticatedTrajectory });
+viz.gridworld(mdp.world, { trajectory: sophisticatedTrajectory });
 ~~~~
 
 >**Exercise:** (Try this exercise *before* reading further). Your goal is to do preference inference from the observed actions in the codeboxes above (using only a pen and paper). The discount function is the hyperbola $$D=1/(1+kt)$$, where $$t$$ is the time from the present, $$D$$ is the discount factor (to be multiplied by the utility) and $$k$$ is a positive constant. Find a single setting for the utilities and discount function that produce the behavior in both the codeboxes above. This includes utilities for the restaurants (both *immediate* and *delayed*) and for the `timeCost` (the negative utility for each additional step walked), as well as the discount constant $$k$$. Assume there is no softmax noise. 

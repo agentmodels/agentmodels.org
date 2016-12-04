@@ -230,7 +230,7 @@ var restaurantUtility = function(state, action) {
 var runAndGraph = function(agent) { 
   var trajectory = simulateMDP(mdp.startState, world, agent);
   var plans = plannedTrajectories(trajectory, world, agent);
-  GridWorld.draw(world, {
+  viz.gridworld(world, {
     trajectory, 
     dynamicActionExpectedUtilities: plans
   });
@@ -387,7 +387,7 @@ var plannedTrajectories = function(trajectory, world, agent) {
 var runAndGraph = function(agent) { 
   var trajectory = simulateMDP(mdp.startState, world, agent);
   var plans = plannedTrajectories(trajectory, world, agent);
-  GridWorld.draw(world, {
+  viz.gridworld(world, {
     trajectory, 
     dynamicActionExpectedUtilities: plans
   });

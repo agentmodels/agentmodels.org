@@ -1,6 +1,6 @@
 ---
 layout: chapter
-title: Bounded Agents — Myopia for rewards and updates
+title: Bounded Agents: Myopia for rewards and updates
 description: Fast heuristic POMDP algorithms that assume a short time horizon.
 
 ---
@@ -94,8 +94,8 @@ var trajectory = simulatePOMDP(startState, world, agent, 'states');
 var averageUtility = listMean(map(getUtility, trajectory));
 print('Arm1 is best arm and has expected utility 0.5.\n' + 
       'So ideal performance gives average score of: 0.5 \n' + 
-      'The average score over 100 trials for rewardMyopic agent: '
-      + averageUtility);
+      'The average score over 100 trials for rewardMyopic agent: ' + 
+      averageUtility);
 ~~~~
 
 The next codebox is a three-arm Bandit problem show in Figure 2. Given the agent's prior, `arm0` has the highest prior expectation. So the agent will try that before exploring other arms. We show the agent's actions and their average score over 40 trials.
@@ -164,8 +164,8 @@ print("Agent's first 20 actions (during exploration phase): \n" +
 var averageUtility = listMean(map(getUtility, map(first,trajectory)));
 print('Arm2 is best arm and has expected utility 1.\n' + 
       'So ideal performance gives average score of: 1 \n' + 
-      'The average score over 40 trials for rewardMyopic agent: '
-      + averageUtility);
+      'The average score over 40 trials for rewardMyopic agent: ' + 
+      averageUtility);
 ~~~~
 
 
@@ -507,7 +507,7 @@ var trajectory = simulatePOMDP(pomdp.startState, world, agent, 'states');
 var manifestStates = _.map(trajectory, _.property('manifestState'));
 print('Quality of restaurants: \n' + 
       JSON.stringify(pomdp.startState.latentState));
-GridWorld.draw(pomdp.mdp, { trajectory: manifestStates });
+viz.gridworld(pomdp.mdp, { trajectory: manifestStates });
 ~~~~
 
 >**Exercise:** The codebox below shows the behavior the Update-myopic agent. Try different values for the `myopicBound` parameter. For values in $$[1,2,3]$$, explain the behavior of the Update-myopic agent. 
@@ -554,7 +554,7 @@ var manifestStates = _.map(trajectory, _.property('manifestState'));
 print('Rewards for each restaurant: ' + 
       JSON.stringify(pomdp.startState.latentState));
 print('Myopic bound: ' + myopicBound);
-GridWorld.draw(pomdp.mdp, { trajectory: manifestStates });
+viz.gridworld(pomdp.mdp, { trajectory: manifestStates });
 ~~~~
 
 Next chapter: [Joint inference of biases and preferences I](/chapters/5d-joint-inference.html)

@@ -198,7 +198,7 @@ var startState = {
   prize: 'start',
   timeLeft: 3, 
   terminateAfterAction:false,
-  armToPrize: {0:'chocolate', 1:'champagne'}
+  armToPrize: { 0: 'chocolate', 1: 'champagne' }
 };
 ~~~~
 
@@ -457,12 +457,11 @@ var trajectory = simulatePOMDP(startState, world, agent, 'stateAction');
 displayTrajectory(trajectory);
 ~~~~
 
-Solving Bandit problems optimally quickly becomes intractable without special optimizations. The codebox below shows how runtime scales as a function of the number of trials. 
+Solving Bandit problems optimally quickly becomes intractable without special optimizations. The codebox below shows how runtime scales as a function of the number of trials. (This takes approximately 20 seconds to run.)
 
 <!-- bandit_scaling_number_of_trials -->
 ~~~~
-// Construct world and agent priorBelief as above
-///fold:
+///fold: Construct world and agent priorBelief as above
 
 var vs = [0, 1];
 var probably1Dist = Categorical({ vs, ps: [0.2, 0.8] });
@@ -516,12 +515,10 @@ var getRuntime = function(numberOfTrials) {
 var numberOfTrialsList = _.range(15).slice(2);
 var runtimes = map(getRuntime, numberOfTrialsList);
 viz.line(numberOfTrialsList, runtimes);
-
-// note: this takes approximately 20 seconds to run
 ~~~~
 
 
-Scaling is much worse in the number of arms:
+Scaling is much worse in the number of arms. The following may take over a minute to run:
 
 
 <!-- bandit_scaling_number_of_arms -->
@@ -579,8 +576,6 @@ var getRuntime = function(numberOfArms) {
 var numberOfArmsList = [1, 2, 3];
 var runtimes = map(getRuntime, numberOfArmsList);
 viz.line(numberOfArmsList, runtimes);
-
-// note: this may take over a minute to run
 ~~~~
 
 
@@ -689,7 +684,7 @@ var agent = makePOMDPAgent({ utility, priorBelief, alpha: 100 }, pomdp);
 var trajectory = simulatePOMDP(startState, pomdp, agent, 'states');
 var manifestStates = _.map(trajectory, _.property('manifestState'));
 
-GridWorld.draw(pomdp.MDPWorld, { trajectory: manifestStates });
+viz.gridworld(pomdp.MDPWorld, { trajectory: manifestStates });
 ~~~~
 
 Here is the agent that prefers Noodle and falsely belives that it is open:
@@ -778,7 +773,7 @@ var agent = makePOMDPAgent({ utility, priorBelief, alpha: 100 }, pomdp);
 var trajectory = simulatePOMDP(startState, pomdp, agent, 'states');
 var manifestStates = _.map(trajectory, _.property('manifestState'));
 
-GridWorld.draw(pomdp.MDPWorld, { trajectory: manifestStates });
+viz.gridworld(pomdp.MDPWorld, { trajectory: manifestStates });
 ~~~~
 
 In the next [chapter](/chapters/4-reasoning-about-agents.html), we will start modeling inferences *about* agents.
