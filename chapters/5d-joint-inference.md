@@ -187,12 +187,12 @@ var displayTimeSeries = function(observedStateAction, getPosterior) {
 
     var inferAllTimeIndexes = map(function(index) {
       return inferUpToTimeIndex(index, useOptimalModel);
-    }, range(observedStateAction.length));
+    }, _.range(observedStateAction.length));
 
     return map(function(i) {
       // get full time series of online inferences for each feature
       return map(function(infer){return infer[i];}, inferAllTimeIndexes);
-    }, range(features.length));
+    }, _.range(features.length));
   };
 
   var displayOptimalAndPossiblyDiscountingSeries = function(index) {
@@ -207,7 +207,7 @@ var displayTimeSeries = function(observedStateAction, getPosterior) {
           agentModel: 'Optimal'
         };
       },
-      zip(range(observedStateAction.length), optimalSeries));
+      zip(_.range(observedStateAction.length), optimalSeries));
     var plotPossiblyDiscounting = map(
       function(pair){
         return {
@@ -216,7 +216,7 @@ var displayTimeSeries = function(observedStateAction, getPosterior) {
           agentModel: 'Possibly Discounting'
         };
       },
-      zip(range(observedStateAction.length),
+      zip(_.range(observedStateAction.length),
           possiblyDiscountingSeries));
     viz.line(plotOptimal.concat(plotPossiblyDiscounting), 
              { groupBy: 'agentModel' });
@@ -224,7 +224,7 @@ var displayTimeSeries = function(observedStateAction, getPosterior) {
 
   print('Posterior expectation on feature after observing ' +
         '"wait" for t timesteps and "work" when t=9');
-  map(displayOptimalAndPossiblyDiscountingSeries, range(features.length));
+  map(displayOptimalAndPossiblyDiscountingSeries, _.range(features.length));
   return '';
 };
 
@@ -303,7 +303,7 @@ As with the Procrastination example above, we compare the inferences of two mode
 ~~~~ 
 // helper function to assemble and display inferred values
 ///fold:
-var timeHorizonValues = range(10).slice(2);
+var timeHorizonValues = _.range(10).slice(2);
 var features = ['Utility of arm 0 (chocolate)', 'Greediness bound'];
 
 var displayExpectations = function(getPosterior) {
@@ -318,7 +318,7 @@ var displayExpectations = function(getPosterior) {
       function(i) {
         return map(function(infer){return infer[i];}, inferAllTimeHorizons);
       }, 
-      range(features.length));
+      _.range(features.length));
   };
 
   var displayOptimalAndPossiblyRewardMyopicSeries = function(index) {
@@ -348,7 +348,7 @@ var displayExpectations = function(getPosterior) {
   };
 
   print('Posterior expectation on feature after observing no exploration');
-  map(displayOptimalAndPossiblyRewardMyopicSeries, range(features.length));
+  map(displayOptimalAndPossiblyRewardMyopicSeries, _.range(features.length));
   return '';
 };
 
@@ -386,7 +386,7 @@ var getPosterior = function(numberOfTrials, useOptimalModel) {
 
   var priorPrizeToUtility = Infer({ model() {
     return {
-      chocolate: uniformDraw(range(20).concat(25)),
+      chocolate: uniformDraw(_.range(20).concat(25)),
       nothing: 0,
       champagne: 20
     };
@@ -427,7 +427,7 @@ var getPosterior = function(numberOfTrials, useOptimalModel) {
 };
 
 print('Prior expected utility for arm0 (chocolate): ' + 
-      listMean(range(20).concat(25)) );
+      listMean(_.range(20).concat(25)) );
 
 displayExpectations(getPosterior);
 ~~~~

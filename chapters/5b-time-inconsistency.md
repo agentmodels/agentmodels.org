@@ -541,7 +541,7 @@ map(function(discount) {
   var lastState = getLastState(discount);
   print('Discount: ' + discount + '. Last state: ' + lastState[0] +
         '. Time: ' + lastState[1] + '\n')
-}, range(8));
+}, _.range(8));
 ~~~~
 
 

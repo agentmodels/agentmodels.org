@@ -192,11 +192,6 @@ var makeAgent = function(params) {
   return { params, act, updateBelief };
 };
 
-var range = function(n){
-  if (n===0){return [];} 
-  else {return range(n-1).concat([n-1]);}
-};
-
 var cumsum = function (xs) {
   var acf = function (n, acc) { return acc.concat( (acc.length > 0 ? acc[acc.length-1] : 0) + n); }
   return reduce(acf, [], xs.reverse());
@@ -267,7 +262,7 @@ print('Number of trials: ' + numberTrials);
 print('Arms pulled: ' +  map(second, trajectory));
 
 var ys = cumsum(map(regret, map(second, trajectory)))
-viz.line(range(ys.length), ys);
+viz.line(_.range(ys.length), ys);
 ~~~~
 
 

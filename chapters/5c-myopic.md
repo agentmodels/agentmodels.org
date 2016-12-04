@@ -446,7 +446,7 @@ var runAgents = function(numberOfTrials) {
 ///
 
 // Compute runtime as # Bandit trials increases
-var totalTimeValues = range(9).slice(2);
+var totalTimeValues = _.range(9).slice(2);
 
 print('Runtime in s for [Optimal, Myopic] agents:');
 
@@ -484,8 +484,8 @@ var agentPrior = Infer({ model() {
   var rewardD = uniformDraw([0,5]);  // D is bad or great (E is opposite)
   var latentState = {
     A: 3,
-    B: uniformDraw(range(6)),
-    C: uniformDraw(range(6)),
+    B: uniformDraw(_.range(6)),
+    C: uniformDraw(_.range(6)),
     D: rewardD,
     E: 5 - rewardD
   };
@@ -523,8 +523,8 @@ var agentPrior = Infer({ model() {
   var rewardD = uniformDraw([0,5]); // D is bad or great (E is opposite)
   var latentState = {
     A: 3,
-    B: uniformDraw(range(6)),
-    C: uniformDraw(range(6)),
+    B: uniformDraw(_.range(6)),
+    C: uniformDraw(_.range(6)),
     D: rewardD,
     E: 5 - rewardD
   };
