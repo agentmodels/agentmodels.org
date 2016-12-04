@@ -167,6 +167,7 @@ div#authors a:hover {
 
 pre#bibtex {
     display: none;
+    white-space: pre-wrap;
 }
 
 img#cover {
