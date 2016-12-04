@@ -198,7 +198,6 @@ Applied to Bandits. The policy is just a multinomial probability for each arm. Y
 Posterior Sampling Reinforcemet Learning (PSRL) is a model-based algorithm that generalizes posterior-sampling for Bandits to discrete, finite-horizon MDPs (cite Strens). The agent is initialized with a Bayesian prior distribution on the reward function $$R$$ and transition function $$T$$ and for every episode proceeds as follows:
 
 > 1. Sample $$R$$ and $$T$$ (a "model") from the distribution. Compute the optimal policy for this model and follow that policy until the episode ends (while storing all experiences during the episode). 
-
 > 2. Update the distribution on $$R$$ and $$T$$ on the experiences during the episode using Bayes Rule. 
 
 Intuition for PSRL: if very confident, agent mainly exploit a model. If unconfident then will act as if different models are true. if one plausible model says that certain states have high reward when they in fact don't, agent will sample that model and visit those states and discover that they suck. after this, the agent will update and won't consider those models again. 
