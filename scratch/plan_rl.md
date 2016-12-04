@@ -12,22 +12,20 @@ First, we consider a "greedy" agent with softmax noise. This agent updates belie
 
 [^greedy]:In a later chapter, we implement a more general Greedy/Myopic agent by extending the POMDP agent. Here we implement the Greedy agent from scratch and apply it to Bernoulli Bandits.
 
-<CODEBOX>: graph showing expected regret (reward vs. expected reward of optimal agent). print running time. 
+CODEBOX: graph showing expected regret (reward vs. expected reward of optimal agent). print running time. 
 
 How does this Greedy agent compare to the optimal POMDP agent? As the graph shows, the Greedy agent quickly converged on the same policy the optimal agent would learn. More generally, Greedy agents perform well empirically (Precup) and with slight modifications achieve optimal asymptotic performance (Cesa-Bianchi). Moreover, the Greedy agent runs in constant time in the time horizon, while the optimal agent is intractable. 
 
 The optimal POMDP agent solves a harder problem. It computes what to do for any possible sequence of observations. This means the POMDP agent, after computing a policy once, could immediately take the optimal action given any sequence of observations without doing any more computation. By contrast, RL agents store information only about the present Bandit problem -- and in most Bandit problems this is all we care about. 
 
-<CODEBOX>: could compare the Greedy agent and optimal agent on a small Bandit problem. do a few runs and compare their expected regret.
+CODEBOX: could compare the Greedy agent and optimal agent on a small Bandit problem. do a few runs and compare their expected regret.
 
-[TODO: is the Greedy agent doing Bayesin Q learning?]
+
 
 ### Posterior sampling
 Posterior sampling (or "Thompson sampling") is another algorithm for Bandits and for general RL problems. The Posterior-sampling agent updates beliefs like the POMDP agent. Before choosing an arm, it draws a sample from its posterior on the arm parameters and then chooses greedily given the sample. In Bandits, this is similar to Softmax Greedy but without the temperature parameter $$\alpha$$.
 
-<CODEBOX: same graphs as above]
-
-Could show Thompson sampling for Gaussian and correlated Gaussian arms. 
+CODEBOX: same graphs as above. Could show Thompson sampling for Gaussian and correlated Gaussian arms. 
 
 
 ## Reinforcement Learning for MDPs
@@ -54,7 +52,7 @@ Q-learning is the best known RL algorithm and is model-free. A Q-learning agent 
 The defining property of Q-learning (vs. SARSA or Monte-Carlo) is how it updates its Q-value estimates. After each state transition (s,a,r,s'), a new Q-value estimate is computed:
 Q^(s,a) = r + max_a' Q(s',a')
 
-<CODEBOX: Bayesian Q-learning. Apply to gridworld where goal is to get otherside of the and maybe there are some obstacles. For small enough gridworld, POMDP agent will be quicker.>
+CODEBOX: Bayesian Q-learning. Apply to gridworld where goal is to get otherside of the and maybe there are some obstacles. For small enough gridworld, POMDP agent will be quicker.
 
 Note that Q-learning works for continuous state spaces. 
 
