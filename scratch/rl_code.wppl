@@ -1,0 +1,191 @@
+
+// Greedy bandit general version (with time)
+
+// DEFINE BANDIT PROBLEM
+
+// Pull arm0 or arm1
+var actions = [0, 1];
+
+// Sample reward for given arm
+var transition = function(state, action){
+  var newTimeLeft = state.timeLeft - 1;
+  var coinWeight = state.armToCoinWeight[action];
+  var lastReward = sample(Bernoulli({p : coinWeight})) 
+  
+  return extend(state, {
+    lastReward: lastReward,
+    timeLeft: newTimeLeft,
+    terminateAfterAction: newTimeLeft == 1
+  });
+};
+
+// After pulling arm, agent observes arm
+var observeState = function(state){
+  return state.lastReward;
+};
+
+
+
+var makeGreedyAgent = function(params) {
+  var priorBelief = params.priorBelief;
+
+  var updateBelief = function(belief, observation, action){
+    return Infer({ model() {
+      var state = sample(belief);
+      var predictedNextState = transition(state, action);
+      var predictedObservation = observeState(predictedNextState);
+      condition(_.isEqual(predictedObservation, observation));
+      return predictedNextState;
+    }});
+  };
+  
+  var expectedReward = function(belief, action){
+    return expectation(Infer( { model() {
+      var state = sample(belief);
+      return state.armToCoinWeight[action];
+    }}))
+  }
+
+  var act = dp.cache(
+    function(belief) {
+      return Infer({ model() {
+        var action = uniformDraw(actions);
+        factor(params.alpha * expectedReward(belief, action))
+        return action;
+      }});
+    });
+
+  return { params, act, updateBelief };
+};
+
+var simulate = function(startState, agent) {
+  var act = agent.act;
+  var updateBelief = agent.updateBelief;
+  var priorBelief = agent.params.priorBelief;
+
+  var sampleSequence = function(state, priorBelief, action) {
+    var observation = observeState(state);
+    var belief = ((action === 'noAction') ? priorBelief :
+                  updateBelief(priorBelief, observation, action))
+    var action = sample(act(belief));
+    var nextState = transition(state, action)
+
+    return ((state.terminateAfterAction) ? [action] :  
+    [action].concat(sampleSequence(nextState, belief, action)));
+  };
+  return sampleSequence(startState, priorBelief, 'noAction');
+};
+
+
+var numberTrials = 100;
+var startState = { 
+  lastReward: 0,
+  timeLeft: numberTrials + 1, 
+  terminateAfterAction: false,
+  armToCoinWeight: { 0: 0.5, 1: 0.55 }
+};
+
+var alpha = 100
+
+// Agent's prior
+var priorBelief = Infer({  model () {
+  var p0 = uniformDraw([.1, .3, .5, .55, .7, .9]);
+  var p1 = uniformDraw([.1, .3, .5, .55, .7, .9]);
+  return extend(startState, { armToCoinWeight : { 0:p0, 1:p1}  });
+} });
+
+
+var agent = makeGreedyAgent({alpha, priorBelief});
+var trajectory = simulate(startState, agent);
+
+
+print('Number of trials: ' + numberTrials);
+print('Arms pulled: ' +  trajectory);
+
+
+
+### SHORT VERSION
+
+ // Define Bandit problem
+
+// Pull arm0 or arm1
+var actions = [0, 1];
+
+// Given a state (a coin-weight p for each arm), sample reward
+var observeStateAction = function(state, action){
+  var armToCoinWeight = state;
+  return sample(Bernoulli({p : armToCoinWeight[action]})) 
+};
+
+
+// Greedy agent for Bandits
+var makeGreedyBanditAgent = function(params) {
+  var priorBelief = params.priorBelief;
+
+  // Update belief about coin-weights observed reward
+  var updateBelief = function(belief, observation, action){
+    return Infer({ model() {
+      var armToCoinWeight = sample(belief);
+      condition( observation === observeStateAction(armToCoinWeight, action))
+      return armToCoinWeight;
+    }});
+  };
+  
+  // Evaluate arms by expected coin-weight
+  var expectedReward = function(belief, action){
+    return expectation(Infer( { model() {
+      var armToCoinWeight = sample(belief);
+      return armToCoinWeight[action];
+    }}))
+  }
+
+  // Choose by softmax over expected reward
+  var act = dp.cache(
+    function(belief) {
+      return Infer({ model() {
+        var action = uniformDraw(actions);
+        factor(params.alpha * expectedReward(belief, action))
+        return action;
+      }});
+    });
+
+  return { params, act, updateBelief };
+};
+
+// Run Bandit problem
+var simulate = function(armToCoinWeight, totalTime, agent) {
+  var act = agent.act;
+  var updateBelief = agent.updateBelief;
+  var priorBelief = agent.params.priorBelief;
+
+  var sampleSequence = function(timeLeft, priorBelief, action) {
+    var observation = observeStateAction(armToCoinWeight, action);
+    var belief = ((action === 'noAction') ? priorBelief :
+                  updateBelief(priorBelief, observation, action))
+    var action = sample(act(belief));
+
+    return (timeLeft === 0) ? [action] : 
+    [action].concat(sampleSequence(timeLeft-1, belief, action));
+  };
+  return sampleSequence(totalTime, priorBelief, 'noAction');
+};
+
+
+var numberTrials = 100;
+var armToCoinWeight = { 0: 0.5, 1: 0.55 };
+
+// Agent
+var alpha = 100
+var priorBelief = Infer({  model () {
+  var p0 = uniformDraw([.1, .3, .5, .55, .7, .9]);
+  var p1 = uniformDraw([.1, .3, .5, .55, .7, .9]);
+  return { 0:p0, 1:p1};
+} });
+
+
+var agent = makeGreedyBanditAgent({alpha, priorBelief});
+var trajectory = simulate(armToCoinWeight, numberTrials, agent);
+
+
+print('Number of trials: ' + numberTrials);
+print('Arms pulled: ' +  trajectory);
