@@ -110,7 +110,7 @@ var mdp = makeGridWorldMDP({
   start: [3, 1],
   totalTime: 11
 });
-var makeUtility = mdp.makeUtility;
+var makeUtilityFunction = mdp.makeUtilityFunction;
 var world = mdp.world;
 
 var startState = donutSouthTrajectory[0][0];
@@ -138,7 +138,7 @@ var posterior = Infer({ model() {
   var utilityTable = utilityTableAndFavourite.table;
   var favourite = utilityTableAndFavourite.favourite;
 
-  var utility = makeUtility(utilityTable);
+  var utility = makeUtilityFunction(utilityTable);
   var params = {
     utility,
     alpha: 2
@@ -258,7 +258,7 @@ var mdp = makeGridWorldMDP({
 ///
 
 var world = mdp.world;
-var makeUtility = mdp.makeUtility;
+var makeUtilityFunction = mdp.makeUtilityFunction;
 
 var utilityTablePrior = function(){
   var baseUtilityTable = {
@@ -287,7 +287,7 @@ var observedTrajectory = [[{
 var posterior = Infer({ model() {
   var utilityTableAndFavourite = utilityTablePrior();
   var utilityTable = utilityTableAndFavourite.table;
-  var utility = makeUtility(utilityTable);
+  var utility = makeUtilityFunction(utilityTable);
   var favourite = utilityTableAndFavourite.favourite;
 
   var agent  = makeMDPAgent({ utility, alpha: 2 }, world);
@@ -369,7 +369,7 @@ var vegDirectTrajectory = [
 ///
 
 var world = mdp.world;
-var makeUtility = mdp.makeUtility;
+var makeUtilityFunction = mdp.makeUtilityFunction;
 
 
 // Priors
@@ -399,7 +399,7 @@ var posterior = function(observedTrajectory){
     var utilityTable = utilityTablePrior();
     var alpha = alphaPrior();
     var params = {
-      utility: makeUtility(utilityTable),
+      utility: makeUtilityFunction(utilityTable),
       alpha
     };
     var agent = makeMDPAgent(params, world);
@@ -551,7 +551,7 @@ var naiveTrajectory = [
 ];
 
 var world = mdp.world;
-var makeUtility = mdp.makeUtility;
+var makeUtilityFunction = mdp.makeUtilityFunction;
 
 
 // Priors
@@ -581,7 +581,7 @@ var posterior = function(observedTrajectory){
     var utilityTable = utilityTablePrior();
     var alpha = alphaPrior();
     var params = {
-      utility: makeUtility(utilityTable),
+      utility: makeUtilityFunction(utilityTable),
       alpha
     };
     var agent = makeMDPAgent(params, world);

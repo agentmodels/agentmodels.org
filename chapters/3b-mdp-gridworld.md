@@ -115,12 +115,12 @@ var mdp = makeHikeMDP({
   transitionNoiseProbability: 0
 });
 
-var makeUtility = mdp.makeUtility;
+var makeUtilityFunction = mdp.makeUtilityFunction;
 
 
 // Create parameterized agent
 
-var utility = makeUtility({
+var utility = makeUtilityFunction({
   East: 10,
   West: 1,
   Hill: -10,
@@ -182,8 +182,8 @@ var mdp = makeHikeMDP({
 
 // Create parameterized agent
 
-var makeUtility = mdp.makeUtility;
-var utility = makeUtility({
+var makeUtilityFunction = mdp.makeUtilityFunction;
+var utility = makeUtilityFunction({
   East: 10,
   West: 1,
   Hill: -10,
@@ -253,11 +253,11 @@ var mdp = makeHikeMDP({
 
 var world = mdp.world;
 var startState = mdp.startState;
-var makeUtility = mdp.makeUtility;
+var makeUtilityFunction = mdp.makeUtilityFunction;
 ///
 
 // Create parameterized agent
-var utility = makeUtility({
+var utility = makeUtilityFunction({
   East: 10,
   West: 1,
   Hill: -10,
@@ -314,10 +314,10 @@ var mdp = makeHikeMDP({
   totalTime: 11,             // Previously: 12
   transitionNoiseProbability: 0.1
 });
-var makeUtility = mdp.makeUtility;
+var makeUtilityFunction = mdp.makeUtilityFunction;
 
 // Parameters for agent
-var utility = makeUtility({ 
+var utility = makeUtilityFunction({ 
   East: 10, 
   West: 1,
   Hill: -10,
@@ -373,9 +373,9 @@ var mdp = makeBigHikeMDP({
   totalTime: 12,
   transitionNoiseProbability: 0.03
 });
-var makeUtility = mdp.makeUtility;
+var makeUtilityFunction = mdp.makeUtilityFunction;
 
-var utility = makeUtility({
+var utility = makeUtilityFunction({
   East: 10,
   West: 7,
   Hill : -40,

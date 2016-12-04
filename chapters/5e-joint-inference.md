@@ -69,7 +69,7 @@ For inference, we specialize the approach in the previous <a href="/chapters/5d-
 ~~~~
 var exampleGetPosterior = function(mdp, prior, observedStateAction){
   var world = mdp.world;
-  var makeUtility = mdp.makeUtility;
+  var makeUtilityFunction = mdp.makeUtilityFunction;
   return Infer({ model() {
 
     // Sample parameters from prior
@@ -82,7 +82,7 @@ var exampleGetPosterior = function(mdp, prior, observedStateAction){
 
     // Create agent with those parameters
     var agent = makeMDPAgent({
-      utility: makeUtility(utilityTable),
+      utility: makeUtilityFunction(utilityTable),
       alpha: priorAlpha(),
       discount: priorDiscounting().discount,
       sophisticatedOrNaive : sophisticatedOrNaive

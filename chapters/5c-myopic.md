@@ -477,7 +477,7 @@ TODO: gridworld draw should take pomdp trajectories. they should also take POMDP
 ~~~~
 var pomdp = makeRestaurantSearchPOMDP();
 var world = pomdp.world;
-var makeUtility = pomdp.makeUtility;
+var makeUtilityFunction = pomdp.makeUtilityFunction;
 var startState = pomdp.startState;
 
 var agentPrior = Infer({ model() {
@@ -497,7 +497,7 @@ var agentPrior = Infer({ model() {
 
 // Construct optimal agent
 var params = {
-  utility: makeUtility(-0.01), // timeCost is -.01
+  utility: makeUtilityFunction(-0.01), // timeCost is -.01
   alpha: 1000,
   priorBelief: agentPrior
 };
@@ -517,7 +517,7 @@ viz.gridworld(pomdp.mdp, { trajectory: manifestStates });
 ///fold: Construct world and agent prior as above
 var pomdp = makeRestaurantSearchPOMDP();
 var world = pomdp.world;
-var makeUtility = pomdp.makeUtility;
+var makeUtilityFunction = pomdp.makeUtilityFunction;
 
 var agentPrior = Infer({ model() {
   var rewardD = uniformDraw([0,5]); // D is bad or great (E is opposite)
@@ -538,7 +538,7 @@ var agentPrior = Infer({ model() {
 var myopicBound = 1;
 
 var params = {
-  utility: makeUtility(-0.01),
+  utility: makeUtilityFunction(-0.01),
   alpha: 1000,
   priorBelief: agentPrior,
   noDelays: false,

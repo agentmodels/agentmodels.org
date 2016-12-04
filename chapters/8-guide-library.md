@@ -388,15 +388,15 @@ var startState = {
   terminateAfterAction: false
 };
 
-// The *makeUtility* method allows you to define
+// The *makeUtilityFunction* method allows you to define
 // a utility function in terms of named features
-var makeUtility = simpleGridWorld.makeUtility;
+var makeUtilityFunction = simpleGridWorld.makeUtilityFunction;
 var table = {
   gold: 2,
   silver: 1.8,
   timeCost: -0.5
 };
-var utility = makeUtility(table);
+var utility = makeUtilityFunction(table);
 
 var params = { utility, alpha: 1000 };
 var agent = makeMDPAgent(params, world);
@@ -450,15 +450,15 @@ var startState = {
   terminateAfterAction: false
 };
 
-// The *makeUtility* method allows you to define
+// The *makeUtilityFunction* method allows you to define
 // a utility function in terms of named features
-var makeUtility = simpleGridWorld.makeUtility;
+var makeUtilityFunction = simpleGridWorld.makeUtilityFunction;
 var table = {
   gold: 2,
   silver: 1.8,
   timeCost: -0.5
 };
-var utility = makeUtility(table);
+var utility = makeUtilityFunction(table);
 ///
 
 var actions = ['u', 'd', 'l', 'r'];
@@ -505,15 +505,15 @@ var startState = {
   terminateAfterAction: false
 };
 
-// The *makeUtility* method allows you to define
+// The *makeUtilityFunction* method allows you to define
 // a utility function in terms of named features
-var makeUtility = simpleGridWorld.makeUtility;
+var makeUtilityFunction = simpleGridWorld.makeUtilityFunction;
 var table = {
   gold: 2,
   silver: 1.8,
   timeCost: -0.5
 };
-var utility = makeUtility(table);
+var utility = makeUtilityFunction(table);
 ///
 
 var makeRandomAgent = function(world) {
