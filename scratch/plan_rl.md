@@ -47,7 +47,7 @@ We now consider RL algorithms for learning arbitrary fixed MDPs. The goal is typ
 2. *Model-free* algorithms do not explicitly represent the transition and reward functions. Instead they explicitly represent either a value function (e.g. a Q- or V-function) or a policy. 
 
 ### Q-learning (TD-learning)
-Q-learning is the best known RL algorithm and is model-free. A Q-learning agent stores and updates a point estimate of the expected utility of each action under the optimal policy (i.e. an estimate Q^(s,a) for Q_star_(s,a)). Provided the agent takes random exploratory actions, these estimates converge in the limit. In our framework, it's more natural to implement *Bayesian Q-learning*, where the point estimates are replaced with Bayesian posteriors.
+Q-learning is the best known RL algorithm and is model-free. A Q-learning agent stores and updates a point estimate of the expected utility of each action under the optimal policy (i.e. an estimate Q^(s,a) for Q_star_(s,a)). Provided the agent takes random exploratory actions, these estimates converge in the limit (cite Watkins). In our framework, it's more natural to implement *Bayesian Q-learning* (Dearden et al), where the point estimates are replaced with Bayesian posteriors.
 
 The defining property of Q-learning (vs. SARSA or Monte-Carlo) is how it updates its Q-value estimates. After each state transition (s,a,r,s'), a new Q-value estimate is computed:
 Q^(s,a) = r + max_a' Q(s',a')
@@ -59,10 +59,16 @@ Note that Q-learning works for continuous state spaces.
 ### Policy Gradient
 - Directly represent the policy. Stochastic function from states to actions. (Can put prior over that the params of stochastic function. Then do variational inference (optimization) to find params that maximize score.)
 
-### Posterior Sampling
+### Posterior Sampling Reinforcement Learning (PSRL)
 
-- PSRL. Like Thomson sampling. Explicitly represents R and T. Works for finite episodic examples. Gridworld example with many restaurants. Some too far to be worthwhile. Gridworld where some roads are blocked. Gridworld where good restaurants cluster. Put down correlated prior (e.g. ising) and do variational inference.
+Posterior Sampling Reinforcemet Learning (PSRL) is a model-based algorithm that generalizes posterior-sampling for Bandits to discrete, finite-horizon MDPs (cite Strens). The agent is initialized with a Bayesian prior distribution on the reward function $$R$$ and transition function $$T$$ and for every episode proceeds as follows:
 
+> 1. Sample $$R$$ and $$T$$ (a "model") from the distribution. Compute the optimal policy for this model and follow that policy until the episode ends (while storing all experiences during the episode). 
+
+>2. Update the distribution on $$R$$ and $$T$$ on the experiences during the episode using Bayes Rule. 
+
+
+Examples for PSRL. 
 
 - Other topics: Real IRL-- using Thomson Sampling as a generative model for human facing RL problem. Need to coarsen --- looking at visit counts and order of visits rather than exact state actions. 
 
