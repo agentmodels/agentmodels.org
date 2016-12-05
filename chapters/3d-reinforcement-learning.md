@@ -270,10 +270,16 @@ var transition = pomdp.transition
 
 var actions = ['l', 'r', 'u', 'd'];
 
-var observeState = function(state) { 
+var utility = function(state, action) {
   var loc = state.manifestState.loc;
-  var r =  state.latentState.rewardGrid[loc[0]][loc[1]];
+  var r = state.latentState.rewardGrid[loc[0]][loc[1]];
+  
   return r;
+};
+
+
+var observeState = function(state) { 
+  return utility(state);
 };
 
 var makePSRLAgent = function(params, pomdp) {
@@ -353,7 +359,7 @@ var simulatePSRL = function(startState, agent, n) {
     var belief = ((action === 'noAction') ? priorBelief : 
                   updateBelief(priorBelief, observation, action));
 
-    var believedState = extend(state, sampledState);
+    var believedState = extend(state, { latentState : sampledState.latentState });
     var action = sample(act(believedState));
     var output = [[state, action, belief]];
 
@@ -372,19 +378,11 @@ var simulatePSRL = function(startState, agent, n) {
 
 var latent = {
   rewardGrid : [
-      [ 0, 0, 1],
       [ 0, 0, 0],
-      [ 0, 0, 0]
+      [ 0, 0, 0],
+      [ 0, 0, 1]
     ]
 };
-
-
-var utility = function(state, action) {
-  var loc = state.manifestState.loc;
-  return state.latentState.rewardGrid[loc[0]][loc[1]];
-};
-
-
 var startState = {
   manifestState: { 
     loc: [0, 0],
