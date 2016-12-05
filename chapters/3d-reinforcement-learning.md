@@ -413,11 +413,24 @@ var priorBelief = getPriorBelief(startState.manifestState, latentStateSampler);
 var agent = makePSRLAgent({ utility, priorBelief, alpha: 100 }, pomdp);
 var trajectories = simulatePSRL(startState, agent, 10);
 
-//viz.gridworld(pomdp.MDPWorld, { trajectory: manifestStates });
-trajectories
 var project = function(x) { return first(x).manifestState.loc; };
 var s = map(function (t) { return map(project, t); }, trajectories)
 print(s)
+
+var plotManifest = function(trajectory) { 
+  var manifestStates = map(function(tuple) { return tuple[0].manifestState; }, trajectory);
+  viz.gridworld(pomdp.MDPWorld, { trajectory: manifestStates });
+};
+plotManifest(trajectories[0]);
+plotManifest(trajectories[1]);
+plotManifest(trajectories[2]);
+plotManifest(trajectories[3]);
+plotManifest(trajectories[4]);
+plotManifest(trajectories[5]);
+plotManifest(trajectories[6]);
+plotManifest(trajectories[7]);
+plotManifest(trajectories[8]);
+plotManifest(trajectories[9]);
 ~~~~
 
 ### Footnotes
