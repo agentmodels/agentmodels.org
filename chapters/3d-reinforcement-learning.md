@@ -181,15 +181,20 @@ The Bandit problem is a one-state MDP. We now consider RL algorithms for learnin
 Q-learning is the best known RL algorithm and is model-free. A Q-learning agent stores and updates a point estimate of the expected utility of each action under the optimal policy (i.e. an estimate $$\hat{Q}(s,a)$$ for $$Q^*(s,a)$$). Provided the agent takes random exploratory actions, these estimates converge in the limit (cite Watkins). In our framework, it's more natural to implement *Bayesian Q-learning* (Dearden et al), where the point estimates are replaced with Bayesian posteriors.
 
 The defining property of Q-learning (as opposed to SARSA or Monte-Carlo) is how it updates its Q-value estimates. After each state transition $$(s,a,r,s')$$, a new Q-value estimate is computed: <br>
-<blockquote>
-$$\hat{Q}(s,a) = r + \max_{s'}{Q(s',a')}$$
-</blockquote>
+
+$$
+\hat{Q}(s,a) = r + \max_{s'}{Q(s',a')}
+$$
+
 
 CODEBOX: Bayesian Q-learning. Apply to gridworld where goal is to get otherside of the and maybe there are some obstacles. For small enough gridworld, POMDP agent will be quicker.
 
 Note that Q-learning works for continuous state spaces. 
 
 ### Policy Gradient
+
+TODO
+
 <!-- - Directly represent the policy. Stochastic function from states to actions. (Can put prior over that the params of stochastic function. Then do variational inference (optimization) to find params that maximize score.)
 
 Applied to Bandits. The policy is just a multinomial probability for each arm. You run the policy. Then take gradient in direction that improves the policy. (Variational approximaton will be exact in this case.) Gridworld example of get from top left to bottom right (not knowing initially where the goal state is located). You are learning a distribution over actions in these discrete location. So you have a multinomial for each state.
@@ -216,19 +221,9 @@ Clumpy reward model. Gridworld with hot and cold regions that clump. Agent start
 Simple version: agent starts in the middle. Has enough time to go to a bunch of different regions. Regions are clumped in terms of reward. Could think of this a city, cells with reward are food places. There are tourist areas with lots of bad food, foodie areas with good food, and some places with not much food. Agent without clumping tries some bad regions first and keeps going back to try all the places in those regions. Agent with clumping tries them once and then avoids. [Problem is how to implement the prior. Could use enumeration but keep number of possibilities fairly small. Could use some approximate method and just do a batch update at the end of each episode. That will require some extra code for the batch update.]
 
 
-<!-- ### RL and Inferring Preferences
-
-Most IRL is actually inverse planning in an MDP. Assumption is that it's an MDP and human already knows R and T. Paper on IRL for POMDPs: assume agent knows POMDP structure. Much harder inference problem. 
-
-We have discussion of biases that humans have: hyperbolic discounting, bounded planning. These are relevant even if human knows structure of world and is just trying to plan. But often humans don't know structure of world. Better to think of world as RL problem where MDP or POMDP also is being learned. Problem is that there are many RL algorithms, they generally involve lots of randomness or arbitrary parameters. So hard to make precise predictions. Need to coarsen. Show example of this with Thompson sampling for Bandits. 
-
-Could discuss interactive RL. Multi-agent case. It's beyond scope of modeling.
--->
 
 
 
-
-### PSRL
 
 
 ~~~~
@@ -470,7 +465,17 @@ Structure given / unknown        MDP                                  POMDP
  KNOWN                        Planning (Solve exactly DP)       POMDP solve (Belief MDP)
  LEARNED                      POMDP solver (exact Bayesian), RL    POMDP solve
  -->
- 
+
+
+
+<!-- ### RL and Inferring Preferences
+
+Most IRL is actually inverse planning in an MDP. Assumption is that it's an MDP and human already knows R and T. Paper on IRL for POMDPs: assume agent knows POMDP structure. Much harder inference problem. 
+
+We have discussion of biases that humans have: hyperbolic discounting, bounded planning. These are relevant even if human knows structure of world and is just trying to plan. But often humans don't know structure of world. Better to think of world as RL problem where MDP or POMDP also is being learned. Problem is that there are many RL algorithms, they generally involve lots of randomness or arbitrary parameters. So hard to make precise predictions. Need to coarsen. Show example of this with Thompson sampling for Bandits. 
+
+Could discuss interactive RL. Multi-agent case. It's beyond scope of modeling.
+-->
 
 
 
