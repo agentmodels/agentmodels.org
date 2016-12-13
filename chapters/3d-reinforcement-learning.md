@@ -197,20 +197,23 @@ Applied to Bandits. The policy is just a multinomial probability for each arm. Y
 
 ### Posterior Sampling Reinforcement Learning (PSRL)
 
-Posterior Sampling Reinforcemet Learning (PSRL) is a model-based algorithm that generalizes posterior-sampling for Bandits to discrete, finite-horizon MDPs (cite Strens). The agent is initialized with a Bayesian prior distribution on the reward function $$R$$ and transition function $$T$$ and for every episode proceeds as follows:
+Posterior Sampling Reinforcemet Learning (PSRL) is a model-based algorithm that generalizes posterior-sampling for Bandits to discrete, finite-horizon MDPs (cite Strens). The agent is initialized with a Bayesian prior distribution on the reward function $$R$$ and transition function $$T$$. At each episode the agent proceeds as follows:
 
-> 1. Sample $$R$$ and $$T$$ (a "model") from the distribution. Compute the optimal policy for this model and follow that policy until the episode ends (while storing the trajectory in memory).
-> 2. Update the distribution on $$R$$ and $$T$$ on the trajectory using Bayes Rule. 
+> 1. Sample $$R$$ and $$T$$ (a "model") from the distribution. Compute the optimal policy for this model and follow it until the episode ends.
+> 2. Update the distribution on $$R$$ and $$T$$ on observations from the episode.
 
-Intuition for PSRL: if very confident, agent mainly exploit a model. If unconfident then will act as if different models are true. if one plausible model says that certain states have high reward when they in fact don't, agent will sample that model and visit those states and discover that they suck. after this, the agent will update and won't consider those models again. 
+Intuition for PSRL: if very confident, agent mainly exploit a model. If unconfident then will act as if different models are true. if one plausible model says that certain states have high reward when they in fact don't, agent will sample that model and visit those states and discover that they suck. after this, the agent will update and won't consider those models again.
 
-Implementation. Start by defining a distribution on R only. Det version: each in gridworld either has zero/one reward. Aim to find the state with reward one. We then run agent for many episodes. (Think about display for this). Compare Q-learning on this problem. 
+Our implementation. The PSRL agent is simple to implement in our framework. The prior and belief-updating re-uses code from the POMDP case: $$R$$ and $$T$$ are treated as latent state and are observed every state transition. Every episode, an MDP agent chooses actions by planning in the sampled model. Since the sampled model can differ radically from the model the agent is actually in, the agent may observe very incongruous state transitions. <!-- Could also note that the agent's model must have the actual transitions in its support at each timestep. -->
 
-Gridworld maze: Agent is in a maze in perfect darkness. Each square could be wall or not with even probability. Agent has to learn how to escape. Maze could be fairly big but want a fairly short way out. Model for T. 
+TODOS: <br>
+Gridworld maze example is unknown transition function. So requires a change to code below (which assumes same transitions for agent and simulate function. Clumpy reward uses same model below but has rewards be correlated. Should be easy to implement a simple version of this. Visualization should depict restaurants (which have non-zero rewards). 
+
+Gridworld maze: Agent is in a maze in perfect darkness. Each square could be wall or not with even probability. Agent has to learn how to escape. Maze could be fairly big but want a fairly short way out. Model for T.
 
 Clumpy reward model. Gridworld with hot and cold regions that clump. Agent starts in a random location. If you assume clumpiness, then agent will go first to unvisited states in good clumps. Otherwise, when they start in new places they'll explore fairly randomly. Could we make a realistic example like this? (Once you find some bad spots in one region. You don't explore anywhere near there for a long time. That might be interesting to look at. Could have some really cold regions near the agent.
 
-Simple version: agent starts in the middle. Has enough time to go to a bunch of different regions. Regions are clumped in terms of reward. Could think of this a city, cells with reward are food places. There are tourist areas with lots of bad food, foodie areas with good food, and some places with not much food. Agent without clumping tries some bad regions first and keeps going back to try all the places in those regions. Agent with clumping tries them once and then avoids. 
+Simple version: agent starts in the middle. Has enough time to go to a bunch of different regions. Regions are clumped in terms of reward. Could think of this a city, cells with reward are food places. There are tourist areas with lots of bad food, foodie areas with good food, and some places with not much food. Agent without clumping tries some bad regions first and keeps going back to try all the places in those regions. Agent with clumping tries them once and then avoids. [Problem is how to implement the prior. Could use enumeration but keep number of possibilities fairly small. Could use some approximate method and just do a batch update at the end of each episode. That will require some extra code for the batch update.]
 
 
 <!-- ### RL and Inferring Preferences
@@ -225,7 +228,7 @@ Could discuss interactive RL. Multi-agent case. It's beyond scope of modeling.
 
 
 
-###PSRL
+### PSRL
 
 
 ~~~~
@@ -275,6 +278,7 @@ var observeState = function(state) {
 
 
 
+
 var makePSRLAgent = function(params, pomdp) {
   var utility = params.utility;
 
@@ -317,6 +321,22 @@ var makePSRLAgent = function(params, pomdp) {
 
   return { params, act, expectedUtility, updateBelief };
 };
+
+
+//NOTES:
+//We simulate with a single agent. Whenever the agent takes actions,
+//they are given a state (*believedState*) that contains the *latentState*.
+//Since utility(s,a) just depends on *latentState.rewardGrid*, this is equivalent to giving
+//them a reward function. If the agent is given the same starting state twice,
+//then their old plans are re-used due to caching.
+
+//(It might be a bit clearer to create the agent anew every episode. On the
+//other hand, the current code is elegant and exploits caching.)
+
+//People just reading this chapter will proably be confused by manifest/latent. 
+//(We could bring the presentation closer to standard model-based RL
+//where R and T are unknown. But it's not clear it's worth doing so.)
+
 
 
 var simulatePSRL = function(startState, agent, numEpisodes) {
