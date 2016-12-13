@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: "MDPs and Gridworld in WebPPL"
-description: We extend the previous setup to noisy actions (softmax) and transitions, and introduce policies and expected action values.
+description: Noisy actions (softmax), stochastic transitions, policies, Q-values.
 ---
 
 This chapter explores some key features of MDPs: stochastic dynamics, stochastic policies, and value functions.
