@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: "Agents as probabilistic programs"
-description: "WebPPL Agents for solving simple, one-shot decision problems" 
+description: "One-shot decision problems, expected utility, softmax choice and Monty Hall." 
 is_section: true
 ---
 
