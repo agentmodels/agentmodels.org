@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: Introduction
-description: "We give an example of inferring human preferences from observed choices, and describe our goals: to implement decision-theoretic agents as probabilistic programs, and inferences about such agents as Bayesian reasoning about such programs."
+description: "Outline of goals: Implement agents that do planning, reinforcement learning and multi-agent decision making. Use probabilistic programs in WebPPL so that implementation is flexible, interpretable, and automatically differentiable."
 is_section: true
 ---
 
