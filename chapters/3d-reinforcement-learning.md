@@ -319,12 +319,12 @@ var makePSRLAgent = function(params, pomdp) {
 };
 
 
-var simulatePSRL = function(startState, agent, numberEpisodes) {
+var simulatePSRL = function(startState, agent, numEpisodes) {
   var act = agent.act;
   var updateBelief = agent.updateBelief;
   var priorBelief = agent.params.priorBelief;
 
-  var runSampledModelAndUpdate = function(state, priorBelief, numberEpisodesLeft) {
+  var runSampledModelAndUpdate = function(state, priorBelief, numEpisodesLeft) {
     var sampledState = sample(priorBelief);
     var trajectory = simulateEpisode(state, sampledState, priorBelief, 'noAction');
     var newBelief = trajectory[trajectory.length-1][2];
@@ -333,10 +333,11 @@ var simulatePSRL = function(startState, agent, numberEpisodes) {
     }});
     var output = [trajectory];
 
-    if (numberEpisodesLeft <= 1){
+    if (numEpisodesLeft <= 1){
       return output;
-    } else {
-      return output.concat(runSampledModelAndUpdate(state,            newBelief2,numberEpisodesLeft-1));
+      } else {
+      return output.concat(runSampledModelAndUpdate(state, newBelief2,
+                                                    numEpisodesLeft-1));
     }
   };
 
@@ -356,7 +357,7 @@ var simulatePSRL = function(startState, agent, numberEpisodes) {
       return output.concat(simulateEpisode(nextState, sampledState, belief, action));
     }
   };
-  return runSampledModelAndUpdate(startState, priorBelief, numberEpisodes);
+  return runSampledModelAndUpdate(startState, priorBelief, numEpisodes);
 };
 
 
@@ -403,8 +404,8 @@ var priorBelief = getPriorBelief(startState.manifestState, latentStateSampler);
 // Build agent (using 'pomdp' object defined above fold)
 var agent = makePSRLAgent({ utility, priorBelief, alpha: 100 }, pomdp);
 
-var numberEpisodes = 10
-var trajectories = simulatePSRL(startState, agent, numberEpisodes);
+var numEpisodes = 10
+var trajectories = simulatePSRL(startState, agent, numEpisodes);
 
 var project = function(x) { return first(x).manifestState.loc; };
 var s = map(function (t) { return map(project, t); }, trajectories)
