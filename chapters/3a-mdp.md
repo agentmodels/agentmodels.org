@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: "Sequential decision problems: MDPs"
-description: We look at sequential decision problems, how to formalize them mathematically, and how to implement them concisely and efficiently using probabilistic programs with mutual recursion and caching. 
+description: Markov Decision Processes, efficient planning with caching for dynamic programming, example in Gridworld. 
 ---
 
 ## Introduction
