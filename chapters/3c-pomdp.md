@@ -1,7 +1,7 @@
 ---
 layout: chapter
-title: "Agents learning from observations: POMDPs"
-description: Mathematical framework, implementation in WebPPL, Restaurant Choice and Bandit examples.
+title: "Environments with hidden state: POMDPs"
+description: Mathematical formalism for POMDPs, Bandit and Restaurant Choice examples. 
 ---
 
 
