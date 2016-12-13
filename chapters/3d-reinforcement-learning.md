@@ -11,6 +11,9 @@ The previous chapter introduced POMDPs: decision problems where some features of
 ## Reinforcement Learning for Bandits
 The previous chapter showed how the optimal POMDP agent solves Bandit problems. Here we apply Reinforcement Learning to Bandits.
 
+In the POMDP chapter, we modeled the agent's uncertainty as being over the transition transition function of their environment; their utility function on states was always known. In this chapter, we model the agent as initially uncertain about the MDP they are in. They can be uncertain about both the utility and transition functions. The definition of an MDP is the same as <a href="/chapters/3a-mdp.html#mdp">above</a> but we say "reward function" instead of "utility function". 
+
+
 ### Softmax Greedy Agent
 We start with a "greedy" agent with softmax noise, which is similar to the well-known "Epsilon Greedy" agent for Bandits. The Softmax Greedy agent updates beliefs about the hidden state (the expected rewards for the arms) using Bayesian updates (as with the optimal POMDP agent). Yet instead of making sequential plans that balance exploration (e.g. making informative observations) with exploitation (gaining high reward), the Greedy agent takes the action with highest *immediate* expected return[^greedy].
 
@@ -19,7 +22,6 @@ Here we implement the Greedy agent on Bernoulli Bandits, where each arm is a Ber
 [^greedy]: The standard Epsilon/Softmax Greedy agent maintains point estimates for the expected rewards of the arms. In WebPPL it's natural to use distributions instead. In a later chapter, we implement a more general Greedy/Myopic agent by extending the POMDP agent. [TODO link]. 
 
 [^regret]:The regret is a standard Frequentist metric for performance. Bayesian metrics, which take into account the agent's priors, can also be defined but are beyond the scope of this chapter. 
-
 
 ~~~~
 ///fold:
@@ -47,7 +49,7 @@ var observeStateAction = function(state, action){
 var makeGreedyBanditAgent = function(params) {
   var priorBelief = params.priorBelief;
 
-  // Update belief about coin-weights observed reward
+  // Update belief about coin-weights from observed reward
   var updateBelief = function(belief, observation, action){
     return Infer({ model() {
       var armToCoinWeight = sample(belief);
@@ -111,19 +113,18 @@ var armToCoinWeight = { 0: 0.5, 1: 0.6 };
 var agent = makeGreedyBanditAgent({alpha, priorBelief});
 var trajectory = simulate(armToCoinWeight, numberTrials, agent);
 
-// Random agent picks arms at random
+// Compare to random agent
 var randomTrajectory = repeat(
     numberTrials, 
     function(){return uniformDraw([0,1]);}
 );
 
-// Agent performance
+// Compute agent performance
 var regret = function(arm) { 
   var bestCoinWeight = _.max(_.values(armToCoinWeight))
   return bestCoinWeight - armToCoinWeight[arm];
 };
-          
-
+ 
 var trialToRegret = map(regret,trajectory);
 var trialToRegretRandom = map(regret, randomTrajectory)
 var ys = cumsum( trialToRegret) 
@@ -134,25 +135,24 @@ print('Total regret: [GreedyAgent, RandomAgent]  ' +
 print('Arms pulled: ' +  trajectory);
 
 viz.line(_.range(ys.length), ys, {xLabel:'Time', yLabel:'Cumulative regret'});
-
 ~~~~
 
-How well does the Greedy agent do? It does best when the difference between arms is large but does well even when the arms are close. Greedy agents perform well empirically on a wide range of Bandit problems [cite precup] and can be modified achieve asymptotic optimality [cite cesa-bianchi]. In contrast to the optimal POMDP agent from the previous chapter, the Greedy Agent scales well in both the arms and trials. Given that the Greedy Agent converges on the good performance quickly, why would anyone be interested in the POMDP solution? We defer this question to the appendix [TODO link]. 
+How well does the Greedy agent do? It does best when the difference between arms is large but does well even when the arms are close. Greedy agents perform well empirically on a wide range of Bandit problems [cite precup] and if their noise decays over time they can achieve asymptotic optimality [cite cesa-bianchi]. In contrast to the optimal POMDP agent from the previous chapter, the Greedy Agent scales well in both the arms and trials. Given that the Greedy Agent converges on the good performance quickly, why would anyone be interested in the POMDP solution? We defer this question to the appendix [TODO link]. 
 
-<!-- TODO: repeat these experiments to make sure the exercises actually work. -->
 
->**Exercise**:
+>**Exercises**:
 
-> 1. Add some code to compute an agent's total regret averaged across $$N$$ repeats of the same Bandit problem.
-> 2. Set the softmax noise to be low. How well does the Greedy Softmax agent do? Explain why. Keeping the noise low, modify the agent's priors to be overly "optimistic" about the expected reward of each arm (without changing the support of the prior distribution). How does this optimism change the agent's performance? Explain why. (This idea is known as "optimism in the face of uncertainty" in the RL literature.)
-> 3. Modify the agent so that the softmax noise is low and the agent has a "bad" prior (i.e. one that assigns a low probability to the truth) that is not optimistic. Will the agent eventually learn the optimal policy? How many trials does it take on average?
+> 1. Modify the code above so that it's easy to repeatedly run the same agent on the same Bandit problem. Compute the mean and standard deviation of the agent's total regret averaged over 20 episodes on the Bandit problem above. Use WebPPL's library [functions](http://docs.webppl.org/en/master/functions/arrays.html). 
+
+> 2. Set the softmax noise to be low. How well does the Greedy Softmax agent do? Explain why. Keeping the noise low, modify the agent's priors to be overly "optimistic" about the expected reward of each arm (without changing the support of the prior distribution). How does this optimism change the agent's performance? Explain why. (An optimistic prior assigns a high expected reward to each arm. This idea is known as "optimism in the face of uncertainty" in the RL literature.)
+> 3. Modify the agent so that the softmax noise is low and the agent has a "bad" prior (i.e. one that assigns a low probability to the truth) that is not optimistic. Will the agent always learn the optimal policy (eventually?) If so, after how many trials is the agent very likely to have learned the optimal policy? (Try to answer this question without doing experiments that take a long time to run.)
 
 
 ### Posterior Sampling
 Posterior sampling (or "Thompson sampling") is the basis for another algorithm for Bandits. This algorithm generalizes to arbitrary discrete MDPs, as we show below. The Posterior-sampling agent updates beliefs using standard Bayesian updates. Before choosing an arm, it draws a sample from its posterior on the arm parameters and then chooses greedily given the sample. In Bandits, this is similar to Softmax Greedy but without the softmax parameter $$\alpha$$.
 
 >**Exercise**:
-> Implement Posterior Sampling for Bandits by modifying the code above. (You only need to modify the `act` function.) Compare the performance of Posterior Sampling to Softmax Greedy, especially over large numbers of trials. Explain any differences you observe.
+> Implement Posterior Sampling for Bandits by modifying the code above. (You only need to modify the `act` function.) Compare the performance of Posterior Sampling to Softmax Greedy (using the value for $$\alpha$$ in the codebox above). You should vary the `armToCoinWeight` parameter and the number of arms. Evaluate each agent by computing the mean and standard deviation of rewards averaged over many trials. Why agent is better overall and why?
 
 <!-- TODO maybe we should include this code so casual readers can try it? -->
 
