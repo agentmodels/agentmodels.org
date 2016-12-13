@@ -33,7 +33,8 @@ To be added. Placeholder: Formal models of rational agents play an important rol
 
 ## Citation
 
-Please cite this book as: Owain Evans, Andreas Stuhlmüller, John Salvatier, and Daniel Filan (electronic). Modeling Agents with Probabilistic Programs. Retrieved <span class="date"></span> from http://agentmodels.org. <a id="toggle-bibtex" href="#" onClick="javascript:$('#bibtex').toggle();return false">[bibtex]</a>
+Please cite this book as: <br>
+>*Owain Evans, Andreas Stuhlmüller, John Salvatier, and Daniel Filan (electronic). Modeling Agents with Probabilistic Programs. Retrieved <span class="date"></span> from http://agentmodels.org.* <a id="toggle-bibtex" href="#" onClick="javascript:$('#bibtex').toggle();return false">[bibtex]</a>
 
 <pre id="bibtex">
 @misc{agentmodels,
