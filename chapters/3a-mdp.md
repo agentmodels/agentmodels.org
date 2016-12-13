@@ -33,6 +33,7 @@ var mdp = makeGridWorldMDP({ grid, start: [3, 1] });
 viz.gridworld(mdp.world, { trajectory : [mdp.startState] });
 ~~~~
 
+<a id="mdp"></a>
 
 ## Markov Decision Processes: Definition
 
