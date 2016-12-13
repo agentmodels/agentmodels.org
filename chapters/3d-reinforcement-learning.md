@@ -6,12 +6,12 @@ description: RL vs. optimal Bayesian approach to Bandits, Softmax Greedy, Poster
 
 ## Introduction
 
-The previous chapter introduced POMDPs: decision problems where some features of the environment are initially unknown to the agent but can be learned by observation. We showed how to compute optimal Bayesian behavior for POMDPs. Unfortunately, this computation is infeasible for all but the simplest POMDPs. In practice, many POMDP problems can be solved heuristically using "Reinforcement Learning" (RL). RL algorithms are conceptually simple, scalable and effective both in discrete and continuous state spaces. They are central to achieving state-of-the-art performance in sequential decision problems in AI, e.g. in playing Go [cite], in playing videogames from raw pixels [cite], and in robotic control [cite]. 
+The previous chapter introduced POMDPs: decision problems where some features of the environment are initially unknown to the agent but can be learned by observation. We showed how to compute optimal Bayesian behavior for POMDPs. Unfortunately, this computation is infeasible for all but the simplest POMDPs. In practice, many POMDP problems can be solved heuristically using "Reinforcement Learning" (RL). RL algorithms are conceptually simple, scalable and effective both in discrete and continuous state spaces. They are central to achieving state-of-the-art performance in sequential decision problems in AI, including playing Go [cite], playing videogames from raw pixels [cite], and continuous control for robotics [cite]. 
 
 ## Reinforcement Learning for Bandits
 The previous chapter showed how the optimal POMDP agent solves Bandit problems. Here we apply Reinforcement Learning to Bandits.
 
-In the POMDP chapter, we modeled the agent's uncertainty as being over the transition transition function of their environment; their utility function on states was always known. In this chapter, we model the agent as initially uncertain about the MDP they are in. They can be uncertain about both the utility and transition functions. The definition of an MDP is the same as <a href="/chapters/3a-mdp.html#mdp">before</a> but we use the RL convention and say "reward function" instead of "utility function". 
+In the POMDP chapter, we modeled the agent's uncertainty as being over the transition transition function of their environment; their utility function on states was always known. In this chapter, we model the agent as initially uncertain about the MDP they are in. They can be uncertain about both the utility and transition functions. The definition of an MDP is the same as <a href="/chapters/3a-mdp.html#mdp">before</a> but we sometimes follow the RL convention and say "reward function" instead of "utility function". 
 
 
 ### Softmax Greedy Agent
@@ -171,7 +171,7 @@ var act = dp.cache(
 -----------
 
 ## RL algorithms for MDPs
-The Bandit problem is a very simple MDP with discrete actions and a single state. We now consider RL algorithms for learning arbitrary discrete MDPs. The goal is typically to learn a policy that achieves high reward as quickly as possible. Algorithms are either *model-based* or *model-free*:
+The Bandit problem is a one-state MDP. We now consider RL algorithms for learning discrete MDP's with any number of states. Algorithms are either *model-based* or *model-free*:
 
 1. *Model-based* algorithms learn an explicit representation of the MDP's transition and reward functions. These representations are used to compute a good policy. 
 
@@ -181,7 +181,9 @@ The Bandit problem is a very simple MDP with discrete actions and a single state
 Q-learning is the best known RL algorithm and is model-free. A Q-learning agent stores and updates a point estimate of the expected utility of each action under the optimal policy (i.e. an estimate $$\hat{Q}(s,a)$$ for $$Q^*(s,a)$$). Provided the agent takes random exploratory actions, these estimates converge in the limit (cite Watkins). In our framework, it's more natural to implement *Bayesian Q-learning* (Dearden et al), where the point estimates are replaced with Bayesian posteriors.
 
 The defining property of Q-learning (as opposed to SARSA or Monte-Carlo) is how it updates its Q-value estimates. After each state transition $$(s,a,r,s')$$, a new Q-value estimate is computed: <br>
+<blockquote>
 $$\hat{Q}(s,a) = r + \max_{s'}{Q(s',a')}$$
+</blockquote>
 
 CODEBOX: Bayesian Q-learning. Apply to gridworld where goal is to get otherside of the and maybe there are some obstacles. For small enough gridworld, POMDP agent will be quicker.
 
@@ -197,8 +199,8 @@ Applied to Bandits. The policy is just a multinomial probability for each arm. Y
 
 Posterior Sampling Reinforcemet Learning (PSRL) is a model-based algorithm that generalizes posterior-sampling for Bandits to discrete, finite-horizon MDPs (cite Strens). The agent is initialized with a Bayesian prior distribution on the reward function $$R$$ and transition function $$T$$ and for every episode proceeds as follows:
 
-> 1. Sample $$R$$ and $$T$$ (a "model") from the distribution. Compute the optimal policy for this model and follow that policy until the episode ends (while storing all experiences during the episode). 
-> 2. Update the distribution on $$R$$ and $$T$$ on the experiences during the episode using Bayes Rule. 
+> 1. Sample $$R$$ and $$T$$ (a "model") from the distribution. Compute the optimal policy for this model and follow that policy until the episode ends (while storing the trajectory in memory).
+> 2. Update the distribution on $$R$$ and $$T$$ on the trajectory using Bayes Rule. 
 
 Intuition for PSRL: if very confident, agent mainly exploit a model. If unconfident then will act as if different models are true. if one plausible model says that certain states have high reward when they in fact don't, agent will sample that model and visit those states and discover that they suck. after this, the agent will update and won't consider those models again. 
 
@@ -221,37 +223,15 @@ Could discuss interactive RL. Multi-agent case. It's beyond scope of modeling.
 -->
 
 
-----------
-
-## Appendix: POMDP agent vs. RL agent
-
-First consider the Bandit problem. The POMDP agent is slow (polynomial in number of trials and exponential in # arms? ). The RL agent is almost always used in practical Bandit problems. The optimal POMDP agent solves a harder problem. It computes what to do for any possible sequence of observations. This means the POMDP agent, after computing a policy once, could immediately take the optimal action given any sequence of observations without doing any more computation. By contrast, RL agents store information only about the present Bandit problem -- and in most Bandit problems this is all we care about. 
-
-General MDPs. The previous chapter introduced a POMDP version of the Restaurant problem in Gridworld, where the agent doesn't know initially if each restaurant is open or closed. How would RL agents compare to POMDP agents on this problem?
-
-One way to think of the Restaurant Choice problem is as an *Episodic* POMDP. At the start of each episode, the agent is uncertain about which restaurants are open or closed. Over repeated episodes, they learn about the *distribution* on restaurants being open but they never know for sure (since restaurants might close down or vary their hours) and so they may need to update their beliefs on any given episode. (A similar example in the POMDP literature is the Tiger Problem.) This kind of problem is ill-suited to standard RL algorithms. Such algorithms assume that the hidden state is an MDP that is fixed across all episodes. POMDP algorithms, on the other hand, take into account the fact that there is new (but observable) hidden state every episode.
-
-<!-- The general learning problem: there is some state that's initially unknown and fixed across episodes and some state that's random across episodes but observable. A POMDP agent should be able to learn both of these -->
-
-Alternatively, we could think of the Restaurant Choice problem as an episodic MDP. Initially, the agent doesn't know which restaurants are open. But once they find out there is nothing more to learn: the same restaurants are open each episode. In this kind of example, RL techniques work well and are typically what's used in practice. 
-
-<!--
-Table:
-
-Structure given / unknown        MDP                                  POMDP
- KNOWN                        Planning (Solve exactly DP)       POMDP solve (Belief MDP)
- LEARNED                      POMDP solver (exact Bayesian), RL    POMDP solve
- -->
- 
 
 
-
-PSRL
+###PSRL
 
 
 ~~~~
 ///fold:
 
+// Construct Gridworld (transitions but not rewards)
 var ___ = ' '; 
 
 var grid = [
@@ -278,14 +258,27 @@ var utility = function(state, action) {
 };
 
 
+// Helper function to generate agent prior
+var getOneHotVector = function(n, i) {
+  if (n==0) { 
+    return [];
+  } else {
+    var e = 1*(i==0);
+    return [e].concat(getOneHotVector(n-1, i-1));
+  }
+};
+///
+
 var observeState = function(state) { 
   return utility(state);
 };
 
+
+
 var makePSRLAgent = function(params, pomdp) {
   var utility = params.utility;
 
-  // Implements *Belief-update formula* in text
+  // belief updating: identical to POMDP agent from Chapter 3c
   var updateBelief = function(belief, observation, action){
     return Infer({ model() {
       var state = sample(belief);
@@ -296,6 +289,7 @@ var makePSRLAgent = function(params, pomdp) {
     }});
   };
 
+  // this is the MDP agent from Chapter 3a
   var act = dp.cache(
     function(state) {
       return Infer({ model() {
@@ -323,22 +317,14 @@ var makePSRLAgent = function(params, pomdp) {
 
   return { params, act, expectedUtility, updateBelief };
 };
-var getPriorBelief = function(startManifestState, latentStateSampler){
-  return Infer({ model() {
-    return {
-      manifestState: startManifestState, 
-      latentState: latentStateSampler()};
-  }});
-};
 
-var simulatePSRL = function(startState, agent, n) {
+
+var simulatePSRL = function(startState, agent, numberEpisodes) {
   var act = agent.act;
   var updateBelief = agent.updateBelief;
   var priorBelief = agent.params.priorBelief;
 
-
-
-  var sampleSequence = function(state, priorBelief, i) {
+  var runSampledModelAndUpdate = function(state, priorBelief, numberEpisodesLeft) {
     var sampledState = sample(priorBelief);
     var trajectory = simulateEpisode(state, sampledState, priorBelief, 'noAction');
     var newBelief = trajectory[trajectory.length-1][2];
@@ -347,10 +333,10 @@ var simulatePSRL = function(startState, agent, n) {
     }});
     var output = [trajectory];
 
-    if (i <= 1){
+    if (numberEpisodesLeft <= 1){
       return output;
     } else {
-      return output.concat(sampleSequence(state, newBelief2 , i-1));
+      return output.concat(runSampledModelAndUpdate(state,            newBelief2,numberEpisodesLeft-1));
     }
   };
 
@@ -370,48 +356,55 @@ var simulatePSRL = function(startState, agent, n) {
       return output.concat(simulateEpisode(nextState, sampledState, belief, action));
     }
   };
-  return sampleSequence(startState, priorBelief, n);
+  return runSampledModelAndUpdate(startState, priorBelief, numberEpisodes);
 };
 
 
+// Construct agent prior belief
 
+// Combine manifest (fully observed) state with prior on latent state
+var getPriorBelief = function(startManifestState, latentStateSampler){
+  return Infer({ model() {
+    return {
+      manifestState: startManifestState, 
+      latentState: latentStateSampler()};
+  }});
+};
 
-var latent = {
+// True reward function
+var trueLatentReward = {
   rewardGrid : [
       [ 0, 0, 0],
       [ 0, 0, 0],
       [ 0, 0, 1]
     ]
 };
+
+// True start state
 var startState = {
   manifestState: { 
     loc: [0, 0],
     terminateAfterAction: false,
     timeLeft: 5
   },
-  latentState: latent
+  latentState: trueLatentReward
 };
 
-var oneHot = function(n, i) {
-  if (n==0) { 
-    return [];
-  } else {
-    var e = 1*(i==0);
-    return [e].concat(oneHot(n-1, i-1));
-  }
-};
-
+// Agent prior on reward functions
 var latentStateSampler = function() {
-  var flat = oneHot(9, randomInteger(9));
-
+  var flat = getOneHotVector(9, randomInteger(9));
   return { 
     rewardGrid : [flat.slice(0,3), flat.slice(3,6), flat.slice(6,9)] 
   };
 }
 
 var priorBelief = getPriorBelief(startState.manifestState, latentStateSampler);
+
+// Build agent (using 'pomdp' object defined above fold)
 var agent = makePSRLAgent({ utility, priorBelief, alpha: 100 }, pomdp);
-var trajectories = simulatePSRL(startState, agent, 10);
+
+var numberEpisodes = 10
+var trajectories = simulatePSRL(startState, agent, numberEpisodes);
 
 var project = function(x) { return first(x).manifestState.loc; };
 var s = map(function (t) { return map(project, t); }, trajectories)
@@ -432,6 +425,34 @@ plotManifest(trajectories[7]);
 plotManifest(trajectories[8]);
 plotManifest(trajectories[9]);
 ~~~~
+
+
+
+----------
+
+## Appendix: POMDP agent vs. RL agent
+
+First consider the Bandit problem. The POMDP agent is slow (polynomial in number of trials and exponential in # arms? ). The RL agent is almost always used in practical Bandit problems. The optimal POMDP agent solves a harder problem. It computes what to do for any possible sequence of observations. This means the POMDP agent, after computing a policy once, could immediately take the optimal action given any sequence of observations without doing any more computation. By contrast, RL agents store information only about the present Bandit problem -- and in most Bandit problems this is all we care about. 
+
+General MDPs. The previous chapter introduced a POMDP version of the Restaurant problem in Gridworld, where the agent doesn't know initially if each restaurant is open or closed. How would RL agents compare to POMDP agents on this problem?
+
+One way to think of the Restaurant Choice problem is as an *Episodic* POMDP. At the start of each episode, the agent is uncertain about which restaurants are open or closed. Over repeated episodes, they learn about the *distribution* on restaurants being open but they never know for sure (since restaurants might close down or vary their hours) and so they may need to update their beliefs on any given episode. (A similar example in the POMDP literature is the Tiger Problem.) This kind of problem is ill-suited to standard RL algorithms. Such algorithms assume that the hidden state is an MDP that is fixed across all episodes. POMDP algorithms, on the other hand, take into account the fact that there is new (but observable) hidden state every episode.
+
+<!-- The general learning problem: there is some state that's initially unknown and fixed across episodes and some state that's random across episodes but observable. A POMDP agent should be able to learn both of these -->
+
+Alternatively, we could think of the Restaurant Choice problem as an episodic MDP. Initially, the agent doesn't know which restaurants are open. But once they find out there is nothing more to learn: the same restaurants are open each episode. In this kind of example, RL techniques work well and are typically what's used in practice. 
+
+<!--
+Table:
+
+Structure given / unknown        MDP                                  POMDP
+ KNOWN                        Planning (Solve exactly DP)       POMDP solve (Belief MDP)
+ LEARNED                      POMDP solver (exact Bayesian), RL    POMDP solve
+ -->
+ 
+
+
+
 
 ### Footnotes
 
