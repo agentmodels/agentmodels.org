@@ -11,7 +11,7 @@ The previous chapter introduced POMDPs: decision problems where some features of
 ## Reinforcement Learning for Bandits
 The previous chapter showed how the optimal POMDP agent solves Bandit problems. Here we apply Reinforcement Learning to Bandits.
 
-In the POMDP chapter, we modeled the agent's uncertainty as being over the transition transition function of their environment; their utility function on states was always known. In this chapter, we model the agent as initially uncertain about the MDP they are in. They can be uncertain about both the utility and transition functions. The definition of an MDP is the same as <a href="/chapters/3a-mdp.html#mdp">above</a> but we say "reward function" instead of "utility function". 
+In the POMDP chapter, we modeled the agent's uncertainty as being over the transition transition function of their environment; their utility function on states was always known. In this chapter, we model the agent as initially uncertain about the MDP they are in. They can be uncertain about both the utility and transition functions. The definition of an MDP is the same as <a href="/chapters/3a-mdp.html#mdp">before</a> but we use the RL convention and say "reward function" instead of "utility function". 
 
 
 ### Softmax Greedy Agent
@@ -152,7 +152,7 @@ How well does the Greedy agent do? It does best when the difference between arms
 Posterior sampling (or "Thompson sampling") is the basis for another algorithm for Bandits. This algorithm generalizes to arbitrary discrete MDPs, as we show below. The Posterior-sampling agent updates beliefs using standard Bayesian updates. Before choosing an arm, it draws a sample from its posterior on the arm parameters and then chooses greedily given the sample. In Bandits, this is similar to Softmax Greedy but without the softmax parameter $$\alpha$$.
 
 >**Exercise**:
-> Implement Posterior Sampling for Bandits by modifying the code above. (You only need to modify the `act` function.) Compare the performance of Posterior Sampling to Softmax Greedy (using the value for $$\alpha$$ in the codebox above). You should vary the `armToCoinWeight` parameter and the number of arms. Evaluate each agent by computing the mean and standard deviation of rewards averaged over many trials. Why agent is better overall and why?
+> Implement Posterior Sampling for Bandits by modifying the code above. (You only need to modify the `act` function.) Compare the performance of Posterior Sampling to Softmax Greedy (using the value for $$\alpha$$ in the codebox above). You should vary the `armToCoinWeight` parameter and the number of arms. Evaluate each agent by computing the mean and standard deviation of rewards averaged over many trials. Which agent is better overall and why?
 
 <!-- TODO maybe we should include this code so casual readers can try it? -->
 
