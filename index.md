@@ -1,5 +1,6 @@
 ---
 layout: default
+title: "Modeling Agents with Probabilistic Programs"
 ---
 
 <img src="/assets/img/maze.png" id="cover" />
