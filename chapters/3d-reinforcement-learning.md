@@ -233,15 +233,17 @@ Simple version: agent starts in the middle. Has enough time to go to a bunch of 
 var ___ = ' '; 
 
 var grid = [
-  [ ___, ___, ___],
-  [ ___, ___, ___],  
-  [ ___, ___, ___]
+  [ ___, ___, '#', ___],
+  [ ___, ___, ___, ___],
+  [ '#', ___, '#', '#'],
+  [ ___, ___, ___, ___]
 ];
 
 var pomdp = makeGridWorldPOMDP({
   grid,
   start: [0, 0],
-  totalTime: 5
+  totalTime: 8,
+  transitionNoiseProbability: .1
 });
 
 var transition = pomdp.transition
@@ -390,9 +392,10 @@ var getPriorBelief = function(startManifestState, latentStateSampler){
 // True reward function
 var trueLatentReward = {
   rewardGrid : [
-      [ 0, 0, 0],
-      [ 0, 0, 0],
-      [ 0, 0, 1]
+      [ 0, 0, 0, 0],
+      [ 0, 0, 0, 0],
+      [ 0, 0, 0, 0],
+      [ 0, 0, 0, 1]
     ]
 };
 
@@ -401,16 +404,20 @@ var startState = {
   manifestState: { 
     loc: [0, 0],
     terminateAfterAction: false,
-    timeLeft: 5
+    timeLeft: 8
   },
   latentState: trueLatentReward
 };
 
 // Agent prior on reward functions
 var latentStateSampler = function() {
-  var flat = getOneHotVector(9, randomInteger(9));
+  var flat = getOneHotVector(16, randomInteger(16));
   return { 
-    rewardGrid : [flat.slice(0,3), flat.slice(3,6), flat.slice(6,9)] 
+    rewardGrid : [
+      flat.slice(0,4), 
+      flat.slice(4,8), 
+      flat.slice(8,12), 
+      flat.slice(12,16) ] 
   };
 }
 
