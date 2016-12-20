@@ -422,24 +422,21 @@ var agent = makePSRLAgent({ utility, priorBelief, alpha: 100 }, pomdp);
 var numEpisodes = 10
 var trajectories = simulatePSRL(startState, agent, numEpisodes);
 
-var project = function(x) { return first(x).manifestState.loc; };
-var s = map(function (t) { return map(project, t); }, trajectories)
-print(s)
+var concatAll = function(list) {
+  var inner = function (work, i) { 
+    if (i < list.length-1) {
+      return inner(work.concat(list[i]), i+1) 
+    } else {
+      return work;
+    }
+  }
+  return inner([], 0); 
+}
 
-var plotManifest = function(trajectory) { 
-  var manifestStates = map(function(tuple) { return tuple[0].manifestState; }, trajectory);
-  viz.gridworld(pomdp.MDPWorld, { trajectory: manifestStates });
-};
-plotManifest(trajectories[0]);
-plotManifest(trajectories[1]);
-plotManifest(trajectories[2]);
-plotManifest(trajectories[3]);
-plotManifest(trajectories[4]);
-plotManifest(trajectories[5]);
-plotManifest(trajectories[6]);
-plotManifest(trajectories[7]);
-plotManifest(trajectories[8]);
-plotManifest(trajectories[9]);
+var badState = [[ { manifestState : { loc : "break" } } ]];
+
+var trajectories = map(function(t) { return t.concat(badState);}, trajectories);
+viz.gridworld(pomdp, {trajectory : concatAll(trajectories)});
 ~~~~
 
 
