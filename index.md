@@ -7,7 +7,7 @@ title: "Modeling Agents with Probabilistic Programs"
 
 ## About this book
 
-To be added. Placeholder: Formal models of rational agents play an important role in economics and in the cognitive sciences  as models of human or animal behavior. Core components of such models are expected-utility maximization, Bayesian inference, and game-theoretic equilibria. These ideas are also applied in engineering and in artificial intelligence in order to compute optimal solutions to problems and to construct artificial systems that learn and reason optimally. This tutorial implements utility-maximizing Bayesian agents as functional probabilistic programs. These programs provide a concise, intuitive translation of the mathematical specification of rational agents as code. The implemented agents explicitly simulate their own future choices via recursion. They update beliefs by exact or approximate Bayesian inference. They reason about other agents by simulating them (which includes simulating the simulations of others).
+Formal models of rational agents play an important role in economics, cognitive science, Machine Learning, and AI. Core components of such models are expected-utility maximization, Bayesian inference, sequential decision making and reinforcement learning. This tutorial implements utility-maximizing Bayesian agents as functional probabilistic programs. These programs provide an intuitive translation of the mathematical specification of rational agents as code. The implemented agents explicitly simulate their own future choices via recursion. They update beliefs by exact or approximate Bayesian inference. They reason about other agents by simulating them (which includes simulating the simulations of others).
 
 ## Table of contents
 
