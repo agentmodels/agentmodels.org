@@ -8,13 +8,18 @@ description: Mathematical formalism for POMDPs, Bandit and Restaurant Choice exa
  
 ## Introduction: Learning about the world from observation
 
-The previous chapters included MDPs where the transition function is *stochastic*. As a consequence of stochasticity, the agent is *uncertain* about the result of taking an action in a given state. For instance, the agent in the Hiking Problem is uncertain whether choosing the move "right" will result in going right or falling down the hill. This kind of uncertainty cannot be altered or reduced by observation. Transitions occur according to a fixed probability distribution with no parameters the agent can learn from experience. In terms of an agent's uncertainty, an MDP is like a fair lottery, where observing the winning ticket one week does not reduce the agent's uncertainty over the outcome the following week[^mdp].
+The previous chapters included MDPs where the transition function is *stochastic*. As a consequence of stochasticity, the agent is *uncertain* about the result of taking an action in a given state. For instance, the agent in the Hiking Problem is uncertain whether choosing the action "right" will result in going right or falling down the hill. This kind of uncertainty cannot be altered or reduced by observation. Transitions occur according to a fixed probability distribution with no parameters the agent can learn from experience. In terms of an agent's uncertainty, an MDP is like a lottery (or game of roulette), where observing the winning ticket one week does not reduce the agent's uncertainty over the outcome the following week[^mdp].
 
-[^mdp]: This doesn't mean MDPs always represent real-world problems with the structure of lotteries or casino games. The MDP could represent a situation where events are deterministic but the transition function is either unknown or is too complex to include in the model. 
+[^mdp]: This doesn't mean MDPs always represent real-world problems with the structure of lotteries or casino games. MDPs are often used as greatly simplified models of a complex real-world environment. MDPs can be used to represent deterministic environments where the transition function is either unknown or is too complex to model. 
 
-In contrast, we often face problems where our uncertainty can be *reduced* by observation. In choosing between restaurants, we rarely have complete knowledge of restaurants in the neighborhood. We are uncertain about opening hours, the chance of getting a table, the quality of restaurants, the exact distances between locations, and so on. This uncertainty can be reduced by observation: we walk to a restaurant and see whether it's open. In other examples, the environment is stochastic but the agent can gain knowledge of the *distribution* on outcomes. For example, in Multi-arm Bandit problems, the agent learns about the distribution over rewards given by each of the arms.
+In contrast, we often face problems where our uncertainty can be *reduced* by observation. In choosing between restaurants, we rarely have complete knowledge of restaurants in the neighborhood. We are uncertain about opening hours, the chance of getting a table, the quality of restaurants, the exact distances between locations, and so on. This uncertainty can be reduced by observation: we walk to a restaurant and see whether it's open.
 
-To represent decision problems where the agent's uncertainty is altered by observations, we use Partially Observable Markov Decision Processes (POMDPs). We first introduce the formalism for POMDPs and then show how to extend our agent model for MDPs to an agent model that solves POMDPs. 
+<!-- possibly remove -->
+In other examples, the environment is stochastic but the agent can gain knowledge of the *distribution* on outcomes. For example, in Multi-arm Bandit problems, the agent learns about the distribution over rewards given by each of the arms.
+
+To represent decision problems where the agent's uncertainty is altered by observations, we use Partially Observable Markov Decision Processes (POMDPs). We first introduce the formalism for POMDPs and then show how to extend our agent model for MDPs to an agent model that solves POMDPs.
+
+
 
 
 ## POMDP Agent Model
@@ -776,7 +781,7 @@ var manifestStates = _.map(trajectory, _.property('manifestState'));
 viz.gridworld(pomdp.MDPWorld, { trajectory: manifestStates });
 ~~~~
 
-In the next [chapter](/chapters/4-reasoning-about-agents.html), we will start modeling inferences *about* agents.
+The next [chapter](/chapters/3d-reinforcement-learning.html) is on reinforcement learning, an approach which *learns* to solve an initially unknown MDP.
 
 <!-- TODO
 ### Possible additions
