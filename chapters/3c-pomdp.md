@@ -97,15 +97,26 @@ $$
 
 where $$s'$$, $$o$$, $$a'$$ and $$b'$$ are distributed as in the Expected Utility of State Recursion.
 
-Unfortunately, finding the optimal policy for POMDPs is a difficult task. In fact, even in the special case where the observations are deterministic and the horizon is finite, the task of determining whether the optimal policy has expected utility greater than some constant is PSPACE-complete refp:papadimitriou1987complexity.
+Unfortunately, finding the optimal policy for POMDPs is intractable. Even in the special case where observations are deterministic and the horizon is finite, determining whether the optimal policy has expected utility greater than some constant is PSPACE-complete refp:papadimitriou1987complexity.
 
 ### Implementation of the Model
 <a id="pomdpCode"></a>
 
-As with the agent model for MDPs, we provide a direct translation of the equations above into an agent model for solving POMDPs. The variables `nextState`, `nextObservation`, `nextBelief`, and `nextAction` correspond to $$s'$$,  $$o$$, $$b'$$ and $$a'$$ respectively, and we use the Expected Utility of Belief Recursion. The following codebox defines the `act` and `expectedUtility` functions. We define the functions `updateBelief`, `transition`, `observe` and `utility` below. 
+As with the agent model for MDPs, we provide a direct translation of the equations above into an agent model for solving POMDPs. The variables `nextState`, `nextObservation`, `nextBelief`, and `nextAction` correspond to $$s'$$,  $$o$$, $$b'$$ and $$a'$$ respectively, and we use the Expected Utility of Belief Recursion.
 
 <!-- pomdp_agent -->
 ~~~~
+
+var updateBelief = function(belief, observation, action){
+    return Infer({ model() {
+      var state = sample(belief);
+      var predictedNextState = transition(state, action);
+      var predictedObservation = observe(predictedNextState);
+      condition(_.isEqual(predictedObservation, observation));
+      return predictedNextState;
+    }});
+};
+
 var act = function(belief) {
   return Infer({ model() {
     var action = uniformDraw(actions);
@@ -132,9 +143,9 @@ var expectedUtility = function(belief, action) {
     }}));
 };
 
-// To simulate the agent, need to transition
+// To simulate the agent, we need to transition
 // the state, sample an observation, then
-// get agent's action (after agent updates belief)
+// compute agent's action (after agent has updated belief).
 
 // *startState* is agent's actual startState (unknown to agent)
 // *priorBelief* is agent's initial belief function
@@ -160,213 +171,36 @@ var simulate = function(startState, priorBelief) {
 
 ## Applying the POMDP agent model
 
-### Two-arm, deterministic, IRL Bandits
+### Multi-arm Bandits
 
-We apply the POMDP agent to a simplified variant of the Multi-arm Bandit Problem. In this variant, pulling an arm produces a *prize* deterministically. The agent begins with uncertainty about the mapping from arms to prizes and learns over time by trying the arms. In our concrete example, there are only two arms. The first arm is known to have the prize "chocolate" and the second arm either has "champagne" or has no prize at all ("nothing"). See Figure 2 (below) for details. We refer to Bandit problems with prizes (e.g. chocolate) as "IRL Bandits" to distinguish them from the standard Bandit problems with numerical rewards. <!-- TODO I don't like this explanation of the term "IRL bandit" - reading the paragraph, you don't get an explanation why "IRL" was chosen or what it has to do with inverse reinforcement learning. - Daniel -->
+<!-- TODO link wiki or something -->
+Bandit problems are a simple and well-studied class of sequential decision problems. A Bandit problem has a single state and multiple actions ("arms") with different expected utilities which are initially unknown. The agent has a finite time horizon and must balance exploration (i.e. find out which arm is best) with exploitation (pull the best arm).
 
-<img src="/assets/img/3c-irl-bandit.png" alt="diagram" style="width: 500px;"/>
+Bandit problems can be modeled as reinforcement learning problems. The environment is an unknown MDP characterized by the expected utility of each arm theta-0, ... theta-k and agent must converge quickly to a good policy on this arm. We describe this approach in the next chapter. While RL approaches can converge quickly and use little compute, they do not produce the optimal Bayesian behavior. Treating the problem as a POMDP as using the code above, we can solve Bandit problems optimally. 
 
->**Figure 2:** Diagram for deterministic Bandit problem used in the codebox below. The boxes represent possible deterministic mappings from arms to prizes. Each prize has a utility $$u$$. On the right are the agent's initial beliefs about the probability of each mapping. The true mapping (i.e. true *latent state*) has a solid outline.
+-Footnote: Solving the POMDP means computing the optimal action for every possible sequence of observations. This means the agent would perform optimally on any possible Bandit problem (if problems are drawn from its prior). 
+
+Here we use functions from the library webppl-agents. In the appendix to this chapter, we have a working agent on a simplified Bandit problem which will give you an idea of how to implement this. 
 
 In our implementation of this problem, the two arms are labeled "0" and "1" respectively. The *action* of pulling `Arm0` is also labeled "0" (and likewise for `Arm1`). After taking action `0`, the agent transitions to a state corresponding to the prize for `Arm0` and the gets to observe this prize. States are Javascript objects that contain a property for counting down the time (as in the MDP case) as well as a `prize` property. States also contain the *latent* mapping from arms to prizes (called `armToPrize`) that determines how an agent transitions on pulling an arm.
 
-~~~~
-// Pull arm0 or arm1
-var actions = [0, 1];
+We consider an especially simple Bandit problem, where the agent already knows the reward for `Arm0` and only considers two possible distributions on reward for `Arm1`. This is depicted in Figure 3.
 
-// Use latent "armToPrize" mapping in state to
-// determine which prize agent gets
-var transition = function(state, action){
-  var newTimeLeft = state.timeLeft - 1;
-  return extend(state, {
-    prize: state.armToPrize[action], 
-    timeLeft: newTimeLeft,
-    terminateAfterAction: newTimeLeft == 1
-  });
-};
+<img src="/assets/img/3c-stochastic-bandit.png" alt="diagram" style="width: 600px;"/>
 
-// After pulling an arm, agent observes associated prize
-var observe = function(state){
-  return state.prize;
-};
+>**Figure 3:** Structure of Bandit problem where `Arm1` is stochastic. 
+<br>
 
-// Starting state specifies the latent state that agent tries to learn
-// (In order that *prize* is defined, we set it to 'start', which
-// has zero utilty for the agent). 
-var startState = { 
-  prize: 'start',
-  timeLeft: 3, 
-  terminateAfterAction:false,
-  armToPrize: { 0: 'chocolate', 1: 'champagne' }
-};
-~~~~
-
-Having illustrated our implementation of the POMDP agent and the Bandit problem, we put the pieces together and simulate the agent's behavior. The `makeAgent` function is a simplified version of the library function `makeBeliefAgent` used throughout the rest of this tutorial[^makeBelief].
-
-The <a href="#belief">Belief-Update Formula</a> is implemented by `updateBelief`. Instead of hand-coding a Bayesian belief update, we simply use WebPPL's built in inference primitives. This approach means our POMDP agent can do any kind of inference that WebPPL itself can do. For this tutorial, we use the inference function `Enumerate`, which captures exact inference over discrete belief spaces. By changing the inference function, we get a POMDP agent that does approximate inference and simulates their future selves as doing approximate inference. This inference could be over discrete or continuous belief spaces. (WebPPL includes Particle Filters, MCMC, and Hamiltonian Monte Carlo for differentiable models). 
-
-[^makeBelief]: One difference between the functions is that `makeAgent` uses the global variables `transition` and `observation`, instead of having a `world` parameter.
-
-~~~~
-///fold: Bandit problem is defined as above
-
-// Pull arm0 or arm1
-var actions = [0, 1];
-
-// Use latent "armToPrize" mapping in state to
-// determine which prize agent gets
-var transition = function(state, action){
-  var newTimeLeft = state.timeLeft - 1;
-  return extend(state, {
-    prize: state.armToPrize[action], 
-    timeLeft: newTimeLeft,
-    terminateAfterAction: newTimeLeft == 1
-  });
-};
-
-// After pulling an arm, agent observes associated prize
-var observe = function(state){
-  return state.prize;
-};
-
-// Starting state specifies the latent state that agent tries to learn
-// (In order that *prize* is defined, we set it to 'start', which
-// has zero utilty for the agent). 
-var startState = { 
-  prize: 'start',
-  timeLeft: 3, 
-  terminateAfterAction:false,
-  armToPrize: {0:'chocolate', 1:'champagne'}
-};
-///
-
-// Defining the POMDP agent
-
-// Agent params include utility function and initial belief (*priorBelief*)
-
-var makeAgent = function(params) {
-  var utility = params.utility;
-
-  // Implements *Belief-update formula* in text
-  var updateBelief = function(belief, observation, action){
-    return Infer({ model() {
-      var state = sample(belief);
-      var predictedNextState = transition(state, action);
-      var predictedObservation = observe(predictedNextState);
-      condition(_.isEqual(predictedObservation, observation));
-      return predictedNextState;
-    }});
-  };
-
-  var act = dp.cache(
-    function(belief) {
-      return Infer({ model() {
-        var action = uniformDraw(actions);
-        var eu = expectedUtility(belief, action);
-        factor(1000 * eu);
-        return action;
-      }});
-    });
-
-  var expectedUtility = dp.cache(
-    function(belief, action) {
-      return expectation(
-        Infer({ model() {
-          var state = sample(belief);
-          var u = utility(state, action);
-          if (state.terminateAfterAction) {
-            return u;
-          } else {
-            var nextState = transition(state, action);
-            var nextObservation = observe(nextState);
-            var nextBelief = updateBelief(belief, nextObservation, action);
-            var nextAction = sample(act(nextBelief));
-            return u + expectedUtility(nextBelief, nextAction);
-          }
-        }}));
-    });
-
-  return { params, act, expectedUtility, updateBelief };
-};
-
-var simulate = function(startState, agent) {
-  var act = agent.act;
-  var updateBelief = agent.updateBelief;
-  var priorBelief = agent.params.priorBelief;
-
-  var sampleSequence = function(state, priorBelief, action) {
-    var observation = observe(state);
-    var belief = ((action === 'noAction') ? priorBelief : 
-                  updateBelief(priorBelief, observation, action));
-    var action = sample(act(belief));
-    var output = [[state, action]];
-
-    if (state.terminateAfterAction){
-      return output;
-    } else {
-      var nextState = transition(state, action);
-      return output.concat(sampleSequence(nextState, belief, action));
-    }
-  };
-  // Start with agent's prior and a special "null" action
-  return sampleSequence(startState, priorBelief, 'noAction');
-};
+For the following codebox, we use library functions for the environment (`makeBanditPOMDP`) and for simulating the agent (`simulatePOMDP`):
 
 
 
-//-----------
-// Construct the agent
-
-var prizeToUtility = {
-  chocolate: 1, 
-  nothing: 0, 
-  champagne: 1.5, 
-  start: 0
-};
-
-var utility = function(state, action) {
-  return prizeToUtility[state.prize];
-};
 
 
-// Define true startState (including true *armToPrize*) and
-// alternate possibility for startState (see Figure 2)
 
-var numberTrials = 1;
-var startState = { 
-  prize: 'start',
-  timeLeft: numberTrials + 1, 
-  terminateAfterAction: false,
-  armToPrize: { 0: 'chocolate', 1: 'champagne' }
-};
-
-var alternateStartState = extend(startState, {
-  armToPrize: { 0: 'chocolate', 1: 'nothing' }
-});
-
-// Agent's prior
-var priorBelief = Categorical({ 
-  ps: [.5, .5], 
-  vs: [startState, alternateStartState]
-});
-
-
-var params = { utility: utility, priorBelief: priorBelief };
-var agent = makeAgent(params);
-var trajectory = simulate(startState, agent);
-
-print('Number of trials: ' + numberTrials);
-print('Arms pulled: ' +  map(second, trajectory));
-~~~~
-
-You can change the agent's behavior by varying `numberTrials`, `armToPrize` in `startState` or the agent's prior. Note that the agent's final arm pull is random because the agent only gets utility when *leaving* a state.
 
 
 ### Bandits with stochastic observations
-
-The Bandit problem above is especially simple because pulling an arm *deterministically* results in a prize (which the agent directly observes). So there is a fixed, finite number of beliefs about the `armToPrize` mapping that the agent can have and it depends on the number of arms but not on the number of trials.
-
-The next codebox considers the stochastic version of Bandits. Each arm has a distribution on outcomes and the agent is uncertain about the distribution. The arms yield numerical prizes rather than prizes like chocolate -- so this is a standard Bandit problem from ML and Control Theory refp:kaelbling1996reinforcement. For this standard Bandit problem, the number of possible beliefs for the agent grows with the number of trials. <a id="complexity"></a> <!--TODO_daniel be more precise here and ideally cite the relevant page of the papers].-->
 
 We consider an especially simple Bandit problem, where the agent already knows the reward for `Arm0` and only considers two possible distributions on reward for `Arm1`. This is depicted in Figure 3.
 
@@ -777,10 +611,215 @@ viz.gridworld(pomdp.MDPWorld, { trajectory: manifestStates });
 
 The next [chapter](/chapters/3d-reinforcement-learning.html) is on reinforcement learning, an approach which *learns* to solve an initially unknown MDP.
 
+
+
 <!-- TODO
 ### Possible additions
 - Doing belief update online vs belief doing a batch update every time. Latter is good if belief updates are rare and if we are doing approximate inference (otherwise the errors in approximations will compound in some way). Maintaining observations is also good if your ability to do good approximate inference changes over time. (Or least maintaining compressed observations or some kind of compressed summary statistic of the observation -- e.g. .jpg or mp3 form). This is related to UDT vs CDT and possibly to the episodic vs. declarative memory in human psychology. [Add a different *updateBelief* function to illustrate.]
 -->
+
+
+<br>
+### Appendix
+
+We apply the POMDP agent to a simplified variant of the Multi-arm Bandit Problem. In this variant, pulling an arm produces a *prize* deterministically. The agent begins with uncertainty about the mapping from arms to prizes and learns over time by trying the arms. In our concrete example, there are only two arms. The first arm is known to have the prize "chocolate" and the second arm either has "champagne" or has no prize at all ("nothing"). See Figure 2 (below) for details. We refer to Bandit problems with prizes (e.g. chocolate) as "IRL Bandits" to distinguish them from the standard Bandit problems with numerical rewards. <!-- TODO I don't like this explanation of the term "IRL bandit" - reading the paragraph, you don't get an explanation why "IRL" was chosen or what it has to do with inverse reinforcement learning. - Daniel -->
+
+<img src="/assets/img/3c-irl-bandit.png" alt="diagram" style="width: 500px;"/>
+
+>**Figure 2:** Diagram for deterministic Bandit problem used in the codebox below. The boxes represent possible deterministic mappings from arms to prizes. Each prize has a utility $$u$$. On the right are the agent's initial beliefs about the probability of each mapping. The true mapping (i.e. true *latent state*) has a solid outline.
+
+In our implementation of this problem, the two arms are labeled "0" and "1" respectively. The *action* of pulling `Arm0` is also labeled "0" (and likewise for `Arm1`). After taking action `0`, the agent transitions to a state corresponding to the prize for `Arm0` and the gets to observe this prize. States are Javascript objects that contain a property for counting down the time (as in the MDP case) as well as a `prize` property. States also contain the *latent* mapping from arms to prizes (called `armToPrize`) that determines how an agent transitions on pulling an arm.
+
+~~~~
+// Pull arm0 or arm1
+var actions = [0, 1];
+
+// Use latent "armToPrize" mapping in state to
+// determine which prize agent gets
+var transition = function(state, action){
+  var newTimeLeft = state.timeLeft - 1;
+  return extend(state, {
+    prize: state.armToPrize[action], 
+    timeLeft: newTimeLeft,
+    terminateAfterAction: newTimeLeft == 1
+  });
+};
+
+// After pulling an arm, agent observes associated prize
+var observe = function(state){
+  return state.prize;
+};
+
+// Starting state specifies the latent state that agent tries to learn
+// (In order that *prize* is defined, we set it to 'start', which
+// has zero utilty for the agent). 
+var startState = { 
+  prize: 'start',
+  timeLeft: 3, 
+  terminateAfterAction:false,
+  armToPrize: { 0: 'chocolate', 1: 'champagne' }
+};
+~~~~
+
+Having illustrated our implementation of the POMDP agent and the Bandit problem, we put the pieces together and simulate the agent's behavior. The `makeAgent` function is a simplified version of the library function `makeBeliefAgent` used throughout the rest of this tutorial[^makeBelief].
+
+The <a href="#belief">Belief-Update Formula</a> is implemented by `updateBelief`. Instead of hand-coding a Bayesian belief update, we simply use WebPPL's built in inference primitives. This approach means our POMDP agent can do any kind of inference that WebPPL itself can do. For this tutorial, we use the inference function `Enumerate`, which captures exact inference over discrete belief spaces. By changing the inference function, we get a POMDP agent that does approximate inference and simulates their future selves as doing approximate inference. This inference could be over discrete or continuous belief spaces. (WebPPL includes Particle Filters, MCMC, and Hamiltonian Monte Carlo for differentiable models). 
+
+[^makeBelief]: One difference between the functions is that `makeAgent` uses the global variables `transition` and `observation`, instead of having a `world` parameter.
+
+~~~~
+///fold: Bandit problem is defined as above
+
+// Pull arm0 or arm1
+var actions = [0, 1];
+
+// Use latent "armToPrize" mapping in state to
+// determine which prize agent gets
+var transition = function(state, action){
+  var newTimeLeft = state.timeLeft - 1;
+  return extend(state, {
+    prize: state.armToPrize[action], 
+    timeLeft: newTimeLeft,
+    terminateAfterAction: newTimeLeft == 1
+  });
+};
+
+// After pulling an arm, agent observes associated prize
+var observe = function(state){
+  return state.prize;
+};
+
+// Starting state specifies the latent state that agent tries to learn
+// (In order that *prize* is defined, we set it to 'start', which
+// has zero utilty for the agent). 
+var startState = { 
+  prize: 'start',
+  timeLeft: 3, 
+  terminateAfterAction:false,
+  armToPrize: {0:'chocolate', 1:'champagne'}
+};
+///
+
+// Defining the POMDP agent
+
+// Agent params include utility function and initial belief (*priorBelief*)
+
+var makeAgent = function(params) {
+  var utility = params.utility;
+
+  // Implements *Belief-update formula* in text
+  var updateBelief = function(belief, observation, action){
+    return Infer({ model() {
+      var state = sample(belief);
+      var predictedNextState = transition(state, action);
+      var predictedObservation = observe(predictedNextState);
+      condition(_.isEqual(predictedObservation, observation));
+      return predictedNextState;
+    }});
+  };
+
+  var act = dp.cache(
+    function(belief) {
+      return Infer({ model() {
+        var action = uniformDraw(actions);
+        var eu = expectedUtility(belief, action);
+        factor(1000 * eu);
+        return action;
+      }});
+    });
+
+  var expectedUtility = dp.cache(
+    function(belief, action) {
+      return expectation(
+        Infer({ model() {
+          var state = sample(belief);
+          var u = utility(state, action);
+          if (state.terminateAfterAction) {
+            return u;
+          } else {
+            var nextState = transition(state, action);
+            var nextObservation = observe(nextState);
+            var nextBelief = updateBelief(belief, nextObservation, action);
+            var nextAction = sample(act(nextBelief));
+            return u + expectedUtility(nextBelief, nextAction);
+          }
+        }}));
+    });
+
+  return { params, act, expectedUtility, updateBelief };
+};
+
+var simulate = function(startState, agent) {
+  var act = agent.act;
+  var updateBelief = agent.updateBelief;
+  var priorBelief = agent.params.priorBelief;
+
+  var sampleSequence = function(state, priorBelief, action) {
+    var observation = observe(state);
+    var belief = ((action === 'noAction') ? priorBelief : 
+                  updateBelief(priorBelief, observation, action));
+    var action = sample(act(belief));
+    var output = [[state, action]];
+
+    if (state.terminateAfterAction){
+      return output;
+    } else {
+      var nextState = transition(state, action);
+      return output.concat(sampleSequence(nextState, belief, action));
+    }
+  };
+  // Start with agent's prior and a special "null" action
+  return sampleSequence(startState, priorBelief, 'noAction');
+};
+
+
+
+//-----------
+// Construct the agent
+
+var prizeToUtility = {
+  chocolate: 1, 
+  nothing: 0, 
+  champagne: 1.5, 
+  start: 0
+};
+
+var utility = function(state, action) {
+  return prizeToUtility[state.prize];
+};
+
+
+// Define true startState (including true *armToPrize*) and
+// alternate possibility for startState (see Figure 2)
+
+var numberTrials = 1;
+var startState = { 
+  prize: 'start',
+  timeLeft: numberTrials + 1, 
+  terminateAfterAction: false,
+  armToPrize: { 0: 'chocolate', 1: 'champagne' }
+};
+
+var alternateStartState = extend(startState, {
+  armToPrize: { 0: 'chocolate', 1: 'nothing' }
+});
+
+// Agent's prior
+var priorBelief = Categorical({ 
+  ps: [.5, .5], 
+  vs: [startState, alternateStartState]
+});
+
+
+var params = { utility: utility, priorBelief: priorBelief };
+var agent = makeAgent(params);
+var trajectory = simulate(startState, agent);
+
+print('Number of trials: ' + numberTrials);
+print('Arms pulled: ' +  map(second, trajectory));
+~~~~
+
+You can change the agent's behavior by varying `numberTrials`, `armToPrize` in `startState` or the agent's prior. Note that the agent's final arm pull is random because the agent only gets utility when *leaving* a state.
 
 
 <br>
