@@ -195,22 +195,6 @@ For the following codebox, we use library functions for the environment (`makeBa
 
 
 
-
-
-
-
-
-### Bandits with stochastic observations
-
-We consider an especially simple Bandit problem, where the agent already knows the reward for `Arm0` and only considers two possible distributions on reward for `Arm1`. This is depicted in Figure 3.
-
-<img src="/assets/img/3c-stochastic-bandit.png" alt="diagram" style="width: 600px;"/>
-
->**Figure 3:** Structure of Bandit problem where `Arm1` is stochastic. 
-<br>
-
-For the following codebox, we use library functions for the environment (`makeBanditPOMDP`) and for simulating the agent (`simulatePOMDP`):
-
 ~~~~
 ///fold: displayTrajectory
 
