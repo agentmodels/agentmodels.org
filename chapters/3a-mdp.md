@@ -344,6 +344,8 @@ viz.bar(numSteps, runtimes)
 
 >**Exercise**: Could we also memoize `simulate`? Why or why not?
 
+<a id='restaurant_choice'></a>
+
 ## Choosing restaurants in Gridworld
 
 The agent model above that includes memoization allows us to solve Bob's "Restaurant Choice" problem efficiently. 

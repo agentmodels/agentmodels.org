@@ -8,31 +8,23 @@ description: Mathematical formalism for POMDPs, Bandit and Restaurant Choice exa
  
 ## Introduction: Learning about the world from observation
 
-The previous chapters included MDPs where the transition function is *stochastic*. As a consequence of stochasticity, the agent is *uncertain* about the result of taking an action in a given state. For instance, the agent in the Hiking Problem is uncertain whether choosing the action "right" will result in going right or falling down the hill. This kind of uncertainty cannot be altered or reduced by observation. Transitions occur according to a fixed probability distribution with no parameters the agent can learn from experience. In terms of an agent's uncertainty, an MDP is like a lottery (or game of roulette), where observing the winning ticket one week does not reduce the agent's uncertainty over the outcome the following week[^mdp].
+The previous chapters made two strong assumptions that often fail in practice. First, we assumed the environment was an MDP, where the state is fully observed by the agent at all times. Second, we assumed that the agent starts off with *full knowledge* of the MDP -- rather than having to learn its parameters from experience. This chapter relaxes the first assumption by introducing POMDPs. The next [chapter](/chapters/3d-reinforcement-learning.html) introduces **reinforcement learning**, an approach to learning MDPs from experience. 
 
-[^mdp]: This doesn't mean MDPs always represent real-world problems with the structure of lotteries or casino games. MDPs are often used as greatly simplified models of a complex real-world environment. MDPs can be used to represent deterministic environments where the transition function is either unknown or is too complex to model. 
+### Planning with partial observations
+In MDPs the agent always knows the full state of the environment. For example, in Gridworld the agent always knows their exact position and is uncertain only about their future state (due to stochastic transitions and noisy actions). Yet in real-world navigation problems (e.g. walking at night or sailing) we are frequently uncertain about our own position. Moreover, we are uncertain about the state of variable features of the environment, such as the location of other people or vehicles. We can reduce our uncertainty over time by making observations. For example, we might infer our rough position by observing two different landmarks. In MDPs, by contrast, the uncertainty about stochastic transitions cannot be reduced over time by observation. 
 
-In contrast, we often face problems where our uncertainty can be *reduced* by observation. In choosing between restaurants, we rarely have complete knowledge of restaurants in the neighborhood. We are uncertain about opening hours, the chance of getting a table, the quality of restaurants, the exact distances between locations, and so on. This uncertainty can be reduced by observation: we walk to a restaurant and see whether it's open.
-
-<!-- possibly remove -->
-In other examples, the environment is stochastic but the agent can gain knowledge of the *distribution* on outcomes. For example, in Multi-arm Bandit problems, the agent learns about the distribution over rewards given by each of the arms.
-
-To represent decision problems where the agent's uncertainty is altered by observations, we use Partially Observable Markov Decision Processes (POMDPs). We first introduce the formalism for POMDPs and then show how to extend our agent model for MDPs to an agent model that solves POMDPs.
-
-
+<!-- In contrast, we often face problems where our uncertainty can be *reduced* by observation. In choosing where to eat on holiday, we are uncertain about opening hours, the availability of a table, restaurant quality, and so on. Much of this uncertainty is dissolved by visually inspecting the restaurants.  -->
 
 
 ## POMDP Agent Model
 
 ### Informal overview
 
-The agent facing a POMDP has initial uncertainty about features of the environment. These features are either external to the agent (e.g. whether a restaurant is open) or directly involve the agent (e.g. the agent's position on a grid). The features influence the environment's transitions or the agent's utilities and so are relevant to the agent's choices.
+In a Partially Observed Markov Decision Process (POMDP), the agent knows the transition function of the environment (unlike in reinforcement learning). However, the agent starts each episode uncertain about the precise state of the environment. For example, if the agent is choosing where to eat on holiday, they may be uncertain about their own location and uncertain about which restaurants are open. 
 
-In a POMDP, the agent does not directly observe transitions or utilities. Instead they learn about the unknown features of the environment indirectly via *observations*. When the agent visits a state, they receive an observation that depends on the state and their previous action (according to a fixed *observation function*). Observations can inform the agent of local, transient facts (e.g. the agent's current grid position) and of persistent features of the environment (e.g. whether a wall exists in a particular location).
+The agent learns about the state indirectly via *observations*. At each timestep, they receive an observation that depends on the true state and their previous action (according to a fixed *observation function*). They update a probability distribution on the current state and then choose an action. The action causes a state transition just like in an MDP -- just the agent does not necessarily get to observe the new state they transition to. 
 
-The environment in a POMDP has same structure as an MDP, with the addition of an observation function. In an MDP, the agent always "knows" the current state and chooses an action given that knowledge. In a POMDP, the agent has a probability distribution over the current state. At every timestep, they update this distribution on the current observation and then choose an action (based on their updated distribution over states). Their chosen action causes a state transition exactly as in an MDP. 
-
-For a concrete example, consider the Restaurant Choice Problem. Suppose Bob doesn't know whether the Noodle Shop is open. Previously, the agent's state consisted of Bob's *location* on the grid as well as the remaining time. In the POMDP case, the state also represents whether or not the Noodle Shop is open. This fact about the state determines whether Bob can enter the Noodle Shop. When Bob is next to the Noodle Shop, he gets to observe (via the observation function) whether or not it's open.
+As an example, consider the <a href="/chapters/3a-mdp.html#restaurant_choice">Restaurant Choice Problem</a>. Suppose Bob doesn't know whether the Noodle Shop is open. Previously, the agent's state consisted of Bob's location on the grid as well as the remaining time. In the POMDP case, the state also represents whether or not the Noodle Shop is open, which determines whether Bob can enter the Noodle Shop. When Bob gets close enough to the Noodle Shop, he will observe whether or not it's open. Bob's planning should take this into account: if the Noodle Shop is closed then Bob will observe this can simply head to a different restaurant. 
 
 
 
@@ -65,7 +57,9 @@ Intuitively, the probability that $$s'$$ is the new state depends on the margina
 
 <img src="/assets/img/pomdp_graph.png" alt="diagram" style="width: 400px;"/>
 
->**Figure 1:** The dependency structure between variables in a POMDP. The ordering of events is as follows:
+>**Figure 1:** The dependency structure between variables in a POMDP.
+
+The ordering of events in Figure 1 is as follows:
 
 >(1). The agent chooses an action $$a$$ based on belief distribution $$b$$ over their current state (which is actually $$s$$).
 
