@@ -1,7 +1,7 @@
 ---
 layout: chapter
-title: Bounded Agents: Myopia for rewards and updates
-description: Fast heuristic POMDP algorithms that assume a short time horizon.
+title: Bounded Agents- Myopia for rewards and updates
+description: Heuristic POMDP algorithms that assume a short time horizon.
 
 ---
 
