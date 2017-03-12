@@ -58,5 +58,5 @@ Please cite this book as: <br>
 
 ## Acknowledgments
 
-We thank Noah Goodman for helpful discussions, all WebPPL contributors for their work, and Long Ouyang for <a href="http://github.com/probmods/webppl-viz">webppl-viz</a>. This work was supported by Future of Life Institute grant 2015-144846 and by the Future of Humanity
-Institute (Oxford).
+We thank Noah Goodman for helpful discussions, all WebPPL contributors for their work, and Long Ouyang for <a href="http://github.com/probmods/webppl-viz">webppl-viz</a>. This work was supported by Future of Life Institute grant 2015-144846 and by the <a href="https://www.fhi.ox.ac.uk/">Future of Humanity
+Institute</a> (Oxford).
