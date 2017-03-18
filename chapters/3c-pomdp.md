@@ -170,26 +170,15 @@ var simulate = function(startState, priorBelief) {
 
 ### Multi-arm Bandits
 
-<!-- TODO link wiki or something -->
-Multi-armed Bandit are an especially simple class of sequential decision problem. A Bandit problem has a single state and multiple actions ("arms"), where each arm has a distribution on rewards/utilities that is initially unknown. The agent has a finite time horizon and must balance exploration (i.e. learn about the reward distribution) with exploitation (obtain reward). 
+[Multi-armed Bandits](https://en.wikipedia.org/wiki/Multi-armed_bandit) are an especially simple class of sequential decision problem. A Bandit problem has a single state and multiple actions ("arms"), where each arm has a distribution on rewards/utilities that is initially unknown. The agent has a finite time horizon and must balance exploration (i.e. learn about the reward distribution) with exploitation (obtain reward). 
 
-Bandit problems can be modeled as reinforcement learning problems. The environment is an unknown MDP characterized by the expected utility of each arm theta-0, ... theta-k and agent must converge quickly to a good policy on this arm. We describe this approach in the next chapter. While RL approaches can converge quickly and use little compute, they do not produce the optimal Bayesian behavior. Treating the problem as a POMDP as using the code above, we can solve Bandit problems optimally. 
+Bandits can be modeled as Reinforcement Learning problems, where the agent learns a good policy for an initially unknown MDP. This is the practical way to solve Bandits and the next [chapter](/chapters/3d-reinforcement-learning.html) illustrates this approach. Here we model Bandits as POMDPs and use the code above to find the optimal policy for some toy Bandit problems[^optimal]. (We choose a Bandit example to demonstrate the difficulty of exactly solving even the simplest POMDPs.)
 
--Footnote: Solving the POMDP means computing the optimal action for every possible sequence of observations. This means the agent would perform optimally on any possible Bandit problem (if problems are drawn from its prior). 
+[^optimal]: In the standard Bandit problem, there is a single unknown MDP characterized by the reward distribution of each arm. In a more challenging generalization, the agent faces a sequence of random Bandit problems that are drawn from some prior. If we treat a standard Bandit problem as a POMDP, we compute the Bayesian optimal policy for the single problem --- but we also compute the optimal policy for a sequence of Bandit problems drawn from the same prior. (This analogous to finding the optimal policy for an MDP. The optimal policy includes the optimal action in every possible state, including states that the agent is very unlikely to ever encounter. Model-free RL approaches will focus on the states that are actually encountered in practice.)
 
-Here we use functions from the library webppl-agents. In the appendix to this chapter, we have a working agent on a simplified Bandit problem which will give you an idea of how to implement this. 
+In our examples, the arms are labeled with integers and arm $$i$$ has Bernoulli distributed rewards with parameter $$\theta_i$$. In the first codebox (below), the true reward distribution,  $$(\theta_0,\theta_1)$$, is $$(0.7,0.8)$$ but the agent's prior is that it's either $$(0.7,0.8)$$ or $$(0.7,0.2)$$. So the only uncertainty is over $$\theta_1$$. 
 
-In our implementation of this problem, the two arms are labeled "0" and "1" respectively. The *action* of pulling `Arm0` is also labeled "0" (and likewise for `Arm1`). After taking action `0`, the agent transitions to a state corresponding to the prize for `Arm0` and the gets to observe this prize. States are Javascript objects that contain a property for counting down the time (as in the MDP case) as well as a `prize` property. States also contain the *latent* mapping from arms to prizes (called `armToPrize`) that determines how an agent transitions on pulling an arm.
-
-We consider an especially simple Bandit problem, where the agent already knows the reward for `Arm0` and only considers two possible distributions on reward for `Arm1`. This is depicted in Figure 3.
-
-<img src="/assets/img/3c-stochastic-bandit.png" alt="diagram" style="width: 600px;"/>
-
->**Figure 3:** Structure of Bandit problem where `Arm1` is stochastic. 
-<br>
-
-For the following codebox, we use library functions for the environment (`makeBanditPOMDP`) and for simulating the agent (`simulatePOMDP`):
-
+Rather than implement everything in the codebox, we use the library [webppl-agent](https://github.com/agentmodels/webppl-agents). This includes functions for constructing a Bandit environment (`makeBanditPOMDP`), for constructing a POMDP agent (`makePOMDPAgent`) and for running the agent on the environment (`simulatePOMDP`). The <a href="#appendix">Appendix</a> includes a codebox with a full implementation of a POMDP agent on a Bandit problem. 
 
 
 ~~~~
@@ -361,11 +350,11 @@ var getRewardDist = function(theta){
   return Categorical({ vs:[0,1], ps: [1-theta, theta]});
 }
 
-var makeArmToPrizeDist = function(numberOfArms) {
+var makeArmToRewardDist = function(numberOfArms) {
   return map(function(x) { return getRewardDist(0.8); }, _.range(numberOfArms));
 };
 
-var armToPrizeDistSampler = function(numberOfArms) {
+var armToRewardDistSampler = function(numberOfArms) {
   return map(function(x) { return uniformDraw([getRewardDist(0.2),
                                                getRewardDist(0.8)]); },
              _.range(numberOfArms));
@@ -373,8 +362,8 @@ var armToPrizeDistSampler = function(numberOfArms) {
 
 var getPriorBelief = function(numberOfTrials, numberOfArms) {
   return Infer({ model() {
-    var armToPrizeDist = armToPrizeDistSampler(numberOfArms);
-    return makeBanditStartState(numberOfTrials, armToPrizeDist);
+    var armToRewardDist = armToRewardDistSampler(numberOfArms);
+    return makeBanditStartState(numberOfTrials, armToRewardDist);
   }});
 };
 
@@ -382,10 +371,10 @@ var baseParams = {alpha: 1000};
 ///
 
 var getRuntime = function(numberOfArms) {
-  var armToPrizeDist = makeArmToPrizeDist(numberOfArms);
+  var armToRewardDist = makeArmToRewardDist(numberOfArms);
   var options = {
     numberOfTrials: 5,
-	armToPrizeDist,
+	armToPrizeDist: armToRewardDist,
 	numberOfArms,
 	numericalPrizes: true
   };
@@ -619,13 +608,15 @@ The next [chapter](/chapters/3d-reinforcement-learning.html) is on reinforcement
 
 
 <br>
-### Appendix
 
-We apply the POMDP agent to a simplified variant of the Multi-arm Bandit Problem. In this variant, pulling an arm produces a *prize* deterministically. The agent begins with uncertainty about the mapping from arms to prizes and learns over time by trying the arms. In our concrete example, there are only two arms. The first arm is known to have the prize "chocolate" and the second arm either has "champagne" or has no prize at all ("nothing"). See Figure 2 (below) for details. We refer to Bandit problems with prizes (e.g. chocolate) as "IRL Bandits" to distinguish them from the standard Bandit problems with numerical rewards. <!-- TODO I don't like this explanation of the term "IRL bandit" - reading the paragraph, you don't get an explanation why "IRL" was chosen or what it has to do with inverse reinforcement learning. - Daniel -->
+<a id="appendix"></a>
+### Appendix: Complete Implementation of POMDP agent for Bandits
+
+We apply the POMDP agent to a simplified variant of the Multi-arm Bandit Problem. In this variant, pulling an arm produces a *prize* deterministically. The agent begins with uncertainty about the mapping from arms to prizes and learns by trying the arms. In our example, there are only two arms. The first arm is known to have the prize "chocolate" and the second arm either has "champagne" or has no prize at all ("nothing"). See Figure 2 (below) for details.
 
 <img src="/assets/img/3c-irl-bandit.png" alt="diagram" style="width: 500px;"/>
 
->**Figure 2:** Diagram for deterministic Bandit problem used in the codebox below. The boxes represent possible deterministic mappings from arms to prizes. Each prize has a utility $$u$$. On the right are the agent's initial beliefs about the probability of each mapping. The true mapping (i.e. true *latent state*) has a solid outline.
+>**Figure 2:** Diagram for deterministic Bandit problem used in the codebox below. The boxes represent possible deterministic mappings from arms to prizes. Each prize has a reward/utility $$u$$. On the right are the agent's initial beliefs about the probability of each mapping. The true mapping (i.e. true *latent state*) has a solid outline.
 
 In our implementation of this problem, the two arms are labeled "0" and "1" respectively. The *action* of pulling `Arm0` is also labeled "0" (and likewise for `Arm1`). After taking action `0`, the agent transitions to a state corresponding to the prize for `Arm0` and the gets to observe this prize. States are Javascript objects that contain a property for counting down the time (as in the MDP case) as well as a `prize` property. States also contain the *latent* mapping from arms to prizes (called `armToPrize`) that determines how an agent transitions on pulling an arm.
 
