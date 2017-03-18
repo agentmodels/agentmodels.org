@@ -11,7 +11,7 @@ description: Mathematical formalism for POMDPs, Bandit and Restaurant Choice exa
 The previous chapters made two strong assumptions that often fail in practice. First, we assumed the environment was an MDP, where the state is fully observed by the agent at all times. Second, we assumed that the agent starts off with *full knowledge* of the MDP -- rather than having to learn its parameters from experience. This chapter relaxes the first assumption by introducing POMDPs. The next [chapter](/chapters/3d-reinforcement-learning.html) introduces **reinforcement learning**, an approach to learning MDPs from experience. 
 
 ### Planning with partial observations
-In MDPs the agent always knows the full state of the environment. For example, in Gridworld the agent always knows their exact position and is uncertain only about their future state (due to stochastic transitions and noisy actions). Yet in real-world navigation problems (e.g. walking at night or sailing) we are frequently uncertain about our own position. Moreover, we are uncertain about the state of variable features of the environment, such as the location of other people or vehicles. We can reduce our uncertainty over time by making observations. For example, we might infer our rough position by observing two different landmarks. In MDPs, by contrast, the uncertainty about stochastic transitions cannot be reduced over time by observation. 
+In MDPs the agent always knows the full state of the environment. For example, in Gridworld the agent always knows their exact position and is uncertain only about their future state (due to stochastic transitions and noisy actions). Yet in real-world planning problems (e.g. navigating at night) we are frequently uncertain about our own position. Moreover, we are uncertain about the present state of other objects, such as the location of other people. This uncertainty can be reduced over time. For example, we might infer our rough position by observing two different landmarks. In MDPs, by contrast, the uncertainty about stochastic transitions cannot be reduced over time by observation. 
 
 <!-- In contrast, we often face problems where our uncertainty can be *reduced* by observation. In choosing where to eat on holiday, we are uncertain about opening hours, the availability of a table, restaurant quality, and so on. Much of this uncertainty is dissolved by visually inspecting the restaurants.  -->
 
@@ -20,9 +20,11 @@ In MDPs the agent always knows the full state of the environment. For example, i
 
 ### Informal overview
 
-In a Partially Observed Markov Decision Process (POMDP), the agent knows the transition function of the environment (unlike in reinforcement learning). However, the agent starts each episode uncertain about the precise state of the environment. For example, if the agent is choosing where to eat on holiday, they may be uncertain about their own location and uncertain about which restaurants are open. 
+In an MDP the agent observes the full state of the environment at each timestep. In Gridworld, for instance, the agent always knows their precise position and is uncertain only about their future position. Yet in real-world problems, the agent often does not observe the full state every timestep. For example, suppose you are sailing at night without any instruments. You might be very uncertain about your precise position and you only learn about it indirectly, by waiting to observe certain landmarks in the distance. For environments where the state is only observed partially and indirectly, we use Partiall Observed Markov Decision Processes (POMDPs). 
 
-The agent learns about the state indirectly via *observations*. At each timestep, they receive an observation that depends on the true state and their previous action (according to a fixed *observation function*). They update a probability distribution on the current state and then choose an action. The action causes a state transition just like in an MDP -- just the agent does not necessarily get to observe the new state they transition to. 
+In a Partially Observed Markov Decision Process (POMDP), the agent knows the transition function of the environment. This distinguishes POMDPs from [Reinformcent Learning]((/chapters/3d-reinforcement-learning.html) problems. However, the agent starts each episode uncertain about the precise state of the environment. For example, if the agent is choosing where to eat on holiday, they may be uncertain about their own location and uncertain about which restaurants are open. 
+
+The agent learns about the state indirectly via *observations*. At each timestep, they receive an observation that depends on the true state and their previous action (according to a fixed *observation function*). They update a probability distribution on the current state and then choose an action. The action causes a state transition just like in an MDP but the agent only receives indirect evidence about the new state.
 
 As an example, consider the <a href="/chapters/3a-mdp.html#restaurant_choice">Restaurant Choice Problem</a>. Suppose Bob doesn't know whether the Noodle Shop is open. Previously, the agent's state consisted of Bob's location on the grid as well as the remaining time. In the POMDP case, the state also represents whether or not the Noodle Shop is open, which determines whether Bob can enter the Noodle Shop. When Bob gets close enough to the Noodle Shop, he will observe whether or not it's open. Bob's planning should take this into account: if the Noodle Shop is closed then Bob will observe this can simply head to a different restaurant. 
 
@@ -174,7 +176,7 @@ var simulate = function(startState, priorBelief) {
 ### Multi-arm Bandits
 
 <!-- TODO link wiki or something -->
-Bandit problems are a simple and well-studied class of sequential decision problems. A Bandit problem has a single state and multiple actions ("arms") with different expected utilities which are initially unknown. The agent has a finite time horizon and must balance exploration (i.e. find out which arm is best) with exploitation (pull the best arm).
+Multi-armed Bandit are an especially simple class of sequential decision problem. A Bandit problem has a single state and multiple actions ("arms"), where each arm has a distribution on rewards/utilities that is initially unknown. The agent has a finite time horizon and must balance exploration (i.e. learn about the reward distribution) with exploitation (obtain reward). 
 
 Bandit problems can be modeled as reinforcement learning problems. The environment is an unknown MDP characterized by the expected utility of each arm theta-0, ... theta-k and agent must converge quickly to a good policy on this arm. We describe this approach in the next chapter. While RL approaches can converge quickly and use little compute, they do not produce the optimal Bayesian behavior. Treating the problem as a POMDP as using the code above, we can solve Bandit problems optimally. 
 
@@ -194,6 +196,97 @@ We consider an especially simple Bandit problem, where the agent already knows t
 For the following codebox, we use library functions for the environment (`makeBanditPOMDP`) and for simulating the agent (`simulatePOMDP`):
 
 
+
+~~~~
+///fold: displayTrajectory
+
+// Takes a trajectory containing states and actions and returns one containing
+// locs and actions, getting rid of 'start' and the final meaningless action.
+var displayTrajectory = function(trajectory) {
+  var getPrizeAction = function(stateAction) {
+    var state = stateAction[0];
+    var action = stateAction[1];
+    return [state.manifestState.loc, action];
+  };
+
+  var prizesActions = map(getPrizeAction, trajectory);
+  var flatPrizesActions = _.flatten(prizesActions);
+  var actionsPrizes = flatPrizesActions.slice(1, flatPrizesActions.length - 1);
+
+  var printOut = function(n) {
+    print('\n Arm: ' + actionsPrizes[2*n] + ' -- Prize: '
+          + actionsPrizes[2*n + 1]);
+  };
+  return map(printOut, _.range((actionsPrizes.length)*0.5));
+};
+///
+
+
+// 1. Construct Bandit POMDP
+
+// Reward distributions are Bernoulli
+var getRewardDist = function(theta){
+  return Categorical({ vs:[0,1], ps: [1-theta, theta]});
+}
+
+// True reward distributions are [.7,.8].
+var armToRewardDist = {
+  0: getRewardDist(.7),
+  1: getRewardDist(.8)
+};
+
+// But the agent's prior is uniform over [.7,.8] and [.7,.2].
+var alternateArmToRewardDist = {
+  0: getRewardDist(.7),
+  1: getRewardDist(.2)
+}
+    
+// Options for library function for Bandits. Number of trials = horizon.
+var banditOptions = {
+  numberOfArms: 2,
+  armToPrizeDist: armToRewardDist,  
+  numberOfTrials: 11,
+  numericalPrizes: true
+};
+
+var bandit = makeBanditPOMDP(banditOptions);
+var startState = bandit.startState;
+var world = bandit.world;
+
+
+// 2. Construct POMDP agent
+
+// Prior as described above and *latentState* is an implementation detail
+// for the libraries implementation of POMDPs
+var priorBelief = Infer({ model() {
+  var armToRewardDist = uniformDraw([armToRewardDist,
+                                    alternateArmToRewardDist]);
+  return extend(startState, { latentState: armToRewardDist });
+}});
+
+
+var utility = function(state, action) {
+  var reward = state.manifestState.loc;
+  return reward === 'start' ? 0 : reward;
+};
+
+var params = { 
+  priorBelief, 
+  utility,
+  alpha: 1000  
+};
+
+var agent = makePOMDPAgent(params, bandit.world);
+
+
+// 3. Simulate agent and return state-action pairs
+
+var trajectory = simulatePOMDP(startState, world, agent, 'stateAction');
+displayTrajectory(trajectory);
+
+~~~~
+
+blah
 
 ~~~~
 ///fold: displayTrajectory
