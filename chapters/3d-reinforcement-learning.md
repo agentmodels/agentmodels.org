@@ -18,7 +18,7 @@ In the rest of this book, we use term "utility" (e.g. in the <a href="/chapters/
 
 
 ### Softmax Greedy Agent
-This section introduces RL agents specialized to Bandits. First, we consider a a "greedy" agent with softmax action noise. The Softmax Greedy agent updates beliefs about the hidden state (the expected rewards for the arms) using Bayesian updates. Yet instead of making sequential plans that balance exploration (e.g. making informative observations) with exploitation (gaining high reward), the Greedy agent takes the action with highest *immediate* expected return[^greedy] (up to softmax noise).
+This section introduces an RL agent specialized to Bandit: a "greedy" agent with softmax action noise. The Softmax Greedy agent updates beliefs about the hidden state (the expected rewards for the arms) using Bayesian updates. Yet instead of making sequential plans that balance exploration (e.g. making informative observations) with exploitation (gaining high reward), the Greedy agent takes the action with highest *immediate* expected return[^greedy] (up to softmax noise).
 
 We measure the agent's performance on Bernoulli-distributed Bandits by computing the *cumulative regret* over time. The regret for an action is the difference in expected returns between the action and the objective best action[^regret].
 
@@ -140,13 +140,12 @@ print('Arms pulled: ' +  trajectory);
 viz.line(_.range(ys.length), ys, {xLabel:'Time', yLabel:'Cumulative regret'});
 ~~~~
 
-How well does the Greedy agent do? It does best when the difference between arms is large but does well even when the arms are close. Greedy agents perform well empirically on a wide range of Bandit problems [cite precup] and if their noise decays over time they can achieve asymptotic optimality [cite cesa-bianchi]. In contrast to the optimal POMDP agent from the previous chapter, the Greedy Agent scales well in both the arms and trials. Given that the Greedy Agent converges on the good performance quickly, why would anyone be interested in the POMDP solution? We defer this question to the appendix [TODO link]. 
+How well does the Greedy agent do? It does best when the difference between arms is large but does well even when the arms are close. Greedy agents perform well empirically on a wide range of Bandit problems [cite precup] and if their noise decays over time they can achieve asymptotic optimality [cite cesa-bianchi]. In contrast to the optimal POMDP agent from the previous chapter, the Greedy Agent scales well in both number of arms and trials.
 
 
 >**Exercises**:
 
 > 1. Modify the code above so that it's easy to repeatedly run the same agent on the same Bandit problem. Compute the mean and standard deviation of the agent's total regret averaged over 20 episodes on the Bandit problem above. Use WebPPL's library [functions](http://docs.webppl.org/en/master/functions/arrays.html). 
-
 > 2. Set the softmax noise to be low. How well does the Greedy Softmax agent do? Explain why. Keeping the noise low, modify the agent's priors to be overly "optimistic" about the expected reward of each arm (without changing the support of the prior distribution). How does this optimism change the agent's performance? Explain why. (An optimistic prior assigns a high expected reward to each arm. This idea is known as "optimism in the face of uncertainty" in the RL literature.)
 > 3. Modify the agent so that the softmax noise is low and the agent has a "bad" prior (i.e. one that assigns a low probability to the truth) that is not optimistic. Will the agent always learn the optimal policy (eventually?) If so, after how many trials is the agent very likely to have learned the optimal policy? (Try to answer this question without doing experiments that take a long time to run.)
 
@@ -214,6 +213,7 @@ It's not immediately obvious that this agent efficiently balances exploration an
 
 The PSRL agent is simple to implement in our framework. The prior and belief-updating re-uses code from the POMDP case: $$R$$ and $$T$$ are treated as latent state and are observed every state transition. Every episode, an MDP agent chooses actions by planning in the sampled model. Since the sampled model can differ radically from the model the agent is actually in, the agent may observe very incongruous state transitions. <!-- Could also note that the agent's model must have the actual transitions in its support at each timestep. -->
 
+<!--
 TODOS: <br>
 Gridworld maze example is unknown transition function. So requires a change to code below (which assumes same transitions for agent and simulate function. Clumpy reward uses same model below but has rewards be correlated. Should be easy to implement a simple version of this. Visualization should depict restaurants (which have non-zero rewards). 
 
@@ -222,10 +222,7 @@ Gridworld maze: Agent is in a maze in perfect darkness. Each square could be wal
 Clumpy reward model. Gridworld with hot and cold regions that clump. Agent starts in a random location. If you assume clumpiness, then agent will go first to unvisited states in good clumps. Otherwise, when they start in new places they'll explore fairly randomly. Could we make a realistic example like this? (Once you find some bad spots in one region. You don't explore anywhere near there for a long time. That might be interesting to look at. Could have some really cold regions near the agent.
 
 Simple version: agent starts in the middle. Has enough time to go to a bunch of different regions. Regions are clumped in terms of reward. Could think of this a city, cells with reward are food places. There are tourist areas with lots of bad food, foodie areas with good food, and some places with not much food. Agent without clumping tries some bad regions first and keeps going back to try all the places in those regions. Agent with clumping tries them once and then avoids. [Problem is how to implement the prior. Could use enumeration but keep number of possibilities fairly small. Could use some approximate method and just do a batch update at the end of each episode. That will require some extra code for the batch update.]
-
-
-
-
+-->
 
 
 
@@ -453,6 +450,7 @@ viz.gridworld(pomdp, {trajectory : concatAll(trajectories)});
 
 ----------
 
+<!--
 ## Appendix: POMDP agent vs. RL agent
 
 First consider the Bandit problem. The POMDP agent is slow (polynomial in number of trials and exponential in # arms? ). The RL agent is almost always used in practical Bandit problems. The optimal POMDP agent solves a harder problem. It computes what to do for any possible sequence of observations. This means the POMDP agent, after computing a policy once, could immediately take the optimal action given any sequence of observations without doing any more computation. By contrast, RL agents store information only about the present Bandit problem -- and in most Bandit problems this is all we care about. 
@@ -484,7 +482,7 @@ We have discussion of biases that humans have: hyperbolic discounting, bounded p
 Could discuss interactive RL. Multi-agent case. It's beyond scope of modeling.
 -->
 
-
+-->
 
 
 ### Footnotes
