@@ -6,6 +6,12 @@ description: RL vs. optimal Bayesian approach to Bandits, Softmax Greedy, Poster
 
 ## Introduction
 
+Previous chapters assumed that the agent already knew the structure of the environment. In MDPs, the agent knows everything about the environment and just needs to compute a good plan. In POMDPs, the agent is ignorant of some hidden state but knows how the environment works *given* this hidden state. Reinforcement Learning (RL) methods apply when the agent doesn't know the structure of the environment. For example, suppose the agent faces an unknown MDP. Provided the agent observes the reward/utility of states, RL methods will eventually converge on the optimal policy for the MDP. That is, RL eventually learns the same policy that an agent with full knowledge of the MDP would compute.
+
+RL has been an important tool for recent major breakthroughs in AI, such as defeating humans at Go [cite] and learning to play videogames from only pixel input. This chapter 
+
+RL methods apply 
+
 The previous chapter introduced POMDPs: decision problems where some features of the environment are initially unknown to the agent but can be learned by observation. We showed how to compute optimal Bayesian behavior for POMDPs. Unfortunately, this computation is infeasible for all but the simplest POMDPs. In practice, many POMDP problems can be solved heuristically using "Reinforcement Learning" (RL). RL algorithms are conceptually simple, scalable and effective both in discrete and continuous state spaces. They are central to achieving state-of-the-art performance in sequential decision problems in AI, including playing Go [cite], playing videogames from raw pixels [cite], and continuous control for robotics [cite]. 
 
 ## Reinforcement Learning for Bandits
