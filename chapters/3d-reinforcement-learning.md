@@ -189,15 +189,17 @@ $$
 $$
 
 
-CODEBOX: Bayesian Q-learning. Apply to gridworld where goal is to get otherside of the and maybe there are some obstacles. For small enough gridworld, POMDP agent will be quicker.
+<!-- CODEBOX: Bayesian Q-learning. Apply to gridworld where goal is to get otherside of the and maybe there are some obstacles. For small enough gridworld, POMDP agent will be quicker. -->
 
-Note that Q-learning works for continuous state spaces. 
+<!-- Note that Q-learning works for continuous state spaces.  -->
 
+
+
+<!--
 ### Policy Gradient
 
 TODO
-
-<!-- - Directly represent the policy. Stochastic function from states to actions. (Can put prior over that the params of stochastic function. Then do variational inference (optimization) to find params that maximize score.)
+- Directly represent the policy. Stochastic function from states to actions. (Can put prior over that the params of stochastic function. Then do variational inference (optimization) to find params that maximize score.)
 
 Applied to Bandits. The policy is just a multinomial probability for each arm. You run the policy. Then take gradient in direction that improves the policy. (Variational approximaton will be exact in this case.) Gridworld example of get from top left to bottom right (not knowing initially where the goal state is located). You are learning a distribution over actions in these discrete location. So you have a multinomial for each state.
 -->
