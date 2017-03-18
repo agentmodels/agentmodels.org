@@ -10,11 +10,6 @@ description: Mathematical formalism for POMDPs, Bandit and Restaurant Choice exa
 
 The previous chapters made two strong assumptions that often fail in practice. First, we assumed the environment was an MDP, where the state is fully observed by the agent at all times. Second, we assumed that the agent starts off with *full knowledge* of the MDP -- rather than having to learn its parameters from experience. This chapter relaxes the first assumption by introducing POMDPs. The next [chapter](/chapters/3d-reinforcement-learning.html) introduces **reinforcement learning**, an approach to learning MDPs from experience. 
 
-### Planning with partial observations
-In MDPs the agent always knows the full state of the environment. For example, in Gridworld the agent always knows their exact position and is uncertain only about their future state (due to stochastic transitions and noisy actions). Yet in real-world planning problems (e.g. navigating at night) we are frequently uncertain about our own position. Moreover, we are uncertain about the present state of other objects, such as the location of other people. This uncertainty can be reduced over time. For example, we might infer our rough position by observing two different landmarks. In MDPs, by contrast, the uncertainty about stochastic transitions cannot be reduced over time by observation. 
-
-<!-- In contrast, we often face problems where our uncertainty can be *reduced* by observation. In choosing where to eat on holiday, we are uncertain about opening hours, the availability of a table, restaurant quality, and so on. Much of this uncertainty is dissolved by visually inspecting the restaurants.  -->
-
 
 ## POMDP Agent Model
 
@@ -22,7 +17,7 @@ In MDPs the agent always knows the full state of the environment. For example, i
 
 In an MDP the agent observes the full state of the environment at each timestep. In Gridworld, for instance, the agent always knows their precise position and is uncertain only about their future position. Yet in real-world problems, the agent often does not observe the full state every timestep. For example, suppose you are sailing at night without any instruments. You might be very uncertain about your precise position and you only learn about it indirectly, by waiting to observe certain landmarks in the distance. For environments where the state is only observed partially and indirectly, we use Partiall Observed Markov Decision Processes (POMDPs). 
 
-In a Partially Observed Markov Decision Process (POMDP), the agent knows the transition function of the environment. This distinguishes POMDPs from [Reinformcent Learning]((/chapters/3d-reinforcement-learning.html) problems. However, the agent starts each episode uncertain about the precise state of the environment. For example, if the agent is choosing where to eat on holiday, they may be uncertain about their own location and uncertain about which restaurants are open. 
+In a Partially Observed Markov Decision Process (POMDP), the agent knows the transition function of the environment. This distinguishes POMDPs from [Reinforcement Learning](/chapters/3d-reinforcement-learning.html) problems. However, the agent starts each episode uncertain about the precise state of the environment. For example, if the agent is choosing where to eat on holiday, they may be uncertain about their own location and uncertain about which restaurants are open. 
 
 The agent learns about the state indirectly via *observations*. At each timestep, they receive an observation that depends on the true state and their previous action (according to a fixed *observation function*). They update a probability distribution on the current state and then choose an action. The action causes a state transition just like in an MDP but the agent only receives indirect evidence about the new state.
 
@@ -286,118 +281,44 @@ displayTrajectory(trajectory);
 
 ~~~~
 
-blah
 
-~~~~
-///fold: displayTrajectory
-
-// Takes a trajectory containing states and actions and returns one containing
-// locs and actions, getting rid of 'start' and the final meaningless action.
-var displayTrajectory = function(trajectory) {
-  var getPrizeAction = function(stateAction) {
-    var state = stateAction[0];
-    var action = stateAction[1];
-    return [state.manifestState.loc, action];
-  };
-
-  var prizesActions = map(getPrizeAction, trajectory);
-  var flatPrizesActions = _.flatten(prizesActions);
-  var actionsPrizes = flatPrizesActions.slice(1, flatPrizesActions.length - 1);
-
-  var printOut = function(n) {
-    print('\n Arm: ' + actionsPrizes[2*n] + ' -- Prize: '
-          + actionsPrizes[2*n + 1]);
-  };
-  return map(printOut, _.range((actionsPrizes.length)*0.5));
-};
-///
-
-
-// 1. Construct Bandit POMDP
-
-// Possible distributions on rewards for Arm1
-var vs = [0, 1];
-var probably1Dist = Categorical({ vs, ps: [0.2, 0.8] });
-var probably0Dist = Categorical({ vs, ps: [0.8, 0.2] });
-
-var options = {
-  numberOfArms: 2,
-  armToPrizeDist: {
-    0: Delta({ v: 0.7 }), 
-    1: probably1Dist  // Note that arm 1 is better in EV
-  },  
-  numberOfTrials: 11,
-  numericalPrizes: true
-};
-
-var bandit = makeBanditPOMDP(options);
-var startState = bandit.startState;
-var world = bandit.world;
-
-
-// 2. Construct POMDP agent
-
-var priorBelief = Infer({ model() {
-  var alternateArmToPrizeDist =  {
-    0: Delta({ v: 0.7 }), 
-    1: probably0Dist
-  };
-  var armToPrizeDist = uniformDraw([options.armToPrizeDist,
-                                    alternateArmToPrizeDist]);
-  return extend(startState, { latentState: armToPrizeDist });
-}});
-
-var utility = function(state, action) {
-  var prize = state.manifestState.loc;
-  return prize === 'start' ? 0 : prize;
-};
-
-var params = { 
-  priorBelief, 
-  utility,
-  alpha: 1000  
-};
-
-var agent = makePOMDPAgent(params, bandit.world);
-
-
-// 3. Simulate agent and return state-action pairs
-
-var trajectory = simulatePOMDP(startState, world, agent, 'stateAction');
-displayTrajectory(trajectory);
-~~~~
 
 Solving Bandit problems optimally quickly becomes intractable without special optimizations. The codebox below shows how runtime scales as a function of the number of trials. (This takes approximately 20 seconds to run.)
 
 <!-- bandit_scaling_number_of_trials -->
+
 ~~~~
 ///fold: Construct world and agent priorBelief as above
 
-var vs = [0, 1];
-var probably1Dist = Categorical({ vs, ps: [0.2, 0.8] });
-var probably0Dist = Categorical({ vs, ps: [0.8, 0.2] });
+var getRewardDist = function(theta){
+  return Categorical({ vs:[0,1], ps: [1-theta, theta]});
+}
 
-var trueArmToPrizeDist = {
-  0: Delta({ v: 0.7 }), 
-  1: probably1Dist
+// True reward distributions are [.7,.8].
+var armToRewardDist = {
+  0: getRewardDist(.7),
+  1: getRewardDist(.8)
 };
 
-var alternateArmToPrizeDist = extend(trueArmToPrizeDist, { 1: probably0Dist });
-
+// But the agent's prior is uniform over [.7,.8] and [.7,.2].
+var alternateArmToRewardDist = {
+  0: getRewardDist(.7),
+  1: getRewardDist(.2)
+}
 
 var makeBanditWithNumberOfTrials = function(numberOfTrials) {
   return makeBanditPOMDP({
     numberOfTrials,
 	numberOfArms: 2,
-	armToPrizeDist: trueArmToPrizeDist,
+	armToPrizeDist: armToRewardDist,
 	numericalPrizes: true
   });
 };
 
 var getPriorBelief = function(numberOfTrials){
   return Infer({ model() {
-    var armToPrizeDist = uniformDraw([trueArmToPrizeDist,
-                                      alternateArmToPrizeDist]);
+    var armToPrizeDist = uniformDraw([armToRewardDist,
+                                      alternateArmToRewardDist]);
     return makeBanditStartState(numberOfTrials, armToPrizeDist);
   }})
 };
@@ -425,6 +346,7 @@ var getRuntime = function(numberOfTrials) {
 var numberOfTrialsList = _.range(15).slice(2);
 var runtimes = map(getRuntime, numberOfTrialsList);
 viz.line(numberOfTrialsList, runtimes);
+
 ~~~~
 
 
@@ -435,17 +357,17 @@ Scaling is much worse in the number of arms. The following may take over a minut
 ~~~~
 ///fold:
 
-var vs = [0, 1];
-var probably1Dist = Categorical({ vs, ps: [0.2, 0.8] });
-var probably0Dist = Categorical({ vs, ps: [0.8, 0.2] });
+var getRewardDist = function(theta){
+  return Categorical({ vs:[0,1], ps: [1-theta, theta]});
+}
 
 var makeArmToPrizeDist = function(numberOfArms) {
-  return map(function(x) { return probably1Dist; }, _.range(numberOfArms));
+  return map(function(x) { return getRewardDist(0.8); }, _.range(numberOfArms));
 };
 
 var armToPrizeDistSampler = function(numberOfArms) {
-  return map(function(x) { return uniformDraw([probably0Dist,
-                                               probably1Dist]); },
+  return map(function(x) { return uniformDraw([getRewardDist(0.2),
+                                               getRewardDist(0.8)]); },
              _.range(numberOfArms));
 };
 
