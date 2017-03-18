@@ -168,6 +168,8 @@ var simulate = function(startState, priorBelief) {
 
 ## Applying the POMDP agent model
 
+<a id='bandits'></a>
+
 ### Multi-arm Bandits
 
 [Multi-armed Bandits](https://en.wikipedia.org/wiki/Multi-armed_bandit) are an especially simple class of sequential decision problem. A Bandit problem has a single state and multiple actions ("arms"), where each arm has a distribution on rewards/utilities that is initially unknown. The agent has a finite time horizon and must balance exploration (i.e. learn about the reward distribution) with exploitation (obtain reward). 

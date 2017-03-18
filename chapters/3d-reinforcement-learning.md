@@ -8,26 +8,23 @@ description: RL vs. optimal Bayesian approach to Bandits, Softmax Greedy, Poster
 
 Previous chapters assumed that the agent already knew the structure of the environment. In MDPs, the agent knows everything about the environment and just needs to compute a good plan. In POMDPs, the agent is ignorant of some hidden state but knows how the environment works *given* this hidden state. Reinforcement Learning (RL) methods apply when the agent doesn't know the structure of the environment. For example, suppose the agent faces an unknown MDP. Provided the agent observes the reward/utility of states, RL methods will eventually converge on the optimal policy for the MDP. That is, RL eventually learns the same policy that an agent with full knowledge of the MDP would compute.
 
-RL has been an important tool for recent major breakthroughs in AI, such as defeating humans at Go [cite] and learning to play videogames from only pixel input. This chapter 
+RL has been one of the key tools behind recent major breakthroughs in AI, such as defeating humans at Go [cite] and learning to play videogames from only pixel input [TODOcite]. This chapter applies RL to learning discrete MDPs. It's possible to generalize RL techniques to continuous state and action spaces and also to learning POMDPs [TODOcite] but that's beyond the scope of this tutorial. 
 
-RL methods apply 
-
-The previous chapter introduced POMDPs: decision problems where some features of the environment are initially unknown to the agent but can be learned by observation. We showed how to compute optimal Bayesian behavior for POMDPs. Unfortunately, this computation is infeasible for all but the simplest POMDPs. In practice, many POMDP problems can be solved heuristically using "Reinforcement Learning" (RL). RL algorithms are conceptually simple, scalable and effective both in discrete and continuous state spaces. They are central to achieving state-of-the-art performance in sequential decision problems in AI, including playing Go [cite], playing videogames from raw pixels [cite], and continuous control for robotics [cite]. 
 
 ## Reinforcement Learning for Bandits
-The previous chapter showed how the optimal POMDP agent solves Bandit problems. Here we apply Reinforcement Learning to Bandits.
+The previous chapter <a href="/chapters/3c-pomdp.html#bandits">introduced</a> the Multi-Arm Bandit problem. We computed the Bayesian optimal solution to Bandit problems by treating them as POMDPs. Here we apply Reinforcement Learning to Bandits. RL agents won't perform optimally but they often rapidly converge to the best arm and RL techniques are highly scalable and simple to implement. (In Bandits the agent already knows the structure of the MDP. So Bandits does not showcase the ability of RL to learn a good policy in a complex unknown MDP. We discuss more general RL techniques below). 
 
-In the POMDP chapter, we modeled the agent's uncertainty as being over the transition transition function of their environment; their utility function on states was always known. In this chapter, we model the agent as initially uncertain about the MDP they are in. They can be uncertain about both the utility and transition functions. The definition of an MDP is the same as <a href="/chapters/3a-mdp.html#mdp">before</a> but we sometimes follow the RL convention and say "reward function" instead of "utility function". 
+In the rest of this book, we use term "utility" (e.g. in the <a href="/chapters/3a-mdp.html#mdp">definition</a> of an MDP) rather than "reward". This chapter follows the convention in Reinforcement Learning of using "reward".
 
 
 ### Softmax Greedy Agent
-We start with a "greedy" agent with softmax noise, which is similar to the well-known "Epsilon Greedy" agent for Bandits. The Softmax Greedy agent updates beliefs about the hidden state (the expected rewards for the arms) using Bayesian updates (as with the optimal POMDP agent). Yet instead of making sequential plans that balance exploration (e.g. making informative observations) with exploitation (gaining high reward), the Greedy agent takes the action with highest *immediate* expected return[^greedy].
+This section introduces RL agents specialized to Bandits. First, we consider a a "greedy" agent with softmax action noise. The Softmax Greedy agent updates beliefs about the hidden state (the expected rewards for the arms) using Bayesian updates. Yet instead of making sequential plans that balance exploration (e.g. making informative observations) with exploitation (gaining high reward), the Greedy agent takes the action with highest *immediate* expected return[^greedy] (up to softmax noise).
 
-Here we implement the Greedy agent on Bernoulli Bandits, where each arm is a Bernoulli distribution with a fixed coin-weight. We measure the agent's performance by computing the *cumulative regret* over time. The regret for an action is the difference in expected returns between the action and the objective best action[^regret].
+We measure the agent's performance on Bernoulli-distributed Bandits by computing the *cumulative regret* over time. The regret for an action is the difference in expected returns between the action and the objective best action[^regret].
 
-[^greedy]: The standard Epsilon/Softmax Greedy agent maintains point estimates for the expected rewards of the arms. In WebPPL it's natural to use distributions instead. In a later chapter, we implement a more general Greedy/Myopic agent by extending the POMDP agent. [TODO link]. 
+[^greedy]: The standard Epsilon/Softmax Greedy agent from the Bandit literature maintains point estimates for the expected rewards of the arms. In WebPPL it's natural to use distributions instead. In a later chapter, we will implement a more general Greedy/Myopic agent by extending the POMDP agent.
 
-[^regret]:The regret is a standard Frequentist metric for performance. Bayesian metrics, which take into account the agent's priors, can also be defined but are beyond the scope of this chapter. 
+[^regret]:The "regret" is a standard Frequentist metric for performance. Bayesian metrics, which take into account the agent's priors, are beyond the scope of this chapter. 
 
 ~~~~
 ///fold:
