@@ -15,7 +15,7 @@ The previous chapters made two strong assumptions that often fail in practice. F
 
 ### Informal overview
 
-In an MDP the agent observes the full state of the environment at each timestep. In Gridworld, for instance, the agent always knows their precise position and is uncertain only about their future position. Yet in real-world problems, the agent often does not observe the full state every timestep. For example, suppose you are sailing at night without any instruments. You might be very uncertain about your precise position and you only learn about it indirectly, by waiting to observe certain landmarks in the distance. For environments where the state is only observed partially and indirectly, we use Partiall Observed Markov Decision Processes (POMDPs). 
+In an MDP the agent observes the full state of the environment at each timestep. In Gridworld, for instance, the agent always knows their precise position and is uncertain only about their future position. Yet in real-world problems, the agent often does not observe the full state every timestep. For example, suppose you are sailing at night without any navigation instruments. You might be very uncertain about your precise position and you only learn about it indirectly, by waiting to observe certain landmarks in the distance. For environments where the state is only observed partially and indirectly, we use Partiall Observed Markov Decision Processes (POMDPs). 
 
 In a Partially Observed Markov Decision Process (POMDP), the agent knows the transition function of the environment. This distinguishes POMDPs from [Reinforcement Learning](/chapters/3d-reinforcement-learning.html) problems. However, the agent starts each episode uncertain about the precise state of the environment. For example, if the agent is choosing where to eat on holiday, they may be uncertain about their own location and uncertain about which restaurants are open. 
 
@@ -174,11 +174,11 @@ var simulate = function(startState, priorBelief) {
 
 Bandits can be modeled as Reinforcement Learning problems, where the agent learns a good policy for an initially unknown MDP. This is the practical way to solve Bandits and the next [chapter](/chapters/3d-reinforcement-learning.html) illustrates this approach. Here we model Bandits as POMDPs and use the code above to find the optimal policy for some toy Bandit problems[^optimal]. (We choose a Bandit example to demonstrate the difficulty of exactly solving even the simplest POMDPs.)
 
-[^optimal]: In the standard Bandit problem, there is a single unknown MDP characterized by the reward distribution of each arm. In a more challenging generalization, the agent faces a sequence of random Bandit problems that are drawn from some prior. If we treat a standard Bandit problem as a POMDP, we compute the Bayesian optimal policy for the single problem --- but we also compute the optimal policy for a sequence of Bandit problems drawn from the same prior. (This analogous to finding the optimal policy for an MDP. The optimal policy includes the optimal action in every possible state, including states that the agent is very unlikely to ever encounter. Model-free RL approaches will focus on the states that are actually encountered in practice.)
+[^optimal]: In the standard Bandit problem, there is a single unknown MDP characterized by the reward distribution of each arm. In a more challenging generalization, the agent faces a sequence of random Bandit problems that are drawn from some prior. If we treat a standard Bandit as a POMDP, we compute the Bayes optimal policy for the single Bandit and by doing so, we implicitly compute the optimal policy for a sequence of Bandits drawn from the same prior. This is analogous to finding the optimal policy for an MDP: the optimal policy covers every possible state, including those occurring with tiny probability. Model-free RL, by contrast, will focus on the states that are actually encountered in practice.
 
-In our examples, the arms are labeled with integers and arm $$i$$ has Bernoulli distributed rewards with parameter $$\theta_i$$. In the first codebox (below), the true reward distribution,  $$(\theta_0,\theta_1)$$, is $$(0.7,0.8)$$ but the agent's prior is that it's either $$(0.7,0.8)$$ or $$(0.7,0.2)$$. So the only uncertainty is over $$\theta_1$$. 
+In our examples, the arms are labeled with integers and arm $$i$$ has Bernoulli distributed rewards with parameter $$\theta_i$$. In the first codebox (below), the true reward distribution,  $$(\theta_0,\theta_1)$$, is $$(0.7,0.8)$$ but the agent's prior is uniform over $$(0.7,0.8)$$ and $$(0.7,0.2)$$. So the agent's only uncertainty is over $$\theta_1$$. 
 
-Rather than implement everything in the codebox, we use the library [webppl-agent](https://github.com/agentmodels/webppl-agents). This includes functions for constructing a Bandit environment (`makeBanditPOMDP`), for constructing a POMDP agent (`makePOMDPAgent`) and for running the agent on the environment (`simulatePOMDP`). The <a href="#appendix">Appendix</a> includes a codebox with a full implementation of a POMDP agent on a Bandit problem. 
+Rather than implement everything in the codebox, we use the library [webppl-agents](https://github.com/agentmodels/webppl-agents). This includes functions for constructing a Bandit environment (`makeBanditPOMDP`), for constructing a POMDP agent (`makePOMDPAgent`) and for running the agent on the environment (`simulatePOMDP`). The <a href="#appendix">Appendix</a> includes a codebox with a full implementation of a POMDP agent on a Bandit problem. 
 
 
 ~~~~
@@ -271,8 +271,7 @@ displayTrajectory(trajectory);
 ~~~~
 
 
-
-Solving Bandit problems optimally quickly becomes intractable without special optimizations. The codebox below shows how runtime scales as a function of the number of trials. (This takes approximately 20 seconds to run.)
+Solving Bandit problems using the simple dynamic approach of our POMDP agent does not blows up as the horizon ("number of trials") and number of arms increase. The codebox below shows how runtime scales as a function of the number of trials. (This takes approximately 20 seconds to run.)
 
 <!-- bandit_scaling_number_of_trials -->
 
@@ -402,7 +401,7 @@ viz.line(numberOfArmsList, runtimes);
 
 ### Gridworld with observations
 
-A person looking for a place to eat will not be *fully* informed about all local restaurants. This section extends the Restaurant Choice problem to represent an agent with uncertainty about which restaurants are open. The agent *observes* whether a restaurant is open by moving to one of the grid locations adjacent to the restaurant. If the restaurant is open, the agent can enter and receive utility. 
+A person looking for a place to eat will not be *fully* informed about all local restaurants. This section extends the [Restaurant Choice problem](/chapters/3a-mdp.html) to represent an agent with uncertainty about which restaurants are open. The agent *observes* whether a restaurant is open by moving to one of the grid locations adjacent to the restaurant. If the restaurant is open, the agent can enter and receive utility. 
 
 <!-- Removed to slim down the text
 In this POMDP version of Restaurant Choice, a rational agent can exhibit behavior that never occurs in the MDP version:
@@ -416,9 +415,9 @@ The POMDP version of Restaurant Choice is built from the MDP version. States now
 
 >`{manifestState: { ... }, latentState: { ... }}`
 
-The `manifestState` contains the features of the world that the agent always observes directly (and so always knows). This includes the remaining time and the agent's location in the grid. The `latentState` contains features that are only observable in certain states. In our examples, `latentState` specifies whether each restaurant is open or closed.
+The `manifestState` contains the features of the world that the agent always observes directly (and so always knows). This includes the remaining time and the agent's location in the grid. The `latentState` contains features that are only observable in certain states. In our examples, `latentState` specifies whether each restaurant is open or closed. The transition function for the POMDP is the same as the MDP except that if a restaurant is closed the agent cannot transition to it.
 
-The transition function for the POMDP case is essentially the same as in the MDP case. The main difference is that if a restaurant is closed the agent cannot transition to its location. The observation function allows the agent to observe whether a restaurant is open or closed only if the agent is adjacent to the restaurant.
+
 
 The next two codeboxes use the same POMDP, where all restaurants are open but for Noodle. The first agent prefers the Donut Store and believes (falsely) that Donut South is likely closed. The second agent prefers Noodle and believes (falsely) that Noodle is likely open.
 
@@ -596,6 +595,9 @@ var manifestStates = _.map(trajectory, _.property('manifestState'));
 
 viz.gridworld(pomdp.MDPWorld, { trajectory: manifestStates });
 ~~~~
+
+
+When does it make sense to treat this Restaurant Choice problem as a POMDP? As with Bandits, if the problem we face is a fixed (but initially unknown) MDP, and we get many  episodes in which to learn by trial and error, then Reinforcement Learning is a simple and scalable approach. If the MDP varies with every episode (e.g. the hidden state of whether a restaurant is open varies from day to day), then POMDP methods may work better. (Even in the case where the MDP is fixed, if the stakes are very high, it will be best to solve for the optimal POMDP policy.) Finally, if our goal is to model human planning, then POMDP models are worth considering as they are more sample efficient than RL techniques (and humans can often solve planning problems in very few tries). 
 
 The next [chapter](/chapters/3d-reinforcement-learning.html) is on reinforcement learning, an approach which *learns* to solve an initially unknown MDP.
 
