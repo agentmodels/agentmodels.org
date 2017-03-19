@@ -1,7 +1,7 @@
-3---
+---
 layout: chapter
 title: "Reinforcement Learning to Learn MDPs"
-description: RL vs. optimal Bayesian approach to Bandits, Softmax Greedy, Posterior Sampling for Bandits and MDPs, Q-learning and Policy Gradient
+description: Softmax Greedy, Posterior Sampling for Bandits and MDPs, Model-free vs. model-based RL
 ---
 
 ## Introduction
@@ -179,7 +179,7 @@ The RL algorithms above are specialized to Bandits and so they aren't able to le
 
 2. *Model-free* algorithms do not explicitly represent or learn the transition and reward functions. Instead they explicitly represent either a value function (i.e. an estimate of the $$Q^*$$-function) or a policy.
 
-The best known RL algorithm is [Q-learning]((https://en.wikipedia.org/wiki/Q-learning), which works for both discrete MDPs and for MDPs with high-dimensional state spaces (where "function approximation" is required). Q-learning is a model-free algorithm that directly learns the expected utility/reward of each action under the optimal policy. We leave as an exercise the implementation of Q-learning in WebPPL. Due to the functional purity of WebPPL, a Bayesian version of Q-learning is more natural and in the spirit of this tutorial. See, for example "Bayesian Q-learning" [TODO cite Dearden] and the review of Bayesian model-free approaches in [TODO cite review].
+The best known RL algorithm is [Q-learning](https://en.wikipedia.org/wiki/Q-learning), which works both for discrete MDPs and for MDPs with high-dimensional state spaces (where "function approximation" is required). Q-learning is a model-free algorithm that directly learns the expected utility/reward of each action under the optimal policy. We leave as an exercise the implementation of Q-learning in WebPPL. Due to the functional purity of WebPPL, a Bayesian version of Q-learning is more natural and in the spirit of this tutorial. See, for example "Bayesian Q-learning" [TODO cite Dearden] and the review of Bayesian model-free approaches in [TODO cite review].
 
 
 
@@ -193,14 +193,18 @@ The best known RL algorithm is [Q-learning]((https://en.wikipedia.org/wiki/Q-lea
 
 ### Posterior Sampling Reinforcement Learning (PSRL)
 
-Posterior Sampling Reinforcemet Learning (PSRL) is a model-based algorithm that generalizes posterior-sampling for Bandits to discrete, finite-horizon MDPs (cite Strens and Osband). The agent is initialized with a Bayesian prior distribution on the reward function $$R$$ and transition function $$T$$. At each episode the agent proceeds as follows:
+Posterior Sampling Reinforcemet Learning (PSRL) is a model-based algorithm that generalizes posterior-sampling for Bandits to discrete, finite-horizon MDPs [TODO cite Strens and Osband]. The agent is initialized with a Bayesian prior distribution on the reward function $$R$$ and transition function $$T$$. At each episode the agent proceeds as follows:
 
 > 1. Sample $$R$$ and $$T$$ (a "model") from the distribution. Compute the optimal policy for this model and follow it until the episode ends.
 > 2. Update the distribution on $$R$$ and $$T$$ on observations from the episode.
 
-It's not immediately obvious that this agent efficiently balances exploration and exploitation to rapidly learn the essential structure of an MDP. The basic intuition is as follows. If the agent's posterior is concentrated on a single model (i.e. it's received lots of strong evidence), it will mainly exploit. If the agent is uncertain, it will sample various different models in turn. For each model, the agent will visit states with high reward on that model. (This is akin to exploration because different models lead to the agent visiting different states.) If the states turn out not to have high reward, the agent learns this and updates their beliefs away from the model.
+How does this agent efficiently balances exploration and exploitation to rapidly learn the structure of an MDP? If the agent's posterior is already concentrated on a single model, the agent will mainly "exploit". If the agent is uncertain over models, then it will sample various different models in turn. For each model, the agent will visit states with high reward on that model and so this leads to exploration. If the states turn out not to have high reward, the agent learns this and updates their beliefs away from the model (and will rarely visit the states again).
 
-The PSRL agent is simple to implement in our framework. The prior and belief-updating re-uses code from the POMDP case: $$R$$ and $$T$$ are treated as latent state and are observed every state transition. Every episode, an MDP agent chooses actions by planning in the sampled model. Since the sampled model can differ radically from the model the agent is actually in, the agent may observe very incongruous state transitions. <!-- Could also note that the agent's model must have the actual transitions in its support at each timestep. -->
+The PSRL agent is simple to implement in our framework. The Bayesian belief-updating re-uses code from the POMDP agent: $$R$$ and $$T$$ are treated as latent state and are observed every state transition. Computing the optimal policy for a sampled $$R$$ and $$T$$ is equivalent to planning in an MDP and we can re-use our MDP agent code. 
+
+We run the PSRL agent on Gridworld. The agent knows $$T$$ but does not know $$R$$. Reward is known to be zero everywhere but a single cell of the grid. The actual MDP is shown in Figure 1 (below):
+
+<img src="/assets/img/3d-gridworld.png" alt="gridworld ground-truth" style="width: 500px;"/>
 
 <!--
 TODOS: <br>
