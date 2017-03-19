@@ -8,7 +8,7 @@ description: RL for Bandits, Thomson Sampling for learning MDPs.
 
 Previous chapters assumed that the agent already knew the structure of the environment. In MDPs, the agent knows everything about the environment and just needs to compute a good plan. In POMDPs, the agent is ignorant of some hidden state but knows how the environment works *given* this hidden state. Reinforcement Learning (RL) methods apply when the agent doesn't know the structure of the environment. For example, suppose the agent faces an unknown MDP. Provided the agent observes the reward/utility of states, RL methods will eventually converge on the optimal policy for the MDP. That is, RL eventually learns the same policy that an agent with full knowledge of the MDP would compute.
 
-RL has been one of the key tools behind recent major breakthroughs in AI, such as defeating humans at Go [cite] and learning to play videogames from only pixel input [TODOcite]. This chapter applies RL to learning discrete MDPs. It's possible to generalize RL techniques to continuous state and action spaces and also to learning POMDPs [TODOcite] but that's beyond the scope of this tutorial. 
+RL has been one of the key tools behind recent major breakthroughs in AI, such as defeating humans at Go refp:silver2016mastering and learning to play videogames from only pixel input refp:mnih2015human. This chapter applies RL to learning discrete MDPs. It's possible to generalize RL techniques to continuous state and action spaces and also to learning POMDPs refp:jaderberg2016reinforcement but that's beyond the scope of this tutorial. 
 
 
 ## Reinforcement Learning for Bandits
@@ -140,7 +140,7 @@ print('Arms pulled: ' +  trajectory);
 viz.line(_.range(ys.length), ys, {xLabel:'Time', yLabel:'Cumulative regret'});
 ~~~~
 
-How well does the Greedy agent do? It does best when the difference between arms is large but does well even when the arms are close. Greedy agents perform well empirically on a wide range of Bandit problems [cite precup] and if their noise decays over time they can achieve asymptotic optimality [cite cesa-bianchi]. In contrast to the optimal POMDP agent from the previous chapter, the Greedy Agent scales well in both number of arms and trials.
+How well does the Greedy agent do? It does best when the difference between arms is large but does well even when the arms are close. Greedy agents perform well empirically on a wide range of Bandit problems refp:kuleshov2014algorithms and if their noise decays over time they can achieve asymptotic optimality. In contrast to the optimal POMDP agent from the previous chapter, the Greedy Agent scales well in both number of arms and trials.
 
 
 >**Exercises**:
@@ -179,7 +179,7 @@ The RL algorithms above are specialized to Bandits and so they aren't able to le
 
 2. *Model-free* algorithms do not explicitly represent or learn the transition and reward functions. Instead they explicitly represent either a value function (i.e. an estimate of the $$Q^*$$-function) or a policy.
 
-The best known RL algorithm is [Q-learning](https://en.wikipedia.org/wiki/Q-learning), which works both for discrete MDPs and for MDPs with high-dimensional state spaces (where "function approximation" is required). Q-learning is a model-free algorithm that directly learns the expected utility/reward of each action under the optimal policy. We leave as an exercise the implementation of Q-learning in WebPPL. Due to the functional purity of WebPPL, a Bayesian version of Q-learning is more natural and in the spirit of this tutorial. See, for example "Bayesian Q-learning" [TODO cite Dearden] and the review of Bayesian model-free approaches in [TODO cite review].
+The best known RL algorithm is [Q-learning](https://en.wikipedia.org/wiki/Q-learning), which works both for discrete MDPs and for MDPs with high-dimensional state spaces (where "function approximation" is required). Q-learning is a model-free algorithm that directly learns the expected utility/reward of each action under the optimal policy. We leave as an exercise the implementation of Q-learning in WebPPL. Due to the functional purity of WebPPL, a Bayesian version of Q-learning is more natural and in the spirit of this tutorial. See, for example "Bayesian Q-learning" refp:dearden1998bayesian and this review of Bayesian model-free approaches refp:ghavamzadeh2015bayesian.
 
 
 
@@ -193,7 +193,7 @@ The best known RL algorithm is [Q-learning](https://en.wikipedia.org/wiki/Q-lear
 
 ### Posterior Sampling Reinforcement Learning (PSRL)
 
-Posterior Sampling Reinforcemet Learning (PSRL) is a model-based algorithm that generalizes posterior-sampling for Bandits to discrete, finite-horizon MDPs [TODO cite Strens and Osband]. The agent is initialized with a Bayesian prior distribution on the reward function $$R$$ and transition function $$T$$. At each episode the agent proceeds as follows:
+Posterior Sampling Reinforcemet Learning (PSRL) is a model-based algorithm that generalizes posterior-sampling for Bandits to discrete, finite-horizon MDPs refp:osband2016posterior. The agent is initialized with a Bayesian prior distribution on the reward function $$R$$ and transition function $$T$$. At each episode the agent proceeds as follows:
 
 > 1. Sample $$R$$ and $$T$$ (a "model") from the distribution. Compute the optimal policy for this model and follow it until the episode ends.
 > 2. Update the distribution on $$R$$ and $$T$$ on observations from the episode.

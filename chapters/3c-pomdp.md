@@ -180,7 +180,7 @@ Bandits can be modeled as Reinforcement Learning problems, where the agent learn
 
 In our examples, the arms are labeled with integers and arm $$i$$ has Bernoulli distributed rewards with parameter $$\theta_i$$. In the first codebox (below), the true reward distribution,  $$(\theta_0,\theta_1)$$, is $$(0.7,0.8)$$ but the agent's prior is uniform over $$(0.7,0.8)$$ and $$(0.7,0.2)$$. So the agent's only uncertainty is over $$\theta_1$$. 
 
-Rather than implement everything in the codebox, we use the library [webppl-agents](https://github.com/agentmodels/webppl-agents). This includes functions for constructing a Bandit environment (`makeBanditPOMDP`), for constructing a POMDP agent (`makePOMDPAgent`) and for running the agent on the environment (`simulatePOMDP`). The <a href="#appendix">Appendix</a> includes a codebox with a full implementation of a POMDP agent on a Bandit problem. 
+Rather than implement everything in the codebox, we use the library [webppl-agents](https://github.com/agentmodels/webppl-agents). This includes functions for constructing a Bandit environment (`makeBanditPOMDP`), for constructing a POMDP agent (`makePOMDPAgent`) and for running the agent on the environment (`simulatePOMDP`). This [chapter](/chapters/guide-library.html) explains how to use webppl-agents. The <a href="#appendix">Appendix</a> includes a codebox with a full implementation of a POMDP agent on a Bandit problem. 
 
 
 ~~~~
