@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: Joint inference of biases and preferences II
-description: Explaining temptation and pre-commitment using either softmax noise or hyperbolic discounting.
+description: Explaining temptation and pre-commitment using softmax noise and hyperbolic discounting.
 
 ---
 

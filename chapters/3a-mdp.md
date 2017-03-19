@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: "Sequential decision problems: MDPs"
-description: Markov Decision Processes, efficient planning with caching for dynamic programming, example in Gridworld. 
+description: Markov Decision Processes, efficient planning with dynamic programming.
 ---
 
 ## Introduction

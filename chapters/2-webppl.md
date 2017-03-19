@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: "Probabilistic programming in WebPPL"
-description: "WebPPL, the language used in this book, is a functional subset of Javascript with automatic Bayesian inference via MCMC and gradient-based variational inference."
+description: "WebPPL is a functional subset of Javascript with automatic Bayesian inference via MCMC and gradient-based variational inference."
 is_section: true
 ---
 

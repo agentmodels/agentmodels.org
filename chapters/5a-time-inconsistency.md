@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: "Time inconsistency I"
-description: Time consistency, exponential vs. hyperbolic discounting, Naive vs. Sophisticated planning.
+description: Exponential vs. hyperbolic discounting, Naive vs. Sophisticated planning.
 
 ---
 

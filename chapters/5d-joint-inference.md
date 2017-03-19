@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: Joint inference of biases and preferences I
-description: Assuming the agent performs optimally can lead to mistakes in inference. Procrastination and Bandit Examples.
+description: Assuming agent optimality leads to mistakes in inference. Procrastination and Bandit Examples.
 
 ---
 

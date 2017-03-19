@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: "Reinforcement Learning to Learn MDPs"
-description: Softmax Greedy, Posterior Sampling for Bandits and MDPs, Model-free vs. model-based RL
+description: RL for Bandits, Thomson Sampling for learning MDPs. 
 ---
 
 ## Introduction
