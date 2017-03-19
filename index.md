@@ -7,14 +7,13 @@ title: "Modeling Agents with Probabilistic Programs"
 
 ### About this book
 
-This book describes and implements models of rational agents for (PO)MDPs and Reinforcement Learning. One motivation is to model human planning, including human cognitive biases and bounds.
+This book describes and implements models of rational agents for (PO)MDPs and Reinforcement Learning. One motivation is to create richer models of human planning, which capture human biases and bounded rationality. 
 
 Agents are implemented as differentiable functional programs in a probabilistic programming language based on Javascript. Agents plan by recursively simulating their future selves or by simulating their opponents in multi-agent games. Our agents and environments run directly in the browser and are easy to modify and extend.
 
-The book assumes basic programming experience but is otherwise self-contained. It includes short introductions to <a href="/chapters/3-agents-as-programs.html#planning_as">"planning as inference"</a>, [MDPs](/chapters/3a-mdp.html), [POMDPs](/chapters/3c-pomdp.html), [inverse reinforcement learning](/chapters/4-reasoning-about-agents.html), [hyperbolic discounting](/chapters/5a-time-inconsistency.html), [myopic planning](/chapters/5c-myopic.html), and [multi-agent planning](/chapters/multi-agent,html).
+The book assumes basic programming experience but is otherwise self-contained. It includes short introductions to <a href="/chapters/3-agents-as-programs.html#planning_as">"planning as inference"</a>, [MDPs](/chapters/3a-mdp.html), [POMDPs](/chapters/3c-pomdp.html), [inverse reinforcement learning](/chapters/4-reasoning-about-agents.html), [hyperbolic discounting](/chapters/5a-time-inconsistency.html), [myopic planning](/chapters/5c-myopic.html), and [multi-agent planning](/chapters/multi-agent.html).
 
-
-
+For more information about this project, contact [Owain Evans](http://owainevans.github.io). 
 
 
 
@@ -41,10 +40,10 @@ The book assumes basic programming experience but is otherwise self-contained. I
     {% endif %}
 {% endfor %}
 
-## Citation
+### Citation
 
 Please cite this book as: <br>
-*Owain Evans, Andreas Stuhlmüller, John Salvatier, and Daniel Filan (electronic). Modeling Agents with Probabilistic Programs. Retrieved <span class="date"></span> from http://agentmodels.org.* <a id="toggle-bibtex" href="#" onClick="javascript:$('#bibtex').toggle();return false">[bibtex]</a>
+Owain Evans, Andreas Stuhlmüller, John Salvatier, and Daniel Filan (electronic). *Modeling Agents with Probabilistic Programs.* Retrieved <span class="date"></span> from `http://agentmodels.org`. <a id="toggle-bibtex" href="#" onClick="javascript:$('#bibtex').toggle();return false">[bibtex]</a>
 
 <pre id="bibtex">
 @misc{agentmodels,

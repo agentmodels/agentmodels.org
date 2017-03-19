@@ -17,6 +17,7 @@ Our goal is to implement agents that compute rational *policies*. Policies are *
 
 This section begins with agents that solve the very simplest decision problems. These are trivial *one-shot* problems, where the agent selects a single action (not a sequence of actions). We use WebPPL to solve these problems in order to illustrate the core concepts that are necessary for the more complex problems in later chapters.
 
+<a id="planning_as"></a>
 
 ## One-shot decisions in a deterministic world
 
@@ -89,7 +90,7 @@ var twoHeads = Infer({
 viz(twoHeads);
 ~~~~
 
-<a id="planning_as"></a>
+
 The same inference machinery can compute the optimal action in Tom's decision problem. We sample random actions with `uniformDraw` and condition on the preferred outcome happening. Intuitively, we imagine observing the consequence we prefer (e.g. pizza) and then *infer* from this the action that caused this consequence. <!-- address evidential vs causal decision theory? -->
 
 This idea is known as "planning as inference" refp:botvinick2012planning. It also resembles the idea of "backwards chaining" in logical inference and planning. The `inferenceAgent` solves the same problem as `maxAgent`, but uses planning as inference: 
