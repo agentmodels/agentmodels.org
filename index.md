@@ -7,7 +7,11 @@ title: "Modeling Agents with Probabilistic Programs"
 
 ## About this book
 
-Formal models of rational agents play an important role in economics, cognitive science, Machine Learning, and AI. Core components of such models are expected-utility maximization, Bayesian inference, sequential decision making and reinforcement learning. This tutorial implements utility-maximizing Bayesian agents as functional probabilistic programs. These programs provide an intuitive translation of the mathematical specification of rational agents as code. The implemented agents explicitly simulate their own future choices via recursion. They update beliefs by exact or approximate Bayesian inference. They reason about other agents by simulating them (which includes simulating the simulations of others).
+The goal is to develop high-level models of rational agents for use in modeling human planning and inference. Agents are implemented as differentiable functional programs in a probabilistic programming language based on Javascript. Agents plan by recursively simulating their future selves or by simulating their opponents in multi-agent games. Our agents, environments and graph visualization all run in the browser -- no software needs to be installed. 
+
+The book assumes basic programming experience but is otherwise self-contained. It includes short introductions to "planning as inference", MDPs, POMDPs, inverse reinforcement learning, hyperbolic discounting, myopic planning, and multi-agent planning.
+
+
 
 ## Table of contents
 
