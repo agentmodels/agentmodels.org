@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: "Cognitive biases and bounded rationality"
-description: Discuss soft-max noise, limited memory, heuristics/biases, motivation from intractability of POMDPs.
+description: Soft-max noise, limited memory, heuristics and biases, motivation from intractability of POMDPs.
 is_section: true
 ---
 

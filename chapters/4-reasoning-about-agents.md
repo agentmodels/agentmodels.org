@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: Reasoning about agents
-description: Overview of Inverse Planning. WebPPL examples of inferring utilities and beliefs from choices in Gridworld and Bandits.
+description: Overview of Inverse Reinforcement Learning. Inferring utilities and beliefs from choices in Gridworld and Bandits.
 is_section: true
 ---
 

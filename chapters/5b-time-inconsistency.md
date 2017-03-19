@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: "Time inconsistency II"
-description: Formal model of time-inconsistent agent, implementation in WebPPL, Gridworld and Procrastination examples.
+description: Formal model of time-inconsistent agent, Gridworld and Procrastination examples.
 
 ---
 

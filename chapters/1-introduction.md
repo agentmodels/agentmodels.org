@@ -1,7 +1,7 @@
 ---
 layout: chapter
 title: Introduction
-description: "Outline of goals: Implement agents that do planning, reinforcement learning and multi-agent decision making. Use probabilistic programs in WebPPL so that implementation is flexible, interpretable, and automatically differentiable."
+description: "Motivating the problem of modeling human planning and inference using rich computational models."
 is_section: true
 ---
 

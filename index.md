@@ -5,7 +5,7 @@ title: "Modeling Agents with Probabilistic Programs"
 
 <img src="/assets/img/maze.png" id="cover" />
 
-### About this book
+## Modeling Agents with Probabilistic Programs
 
 This book describes and implements models of rational agents for (PO)MDPs and Reinforcement Learning. One motivation is to create richer models of human planning, which capture human biases and bounded rationality. 
 
@@ -40,6 +40,9 @@ For more information about this project, contact [Owain Evans](http://owainevans
     {% endif %}
 {% endfor %}
 
+<br>
+
+
 ### Citation
 
 Please cite this book as: <br>
@@ -55,7 +58,7 @@ Owain Evans, Andreas Stuhlmüller, John Salvatier, and Daniel Filan (electronic)
 }
 </pre>
 
-## Open source
+### Open source
 
 - [Book content](https://github.com/agentmodels/agentmodels.org)<br/>
   Markdown code for the book chapters
@@ -64,7 +67,7 @@ Owain Evans, Andreas Stuhlmüller, John Salvatier, and Daniel Filan (electronic)
 - [WebPPL-Agents](https://github.com/agentmodels/webppl-agents)<br/>
   A library for modeling MDP and POMDP agents in WebPPL<br/>
 
-## Acknowledgments
+### Acknowledgments
 
 We thank Noah Goodman for helpful discussions, all WebPPL contributors for their work, and Long Ouyang for <a href="http://github.com/probmods/webppl-viz">webppl-viz</a>. This work was supported by Future of Life Institute grant 2015-144846 and by the <a href="https://www.fhi.ox.ac.uk/">Future of Humanity
 Institute</a> (Oxford).
