@@ -14,7 +14,7 @@ RL has been one of the key tools behind recent major breakthroughs in AI, such a
 ## Reinforcement Learning for Bandits
 The previous chapter <a href="/chapters/3c-pomdp.html#bandits">introduced</a> the Multi-Arm Bandit problem. We computed the Bayesian optimal solution to Bandit problems by treating them as POMDPs. Here we apply Reinforcement Learning to Bandits. RL agents won't perform optimally but they often rapidly converge to the best arm and RL techniques are highly scalable and simple to implement. (In Bandits the agent already knows the structure of the MDP. So Bandits does not showcase the ability of RL to learn a good policy in a complex unknown MDP. We discuss more general RL techniques below). 
 
-In the rest of this book, we use term "utility" (e.g. in the <a href="/chapters/3a-mdp.html#mdp">definition</a> of an MDP) rather than "reward". This chapter follows the convention in Reinforcement Learning of using "reward".
+Outside of this chapter, we use term "utility" (e.g. in the <a href="/chapters/3a-mdp.html#mdp">definition</a> of an MDP) rather than "reward". This chapter follows the convention in Reinforcement Learning of using "reward".
 
 
 ### Softmax Greedy Agent
@@ -204,10 +204,13 @@ The PSRL agent is simple to implement in our framework. The Bayesian belief-upda
 
 We run the PSRL agent on Gridworld. The agent knows $$T$$ but does not know $$R$$. Reward is known to be zero everywhere but a single cell of the grid. The actual MDP is shown in Figure 1, where the time-horizon is 8 steps. The true reward function is specified by the variable `trueLatentReward` (where the order of the rows is the inverse of the displayed grid). The displays shows the agent's trajectory on each episode (where the number of episodes is set to 10). 
 
-<img src="/assets/img/3d-gridworld.png" alt="gridworld ground-truth" style="width: 500px;"/>
+<p>
+
+<img src="/assets/img/3d-gridworld.png" alt="gridworld ground-truth" style="width: 400px;"/>
 
 **Figure 1: True latent reward for Gridworld below. Agent receives reward 1 in the cell marked "G" and zero elsewhere.**
 
+<p>
 
 <!--
 TODOS: <br>
