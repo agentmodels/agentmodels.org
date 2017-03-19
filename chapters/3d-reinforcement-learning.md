@@ -1,4 +1,4 @@
----
+3---
 layout: chapter
 title: "Reinforcement Learning to Learn MDPs"
 description: RL vs. optimal Bayesian approach to Bandits, Softmax Greedy, Posterior Sampling for Bandits and MDPs, Q-learning and Policy Gradient
@@ -20,7 +20,7 @@ In the rest of this book, we use term "utility" (e.g. in the <a href="/chapters/
 ### Softmax Greedy Agent
 This section introduces an RL agent specialized to Bandit: a "greedy" agent with softmax action noise. The Softmax Greedy agent updates beliefs about the hidden state (the expected rewards for the arms) using Bayesian updates. Yet instead of making sequential plans that balance exploration (e.g. making informative observations) with exploitation (gaining high reward), the Greedy agent takes the action with highest *immediate* expected return[^greedy] (up to softmax noise).
 
-We measure the agent's performance on Bernoulli-distributed Bandits by computing the *cumulative regret* over time. The regret for an action is the difference in expected returns between the action and the objective best action[^regret].
+We measure the agent's performance on Bernoulli-distributed Bandits by computing the *cumulative regret* over time. The regret for an action is the difference in expected returns between the action and the objective best action[^regret]. In the codebox below, the arms have parameter values ("coin-weights") of $$[0.5,0.6]$$ and there are 500 Bandit trials. 
 
 [^greedy]: The standard Epsilon/Softmax Greedy agent from the Bandit literature maintains point estimates for the expected rewards of the arms. In WebPPL it's natural to use distributions instead. In a later chapter, we will implement a more general Greedy/Myopic agent by extending the POMDP agent.
 
@@ -173,36 +173,23 @@ var act = dp.cache(
 -----------
 
 ## RL algorithms for MDPs
-The Bandit problem is a one-state MDP. We now consider RL algorithms for learning discrete MDP's with any number of states. Algorithms are either *model-based* or *model-free*:
+The RL algorithms above are specialized to Bandits and so they aren't able to learn an arbitrary MDP. We now consider algorithms that can learn any discrete MDP. There are two kinds of RL algorithm:
 
 1. *Model-based* algorithms learn an explicit representation of the MDP's transition and reward functions. These representations are used to compute a good policy. 
 
-2. *Model-free* algorithms do not explicitly represent the transition and reward functions. Instead they explicitly represent either a value function (e.g. an estimate of the $$Q^*$$-function) or policy. 
+2. *Model-free* algorithms do not explicitly represent or learn the transition and reward functions. Instead they explicitly represent either a value function (i.e. an estimate of the $$Q^*$$-function) or a policy.
 
-### Q-learning (TD-learning)
-Q-learning is the best known RL algorithm and is model-free. A Q-learning agent stores and updates a point estimate of the expected utility of each action under the optimal policy (i.e. an estimate $$\hat{Q}(s,a)$$ for $$Q^*(s,a)$$). Provided the agent takes random exploratory actions, these estimates converge in the limit (cite Watkins). In our framework, it's more natural to implement *Bayesian Q-learning* (Dearden et al), where the point estimates are replaced with Bayesian posteriors.
+The best known RL algorithm is [Q-learning]((https://en.wikipedia.org/wiki/Q-learning), which works for both discrete MDPs and for MDPs with high-dimensional state spaces (where "function approximation" is required). Q-learning is a model-free algorithm that directly learns the expected utility/reward of each action under the optimal policy. We leave as an exercise the implementation of Q-learning in WebPPL. Due to the functional purity of WebPPL, a Bayesian version of Q-learning is more natural and in the spirit of this tutorial. See, for example "Bayesian Q-learning" [TODO cite Dearden] and the review of Bayesian model-free approaches in [TODO cite review].
 
-The defining property of Q-learning (as opposed to SARSA or Monte-Carlo) is how it updates its Q-value estimates. After each state transition $$(s,a,r,s')$$, a new Q-value estimate is computed: <br>
-
-$$
-\hat{Q}(s,a) = r + \max_{s'}{Q(s',a')}
-$$
 
 
 <!-- CODEBOX: Bayesian Q-learning. Apply to gridworld where goal is to get otherside of the and maybe there are some obstacles. For small enough gridworld, POMDP agent will be quicker. -->
 
-<!-- Note that Q-learning works for continuous state spaces.  -->
+<!-- ### Policy Gradient -->
+<!-- - Directly represent the policy. Stochastic function from states to actions. (Can put prior over that the params of stochastic function. Then do variational inference (optimization) to find params that maximize score.) -->
 
+<!-- Applied to Bandits. The policy is just a multinomial probability for each arm. You run the policy. Then take gradient in direction that improves the policy. (Variational approximaton will be exact in this case.) Gridworld example of get from top left to bottom right (not knowing initially where the goal state is located). You are learning a distribution over actions in these discrete location. So you have a multinomial for each state. -->
 
-
-<!--
-### Policy Gradient
-
-TODO
-- Directly represent the policy. Stochastic function from states to actions. (Can put prior over that the params of stochastic function. Then do variational inference (optimization) to find params that maximize score.)
-
-Applied to Bandits. The policy is just a multinomial probability for each arm. You run the policy. Then take gradient in direction that improves the policy. (Variational approximaton will be exact in this case.) Gridworld example of get from top left to bottom right (not knowing initially where the goal state is located). You are learning a distribution over actions in these discrete location. So you have a multinomial for each state.
--->
 
 ### Posterior Sampling Reinforcement Learning (PSRL)
 
