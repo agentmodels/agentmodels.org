@@ -212,9 +212,6 @@ We run the PSRL agent on Gridworld. The agent knows $$T$$ but does not know $$R$
 Figure 1: True latent reward for Gridworld below. Agent receives reward 1 in the cell marked "G" and zero elsewhere.
 
 
-<p>
-
-
 
 
 
