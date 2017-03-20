@@ -204,12 +204,12 @@ The PSRL agent is simple to implement in our framework. The Bayesian belief-upda
 
 We run the PSRL agent on Gridworld. The agent knows $$T$$ but does not know $$R$$. Reward is known to be zero everywhere but a single cell of the grid. The actual MDP is shown in Figure 1, where the time-horizon is 8 steps. The true reward function is specified by the variable `trueLatentReward` (where the order of the rows is the inverse of the displayed grid). The displays shows the agent's trajectory on each episode (where the number of episodes is set to 10). 
 
-<p>
+
 
 <!-- <img src="/assets/img/3d-gridworld.png" alt="gridworld ground-truth" style="width: 400px;"/> -->
 
 
-**Figure 1: True latent reward for Gridworld below. Agent receives reward 1 in the cell marked "G" and zero elsewhere.**
+Figure 1: True latent reward for Gridworld below. Agent receives reward 1 in the cell marked "G" and zero elsewhere.
 
 
 <p>
