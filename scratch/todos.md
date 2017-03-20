@@ -1,5 +1,6 @@
 ## TODOs
 
+- citations for RL chapter. 
 
 ### Smaller things
 
