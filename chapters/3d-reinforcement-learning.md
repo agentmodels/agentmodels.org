@@ -206,10 +206,13 @@ We run the PSRL agent on Gridworld. The agent knows $$T$$ but does not know $$R$
 
 
 
+
 <img src="/assets/img/3d-gridworld.png" alt="gridworld ground-truth" style="width: 400px;"/>
 
 
-**Figure 1: True latent reward for Gridworld below. Agent receives reward 1 in the cell marked "G" and zero elsewhere.**
+
+**Figure 1:** True latent reward for Gridworld below. Agent receives reward 1 in the cell marked "G" and zero elsewhere.
+
 
 
 
