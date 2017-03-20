@@ -208,20 +208,13 @@ We run the PSRL agent on Gridworld. The agent knows $$T$$ but does not know $$R$
 
 <img src="/assets/img/3d-gridworld.png" alt="gridworld ground-truth" style="width: 400px;"/>
 
+
 **Figure 1: True latent reward for Gridworld below. Agent receives reward 1 in the cell marked "G" and zero elsewhere.**
+
 
 <p>
 
-<!--
-TODOS: <br>
-Gridworld maze example is unknown transition function. So requires a change to code below (which assumes same transitions for agent and simulate function. Clumpy reward uses same model below but has rewards be correlated. Should be easy to implement a simple version of this. Visualization should depict restaurants (which have non-zero rewards). 
 
-Gridworld maze: Agent is in a maze in perfect darkness. Each square could be wall or not with even probability. Agent has to learn how to escape. Maze could be fairly big but want a fairly short way out. Model for T.
-
-Clumpy reward model. Gridworld with hot and cold regions that clump. Agent starts in a random location. If you assume clumpiness, then agent will go first to unvisited states in good clumps. Otherwise, when they start in new places they'll explore fairly randomly. Could we make a realistic example like this? (Once you find some bad spots in one region. You don't explore anywhere near there for a long time. That might be interesting to look at. Could have some really cold regions near the agent.
-
-Simple version: agent starts in the middle. Has enough time to go to a bunch of different regions. Regions are clumped in terms of reward. Could think of this a city, cells with reward are food places. There are tourist areas with lots of bad food, foodie areas with good food, and some places with not much food. Agent without clumping tries some bad regions first and keeps going back to try all the places in those regions. Agent with clumping tries them once and then avoids. [Problem is how to implement the prior. Could use enumeration but keep number of possibilities fairly small. Could use some approximate method and just do a batch update at the end of each episode. That will require some extra code for the batch update.]
--->
 
 
 
@@ -435,20 +428,24 @@ viz.gridworld(pomdp, {trajectory : concatAll(trajectories)});
 
 
 
+
+
+<!--
+TODOS: <br>
+Gridworld maze example is unknown transition function. So requires a change to code below (which assumes same transitions for agent and simulate function. Clumpy reward uses same model below but has rewards be correlated. Should be easy to implement a simple version of this. Visualization should depict restaurants (which have non-zero rewards). 
+
+Gridworld maze: Agent is in a maze in perfect darkness. Each square could be wall or not with even probability. Agent has to learn how to escape. Maze could be fairly big but want a fairly short way out. Model for T.
+
+Clumpy reward model. Gridworld with hot and cold regions that clump. Agent starts in a random location. If you assume clumpiness, then agent will go first to unvisited states in good clumps. Otherwise, when they start in new places they'll explore fairly randomly. Could we make a realistic example like this? (Once you find some bad spots in one region. You don't explore anywhere near there for a long time. That might be interesting to look at. Could have some really cold regions near the agent.
+
+Simple version: agent starts in the middle. Has enough time to go to a bunch of different regions. Regions are clumped in terms of reward. Could think of this a city, cells with reward are food places. There are tourist areas with lots of bad food, foodie areas with good food, and some places with not much food. Agent without clumping tries some bad regions first and keeps going back to try all the places in those regions. Agent with clumping tries them once and then avoids. [Problem is how to implement the prior. Could use enumeration but keep number of possibilities fairly small. Could use some approximate method and just do a batch update at the end of each episode. That will require some extra code for the batch update.]
+-->
+
+
+
 ----------
 
 
-<!-- ## Appendix: POMDP agent vs. RL agent -->
-
-<!-- First consider the Bandit problem. The POMDP agent is slow (polynomial in number of trials and exponential in # arms? ). The RL agent is almost always used in practical Bandit problems. The optimal POMDP agent solves a harder problem. It computes what to do for any possible sequence of observations. This means the POMDP agent, after computing a policy once, could immediately take the optimal action given any sequence of observations without doing any more computation. By contrast, RL agents store information only about the present Bandit problem -- and in most Bandit problems this is all we care about.  -->
-
-<!-- General MDPs. The previous chapter introduced a POMDP version of the Restaurant problem in Gridworld, where the agent doesn't know initially if each restaurant is open or closed. How would RL agents compare to POMDP agents on this problem? -->
-
-<!-- One way to think of the Restaurant Choice problem is as an *Episodic* POMDP. At the start of each episode, the agent is uncertain about which restaurants are open or closed. Over repeated episodes, they learn about the *distribution* on restaurants being open but they never know for sure (since restaurants might close down or vary their hours) and so they may need to update their beliefs on any given episode. (A similar example in the POMDP literature is the Tiger Problem.) This kind of problem is ill-suited to standard RL algorithms. Such algorithms assume that the hidden state is an MDP that is fixed across all episodes. POMDP algorithms, on the other hand, take into account the fact that there is new (but observable) hidden state every episode. -->
-
-<!-- <\!-- The general learning problem: there is some state that's initially unknown and fixed across episodes and some state that's random across episodes but observable. A POMDP agent should be able to learn both of these -\-> -->
-
-<!-- Alternatively, we could think of the Restaurant Choice problem as an episodic MDP. Initially, the agent doesn't know which restaurants are open. But once they find out there is nothing more to learn: the same restaurants are open each episode. In this -->
 
 <!--
 Table:
