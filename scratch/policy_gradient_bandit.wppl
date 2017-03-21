@@ -1,12 +1,15 @@
+// ./webppl --require ../webppl-nn ../wppl-scripts/policy-gradient.wppl
+
 var numArms = 10;
 
-var squishToProbSimplex = function(v, d) {
-  var v_ = T.softmax(T.concat(v, Vector([0])));
-  return T.reshape(v_, [d, 1]);
-};
-
 var meanRewards = map(
-  function(i) { return (i === 7) ? 10 : 0; },
+  function(i) {
+    if ((i === 7) || (i === 3)) {
+      return 5;
+    } else {
+      return 0;
+    }
+  },
   _.range(numArms));
 
 var utility = function(action) {
@@ -16,13 +19,15 @@ var utility = function(action) {
 };
 
 var model = function() {
-  var ps = squishToProbSimplex(modelParam({ dims: [numArms-1, 1], name: 'ps' }), numArms);
+  var ps = softmax(param({ dims: [numArms, 1], name: 'ps' }));
+  console.log(_.flatten(ps.x.toArray()));
   var action = sample(Discrete({ ps }));
   var u = utility(action);
   factor(u);
   return action;
 };
 
-var params = Optimize({ model, steps: 10000 });
+Optimize({ model, steps: 10000 });
 
-squishToProbSimplex(params.ps[0], numArms).toArray();
+var params = getParams();
+softmax(params.ps[0]).toArray();
