@@ -111,16 +111,16 @@ a.chapter-link {
     padding: 20px;
 }
 
-a.ref {
+a.ref, .abstract-links a {
     text-decoration: none;
     color: #000;
 }
 
-a.ref:visited:hover {
+a.ref:visited:hover, .abstract-links a:visited:hover {
     color: rgb(85, 26, 139);
 }
 
-a.ref:hover {
+a.ref:hover, .abstract-links a:hover {
     color: rgb(0, 0, 238);
     text-decoration: underline;
 }
