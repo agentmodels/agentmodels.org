@@ -39,12 +39,11 @@ For more information about this project, contact [Owain Evans](http://owainevans
     {% endif %}
 {% endfor %}
 
-<br>
-
 
 ### Citation
 
-Please cite this book as: <br>
+Please cite this book as:
+
 Owain Evans, Andreas Stuhlmüller, John Salvatier, and Daniel Filan (electronic). *Modeling Agents with Probabilistic Programs.* Retrieved <span class="date"></span> from `http://agentmodels.org`. <a id="toggle-bibtex" href="#" onClick="javascript:$('#bibtex').toggle();return false">[bibtex]</a>
 
 <pre id="bibtex">
