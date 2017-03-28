@@ -20,10 +20,10 @@ jekyll serve
 To update webppl and webppl packages (`./scripts/update-webppl`):
 
 ~~~~
-npm install --save webppl@latest webppl-timeit@latest webppl-dp@latest agentmodels/webppl-agents
+npm install --save probmods/webppl webppl-timeit@latest webppl-dp@latest agentmodels/webppl-agents null-a/webppl-nn
 cd node_modules/webppl
 npm install
-grunt bundle:../webppl-timeit:../webppl-dp:../webppl-agents
+grunt bundle:../webppl-timeit:../webppl-dp:../webppl-agents:../webppl-nn
 cp bundle/webppl.min.js ../../assets/js/webppl.min.js
 cd ../..
 ~~~~

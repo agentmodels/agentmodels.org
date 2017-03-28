@@ -18,10 +18,11 @@
   },
   "homepage": "https://github.com/agentmodels/agentmodels.org#readme",
   "dependencies": {
-    "webppl": "^0.9.6",
+    "webppl": "github:probmods/webppl",
     "webppl-agents": "github:agentmodels/webppl-agents",
     "webppl-dp": "^0.1.1",
     "webppl-editor": "github:probmods/webppl-editor",
+    "webppl-nn": "github:null-a/webppl-nn",
     "webppl-timeit": "^0.3.0"
   }
 }
