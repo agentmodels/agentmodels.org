@@ -198,3 +198,12 @@ footer {
 footer a {
     color: #bbb
 }
+
+.editor-panel-body h1 {
+    line-height: 1.5em;
+}
+
+div#file-buttons {
+    display: inline;
+    padding-left: 0;
+}
