@@ -211,3 +211,7 @@ div#file-buttons {
 .editor-panel-body a {
     color: #095AD3;
 }
+
+.editor-panel-body h2, .editor-panel-body h3 {
+    margin-top: 2em;
+}
