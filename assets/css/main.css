@@ -207,3 +207,7 @@ div#file-buttons {
     display: inline;
     padding-left: 0;
 }
+
+.editor-panel-body a {
+    color: #095AD3;
+}
