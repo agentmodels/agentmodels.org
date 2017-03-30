@@ -4,6 +4,8 @@ title: Modeling Agents & Reinforcement Learning with Probabilistic Programming
 hidden: true
 ---
 
+# Modeling Agents & Reinforcement Learning with Probabilistic Programming
+
 ## Intro
 
 ### Motivation
@@ -52,15 +54,13 @@ Why JS?
     - [Agent viz](http://agentmodels.org/chapters/3b-mdp-gridworld.html#hiking-in-gridworld)
 
 ~~~~
-///fold:
-// var xs = [1, 2, 3, 4];
+var xs = [1, 2, 3, 4];
 
-// var square = function(x) {
-//   return x * x;
-// };
+var square = function(x) {
+  return x * x;
+};
 
-// map(square, xs);
-///
+map(square, xs);
 ~~~~
 
 ### Distributions and sampling
@@ -74,14 +74,13 @@ Examples: `Bernoulli`, `Categorical`
 Sampling helpers: `flip`, `categorical`
 
 ~~~~
-///fold:
-// var flip = function(p) {
-//   var dist = Bernoulli({ p });
-//   return sample(dist);
-// };
+var dist = Bernoulli({ p: 0.3 });
 
-// flip(.3);
-///
+var flip = function(p) {
+  return sample(Bernoulli({ p }));
+}
+
+flip(.3)
 ~~~~
 
 #### Continuous distributions
@@ -89,14 +88,12 @@ Sampling helpers: `flip`, `categorical`
 Examples: `Gaussian`, `Beta`
 
 ~~~~
-///fold:
-// var dist = Gaussian({ 
-//   mu: 1,
-//   sigma: 0.5
-// });
+var dist = Gaussian({ 
+  mu: 1,
+  sigma: 0.5
+});
 
-// viz(repeat(1000, function() { return sample(dist); }))
-///
+viz(repeat(1000, function() { return sample(dist); }));
 ~~~~
 
 #### Building complex distributions out of simple parts
@@ -104,17 +101,15 @@ Examples: `Gaussian`, `Beta`
 Example: geometric distribution
 
 ~~~~
-///fold:
-// var geometric = function(p) {
-//   if (flip(p)) {
-//     return 0;
-//   } else {
-//     return 1 + geometric(p);
-//   }
-// };
+var geometric = function(p) {
+  if (flip(p)) {
+    return 0;
+  } else {
+    return 1 + geometric(p);
+  }
+};
 
-// viz(repeat(100, function() { return geometric(.5); }));
-///
+viz(repeat(100, function() { return geometric(.5); }));
 ~~~~
 
 ### Inference
@@ -124,26 +119,26 @@ Example: geometric distribution
 `Infer` reifies the geometric distribution so that we can compute probabilities:
 
 ~~~~
-///fold:
-// var geometric = function(p) {
-//   if (flip(p)) {
-//     return 0;
-//   } else {
-//     return 1 + geometric(p);
-//   }
-// };
+var geometric = function(p) {
+  if (flip(p)) {
+    return 0;
+  } else {
+    return 1 + geometric(p);
+  }
+};
 
-// var model = function() {
-//   return geometric(.5);
-// };
+var model = function() {
+  return geometric(.5);
+};
 
-// var dist = Infer({
-//   model,
-//   maxExecutions: 100
-// });
+var dist = Infer({
+  model,
+  maxExecutions: 100
+});
 
-// Math.exp(dist.score(3))
-///
+viz(dist);
+
+Math.exp(dist.score(3))
 ~~~~
 
 #### Computing conditional distributions
@@ -151,53 +146,44 @@ Example: geometric distribution
 Example: inferring the weight of a geometric distribution
 
 ~~~~
-///fold:
-// var geometric = function(p) {
-//   if (flip(p)) {
-//     return 0;
-//   } else {
-//     return 1 + geometric(p);
-//   }
-// };
+var geometric = function(p) {
+  if (flip(p)) {
+    return 0;
+  } else {
+    return 1 + geometric(p);
+  }
+}
 
-// var model = function() {
-//   return geometric(.5);
-// };
+var model = function() {
+  var u = uniform(0, 1);
+  var x = geometric(u);
+  condition(x < 4);
+  return u;
+}
 
-// Infer({
-//   model: function() {
-//     var u = uniform(0, 1);
-//     var x = geometric(u);
-//     condition(x < 3);
-//     return u;
-//   },
-//   method: 'rejection',
-//   samples: 1000
-// });
-///
+var dist = Infer({
+  model,
+  method: 'rejection',
+  samples: 1000
+})
+
+dist
 ~~~~
 
 #### Technical note: three ways to condition
 
 ~~~~
-///fold:
-// var model = function() {
-//   var p = flip(.5) ? 0.5 : 1;
-//   var dist = Bernoulli({ p });
-//   var x = sample(dist);
-//   condition(x === true);
-//   // observe(dist, true)
-//   // factor(dist.score(true))
-//   return { p };
-// }
-
-// viz.table(Infer({ model }));
-///
-
 var model = function() {
   var p = flip(.5) ? 0.5 : 1;
-  var dist = Bernoulli({ p });
-  // ...
+  var coin = Bernoulli({ p });
+
+  var x = sample(coin);
+  condition(x === true);
+  
+//  observe(coin, true);
+  
+//  factor(coin.score(true));
+  
   return { p };
 }
 
@@ -209,36 +195,20 @@ viz.table(Infer({ model }));
 Docs: [inference algorithms](http://docs.webppl.org/en/master/inference/methods.html)
 
 ~~~~
-///fold:
-// var xs = [1, 2, 3, 4, 5];
-// var ys = [2, 4, 6, 8, 10];
-
-// var model = function() {
-//   var slope = gaussian(0, 10);
-//   var offset = gaussian(0, 10);
-//   var f = function(x) {
-//     var y = slope * x + offset;
-//     return Gaussian({ mu: y, sigma: .1 })
-//   };
-//   map2(function(x, y){
-//     observe(f(x), y)
-//   }, xs, ys)
-//   return { slope, offset };
-// }
-
-// Infer({
-//   model,
-//   method: 'MCMC',
-//   kernel: {HMC: {steps: 10, stepSize: .01}},
-//   samples: 2000,
-// })
-///
-
 var xs = [1, 2, 3, 4, 5];
 var ys = [2, 4, 6, 8, 10];
 
 var model = function() {
-  /// ...
+  var slope = gaussian(0, 10);
+  var offset = gaussian(0, 10);
+  var f = function(x) {
+    var y = slope * x + offset;
+    return Gaussian({ mu: y, sigma: .1 })
+  };
+  map2(function(x, y){
+    observe(f(x), y)
+  }, xs, ys)
+  return { slope, offset };
 }
 
 Infer({
@@ -254,28 +224,6 @@ Infer({
 ### Deterministic choices
 
 ~~~~
-///fold:
-// var actions = ['italian', 'french'];
-
-// var outcome = function(action) {
-//   if (action === 'italian') {
-//     return 'pizza';
-//   } else {
-//     return 'steak frites';
-//   }
-// };
-
-// var actionDist = Infer({ 
-//   model() {
-//     var action = uniformDraw(actions);
-//     condition(outcome(action) === 'pizza');
-//     return action;
-//   }
-// });
-
-// actionDist
-///
-
 var actions = ['italian', 'french'];
 
 var outcome = function(action) {
@@ -288,7 +236,9 @@ var outcome = function(action) {
 
 var actionDist = Infer({ 
   model() {
-    /// ...
+    var action = uniformDraw(actions);
+    condition(outcome(action) === 'pizza');
+    return action;
   }
 });
 
@@ -298,37 +248,6 @@ actionDist
 ### Expected utility
 
 ~~~~
-///fold:
-// var actions = ['italian', 'french'];
-
-// var transition = function(state, action) {
-//   var nextStates = ['bad', 'good', 'spectacular'];
-//   var nextProbs = ((action === 'italian') ? 
-//                    [0.2, 0.6, 0.2] : 
-//                    [0.05, 0.9, 0.05]);
-//   return categorical(nextProbs, nextStates);
-// };
-
-// var utility = function(state) {
-//   var table = { 
-//     bad: -10, 
-//     good: 6, 
-//     spectacular: 8 
-//   };
-//   return table[state];
-// };
-
-// var expectedUtility = function(action) {
-//   return expectation(Infer({ 
-//     model() {
-//       return utility(transition('start', action));
-//     }
-//   }));
-// };
-
-// map(expectedUtility, actions);
-///
-
 var actions = ['italian', 'french'];
 
 var transition = function(state, action) {
@@ -349,7 +268,14 @@ var utility = function(state) {
 };
 
 var expectedUtility = function(action) {
-  /// ...
+  var utilityDist = Infer({
+    model: function() {
+      var nextState = transition('initialState', action);
+      var u = utility(nextState);
+      return u;
+    }
+  });
+  return expectation(utilityDist);
 };
 
 map(expectedUtility, actions);
@@ -358,52 +284,6 @@ map(expectedUtility, actions);
 ### Softmax-optimal decision-making
 
 ~~~~
-///fold:
-// var actions = ['italian', 'french'];
-
-// var transition = function(state, action) {
-//   var nextStates = ['bad', 'good', 'spectacular'];
-//   var nextProbs = ((action === 'italian') ? 
-//                    [0.2, 0.6, 0.2] : 
-//                    [0.05, 0.9, 0.05]);
-//   return categorical(nextProbs, nextStates);
-// };
-
-// var utility = function(state) {
-//   var table = { 
-//     bad: -10, 
-//     good: 6, 
-//     spectacular: 8 
-//   };
-//   return table[state];
-// };
-
-// var alpha = 1;
-
-// var agent = function(state) {
-//   return Infer({ 
-//     model() {
-
-//       var action = uniformDraw(actions);
-
-//       var expectedUtility = function(action) {
-//         return expectation(Infer({ 
-//           model() {
-//             return utility(transition(state, action));
-//           }
-//         }));
-//       };
-      
-//       factor(alpha * expectedUtility(action));
-      
-//       return action;
-//     }
-//   });
-// };
-
-// agent('initialState');
-///
-
 var actions = ['italian', 'french'];
 
 var transition = function(state, action) {
@@ -428,7 +308,26 @@ var alpha = 1;
 var agent = function(state) {
   return Infer({ 
     model() {
-      // ...
+
+      var action = uniformDraw(actions);
+      
+      var expectedUtility = function(action) {
+        var utilityDist = Infer({
+          model: function() {
+            var nextState = transition('initialState', action);
+            var u = utility(nextState);
+            return u;
+          }
+        });
+        return expectation(utilityDist);
+      };
+      
+      var eu = expectedUtility(action);
+      
+      factor(eu);
+      
+      return action;
+      
     }
   });
 };
@@ -444,30 +343,6 @@ agent('initialState');
 
 
 ~~~~
-///fold:
-// var act = function(state) {
-//   return Infer({ model() {
-//     var action = uniformDraw(stateToActions(state));
-//     var eu = expectedUtility(state, action);
-//     factor(eu);
-//     return action;
-//   }});
-// };
-
-// var expectedUtility = function(state, action){
-//   var u = utility(state, action);
-//   if (isTerminal(state)){
-//     return u; 
-//   } else {
-//     return u + expectation(Infer({ model() {
-//       var nextState = transition(state, action);
-//       var nextAction = sample(act(nextState));
-//       return expectedUtility(nextState, nextAction);
-//     }}));
-//   }
-// };
-///
-
 var act = function(state) {
   return Infer({ model() {
     var action = uniformDraw(stateToActions(state));
@@ -478,9 +353,16 @@ var act = function(state) {
 };
 
 var expectedUtility = function(state, action){
-  // - Get current utility
-  // - In terminal state, return it
-  // - Otherwise, add it to future expected utility (transition, act, recurse)
+  var u = utility(state, action);
+  if (isTerminal(state)){
+    return u; 
+  } else {
+    return u + expectation(Infer({ model() {
+      var nextState = transition(state, action);
+      var nextAction = sample(act(nextState));
+      return expectedUtility(nextState, nextAction);
+    }}));
+  }
 };
 ~~~~
 
@@ -498,40 +380,6 @@ var expectedUtility = function(state, action){
 ### A simple example: Coordination games
 
 ~~~~
-///fold:
-// var locationPrior = function() {
-//   if (flip(.55)) {
-//     return 'popular-bar';
-//   } else {
-//     return 'unpopular-bar';
-//   }
-// }
-
-// var alice = dp.cache(function(depth) {
-//   return Infer({ model() {
-//     var myLocation = locationPrior();
-//     var bobLocation = sample(bob(depth - 1));
-//     condition(myLocation === bobLocation);
-//     return myLocation;
-//   }});
-// });
-
-// var bob = dp.cache(function(depth) {
-//   return Infer({ model() {
-//     var myLocation = locationPrior();
-//     if (depth === 0) {
-//       return myLocation;
-//     } else {
-//       var aliceLocation = sample(alice(depth));
-//       condition(myLocation === aliceLocation);
-//       return myLocation;
-//     }
-//   }});
-// });
-
-// viz(alice(10));
-///
-
 var locationPrior = function() {
   if (flip(.55)) {
     return 'popular-bar';
@@ -540,13 +388,29 @@ var locationPrior = function() {
   }
 }
 
-var alice = function() {
+var alice = dp.cache(function(depth) {
   return Infer({ model() {
-    // ...
+    var myLocation = locationPrior();
+    var bobLocation = sample(bob(depth - 1));
+    condition(myLocation === bobLocation);
+    return myLocation;
   }});
 });
 
-alice()
+var bob = dp.cache(function(depth) {
+  return Infer({ model() {
+    var myLocation = locationPrior();
+    if (depth === 0) {
+      return myLocation;
+    } else {
+      var aliceLocation = sample(alice(depth));
+      condition(myLocation === aliceLocation);
+      return myLocation;
+    }
+  }});
+});
+
+alice(5)
 ~~~~
 
 ### Other examples
@@ -567,32 +431,14 @@ alice()
 ### Inference vs. Optimization
 
 ~~~~
-///fold:
-// var k = 3;  // number of heads
-// var n = 10; // number of coin flips
-
-// var model = function() {
-//   var p = sample(Uniform({ a: 0, b: 1}));
-//   var dist = Binomial({ p, n });
-//   observe(dist, k);
-//   return p;
-// };
-
-// var dist = Infer({ 
-//   model,
-//   method: ‘MCMC',
-//   samples: 100000,
-//   burn: 1000
-// });
-
-// expectation(dist);
-///
-
 var k = 3;  // number of heads
 var n = 10; // number of coin flips
 
 var model = function() {
-  // Want to infer coin weight
+  var p = sample(Uniform({ a: 0, b: 1}));
+  var dist = Binomial({ p, n });
+  observe(dist, k);
+  return p;
 };
 
 var dist = Infer({ 
@@ -606,31 +452,14 @@ expectation(dist);
 ~~~~
 
 ~~~~
-///fold:
-// var k = 3;  // number of heads
-// var n = 10; // number of coin flips
-
-// var model = function() {
-//   var p = Math.sigmoid(modelParam({ name: 'p' }));
-//   var dist = Binomial({ p, n });
-//   observe(dist, k);
-//   return p;
-// };
-
-// Optimize({
-//   model,
-//   steps: 1000,
-//   optMethod: { sgd: { stepSize: 0.01 }}
-});
-
-Math.sigmoid(getParams().p);
-///
-
 var k = 3;  // number of heads
 var n = 10; // number of coin flips
 
 var model = function() {
-  // Want to figure out coin weight using optimization
+  var p = Math.sigmoid(modelParam({ name: 'p' }));
+  var dist = Binomial({ p, n });
+  observe(dist, k);
+  return p;
 };
 
 Optimize({
@@ -665,15 +494,6 @@ var blackBox = function(action) {
   var u = Gaussian({ mu, sigma: 0.01 }).sample();
   return u;
 };
-
-// var agent = function() {
-//   var ps = softmax(modelParam({ dims: [numArms, 1], name: 'ps' }));
-//   var action = sample(Discrete({ ps }));
-//   var utility = blackBox(action);
-//   factor(utility);
-//   return action;
-// };
-
 ///
 
 // actions: [0, 1, 2, ..., 9]
@@ -681,11 +501,13 @@ var blackBox = function(action) {
 // blackBox: action -> utility
 
 var agent = function() {
-  // - action probabilities ps as softmax of parameter
-  // - sample action from discrete
-  // - get utility from black box
-  // - add factor
+  var ps = softmax(modelParam({ dims: [numArms, 1], name: 'ps' }));
+  var action = sample(Discrete({ ps }));
+  var utility = blackBox(action);
+  factor(utility);
+  return action;
 };
+
 
 Optimize({ model: agent, steps: 10000 });
 
