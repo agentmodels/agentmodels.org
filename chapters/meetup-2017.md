@@ -4,8 +4,6 @@ title: Modeling Agents & Reinforcement Learning with Probabilistic Programming
 hidden: true
 ---
 
-# Modeling Agents & Reinforcement Learning with Probabilistic Programming
-
 ## Intro
 
 ### Motivation
