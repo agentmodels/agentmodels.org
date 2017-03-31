@@ -6,6 +6,6 @@ npm install --save probmods/webppl webppl-timeit@latest webppl-dp@latest agentmo
 cd node_modules/webppl
 npm install
 grunt bundle:../webppl-timeit:../webppl-dp:../webppl-agents:../webppl-nn
-cp bundle/webppl.min.js ../../assets/js/webppl.min.js
 cd ../..
+cp node_modules/webppl/bundle/webppl.min.js assets/js/webppl.min.js
 echo "Success."
