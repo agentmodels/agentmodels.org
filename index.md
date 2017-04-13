@@ -50,7 +50,7 @@ Owain Evans, Andreas Stuhlmüller, John Salvatier, and Daniel Filan (electronic)
 @misc{agentmodels,
   title = {% raw %}{{Modeling Agents with Probabilistic Programs}}{% endraw %},
   author = {Evans, Owain and Stuhlm\"{u}ller, Andreas and Salvatier, John and Filan, Daniel},
-  year = {2016},
+  year = {2017},
   howpublished = {\url{http://agentmodels.org}},
   note = {Accessed: <span class="date"></span>}
 }
