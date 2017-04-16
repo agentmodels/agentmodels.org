@@ -70,6 +70,7 @@ var geometric = function(p) {
 
 var boundedGeometric = Infer({ 
   model() { return geometric(0.5); },
+  method: 'enumerate',  
   maxExecutions: 20 
 });
 
