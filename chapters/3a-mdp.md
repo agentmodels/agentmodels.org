@@ -263,7 +263,7 @@ var numSteps = [3, 4, 5, 6, 7];
 var runtimes = map(getRuntime, numSteps);
 
 print('Runtime in ms for for a given number of steps: \n')
-print(_.object(numSteps, runtimes));
+print(_.zipObject(numSteps, runtimes));
 viz.bar(numSteps, runtimes);
 ~~~~
 
@@ -338,7 +338,7 @@ var runtimes = map(getRuntime, numSteps);
 
 print('WITH MEMOIZATION \n');
 print('Runtime in ms for for a given number of steps: \n')
-print(_.object(numSteps, runtimes));
+print(_.zipObject(numSteps, runtimes));
 viz.bar(numSteps, runtimes)
 ~~~~
 
