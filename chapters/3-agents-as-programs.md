@@ -269,7 +269,7 @@ Since rational agents will *always* choose the best action, why consider softmax
 
 [^softmax]: A softmax agent's choice of action is a differentiable function of their utilities. This differentiability makes possible certain techniques for inferring utilities from choices.
 
->**Exercise**: Monty Hall. In this exercise inspired by [ProbMods](https://probmods.org/inference-about-inference.html), we will approach the classical statistical puzzle from the perspective of optimal decision-making. Here is a statement of the problem:
+>**Exercise**: Monty Hall. In this exercise inspired by [ProbMods](https://probmods.org/chapters/06-inference-about-inference.html), we will approach the classical statistical puzzle from the perspective of optimal decision-making. Here is a statement of the problem:
 
 > *Alice is on a game show and she’s given the choice of three doors. Behind one door is a car; behind the others, goats. She picks door 1. The host, Monty, knows what’s behind the doors and opens another door, say No. 3, revealing a goat. He then asks Alice if she wants to switch doors. Should she switch?*
 
