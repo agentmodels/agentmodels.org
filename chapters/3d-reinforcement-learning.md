@@ -89,13 +89,14 @@ var simulate = function(armToCoinWeight, totalTime, agent) {
   var priorBelief = agent.params.priorBelief;
 
   var sampleSequence = function(timeLeft, priorBelief, action) {
-    var observation = observeStateAction(armToCoinWeight, action);
+    var observation = (action !== 'noAction') &&
+                      observeStateAction(armToCoinWeight, action);
     var belief = ((action === 'noAction') ? priorBelief :
-                  updateBelief(priorBelief, observation, action))
+                  updateBelief(priorBelief, observation, action));
     var action = sample(act(belief));
 
     return (timeLeft === 0) ? [action] : 
-    [action].concat(sampleSequence(timeLeft-1, belief, action));
+           [action].concat(sampleSequence(timeLeft-1, belief, action));
   };
   return sampleSequence(totalTime, priorBelief, 'noAction');
 };
