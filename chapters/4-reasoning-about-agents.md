@@ -631,7 +631,7 @@ We can extend our approach to inference to deal with agents that solve POMDPs. O
 Instead, we extend the approach in Equation (1) above. The first thing to notice is that Equation (1) has to be amended for POMDPs. In an MDP, actions are conditionally independent given the agent's parameters $$U$$ and $$\alpha$$ and the state. For any pair of actions $$a_{i}$$ and $$a_j$$ and state $$s_i$$:
 
 $$
-P(a_i \vert a_j, s_i, U,\alpha) = P(a_j \vert s_i, U,\alpha)
+P(a_i \vert a_j, s_i, U,\alpha) = P(a_i \vert s_i, U,\alpha)
 $$
 
 In a POMDP, actions are only rendered conditionally independent if we also condition on the agent's *belief*. So Equation (1) can only be extended to the case where we know the agent's belief at each timestep. This will be realistic in some applications and not others. It depends on whether the agent's *observations* are part of the data that is conditioned on. If so, the agent's belief can be computed at each timestep (assuming the agent's initial belief is known). If not, we have to marginalize over the possible observations, making for a more complex inference computation.
@@ -677,7 +677,7 @@ In the Bandit problems there is an unknown mapping from arms to non-numeric priz
 
 [^bandit]: If we did not know the mapping from arms to prizes, the inference problem would not change fundamentally. We get information about this mapping by observing the prizes the agent receives when pulling different arms.
 
-Often the agent's choices admit of multiple explanations. Recall the deterministic example in the previous chapter when (according to the agent's belief) `arm0` had the prize "chocolate" and `arm1` either had either "champagne" or "nothing" (see also Figure 2 below). Suppose we observe the agent chosing `arm0` on the first of five trials. If we don't know the agent's utilities or beliefs, then this choice could be explained by either:
+Often the agent's choices admit of multiple explanations. Recall the deterministic example in the previous chapter when (according to the agent's belief) `arm0` had the prize "chocolate" and `arm1` had either "champagne" or "nothing" (see also Figure 2 below). Suppose we observe the agent chosing `arm0` on the first of five trials. If we don't know the agent's utilities or beliefs, then this choice could be explained by either:
 
 (1). the agent's preference for chocolate over champagne, or
 
