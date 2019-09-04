@@ -457,7 +457,7 @@ var makeProcrastinationMDP = function(deadlineTime) {
   };
 
   var transition = function(state, action) {
-    assert.ok(_.contains(stateLocs, state.loc) && _.contains(actions, action), 
+    assert.ok(_.includes(stateLocs, state.loc) && _.includes(actions, action), 
               'procrastinate transition:' + [state.loc,action]);
     
     if (state.loc === "reward_state") {
