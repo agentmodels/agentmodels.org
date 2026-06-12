@@ -13,7 +13,7 @@ Agents are implemented as differentiable functional programs in a probabilistic 
 
 <span class="abstract-links">The book assumes basic programming experience but is otherwise self-contained. It includes short introductions to <a href="/chapters/3-agents-as-programs.html#planning_as">"planning as inference"</a>, [MDPs](/chapters/3a-mdp.html), [POMDPs](/chapters/3c-pomdp.html), [inverse reinforcement learning](/chapters/4-reasoning-about-agents.html), [hyperbolic discounting](/chapters/5a-time-inconsistency.html), [myopic planning](/chapters/5c-myopic.html), and [multi-agent planning](/chapters/multi-agent.html).</span>
 
-For more information about this project, contact [Owain Evans](http://owainevans.github.io). 
+For more information about this project, contact [Owain Evans](https://owainevans.github.io) or [Andreas Stuhlmüller](https://stuhlmueller.org). 
 
 
 ### Table of contents
