@@ -43,7 +43,7 @@ Contents:
 
 ### Introduction
 
-This is a quick-start guide to using the `webppl-agents` library. For a comprehensive explanation of the ideas behind the library (e.g. MDPs, POMDPs, hyperbolic discounting) and diverse examples of its use, go to the online textbook [agentmodels.org](http://agentmodels.org).
+This is a quick-start guide to using the `webppl-agents` library. For a comprehensive explanation of the ideas behind the library (e.g. MDPs, POMDPs, hyperbolic discounting) and diverse examples of its use, go to the online textbook [agentmodels.org](/).
 
 The webppl-agents library is built around two basic entities: *agents* and *environments*. These entities are combined by *simulating* an agent interacting with a particular environment. The library includes two standard RL environments as examples (Gridworld and Multi-armed Bandits). Four kinds of agent are included. Many combinations of environment and agent are possible. In addition, it's easy to add your own environments and agents -- as we illustrate below.
 
@@ -57,7 +57,7 @@ Not all environments and agents can be combined. Among environments, we distingu
 
 We begin by creating a very simple MDP environment and running two agents from the library on that environment.
 
-MDPs are defined [here](http://agentmodels.org/chapters/3a-mdp.html). For use in the library, MDP environments are Javascript objects with the following methods:
+MDPs are defined [here](/chapters/3a-mdp.html). For use in the library, MDP environments are Javascript objects with the following methods:
 
 >`{transition: ...,  stateToActions: ...}`
 

@@ -47,9 +47,9 @@ Why JS?
 - Actually a nice language underneath all the cruft
 - Runs locally via node.js, but also in browser:
     - [SmartPages](https://stuhlmueller.org/smartpages/)
-    - [Image inference viz](http://dippl.org/examples/vision.html)
-    - [Spaceships](http://dritchie.github.io/web-procmod/)
-    - [Agent viz](http://agentmodels.org/chapters/3b-mdp-gridworld.html#hiking-in-gridworld)
+    - [Image inference viz](https://dippl.org/examples/vision.html)
+    - [Spaceships](https://dritchie.github.io/web-procmod/)
+    - [Agent viz](/chapters/3b-mdp-gridworld.html#hiking-in-gridworld)
 
 ~~~~
 var xs = [1, 2, 3, 4];
@@ -63,7 +63,7 @@ map(square, xs);
 
 ### Distributions and sampling
 
-Docs: [distributions](http://docs.webppl.org/en/dev/distributions.html)
+Docs: [distributions](https://docs.webppl.org/en/dev/distributions.html)
 
 #### Discrete distributions
 
@@ -190,7 +190,7 @@ viz.table(Infer({ model }));
 
 #### A slightly less toy example: regression
 
-Docs: [inference algorithms](http://docs.webppl.org/en/master/inference/methods.html)
+Docs: [inference algorithms](https://docs.webppl.org/en/master/inference/methods.html)
 
 ~~~~
 var xs = [1, 2, 3, 4, 5];
@@ -335,7 +335,7 @@ agent('initialState');
 
 ## Sequential decision problems
 
-- [Restaurant Gridworld](http://agentmodels.org/chapters/3a-mdp.html) (1, last)
+- [Restaurant Gridworld](/chapters/3a-mdp.html) (1, last)
 - Structure of expected utility recursion
 - Dynamic programming
 
@@ -364,14 +364,14 @@ var expectedUtility = function(state, action){
 };
 ~~~~
 
-- [Hiking Gridworld](http://agentmodels.org/chapters/3b-mdp-gridworld.html) (1, 2, 3, last)
+- [Hiking Gridworld](/chapters/3b-mdp-gridworld.html) (1, 2, 3, last)
 - Expected state-action utilities (Q values)
-- [Temporal inconsistency](http://agentmodels.org/chapters/5b-time-inconsistency.html) in Restaurant Gridworld
+- [Temporal inconsistency](/chapters/5b-time-inconsistency.html) in Restaurant Gridworld
     
 
 ## Reasoning about agents
 
-- [Learning about preferences from observations](http://agentmodels.org/chapters/4-reasoning-about-agents.html) (1 & 2)
+- [Learning about preferences from observations](/chapters/4-reasoning-about-agents.html) (1 & 2)
 
 ## Multi-agent models
 
@@ -413,8 +413,8 @@ alice(5)
 
 ### Other examples
 
-- [Game playing: tic-tac-toe](http://agentmodels.org/chapters/7-multi-agent.html)
-- [Language understanding](http://agentmodels.org/chapters/7-multi-agent.html)
+- [Game playing: tic-tac-toe](/chapters/7-multi-agent.html)
+- [Language understanding](/chapters/7-multi-agent.html)
 
 ## Reinforcement learning
 
@@ -538,5 +538,5 @@ What to get out of this talk, revisited:
 
 Where to go from here:
 - [WebPPL](http://webppl.org) (webppl.org)
-- [AgentModels](http://agentmodels.org) (agentmodels.org)
+- [AgentModels](/) (agentmodels.org)
 - andreas@ought.com

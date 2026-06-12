@@ -146,7 +146,7 @@ How well does the Greedy agent do? It does best when the difference between arms
 
 >**Exercises**:
 
-> 1. Modify the code above so that it's easy to repeatedly run the same agent on the same Bandit problem. Compute the mean and standard deviation of the agent's total regret averaged over 20 episodes on the Bandit problem above. Use WebPPL's library [functions](http://docs.webppl.org/en/master/functions/arrays.html). 
+> 1. Modify the code above so that it's easy to repeatedly run the same agent on the same Bandit problem. Compute the mean and standard deviation of the agent's total regret averaged over 20 episodes on the Bandit problem above. Use WebPPL's library [functions](https://docs.webppl.org/en/master/functions/arrays.html). 
 > 2. Set the softmax noise to be low. How well does the Greedy Softmax agent do? Explain why. Keeping the noise low, modify the agent's priors to be overly "optimistic" about the expected reward of each arm (without changing the support of the prior distribution). How does this optimism change the agent's performance? Explain why. (An optimistic prior assigns a high expected reward to each arm. This idea is known as "optimism in the face of uncertainty" in the RL literature.)
 > 3. Modify the agent so that the softmax noise is low and the agent has a "bad" prior (i.e. one that assigns a low probability to the truth) that is not optimistic. Will the agent always learn the optimal policy (eventually?) If so, after how many trials is the agent very likely to have learned the optimal policy? (Try to answer this question without doing experiments that take a long time to run.)
 
@@ -208,7 +208,7 @@ We run the PSRL agent on Gridworld. The agent knows $$T$$ but does not know $$R$
 
 
 
-<img src="/assets/img/3d-gridworld.png" alt="gridworld ground-truth" style="width: 400px;"/>
+<img src="/assets/img/3d-gridworld.png" alt="4x4 gridworld with wall cells: the agent (blue circle) starts at cell (0,0); the goal cell G with reward 1 is at the top right, cell (3,3)" style="width: 400px;"/>
 
 
 

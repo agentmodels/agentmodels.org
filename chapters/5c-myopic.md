@@ -33,7 +33,7 @@ The Reward-myopic agent succeeds if good short-term actions produce good long-te
 
 The next codeboxes show the performance of the Reward-myopic agent on Bandit problems. The first codebox is a two-arm Bandit problem, illustrated in Figure 1. We use a Reward-myopic agent with high softmax noise: $$C_g=1$$ and $$\alpha=10$$. The Reward-myopic agent's average reward over 100 trials is close to the expected average reward given perfect knowledge of the arms.
 
-<img src="/assets/img/5b-greedy-bandit.png" alt="diagram" style="width: 600px;"/>
+<img src="/assets/img/5b-greedy-bandit.png" alt="Two-arm bandit: each arm's possible reward probabilities are shown in curly brackets with the true probability in bold; arm 0 pays 1.5, arm 1 pays 1" style="width: 600px;"/>
 
 >**Figure 1:** Bandit problem. The curly brackets contain possible probabilities according to the agent's prior (the bolded number is the true probability). For `arm0`, the agent has a uniform prior on the values $$\{0, 0.25, 0.5, 0.75, 1\}$$ for the probability the arm yields the reward 1.5.
 
@@ -100,7 +100,7 @@ print('Arm1 is best arm and has expected utility 0.5.\n' +
 
 The next codebox is a three-arm Bandit problem show in Figure 2. Given the agent's prior, `arm0` has the highest prior expectation. So the agent will try that before exploring other arms. We show the agent's actions and their average score over 40 trials.
 
-<img src="/assets/img/5b-greedy-bandit-2.png" alt="diagram" style="width: 400px;"/>
+<img src="/assets/img/5b-greedy-bandit-2.png" alt="Three-arm bandit with prior probabilities in brackets and true values bold: arm 0 pays 3 (p=0.1), arm 1 pays 1 (p=0.5), arm 2 pays 2 (p=0.5)" style="width: 400px;"/>
 
 >**Figure 2:** Bandit problem where `arm0` has highest prior expectation for the agent but where `arm2` is actually the best arm. (This may take a while to run.)
 
@@ -228,7 +228,7 @@ The implementation of the Update-myopic agent in WebPPL is a direct translation 
 
 The Update-myopic agent performs well on a variety of Bandit problems. The following codeboxes compare the Update-myopic agent to the Optimal POMDP agent on binary, two-arm Bandits (see the specific example in Figure 3). <!--TODO: add statement about equivalent performance. -->
 
-<img src="/assets/img/5b-myopic-bandit.png" alt="diagram" style="width: 600px;"/>
+<img src="/assets/img/5b-myopic-bandit.png" alt="Two-arm binary bandit: two reward hypotheses per arm, labeled with their prior probabilities; the actual reward distributions have bold borders" style="width: 600px;"/>
 
 >**Figure 3**: Bandit problem. The agent's prior includes two hypotheses for the rewards of each arm, with the prior probability of each labeled to the left and right of the boxes. The priors on each arm are independent and so there are four hypotheses overall. Boxes with actual rewards have a bold border. 
 <br>

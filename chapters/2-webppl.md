@@ -85,14 +85,14 @@ map(print, xs);
 "Done!"
 ~~~~
 
-It is possible to use normal Javascript functions (which make *internal* use of side effects) in WebPPL. See the [online book](http://dippl.org/chapters/02-webppl.html) on the implementation of WebPPL for details (section "Using Javascript Libraries").
+It is possible to use normal Javascript functions (which make *internal* use of side effects) in WebPPL. See the [online book](https://dippl.org/chapters/02-webppl.html) on the implementation of WebPPL for details (section "Using Javascript Libraries").
 
 
 ## WebPPL stochastic primitives
 
 ### Sampling from random variables
 
-WebPPL has a large [library](http://docs.webppl.org/en/master/distributions.html) of primitive probability distributions. Try clicking "Run" repeatedly to get different i.i.d. random samples:
+WebPPL has a large [library](https://docs.webppl.org/en/master/distributions.html) of primitive probability distributions. Try clicking "Run" repeatedly to get different i.i.d. random samples:
 
 ~~~~
 print('Fair coins (Bernoulli distribution):');

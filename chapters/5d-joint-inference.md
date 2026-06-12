@@ -60,13 +60,13 @@ The likelihood term on the right-hand side of this equation is simply the softma
 
 The <a href="/chapters/5b-time-inconsistency.html#procrastination">Procrastination Problem</a> (Figure 1 below) illustrates how agents with identical preferences can deviate *systematically* in their behavior due to time inconsistency. Suppose two agents care equally about finishing the task and assign the same cost to doing the hard work. The optimal agent will complete the task immediately. The Naive hyperbolic discounter will delay every day until the deadline, which could be thirty days away!
 
-<img src="/assets/img/procrastination_mdp.png" alt="diagram" style="width: 650px;"/>
+<img src="/assets/img/procrastination_mdp.png" alt="Transition graph: each day the agent can wait (utility 0) or work (cost -w), reaching a reward state worth R minus epsilon per day waited" style="width: 650px;"/>
 
 >**Figure 1:** Transition graph for Procrastination Problem. States are represented by nodes. Edges are state-transitions and are labeled with the action name and the utility of the state-action pair. Terminal nodes have a bold border and their utility is labeled below.
 
 This kind of systematic deviation between agents is also significant for inferring preferences. We consider the problem of *online* inference, where we observe the agent's behavior each day and produce an estimate of their preferences. Suppose the agent has a deadline $$T$$ days into the future and leaves the work till the last day. This is typical human behavior -- and so is a good test for a model of inference. 
 
-We compare the online inferences of two models. The *Optimal Model* assumes the agent is time-consistent with softmax parameter $$\alpha$$. The *Possibly Discounting* model includes both optimal and Naive hyperbolic discounting agents in its prior. (The Possibly Discounting model includes the Optimal Model as a special case; this allows us to place a uniform prior on the models and exploit [Bayesian Model Selection](http://alumni.media.mit.edu/~tpminka/statlearn/demo/).)
+We compare the online inferences of two models. The *Optimal Model* assumes the agent is time-consistent with softmax parameter $$\alpha$$. The *Possibly Discounting* model includes both optimal and Naive hyperbolic discounting agents in its prior. (The Possibly Discounting model includes the Optimal Model as a special case; this allows us to place a uniform prior on the models and exploit [Bayesian Model Selection](https://alumni.media.mit.edu/~tpminka/statlearn/demo/).)
 
 For each model, we compute posteriors for the agent's parameters after observing the agent's choice at each timestep. We set $$T=10$$. So the observed actions are:
 
@@ -282,7 +282,7 @@ Suppose someone completes the task on the final day. What do you infer about the
 
 ## Learning from Reward-myopic Agents in Bandits
 
-Chapter V.2. "[Bounded Agents](/chapters/5c-myopia)" explained that Reward-myopic agents explore less than optimal agents. The Reward-myopic agent plans each action as if time runs out in $$C_g$$ steps, where $$C_g$$ is the *bound* or "look ahead". If exploration only pays off in the long-run (after the bound) then the agent won't explore[^bandit1]. This means there are two possible explanations for an agent not exploring: either the agent is greedy or the agent has a low prior on the utility of the unknown options.
+Chapter V.2. "[Bounded Agents](/chapters/5c-myopic.html)" explained that Reward-myopic agents explore less than optimal agents. The Reward-myopic agent plans each action as if time runs out in $$C_g$$ steps, where $$C_g$$ is the *bound* or "look ahead". If exploration only pays off in the long-run (after the bound) then the agent won't explore[^bandit1]. This means there are two possible explanations for an agent not exploring: either the agent is greedy or the agent has a low prior on the utility of the unknown options.
 
 [^bandit1]: If there's no noise in transitions or in selection of actions, the Reward-myopic agent will *never* explore and will do poorly. 
 
@@ -292,7 +292,7 @@ We return to the deterministic bandit-style problem from earlier. At each trial,
 
 - `arm1`: yields either champagne or no prize at all (agent's prior is $$0.7$$ for nothing)
 
-<img src="/assets/img/5c-irl-bandit-diagram.png" alt="diagram" style="width: 400px;"/>
+<img src="/assets/img/5c-irl-bandit-diagram.png" alt="Two-arm bandit: arm 0 always yields chocolate; arm 1 yields nothing (agent's prior 0.7, the true state) or champagne (prior 0.3)" style="width: 400px;"/>
 
 The inference problem is to infer the agent's preference over chocolate. While having only two deterministic arms may seem overly simple, the same structure is shared by realistic problems. For example, we can imagine observing people choosing between different cuisines, restaurants or menu options. Usually people know about some options well but are uncertain about others. When inferring their preferences, we distinguish between options chosen for exploration vs. exploitation. The same applies to people choosing media sources: someone might try out a channel to learn whether it shows their favorite genre. 
 

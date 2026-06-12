@@ -52,7 +52,7 @@ $$
 
 Intuitively, the probability that $$s'$$ is the new state depends on the marginal probability of transitioning to $$s'$$ (given $$b$$) and the probability of the observation $$o$$ occurring in $$s'$$. The relation between the variables in a POMDP is summarized in Figure 1 (below).
 
-<img src="/assets/img/pomdp_graph.png" alt="diagram" style="width: 400px;"/>
+<img src="/assets/img/pomdp_graph.png" alt="Directed graph of POMDP variables: belief b and state s lead to action a, which yields utility u, next state s', observation o and updated belief b'" style="width: 400px;"/>
 
 >**Figure 1:** The dependency structure between variables in a POMDP.
 
@@ -180,7 +180,7 @@ Bandits can be modeled as Reinforcement Learning problems, where the agent learn
 
 In our examples, the arms are labeled with integers and arm $$i$$ has Bernoulli distributed rewards with parameter $$\theta_i$$. In the first codebox (below), the true reward distribution,  $$(\theta_0,\theta_1)$$, is $$(0.7,0.8)$$ but the agent's prior is uniform over $$(0.7,0.8)$$ and $$(0.7,0.2)$$. So the agent's only uncertainty is over $$\theta_1$$. 
 
-Rather than implement everything in the codebox, we use the library [webppl-agents](https://github.com/agentmodels/webppl-agents). This includes functions for constructing a Bandit environment (`makeBanditPOMDP`), for constructing a POMDP agent (`makePOMDPAgent`) and for running the agent on the environment (`simulatePOMDP`). This [chapter](/chapters/guide-library.html) explains how to use webppl-agents. The <a href="#appendix">Appendix</a> includes a codebox with a full implementation of a POMDP agent on a Bandit problem. 
+Rather than implement everything in the codebox, we use the library [webppl-agents](https://github.com/agentmodels/webppl-agents). This includes functions for constructing a Bandit environment (`makeBanditPOMDP`), for constructing a POMDP agent (`makePOMDPAgent`) and for running the agent on the environment (`simulatePOMDP`). This [chapter](/chapters/8-guide-library.html) explains how to use webppl-agents. The <a href="#appendix">Appendix</a> includes a codebox with a full implementation of a POMDP agent on a Bandit problem. 
 
 
 ~~~~
@@ -618,7 +618,7 @@ The next [chapter](/chapters/3d-reinforcement-learning.html) is on reinforcement
 
 We apply the POMDP agent to a simplified variant of the Multi-arm Bandit Problem. In this variant, pulling an arm produces a *prize* deterministically. The agent begins with uncertainty about the mapping from arms to prizes and learns by trying the arms. In our example, there are only two arms. The first arm is known to have the prize "chocolate" and the second arm either has "champagne" or has no prize at all ("nothing"). See Figure 2 (below) for details.
 
-<img src="/assets/img/3c-irl-bandit.png" alt="diagram" style="width: 500px;"/>
+<img src="/assets/img/3c-irl-bandit.png" alt="Two possible mappings from bandit arms to prizes (chocolate, nothing, champagne) with utilities, each with prior 0.5; the true mapping has a solid outline" style="width: 500px;"/>
 
 >**Figure 2:** Diagram for deterministic Bandit problem used in the codebox below. The boxes represent possible deterministic mappings from arms to prizes. Each prize has a reward/utility $$u$$. On the right are the agent's initial beliefs about the probability of each mapping. The true mapping (i.e. true *latent state*) has a solid outline.
 

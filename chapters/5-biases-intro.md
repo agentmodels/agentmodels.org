@@ -18,7 +18,7 @@ The table below provides more detail about these two uses[^table]. The first cha
 
 The present chapter discusses the limitations of using optimal agent modes as generative models for Use (2). We argue that developing models of *biased* or *bounded* decision making can address these limitations. 
 
-<a href="/assets/img/table_chapter5_intro.png"><img src="/assets/img/table_chapter5_intro.png" alt="table" style="width: 650px;"/></a>
+<a href="/assets/img/table_chapter5_intro.png"><img src="/assets/img/table_chapter5_intro.png" alt="Table comparing two goals: solving practical decision problems vs. learning human preferences, with their key tasks, optimality criteria, and fields" style="width: 650px;"/></a>
 
 >**Table 1:** Two uses for formal models of sequential decision making. The heading "Optimality" means "Are optimal models of decision making used?".
 <br>

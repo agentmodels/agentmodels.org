@@ -7,7 +7,7 @@ is_section: true
 
 
 ## Introduction
-The previous chapters have shown how to compute optimal actions for agents in MDPs and POMDPs. In many practical applications, this is the goal. For example, when controlling a robot, the goal is for the robot to act optimally given its utility function. When playing the stock market or poker, the goal is make money and one might use an approach based on the POMDP agent model from the [previous chapter](/chapters/3c-pomdp).
+The previous chapters have shown how to compute optimal actions for agents in MDPs and POMDPs. In many practical applications, this is the goal. For example, when controlling a robot, the goal is for the robot to act optimally given its utility function. When playing the stock market or poker, the goal is make money and one might use an approach based on the POMDP agent model from the [previous chapter](/chapters/3c-pomdp.html).
 
 In other settings, however, the goal is to *learn* or *reason about* an agent based on their behavior. For example, in social science or psychology researchers often seek to learn about people's preferences (denoted $$U$$) and beliefs (denoted $$b$$). The relevant *data* (denoted $$\{a_i\}$$) are usually observations of human actions. In this situation, models of optimal action can be used as *generative models* of human actions. The generative model predicts the behavior *given* preferences and beliefs. That is:
 
@@ -650,7 +650,7 @@ $$
 P(U,\alpha, b_0 | (s,o,a)_{0:n}) \propto P( (s,o,a)_{0:n} | U, \alpha, b_0)P(U, \alpha, b_0)
 $$
 
-To produce a factorized form of this posterior analogous to Equation (1), we compute the sequence of agent beliefs. This is given by the recursive Bayesian belief update described in [Chapter 3.3](/chapters/3c-pomdp):
+To produce a factorized form of this posterior analogous to Equation (1), we compute the sequence of agent beliefs. This is given by the recursive Bayesian belief update described in [Chapter 3.3](/chapters/3c-pomdp.html):
 
 $$
 b_i = b_{i-1} \vert s_i, o_i, a_{i-1}
@@ -671,7 +671,7 @@ $$
 
 ### Application: Bandits
 
-To learn the preferences and beliefs of a POMDP agent we translate Equation (2) into WebPPL. In a later [chapter](/chapters/5e-joint-inference.html), we apply this to the Restaurant Choice problem. Here we focus on the Bandit problems introduced in the [previous chapter](/chapters/3c-pomdp).
+To learn the preferences and beliefs of a POMDP agent we translate Equation (2) into WebPPL. In a later [chapter](/chapters/5e-joint-inference.html), we apply this to the Restaurant Choice problem. Here we focus on the Bandit problems introduced in the [previous chapter](/chapters/3c-pomdp.html).
 
 In the Bandit problems there is an unknown mapping from arms to non-numeric prizes (or distributions on such prizes) and the agent has preferences over these prizes. The agent tries out arms to discover the mapping and exploits the most promising arms. In the *inverse* problem, we get to observe the agent's actions. Unlike the agent, we already know the mapping from arms to prizes. However, we don't know the agent's preferences or the agent's prior about the mapping[^bandit].
 
@@ -739,7 +739,7 @@ var inferBeliefsAndPreferences = function(baseAgentParams, priorPrizeToUtility,
 
 We start with a very simple example. The agent is observed pulling `arm1` five times. The agent's prior is known and assigns equal weight to `arm1` yielding "champagne" and to it yielding "nothing". The true prize for `arm1` is "champagne" (see Figure 1).
 
-<img src="/assets/img/4-irl-bandit-1.png" alt="diagram" style="width: 500px;"/>
+<img src="/assets/img/4-irl-bandit-1.png" alt="Agent's known prior over two arm-to-prize mappings, each with belief 0.5; in the true mapping (solid outline) arm1 yields champagne" style="width: 500px;"/>
 
 > **Figure 1:** Bandit problem where agent's prior is known. (The true state has the bold outline).
 
@@ -855,7 +855,7 @@ viz.table(getMarginal(posterior, 'prizeToUtility'));
 
 In the codebox above, the agent's preferences are identified by the observations. This won't hold for the next example, which we introduced previously. The agent's utilities for prizes are still unknown and now the agent's prior is also unknown. Either the agent is "informed" and knows the truth that `arm1` yields "champagne". Or the agent is misinformed and believes `arm1` is likely to yield "nothing". These two possibilities are depicted in Figure 2.
 
-<img src="/assets/img/4-irl-bandit-2.png" alt="diagram" style="width: 600px;"/>
+<img src="/assets/img/4-irl-bandit-2.png" alt="Two equally likely initial beliefs for the agent: informed (certain arm1 yields champagne) or misinformed (95% belief that arm1 yields nothing)" style="width: 600px;"/>
 
 > **Figure 2:** Bandit where agent's prior is unknown. The two large boxes depict the prior on the agent's initial belief. Each possibility for the agent's initial belief has probability 0.5.
 

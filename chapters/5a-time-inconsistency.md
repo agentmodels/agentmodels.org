@@ -35,7 +35,7 @@ Generalizing the previous agent models to the unbounded case faces a difficulty.
 What are the effects of exponential discounting? We return to the deterministic Bandit problem from Chapter III.3 (see Figure 1). Suppose a person decides every year where to go on a skiing vacation. There is a fixed set of options {Tahoe, Chile, Switzerland} and a finite time horizon[^bandit]. The person discounts exponentially and so they prefer a good vacation now to an even better one in the future. This means they are less likely to *explore*, since exploration takes time to pay off.
 
 
-<img src="/assets/img/5a-irl-bandit.png" alt="diagram" style="width: 600px;"/>
+<img src="/assets/img/5a-irl-bandit.png" alt="Agent's four prior hypotheses about utilities of Tahoe, Chile and Switzerland; the true hypothesis, with Tahoe best (u=1), has a bold border" style="width: 600px;"/>
 
 >**Figure 1**: Deterministic Bandit problem. The agent tries different arms/destinations and receives rewards. The reward for Tahoe is known but Chile and Switzerland are both unknown. The actual best option is Tahoe. 
 <br>

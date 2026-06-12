@@ -10,7 +10,7 @@ This chapter is based on reft:stuhlmueller2013reasoning.
 
 ## Schelling coordination games
 
-We start with a simple [Schelling coordination game](http://lesswrong.com/lw/dc7/nash_equilibria_and_schelling_points/). Alice and Bob are trying to meet up but have lost their phones and have no way to contact each other. There are two local bars: the popular bar and the unpopular one.
+We start with a simple [Schelling coordination game](https://www.lesswrong.com/posts/yJfBzcDL9fBHJfZ6P/nash-equilibria-and-schelling-points). Alice and Bob are trying to meet up but have lost their phones and have no way to contact each other. There are two local bars: the popular bar and the unpopular one.
 
 Let's first consider how Alice would choose a bar (if she was not taking Bob into account):
 
@@ -108,7 +108,7 @@ viz(alice(10));
 
 We'll look at the two-player game tic-tac-toe:
 
-<img src="/assets/img/tic-tac-toe-game-1.svg"/>
+<img src="/assets/img/tic-tac-toe-game-1.svg" alt="Sequence of tic-tac-toe boards showing the successive moves of a game between players X and O"/>
 
 >*Figure 1:* Tic-tac-toe. (Image source: [Wikipedia](https://en.wikipedia.org/wiki/Tic-tac-toe#/media/File:Tic-tac-toe-game-1.svg))
 
