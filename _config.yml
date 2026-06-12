@@ -1,10 +1,24 @@
 # Site settings
 title: Modeling Agents with Probabilistic Programs
+description: "An interactive, open-source book on modeling rational and biased agents for (PO)MDPs and reinforcement learning using probabilistic programs, with runnable WebPPL code examples."
 baseurl: ""
-url: "http://agentmodels.org"
+url: "https://agentmodels.org"
 
 # Build settings
 markdown: kramdown
 
+plugins:
+- jekyll-sitemap
+
 exclude:
 - node_modules
+- Gemfile
+- Gemfile.lock
+- vendor
+- docker-compose.yml
+- README.md
+- notes
+- scratch
+- scripts
+- assets/tex
+- assets/generate_figures

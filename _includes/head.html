@@ -2,23 +2,39 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}</title>
-  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pure/0.6.0/pure-min.css">
-  <link rel='stylesheet' id='syntax-merriweather-css'  href='https://fonts.googleapis.com/css?family=Merriweather%3A400%2C300italic%2C300%2C400italic%2C700%2C700italic&#038;subset=latin%2Clatin-ext&#038;ver=4.4-alpha-34640' type='text/css' media='all' />
-  <link rel="stylesheet" href="{{ "/assets/css/main.css" | prepend: site.baseurl }}">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css">
+
+  {% assign meta_description = page.description | default: site.description %}
+  <meta name="description" content="{{ meta_description | strip_html | strip_newlines | escape }}">
   <link rel="canonical" href="{{ page.url | replace:'index.html','' | prepend: site.baseurl | prepend: site.url }}">
-  <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.js"></script>
-  <script src="{{ "/assets/js/parse-bibtex.js" | prepend: site.baseurl }}"></script>
-  <script src="{{ "/assets/js/main.js" | prepend: site.baseurl }}"></script>
 
-  <script src="//s3-us-west-2.amazonaws.com/cdn.webppl.org/webppl-editor-1.0.5.js"></script>
-  <link rel="stylesheet" href="//s3-us-west-2.amazonaws.com/cdn.webppl.org/webppl-editor-1.0.5.css">  
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{{ site.title }}">
+  <meta property="og:title" content="{% if page.title %}{{ page.title | escape }}{% else %}{{ site.title | escape }}{% endif %}">
+  <meta property="og:description" content="{{ meta_description | strip_html | strip_newlines | escape }}">
+  <meta property="og:url" content="{{ page.url | replace:'index.html','' | prepend: site.baseurl | prepend: site.url }}">
+  <meta property="og:image" content="{{ '/assets/img/maze.png' | prepend: site.baseurl | prepend: site.url }}">
+  <meta name="twitter:card" content="summary">
 
-  <script src="//s3-us-west-2.amazonaws.com/cdn.webppl.org/webppl-viz-818a17e.js"></script>
-  <link rel="stylesheet" href="//s3-us-west-2.amazonaws.com/cdn.webppl.org/webppl-viz-0.7.10.css">
-  
-  <script src="{{ "/assets/js/webppl.min.js" | prepend: site.baseurl }}" defer async></script>
+  <link rel="icon" type="image/png" href="{{ '/assets/img/favicon.png' | prepend: site.baseurl }}">
+  <link rel="apple-touch-icon" href="{{ '/assets/img/apple-touch-icon.png' | prepend: site.baseurl }}">
+
+  <link rel="stylesheet" href="{{ '/assets/vendor/pure-0.6.0.min.css' | prepend: site.baseurl }}">
+  <link rel="stylesheet" href="{{ '/assets/vendor/merriweather/merriweather.css' | prepend: site.baseurl }}">
+  <link rel="stylesheet" href="{{ '/assets/vendor/katex/katex.min.css' | prepend: site.baseurl }}">
+  <link rel="stylesheet" href="{{ '/assets/vendor/webppl-editor-1.0.5.css' | prepend: site.baseurl }}">
+  <link rel="stylesheet" href="{{ '/assets/vendor/webppl-viz-0.7.10.css' | prepend: site.baseurl }}">
+  <link rel="stylesheet" href="{{ '/assets/css/main.css' | prepend: site.baseurl }}">
+
+  <script src="{{ '/assets/vendor/jquery-3.7.1.min.js' | prepend: site.baseurl }}"></script>
+  <script src="{{ '/assets/vendor/katex/katex.min.js' | prepend: site.baseurl }}"></script>
+  <script src="{{ '/assets/vendor/katex/auto-render.min.js' | prepend: site.baseurl }}"></script>
+  <script src="{{ '/assets/js/parse-bibtex.js' | prepend: site.baseurl }}"></script>
+  <script src="{{ '/assets/js/main.js' | prepend: site.baseurl }}"></script>
+
+  <script src="{{ '/assets/vendor/webppl-editor-1.0.5.js' | prepend: site.baseurl }}"></script>
+  <script src="{{ '/assets/vendor/webppl-viz-818a17e.js' | prepend: site.baseurl }}"></script>
+
+  <script src="{{ '/assets/js/webppl.min.js' | prepend: site.baseurl }}" defer async></script>
 
   {% if page.custom_css %}
     {% for stylesheet in page.custom_css %}
@@ -31,5 +47,5 @@
     <script src='{{ js_file }}' type="text/javascript"></script>
     {% endfor %}
   {% endif %}
-      
+
 </head>

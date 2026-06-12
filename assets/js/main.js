@@ -159,26 +159,17 @@ function setupReferences(callback) {
 }
 
 // LaTeX math
-// based on https://github.com/cben/sandbox/blob/gh-pages/_layouts/katex.html
+// kramdown 2.x (current GitHub Pages) emits \(...\) and \[...\] delimiters;
+// KaTeX's auto-render extension finds and typesets them.
 
 function setupLaTeX() {
-  var scripts = document.getElementsByTagName("script");
-  for (var i = 0; i < scripts.length; i++) {
-    /* TODO: keep going after an individual parse error. */
-    var script = scripts[i];
-    if (script.type.match(/^math\/tex/)) {
-      var text = script.text === "" ? script.innerHTML : script.text;
-      var options = script.type.match(/mode\s*=\s*display/) ?
-          {displayMode: true} : {};
-      try {
-        script.insertAdjacentHTML("beforebegin",
-                                  katex.renderToString(text, options));
-      } catch (err) {
-          console.log('KaTeX error:');
-          console.log(err);
-      }
-    }
-  }
+  renderMathInElement(document.body, {
+    delimiters: [
+      {left: "\\(", right: "\\)", display: false},
+      {left: "\\[", right: "\\]", display: true}
+    ],
+    throwOnError: false
+  });
   document.body.className += " math_finished";
 }
 
@@ -260,21 +251,6 @@ var setupFootnotesOnHover = (function() {
 })();
 
 
-// Analytics
-
-(function(i, s, o, g, r, a, m) {
-  i['GoogleAnalyticsObject'] = r;
-  i[r] = i[r] || function() {
-    (i[r].q = i[r].q || []).push(arguments)
-  }, i[r].l = 1 * new Date();
-  a = s.createElement(o),
-  m = s.getElementsByTagName(o)[0];
-  a.async = 1;
-  a.src = g;
-  m.parentNode.insertBefore(a, m)
-})(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
-
-
 // On page load
 
 $(document).ready(function() {
@@ -284,6 +260,4 @@ $(document).ready(function() {
   // We pass footnotes as callback, since setupReferences rewrites HTML
   // and destroys the handlers that setupFootnotes installs.
   setupReferences(setupFootnotesOnHover);
-  ga('create', 'UA-54996-14', 'auto');
-  ga('send', 'pageview');
 });

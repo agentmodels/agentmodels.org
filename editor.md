@@ -1,7 +1,11 @@
 ---
 layout: default
-custom_js: http://webppl.org/homepage.js
-custom_css: http://webppl.org/homepage.css
+title: Interactive Editor
+description: "Write and run WebPPL programs in the browser."
+custom_js:
+- /assets/vendor/webppl-homepage.js
+custom_css:
+- /assets/vendor/webppl-homepage.css
 ---
 
 <div class="panel panel-default">
