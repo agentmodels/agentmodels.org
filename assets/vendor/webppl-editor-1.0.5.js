@@ -42763,7 +42763,12 @@ var setupCode = function (preEl, options) {
     ret = this;
     var comp = this;
 
-    requestAnimationFrame(function () {
+    // PATCHED (agentmodels.org): requestAnimationFrame never fires in hidden
+    // tabs, so editors silently failed to mount when the page loaded in a
+    // background tab (real Chrome via CDP, prerendering, etc.). Fall back to
+    // setTimeout when hidden; there is no paint to flicker in a hidden tab.
+    var scheduleMount = document.hidden ? function (fn) { setTimeout(fn, 0); } : requestAnimationFrame;
+    scheduleMount(function () {
       var cm = comp.refs['editor'].getCodeMirror();
 
       parentDiv.replaceChild(editorDiv, preEl);
