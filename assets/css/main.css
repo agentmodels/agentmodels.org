@@ -125,14 +125,6 @@ a.ref:hover, .abstract-links a:hover {
     text-decoration: underline;
 }
 
-.MathJax_Preview {
-    color: #888
-}
-
-.math_finished .MathJax_Preview {
-    display: none
-}
-
 ol li {
     list-style-type: upper-roman
 }
@@ -214,4 +206,65 @@ div#file-buttons {
 
 .editor-panel-body h2, .editor-panel-body h3 {
     margin-top: 2em;
+}
+
+/* Keep images (many have fixed inline widths) inside the content column */
+
+.page-content img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Previous/next chapter navigation */
+
+nav.chapter-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 2em;
+    margin-top: 3em;
+    padding-top: 1.5em;
+    border-top: 1px solid #ddd;
+    font-size: 90%;
+}
+
+nav.chapter-nav a {
+    color: #095AD3;
+    text-decoration: none;
+}
+
+nav.chapter-nav a:hover {
+    text-decoration: underline;
+}
+
+nav.chapter-nav .chapter-nav-next {
+    text-align: right;
+}
+
+/* Keyboard focus visibility */
+
+a:focus-visible, button:focus-visible {
+    outline: 2px solid #095AD3;
+    outline-offset: 2px;
+}
+
+/* Small screens */
+
+@media (max-width: 600px) {
+    .page-content {
+        padding: 20px;
+    }
+
+    header, footer {
+        padding: 20px;
+    }
+
+    img#cover {
+        width: 100%;
+        max-width: 400px;
+    }
+
+    div#footnotebubble {
+        width: auto;
+        max-width: 90vw;
+    }
 }

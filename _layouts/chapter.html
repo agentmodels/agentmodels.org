@@ -5,3 +5,38 @@ layout: default
 <h1 class="chapter-title">{{ page.title }}</h1>
 
 {{ content }}
+
+{% assign sorted_pages = site.pages | sort: "name" %}
+{% assign chapters = "" | split: "" %}
+{% for p in sorted_pages %}
+  {% if p.layout == 'chapter' and p.hidden != true and p.status != 'stub' %}
+    {% assign chapters = chapters | push: p %}
+  {% endif %}
+{% endfor %}
+{% for p in chapters %}
+  {% if p.url == page.url %}
+    {% unless forloop.first %}
+      {% assign prev_i = forloop.index0 | minus: 1 %}
+      {% assign prev_chapter = chapters[prev_i] %}
+    {% endunless %}
+    {% unless forloop.last %}
+      {% assign next_i = forloop.index0 | plus: 1 %}
+      {% assign next_chapter = chapters[next_i] %}
+    {% endunless %}
+  {% endif %}
+{% endfor %}
+
+{% if prev_chapter or next_chapter %}
+<nav class="chapter-nav" aria-label="Chapter navigation">
+  <div class="chapter-nav-prev">
+    {% if prev_chapter %}
+    <a href="{{ site.baseurl }}{{ prev_chapter.url }}" rel="prev">&larr; {{ prev_chapter.title }}</a>
+    {% endif %}
+  </div>
+  <div class="chapter-nav-next">
+    {% if next_chapter %}
+    <a href="{{ site.baseurl }}{{ next_chapter.url }}" rel="next">{{ next_chapter.title }} &rarr;</a>
+    {% endif %}
+  </div>
+</nav>
+{% endif %}

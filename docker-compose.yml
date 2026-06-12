@@ -1,7 +1,13 @@
-jekyll:
-    image: jekyll/jekyll:pages
-    command: jekyll serve --watch --incremental
+services:
+  jekyll:
+    image: ruby:3.3
+    working_dir: /site
+    command: bash -c "bundle install && bundle exec jekyll serve --host 0.0.0.0 --watch"
     ports:
-        - 4000:4000
+      - "4000:4000"
     volumes:
-        - .:/srv/jekyll
+      - .:/site
+      - bundle-cache:/usr/local/bundle
+
+volumes:
+  bundle-cache:

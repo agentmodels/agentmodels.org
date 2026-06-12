@@ -1,11 +1,16 @@
 .DS_Store
 .sass-cache
-_site/*
-assets/_site/*
-*.*~
-node_modules
-chapters/#3d-pomdp-test.md#
-
-chapters/owain_notes.md
-_codeboxes/*
+_site/
+assets/_site/
 .jekyll-metadata
+.jekyll-cache/
+node_modules
+*.*~
+chapters/#3d-pomdp-test.md#
+chapters/owain_notes.md
+_codeboxes/
+
+# LaTeX build artifacts
+assets/tex/*.aux
+assets/tex/*.log
+assets/tex/auto/
