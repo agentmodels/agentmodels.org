@@ -1,0 +1,14 @@
+# Keep the local Jekyll toolchain (Gemfile) in step with the GitHub Pages
+# build environment. One grouped PR a month at most; CI (build + html-proofer)
+# validates it. Security updates arrive as separate PRs regardless.
+version: 2
+updates:
+  - package-ecosystem: bundler
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    groups:
+      jekyll-toolchain:
+        patterns:
+          - "*"
