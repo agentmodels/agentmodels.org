@@ -44,6 +44,7 @@ The site is published with GitHub Pages from the `gh-pages` branch — pushing t
 ~~~~
 chapters/        Book chapters (Markdown)
 index.md         Landing page and table of contents
+editor.md        Interactive WebPPL editor page
 bibliography.bib Citations, rendered client-side
 assets/css       Site stylesheet
 assets/js        Site JS + frozen WebPPL bundle
@@ -52,5 +53,7 @@ assets/img       Figures
 assets/tex       LaTeX sources for some figures
 _layouts, _includes  Jekyll templates
 notes/, scratch/ Old planning notes (not published)
-scripts/         Historical build scripts for the WebPPL bundle
+scripts/         WebPPL bundle rebuild scripts and a codebox extraction script
+                 (generate-codebox-scrips.py), none used by the site build
+docker-compose.yml  Local Jekyll server (docker compose up)
 ~~~~
