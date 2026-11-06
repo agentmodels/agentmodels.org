@@ -35,6 +35,13 @@ Either way, the site is served at <http://localhost:4000>.
 
 If you ever need to regenerate it, the historical recipe is in `scripts/update-webppl` (uses the dependencies pinned in `package.json`); expect to need an old Node version.
 
+## Local patches to the vendored editor
+
+`assets/vendor/webppl-editor-1.0.5.js` is the upstream webppl-editor 1.0.5 build with two local fixes, each marked `PATCHED (agentmodels.org)`. Keep both if you ever replace or rebuild the editor:
+
+1. **Trampoline resumption** ([#41](https://github.com/agentmodels/agentmodels.org/issues/41)). The editor used to set `global.resumeTrampoline = prepared.runner`. The bundled WebPPL sets `resumeTrampoline` itself inside `prepare()` and no longer returns `prepared.runner`, so that line overwrote it with `undefined` and code boxes that call `viz()` never finished. The editor now assigns it only when `prepared.runner` exists.
+2. **Mounting in hidden tabs**. Editors mount inside a `requestAnimationFrame` callback, and browsers don't fire those in background tabs, so a chapter opened in a background tab (or prerendered, or loaded by headless Chrome) kept its plain `<pre>` blocks. When `document.hidden` is true the editor now mounts with `setTimeout` instead.
+
 ## Deployment
 
 The site is published with GitHub Pages from the `gh-pages` branch — pushing to `gh-pages` deploys. The `Gemfile` pins the [`github-pages`](https://pages.github.com/versions/) gem so local builds match production. CI (GitHub Actions) builds the site and checks internal links on every push.
